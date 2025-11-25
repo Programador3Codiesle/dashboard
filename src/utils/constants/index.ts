@@ -1,10 +1,10 @@
-import { LayoutDashboard, ReceiptText, Calendar, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, BadgeDollarSign, CalendarClock, ShieldCheck } from "lucide-react";
 
 export const ROUTES = [
-  { path: '/', name: 'Dashboard', icon: LayoutDashboard },
-  { path: '/nomina', name: 'Nómina', icon: ReceiptText },
-  { path: '/citas', name: 'Citas', icon: Calendar },
-  { path: '/garantias', name: 'Garantías', icon: ShieldCheck },
+  { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
+  { path: "/nomina", name: "Nómina", icon: BadgeDollarSign },
+  { path: "/citas", name: "Citas", icon: CalendarClock },
+  { path: "/garantias", name: "Garantía", icon: ShieldCheck },
 ];
 
 // Colores para tarjetas del Dashboard (opcional)

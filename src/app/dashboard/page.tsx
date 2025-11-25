@@ -1,30 +1,65 @@
-import React from 'react';
+// app/dashboard/page.tsx
+'use client';
 
-interface CardProps {
-  title: string;
-  value: string;
-  color: string;
-}
+import { motion } from "framer-motion";
+import { TrendingUp, Users, DollarSign, Activity } from "lucide-react";
 
-const Card: React.FC<CardProps> = ({ title, value, color }) => (
-  <div className={`p-6 rounded-xl shadow-lg text-white ${color}`}>
-    <p className="text-sm font-light uppercase opacity-90">{title}</p>
-    <p className="text-3xl font-extrabold mt-1">{value}</p>
-  </div>
-);
+const stats = [
+  { icon: DollarSign, value: "$45,231", label: "Ingresos", change: "+12%" },
+  { icon: Users, value: "+2,350", label: "Usuarios", change: "+18%" },
+  { icon: TrendingUp, value: "12,234", label: "Ventas", change: "+8%" },
+  { icon: Activity, value: "573", label: "Activos", change: "+5%" },
+];
 
-const DashboardPage: React.FC = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <Card title="Usuarios Activos" value="2,450" color="bg-indigo-500" />
-    <Card title="Transacciones Hoy" value="$12,890" color="bg-green-500" />
-    <Card title="Tickets Pendientes" value="14" color="bg-yellow-500" />
-    <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Gráfico de Actividad Semanal</h2>
-      <div className="h-64 flex items-center justify-center text-gray-400 border border-dashed rounded-lg">
-        [Simulación de componente de Gráfico aquí]
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover-lift"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className="text-sm text-green-500 font-medium mt-1">{stat.change}</p>
+              </div>
+              <div className="p-3 bg-amber-100 rounded-xl">
+                <stat.icon className="text-amber-600" size={24} />
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
+        >
+          <h3 className="text-lg font-semibold mb-4">Actividad Reciente</h3>
+          {/* Contenido del gráfico */}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100"
+        >
+          <h3 className="text-lg font-semibold mb-4">Rendimiento</h3>
+          {/* Contenido del rendimiento */}
+        </motion.div>
       </div>
     </div>
-  </div>
-);
-
-export default DashboardPage;
+  );
+}
