@@ -1,5 +1,5 @@
 import React from 'react';
-import { INominaReporte } from '../types';
+import { INominaReporte } from '../../modules/nomina/types';
 import { IErrorResponse } from '@/types/global';
 
 interface NominaTableProps {
@@ -38,7 +38,7 @@ export const NominaReporteTable: React.FC<NominaTableProps> = ({ reportes, isLoa
   return (
     <div className="overflow-x-auto shadow-xl rounded-xl">
       <table className="min-w-full bg-white">
-        <thead className="bg-indigo-500 text-white">
+        <thead className="bg-amber-500 text-white">
           <tr>
             <th className="py-3 px-6 text-left">Período</th>
             <th className="py-3 px-6 text-left">Base</th>

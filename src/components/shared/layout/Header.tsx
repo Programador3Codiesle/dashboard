@@ -40,7 +40,7 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
           </motion.button>
           
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent">
               {currentTitle}
             </h1>
             <p className="text-sm text-gray-500">Bienvenido de vuelta</p>
@@ -50,13 +50,13 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
         {/* Right Section */}
         <div className="flex items-center space-x-3">
       
-          <p className="text-1xl text-gray-900">Cristhian Alberto Sanchez Murillo</p>
+          <p className="text-1xl text-gray-800">Cristhian Sanchez</p>
           {/* Profile Menu */}
           <motion.div className="relative">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 p-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl"
+              className="flex items-center space-x-2 p-2 bg-linear-to-br from-amber-500 to-amber-600 text-white rounded-xl"
               onClick={() => setShowProfile(!showProfile)}
             >
               <User size={18} />

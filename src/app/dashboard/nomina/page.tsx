@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useNominaReportes } from '@/modules/nomina/hooks/useNominaReportes';
-import { NominaReporteTable } from '@/modules/nomina/components/NominaReporteTable';
+import { NominaReporteTable } from '@/components/nomina/NominaReporteTable';
 import { Button } from '@/components/shared/atoms/Button';
 import { ReceiptText } from 'lucide-react';
 

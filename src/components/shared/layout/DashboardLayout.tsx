@@ -44,7 +44,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   if (!isAuthenticated) {
      // ... el código de no autenticado que ya tienes
      return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center p-8">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">🔒</span>
@@ -60,7 +60,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const desktopMargin = isCollapsed ? 'lg:ml-20' : 'lg:ml-80';
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50/30">
+    <div className="flex min-h-screen bg-linear-to-br from-gray-50 via-white to-amber-50/30">
       <Sidebar 
         currentPath={pathname} 
         onNavigate={router.push} 

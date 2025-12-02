@@ -1,28 +1,10 @@
-import { useState } from 'react';
-import { IUser, IErrorResponse } from '@/types/global';
+"use client";
 
-interface AuthContextType {
-  user: IUser | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  login: (credentials: any) => Promise<void>;
-  logout: () => void;
-}
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-export const useAuth = (): AuthContextType => {
-  const [user, setUser] = useState<IUser | null>({ id: 'user-001', name: 'Junior Dev', role: 'admin' });
-  const [loading, setLoading] = useState(false);
-
-  const login = async (credentials: any) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setUser({ id: 'user-001', name: 'Junior Dev', role: 'admin' });
-    setLoading(false);
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
-
-  return { user, isAuthenticated: !!user, loading, login, logout };
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth debe usarse dentro de un AuthProvider");
+  return ctx;
 };
