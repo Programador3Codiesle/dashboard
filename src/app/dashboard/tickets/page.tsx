@@ -1,18 +1,25 @@
 'use client';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
-import React from 'react';
-import { Ticket } from 'lucide-react';
-import { Button } from '@/components/shared/atoms/Button';
+export default function TicketsRootPage() {
+  const { user } = useAuth();
+  const router = useRouter();
 
-const TicketsPage: React.FC = () => (
-  <div className="bg-white p-10 rounded-xl shadow-lg text-center">
-    <Ticket size={48} className="mx-auto text-indigo-400 mb-4" />
-    <h2 className="text-2xl font-bold text-gray-800">Módulo de tickets</h2>
-    <p className="text-gray-600 mt-2">
-      Aquí se integrará la lógica y componentes de `/modules/tickets`.
-    </p>
-    <Button variant="secondary" className="mt-6">Ver tickets</Button>
-  </div>
-);
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin") {
+        router.replace("/dashboard/tickets/activos");
+      } else {
+        router.replace("/dashboard/tickets/mis-tickets");
+      }
+    }
+  }, [user, router]);
 
-export default TicketsPage;
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    </div>
+  );
+}

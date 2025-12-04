@@ -7,6 +7,7 @@ export interface IUsuario {
     sede: number;
     estado: 'Activo' | 'Inactivo';
     empresas?: string[];
+    email: string;
 }
 
 export interface AgregarEmpresaModalProps {
@@ -52,4 +53,20 @@ export interface HorarioData {
     dias: string[];
     horaInicio: string;
     horaFin: string;
+}
+
+export interface AgregarUsuarioModalProps {
+    open: boolean;
+    usuario: IUsuario | null;
+    onClose: () => void;
+    onSave: (usuario: IUsuario) => void;
+    perfilesDisponibles: { id: number; nombre: string; }[];
+}
+
+export interface AgregarJefeModalProps {
+    open: boolean;
+    usuario: IUsuario | null;
+    onClose: () => void;
+    onSave: (jefe: IUsuario) => void;
+    jefesDisponibles: { id: number; nombre: string; cargo: string }[];
 }

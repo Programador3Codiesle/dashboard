@@ -209,8 +209,8 @@ export function UsuariosTable() {
 
             {/* ----------- TABLA ----------- */}
             <div className="overflow-x-auto border rounded-lg">
-                <table className="w-full text-sm">
-                    <thead className="bg-amber-500 text-gray-700 text-center">
+                <table className="w-full ">
+                    <thead className="bg-amber-500 text-white text-center">
                         <tr>
                             <th className="px-4 py-2 text-center">ID</th>
                             <th className="px-4 py-2 text-center">Nombre</th>
@@ -222,7 +222,7 @@ export function UsuariosTable() {
                         </tr>
                     </thead>
 
-                    <tbody className="text-center">
+                    <tbody className="text-center text-sm">
                         {usuariosMostrados.map((u: IUsuario) => (
                             <tr key={u.id} className="border-b hover:bg-gray-50">
                                 <td className="px-4 py-3">{u.id || "Sin id"}</td>

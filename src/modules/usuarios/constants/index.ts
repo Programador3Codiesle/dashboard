@@ -32,3 +32,9 @@ export const diasSemana = [
     "Sábado",
     "Domingo"
 ];
+
+export const perfilesDisponibles = [
+    { id: 1, nombre: "Admin" },
+    { id: 2, nombre: "Usuario" },
+    { id: 3, nombre: "Jefe" },
+];

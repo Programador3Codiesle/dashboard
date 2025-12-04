@@ -14,7 +14,7 @@ export function useConfirmModal() {
         action: null
     });
 
-    const openModal = (usuario: IUsuario, action: ModalAction = 'delete') =>
+    const openModal = (usuario: IUsuario | null, action: ModalAction = 'delete') =>
         setModal({ open: true, usuario, action });
 
     const closeModal = () =>
