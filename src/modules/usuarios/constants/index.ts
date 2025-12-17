@@ -1,8 +1,24 @@
 export const empresasDisponibles = [
-    { id: "codiesel", nombre: "Codiesel", logo: "🚗" },
-    { id: "dieselco", nombre: "Dieselco", logo: "🔧" },
-    { id: "mitsubishi", nombre: "Mitsubishi", logo: "⚡" },
-    { id: "byd", nombre: "BYD", logo: "🔋" },
+    // IDs alineados con los códigos que maneja el backend (ej: "1", "2", "4", ...)
+    { id: "1", nombre: "Codiesel", logo: "🚗" },
+    { id: "2", nombre: "Dieselco", logo: "🔧" },
+    { id: "3", nombre: "Mitsubishi", logo: "⚡" },
+    { id: "4", nombre: "BYD", logo: "🔋" },
+];
+
+
+// Constante con las sedes disponibles
+ export const SEDES_DISPONIBLES = [
+    "Barrancabermeja",
+    "Bocono",
+    "Bucaramanga",
+    "Chevropartes",
+    "CODINOVA",
+    "Dieselco",
+    "Giron",
+    "Malecon",
+    "Rosita",
+    "Tunja"
 ];
 
 

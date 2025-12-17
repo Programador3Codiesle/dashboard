@@ -1,75 +1,100 @@
 'use client';
 import Modal from "../../shared/ui/Modal";
 import { EditUsuarioModalProps } from "@/modules/usuarios/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+export default function EditUsuarioModal({ open, usuario, onClose, onSave, perfilesDisponibles, perfilActual }: EditUsuarioModalProps) {
+    const [selectedPerfil, setSelectedPerfil] = useState<string>("");
 
-export default function EditUsuarioModal({ open, usuario, onClose, onSave }: EditUsuarioModalProps) {
-    const [formData, setFormData] = useState({
-        nombre: usuario?.nombre || '',
-        sede: usuario?.sede || 0,
-    });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.name === 'sede' ? parseInt(e.target.value) || 0 : e.target.value;
-        setFormData({
-            ...formData,
-            [e.target.name]: value
-        });
-    };
+    useEffect(() => {
+        if (open && perfilActual) {
+            setSelectedPerfil(perfilActual.id);
+        } else if (open) {
+            setSelectedPerfil("");
+        }
+    }, [open, perfilActual]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (usuario) {
-            onSave({
-                ...usuario,
-                ...formData
-            });
+        if (selectedPerfil) {
+            onSave(selectedPerfil);
+            onClose();
         }
-        onClose();
     };
 
     return (
-        <Modal open={open} onClose={onClose} title="Editar Usuario" width="500px">
+        <Modal open={open} onClose={onClose} title={`Editar Perfil - ${usuario?.nombre}`} width="500px">
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: "15px" }}>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "500" }}>
-                        Nombre completo
+                <div style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", marginBottom: "10px", fontSize: "14px", fontWeight: "500" }}>
+                        Perfil actual:
                     </label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        value={formData.nombre}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #ddd",
+                    {perfilActual ? (
+                        <div style={{
+                            padding: "12px",
+                            backgroundColor: "#f0fdf4",
+                            border: "1px solid #86efac",
                             borderRadius: "6px",
-                            fontSize: "14px"
-                        }}
-                    />
+                            marginBottom: "15px"
+                        }}>
+                            <span style={{ fontSize: "14px", fontWeight: "600", color: "#059669" }}>
+                                {perfilActual.nombre}
+                            </span>
+                        </div>
+                    ) : (
+                        <div style={{
+                            padding: "12px",
+                            backgroundColor: "#f3f4f6",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "6px",
+                            marginBottom: "15px"
+                        }}>
+                            <span style={{ fontSize: "14px", color: "#6b7280" }}>
+                                Sin perfil asignado
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ marginBottom: "20px" }}>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "500" }}>
-                        Sede (ID)
+                    <label style={{ display: "block", marginBottom: "10px", fontSize: "14px", fontWeight: "500" }}>
+                        Seleccionar nuevo perfil:
                     </label>
-                    <input
-                        type="number"
-                        name="sede"
-                        value={formData.sede}
-                        onChange={handleChange}
-                        required
-                        style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #ddd",
-                            borderRadius: "6px",
-                            fontSize: "14px"
-                        }}
-                    />
+                    <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                        {perfilesDisponibles.map((perfil) => (
+                            <label
+                                key={perfil.id}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    padding: "12px",
+                                    marginBottom: "8px",
+                                    border: "2px solid",
+                                    borderColor: selectedPerfil === perfil.id ? "#f59e0b" : "#ddd",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    backgroundColor: selectedPerfil === perfil.id ? "#fef3c7" : "#fff",
+                                    transition: "all 0.2s"
+                                }}
+                            >
+                                <input
+                                    type="radio"
+                                    name="perfil"
+                                    checked={selectedPerfil === perfil.id}
+                                    onChange={() => setSelectedPerfil(perfil.id)}
+                                    style={{
+                                        marginRight: "12px",
+                                        width: "18px",
+                                        height: "18px",
+                                        cursor: "pointer"
+                                    }}
+                                />
+                                <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                                    {perfil.nombre}
+                                </span>
+                            </label>
+                        ))}
+                    </div>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
@@ -89,14 +114,16 @@ export default function EditUsuarioModal({ open, usuario, onClose, onSave }: Edi
                     </button>
                     <button
                         type="submit"
+                        disabled={!selectedPerfil}
                         style={{
                             padding: "8px 16px",
-                            background: "#f59e0b",
+                            background: !selectedPerfil ? "#ccc" : "#f59e0b",
                             color: "#fff",
                             borderRadius: "6px",
                             border: "none",
-                            cursor: "pointer",
-                            fontWeight: "500"
+                            cursor: !selectedPerfil ? "not-allowed" : "pointer",
+                            fontWeight: "500",
+                            opacity: !selectedPerfil ? 0.6 : 1
                         }}
                     >
                         Guardar

@@ -22,11 +22,9 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (selectedEmpresas.length > 0) {
-            onSave(selectedEmpresas);
-            setSelectedEmpresas([]);
-            onClose();
-        }
+        // Enviamos siempre el listado seleccionado (puede ser vacío para eliminar todas)
+        onSave(selectedEmpresas);
+        onClose();
     };
 
     return (
@@ -77,11 +75,7 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
                     </button>
                     <button
                         type="submit"
-                        disabled={selectedEmpresas.length === 0}
-                        className={`px-4 py-2 text-white rounded-md border-none font-medium transition-all ${selectedEmpresas.length === 0
-                                ? "bg-gray-300 cursor-not-allowed opacity-60"
-                                : "bg-amber-500 cursor-pointer hover:bg-amber-600"
-                            }`}
+                        className="px-4 py-2 text-white rounded-md border-none font-medium transition-all bg-amber-500 cursor-pointer hover:bg-amber-600"
                     >
                         Guardar
                     </button>

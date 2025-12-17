@@ -1,59 +1,155 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { usuariosService } from '../services/usuarios.service';
-import { IUsuario, HorarioData } from '../types';
+import { HorarioData } from '../types';
+import { useToast } from '@/components/shared/ui/ToastContext';
 
 export function useUsuarioActions() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { showSuccess, showError } = useToast();
 
-    const executeAction = async (action: () => Promise<any>, successMessage?: string) => {
+    const executeAction = useCallback(async (action: () => Promise<any>, successMessage?: string) => {
         setIsLoading(true);
         setError(null);
         try {
-            await action();
+            const result = await action();
             if (successMessage) {
-                // Aquí podrías usar un toast notification
-                console.log(successMessage);
+                showSuccess(successMessage);
             }
             return true;
         } catch (err: any) {
-            setError(err.message || 'Ocurrió un error inesperado');
+            const message = err.message || 'Ocurrió un error inesperado';
+            setError(message);
+            showError(message);
             return false;
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [showSuccess, showError]);
 
-    const updateUsuario = (usuario: IUsuario) =>
-        executeAction(() => usuariosService.updateUsuario(usuario), 'Usuario actualizado correctamente');
+    // ========== JEFES ==========
+    const asignarJefe = useCallback((idEmpleado: string, jefeId: string) =>
+        executeAction(
+            () => usuariosService.asignarJefe(idEmpleado, jefeId),
+            'Jefe asignado correctamente'
+        ), [executeAction]);
 
-    const asignarSedes = (usuarioId: number, sedes: string[]) =>
-        executeAction(() => usuariosService.asignarSedes(usuarioId, sedes), 'Sedes asignadas correctamente');
+    const eliminarJefe = useCallback((idEmpleado: string, jefeId: string) =>
+        executeAction(
+            () => usuariosService.eliminarJefe(idEmpleado, jefeId),
+            'Jefe eliminado correctamente'
+        ), [executeAction]);
 
-    const asignarJefe = (usuarioId: number, jefeId: number) =>
-        executeAction(() => usuariosService.asignarJefe(usuarioId, jefeId), 'Jefe asignado correctamente');
+    const crearJefeGeneral = useCallback((nit: string, email: string) =>
+        executeAction(
+            () => usuariosService.crearJefe(nit, email),
+            'Jefe creado correctamente'
+        ), [executeAction]);
 
-    const asignarHorario = (usuarioId: number, horario: HorarioData) =>
-        executeAction(() => usuariosService.asignarHorario(usuarioId, horario), 'Horario guardado correctamente');
+    // ========== SEDES ==========
+    const asignarSede = useCallback((usuarioId: string, idSede: string) =>
+        executeAction(
+            () => usuariosService.asignarSede(usuarioId, idSede),
+            'Sede asignada correctamente'
+        ), [executeAction]);
 
-    const asignarEmpresas = (usuarioId: number, empresas: string[]) =>
-        executeAction(() => usuariosService.asignarEmpresas(usuarioId, empresas), 'Empresas asignadas correctamente');
+    const eliminarSede = useCallback((usuarioId: string, idSede: string) =>
+        executeAction(
+            () => usuariosService.eliminarSede(usuarioId, idSede),
+            'Sede eliminada correctamente'
+        ), [executeAction]);
 
-    const toggleEstado = (usuarioId: number, nuevoEstado: 'Activo' | 'Inactivo') =>
-        executeAction(() => usuariosService.toggleEstado(usuarioId, nuevoEstado), `Usuario ${nuevoEstado === 'Activo' ? 'activado' : 'desactivado'} correctamente`);
+    // ========== PERFILES ==========
+    const updatePerfil = useCallback((usuarioId: string, perfilId: string) =>
+        executeAction(
+            () => usuariosService.updatePerfil(usuarioId, perfilId),
+            'Perfil actualizado correctamente'
+        ), [executeAction]);
 
-    const deleteUsuario = (usuarioId: number) =>
-        executeAction(() => usuariosService.deleteUsuario(usuarioId), 'Usuario eliminado correctamente');
+    // ========== HORARIO ==========
+    const asignarHorario = useCallback((nit: string, horario: HorarioData) =>
+        executeAction(
+            () => usuariosService.asignarHorario(nit, horario),
+            'Horario guardado correctamente'
+        ), [executeAction]);
+
+    // ========== EMPRESAS ==========
+    const asignarEmpresas = useCallback((usuarioNit: string, empresas: string[]) =>
+        executeAction(
+            () => usuariosService.asignarEmpresas(usuarioNit, empresas),
+            'Empresas asignadas correctamente'
+        ), [executeAction]);
+
+    const eliminarEmpresas = useCallback((usuarioNit: string, empresas: string[]) =>
+        executeAction(
+            () => usuariosService.eliminarEmpresas(usuarioNit, empresas),
+            'Empresas eliminadas correctamente'
+        ), [executeAction]);
+
+    // ========== USUARIOS ==========
+    const crearUsuario = useCallback((nit: string, perfilId: string) =>
+        executeAction(
+            () => usuariosService.crearUsuario(nit, perfilId),
+            'Usuario creado correctamente'
+        ), [executeAction]);
+
+    const habilitarUsuario = useCallback((usuarioId: string) =>
+        executeAction(
+            () => usuariosService.habilitarUsuario(usuarioId),
+            'Usuario habilitado correctamente'
+        ), [executeAction]);
+
+    const deshabilitarUsuario = useCallback((usuarioId: string) =>
+        executeAction(
+            () => usuariosService.deshabilitarUsuario(usuarioId),
+            'Usuario deshabilitado correctamente'
+        ), [executeAction]);
+
+    const resetPassword = useCallback((usuarioId: string, nit: string) =>
+        executeAction(
+            () => usuariosService.resetPassword(usuarioId, nit),
+            'Contraseña actualizada correctamente'
+        ), [executeAction]);
+
+    // ========== OTROS ==========
+    const toggleEstado = useCallback((usuarioId: number, nuevoEstado: 'Activo' | 'Inactivo') => {
+        // nuevoEstado representa el estado al que queremos ir
+        if (nuevoEstado === 'Activo') {
+            return habilitarUsuario(usuarioId.toString());
+        }
+        return deshabilitarUsuario(usuarioId.toString());
+    }, [habilitarUsuario, deshabilitarUsuario]);
+
+    const deleteUsuario = useCallback((usuarioId: number) =>
+        executeAction(
+            () => usuariosService.deleteUsuario(usuarioId),
+            'Usuario eliminado correctamente'
+        ), [executeAction]);
 
     return {
         isLoading,
         error,
-        updateUsuario,
-        asignarSedes,
+        // Jefes
         asignarJefe,
+        eliminarJefe,
+        crearJefeGeneral,
+        // Sedes
+        asignarSede,
+        eliminarSede,
+        // Perfiles
+        updatePerfil,
+        // Horario
         asignarHorario,
+        // Empresas
         asignarEmpresas,
+        eliminarEmpresas,
+        // Usuarios
+        crearUsuario,
+        habilitarUsuario,
+        deshabilitarUsuario,
+        resetPassword,
+        // Otros
         toggleEstado,
-        deleteUsuario
+        deleteUsuario,
     };
 }

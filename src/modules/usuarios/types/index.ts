@@ -1,13 +1,84 @@
+// Tipo para la respuesta de la API
+export interface IUsuarioAPI {
+    id: string;
+    id_empleado: string;
+    nombresCompletos: string;
+    nit: string;
+    perfil: string;
+    estado: string;
+    sede: string;
+    empresa: string;
+    empresaFormateada: string;
+    empresasArray: string[];
+    empresasNombresArray: string[];
+    estadoDisplay: string;
+    fechaCreacionFormateada: string;
+    tieneSede: boolean;
+    tieneEmpresa: boolean;
+}
+
+export interface IJefe {
+    id: number;
+    nombre: string;
+}
+
+// Jefes generales (tienen información adicional)
+export interface IJefeGeneral extends IJefe {
+    nit: string;
+    email: string;
+}
+
+export interface ISede {
+    id: number | string;
+    nombre: string;
+}
+
+export interface IPerfil {
+    id: string;
+    nombre: string;
+}
+
+// Usuarios que pueden ser jefes (candidatos)
+export interface IUsuarioJefeCandidato {
+    id: number;
+    nombre: string;
+}
+
+export interface IHorarioApi {
+    nit_empleado: number;
+    sede: string;
+    hora_ent_sem_am: string;
+    hora_sal_sem_am: string;
+    hora_ent_sem_pm: string;
+    hora_sal_sem_pm: string;
+    hora_ent_am_viernes: string;
+    hora_sal_am_viernes: string;
+    hora_ent_pm_viernes?: string;
+    hora_sal_pm_viernes?: string;
+    hora_ent_fds: string;
+    hora_sal_fds: string;
+}
+
+// Respuesta genérica de acciones (crear, actualizar, eliminar, etc.)
+export interface IApiMessageResponse {
+    success?: boolean;
+    message: string;
+}
+
+// Tipo para el componente (mapeado desde la API)
 export interface IUsuario {
     id: number;
+    idEmpleado?: string;
     nombre: string;
     usuario: number;
     totalMarca: number;
     marcas: string[];
-    sede: number;
+    sede: number | string;
     estado: 'Activo' | 'Inactivo';
     empresas?: string[];
-    email: string;
+    email?: string;
+    perfil?: string;
+    nit?: string;
 }
 
 export interface AgregarEmpresaModalProps {
@@ -22,23 +93,29 @@ export interface AgregarSedesModalProps {
     open: boolean;
     usuario: IUsuario | null;
     onClose: () => void;
-    onSave: (sedes: string[]) => void;
-    sedesDisponibles: string[];
+    onAsignar: (idSede: string) => void;
+    onEliminar: (idSede: string) => void;
+    sedesDisponibles: ISede[];
+    sedesUsuario: { id: string }[];
 }
 
 export interface AsignarJefeModalProps {
     open: boolean;
     usuario: IUsuario | null;
     onClose: () => void;
-    onSave: (jefeId: number) => void;
-    jefesDisponibles: { id: number; nombre: string; cargo: string }[];
+    onAsignar: (jefeId: string) => void;
+    onEliminar: (jefeId: string) => void;
+    jefesDisponibles: IJefe[];
+    jefesUsuario: IJefe[];
 }
 
 export interface EditUsuarioModalProps {
     open: boolean;
     usuario: IUsuario | null;
     onClose: () => void;
-    onSave: (usuario: IUsuario) => void;
+    onSave: (perfilId: string) => void;
+    perfilesDisponibles: IPerfil[];
+    perfilActual: IPerfil | null;
 }
 
 export interface HorarioModalProps {
@@ -46,27 +123,31 @@ export interface HorarioModalProps {
     usuario: IUsuario | null;
     onClose: () => void;
     onSave: (horario: HorarioData) => void;
-    diasSemana: string[];
+    horarioActual: IHorarioApi | null;
 }
 
 export interface HorarioData {
-    dias: string[];
-    horaInicio: string;
-    horaFin: string;
+    sede: string;
+    hora_ent_sem_am: string;
+    hora_sal_sem_am: string;
+    hora_ent_sem_pm: string;
+    hora_sal_sem_pm: string;
+    hora_ent_am_viernes: string;
+    hora_sal_am_viernes: string;
+    hora_ent_pm_viernes?: string;
+    hora_sal_pm_viernes?: string;
+    hora_ent_fds: string;
+    hora_sal_fds: string;
 }
 
 export interface AgregarUsuarioModalProps {
     open: boolean;
-    usuario: IUsuario | null;
     onClose: () => void;
-    onSave: (usuario: IUsuario) => void;
-    perfilesDisponibles: { id: number; nombre: string; }[];
+    onSave: (nit: string, perfilId: string) => Promise<void> | void;
+    perfilesDisponibles: IPerfil[];
 }
 
 export interface AgregarJefeModalProps {
     open: boolean;
-    usuario: IUsuario | null;
     onClose: () => void;
-    onSave: (jefe: IUsuario) => void;
-    jefesDisponibles: { id: number; nombre: string; cargo: string }[];
 }

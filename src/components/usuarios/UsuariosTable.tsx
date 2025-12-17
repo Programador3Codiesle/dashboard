@@ -3,6 +3,10 @@
 import { useUsuarios } from "@/modules/usuarios/hooks/useUsuarios";
 import { useUsuariosFilter } from "@/modules/usuarios/hooks/useUsuariosFilter";
 import { useUsuarioActions } from "@/modules/usuarios/hooks/useUsuarioActions";
+import { useJefes, useJefesUsuario } from "@/modules/usuarios/hooks/useJefes";
+import { useSedes, useSedesUsuario } from "@/modules/usuarios/hooks/useSedes";
+import { usePerfiles, usePerfilUsuario } from "@/modules/usuarios/hooks/usePerfiles";
+import { useHorarioUsuario } from "@/modules/usuarios/hooks/useHorario";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { useTooltip } from "@/components/shared/ui/hooks/useTooltip";
 import { useConfirmModal } from "@/components/shared/ui/hooks/useConfirmModal";
@@ -19,19 +23,33 @@ import AgregarSedesModal from "./modals/AgregarSedesModal";
 import AsignarJefeModal from "./modals/AsignarJefeModal";
 import HorarioModal from "./modals/HorarioModal";
 import AgregarEmpresaModal from "./modals/AgregarEmpresaModal";
-import { sedesDisponibles } from "@/modules/usuarios/constants";
-import { jefesDisponibles } from "@/modules/usuarios/constants";
-import { diasSemana } from "@/modules/usuarios/constants";
-
+import { empresasDisponibles } from "@/modules/usuarios/constants";
 
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
-import { empresasDisponibles } from "@/modules/usuarios/constants";
-import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2 } from 'lucide-react';
-import { useState } from "react";
+import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 
-export function UsuariosTable() {
+interface UsuariosTableProps {
+    onRefetchReady?: (refetch: () => void) => void;
+}
+
+export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     /* ------------------ Fetch Usuarios ------------------ */
-    const { usuarios, isLoading, error } = useUsuarios();
+    const { usuarios, isLoading, error, refetch: refetchUsuarios } = useUsuarios();
+
+    // Exponer refetchUsuarios al componente padre
+    useEffect(() => {
+        if (onRefetchReady) {
+            onRefetchReady(refetchUsuarios);
+        }
+    }, [onRefetchReady, refetchUsuarios]);
+
 
     /* ------------------ Filtro ------------------ */
     const { search, setSearch, filtered } = useUsuariosFilter(usuarios);
@@ -45,7 +63,7 @@ export function UsuariosTable() {
         changePage,
     } = usePagination(filtered.length, 5);
 
-    const usuariosMostrados = filtered.slice(startIndex, endIndex);
+    const usuariosMostrados = useMemo(() => filtered.slice(startIndex, endIndex), [filtered, startIndex, endIndex]);
 
     /* ------------------ Tooltip ------------------ */
     const { tooltip, showTooltip, hideTooltip } = useTooltip();
@@ -64,73 +82,144 @@ export function UsuariosTable() {
     const [horarioModalOpen, setHorarioModalOpen] = useState(false);
     const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
 
+    /* ------------------ Hooks para datos ------------------ */
+    const { jefes: todosLosJefes } = useJefes();
+    const { jefes: jefesDelUsuario, refetch: refetchJefes } = useJefesUsuario(selectedUsuario?.idEmpleado);
+    
+    const { sedes: todasLasSedes } = useSedes();
+    const { sedes: sedesDelUsuario, refetch: refetchSedes } = useSedesUsuario(selectedUsuario?.id?.toString());
+    
+    const { perfiles: todosLosPerfiles } = usePerfiles();
+    const { perfil: perfilDelUsuario, refetch: refetchPerfil } = usePerfilUsuario(selectedUsuario?.nit);
+    
+    const { horario: horarioDelUsuario, refetch: refetchHorario } = useHorarioUsuario(selectedUsuario?.nit);
+
     /* ------------------ Acciones (Mutations) ------------------ */
     const {
-        updateUsuario,
-        asignarSedes,
         asignarJefe,
+        eliminarJefe,
+        asignarSede,
+        eliminarSede,
+        updatePerfil,
         asignarHorario,
         asignarEmpresas,
+        eliminarEmpresas,
+        resetPassword,
         toggleEstado,
         deleteUsuario
     } = useUsuarioActions();
 
     /* ------------------ Eventos ------------------ */
-    const handleDelete = async () => {
+    const handleDelete = useCallback(async () => {
         if (!modal.usuario) return;
         const success = await deleteUsuario(modal.usuario.id);
         if (success) {
             closeModal();
-            // Aquí podrías recargar la lista de usuarios: refetch();
+            refetchUsuarios();
         }
-    };
+    }, [modal.usuario, deleteUsuario, closeModal, refetchUsuarios]);
 
-    const handleToggleStatus = async () => {
+    const handleToggleStatus = useCallback(async () => {
         if (!modal.usuario) return;
         const newStatus = modal.usuario.estado === "Activo" ? "Inactivo" : "Activo";
         const success = await toggleEstado(modal.usuario.id, newStatus);
         if (success) {
             closeModal();
-            // Aquí podrías recargar la lista de usuarios: refetch();
+            refetchUsuarios();
         }
-    };
+    }, [modal.usuario, toggleEstado, closeModal, refetchUsuarios]);
 
-    const handleOpenDropdown = (e: React.MouseEvent, usuario: IUsuario) => {
+    const handleOpenDropdown = useCallback((e: React.MouseEvent, usuario: IUsuario) => {
         setSelectedUsuario(usuario);
         openDropdown(e);
-    };
+    }, [openDropdown]);
 
-    const handleEditUsuario = async (usuario: IUsuario) => {
-        const success = await updateUsuario(usuario);
-        if (success) setEditModalOpen(false);
-    };
-
-    const handleAgregarSedes = async (sedes: string[]) => {
+    const handleUpdatePerfil = useCallback(async (perfilId: string) => {
         if (!selectedUsuario) return;
-        const success = await asignarSedes(selectedUsuario.id, sedes);
-        if (success) setSedesModalOpen(false);
-    };
+        const success = await updatePerfil(selectedUsuario.id.toString(), perfilId);
+        if (success) {
+            setEditModalOpen(false);
+            refetchPerfil();
+        }
+    }, [selectedUsuario, updatePerfil, refetchPerfil]);
 
-    const handleAsignarJefe = async (jefeId: number) => {
+    const handleAsignarSede = useCallback(async (idSede: string) => {
         if (!selectedUsuario) return;
-        const success = await asignarJefe(selectedUsuario.id, jefeId);
-        if (success) setJefeModalOpen(false);
-    };
+        const success = await asignarSede(selectedUsuario.id.toString(), idSede);
+        if (success) {
+            refetchSedes();
+        }
+    }, [selectedUsuario, asignarSede, refetchSedes]);
 
-    const handleGuardarHorario = async (horario: HorarioData) => {
+    const handleEliminarSede = useCallback(async (idSede: string) => {
         if (!selectedUsuario) return;
-        const success = await asignarHorario(selectedUsuario.id, horario);
-        if (success) setHorarioModalOpen(false);
-    };
+        const success = await eliminarSede(selectedUsuario.id.toString(), idSede);
+        if (success) {
+            refetchSedes();
+        }
+    }, [selectedUsuario, eliminarSede, refetchSedes]);
 
-    const handleAgregarEmpresa = async (empresas: string[]) => {
-        if (!selectedUsuario) return;
-        const success = await asignarEmpresas(selectedUsuario.id, empresas);
-        if (success) setEmpresaModalOpen(false);
-    };
+    const handleAsignarJefe = useCallback(async (jefeId: string) => {
+        if (!selectedUsuario || !selectedUsuario.idEmpleado) return;
+        const success = await asignarJefe(selectedUsuario.idEmpleado, jefeId);
+        if (success) {
+            refetchJefes();
+        }
+    }, [selectedUsuario, asignarJefe, refetchJefes]);
+
+    const handleEliminarJefe = useCallback(async (jefeId: string) => {
+        if (!selectedUsuario || !selectedUsuario.idEmpleado) return;
+        const success = await eliminarJefe(selectedUsuario.idEmpleado, jefeId);
+        if (success) {
+            refetchJefes();
+        }
+    }, [selectedUsuario, eliminarJefe, refetchJefes]);
+
+    const handleGuardarHorario = useCallback(async (horario: HorarioData) => {
+        if (!selectedUsuario || !selectedUsuario.nit) return;
+        const success = await asignarHorario(selectedUsuario.nit, horario);
+        if (success) {
+            setHorarioModalOpen(false);
+            refetchHorario();
+            refetchUsuarios();
+        }
+    }, [selectedUsuario, asignarHorario, refetchHorario, refetchUsuarios]);
+
+    const handleAgregarEmpresa = useCallback(async (empresasSeleccionadas: string[]) => {
+        if (!selectedUsuario || !selectedUsuario.nit) return;
+
+        const empresasOriginales = selectedUsuario.empresas || [];
+
+        const empresasAAgregar = empresasSeleccionadas.filter(
+            (id) => !empresasOriginales.includes(id)
+        );
+        const empresasAEliminar = empresasOriginales.filter(
+            (id) => !empresasSeleccionadas.includes(id)
+        );
+
+        let success = true;
+
+        if (empresasAAgregar.length > 0) {
+            success = (await asignarEmpresas(selectedUsuario.nit, empresasAAgregar)) && success;
+        }
+
+        if (empresasAEliminar.length > 0) {
+            success = (await eliminarEmpresas(selectedUsuario.nit, empresasAEliminar)) && success;
+        }
+
+        if (success) {
+            setEmpresaModalOpen(false);
+            refetchUsuarios();
+        }
+    }, [selectedUsuario, asignarEmpresas, eliminarEmpresas, refetchUsuarios]);
+
+    const handleResetPassword = useCallback(async (usuario: IUsuario) => {
+        if (!usuario.nit) return;
+        await resetPassword(usuario.id.toString(), usuario.nit);
+    }, [resetPassword]);
 
     // Opciones del dropdown
-    const dropdownItems: DropdownItem[] = [
+    const dropdownItems: DropdownItem[] = useMemo(() => [
         {
             label: "Editar",
             icon: <Edit size={16} />,
@@ -171,18 +260,17 @@ export function UsuariosTable() {
                 closeDropdown();
             }
         },
-    ];
+    ], [closeDropdown]);
 
     /* ------------------ Loading ------------------ */
-    if (isLoading) return (
+    if (!mounted || isLoading) return (
         <div className="text-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando reportes de nómina...</p>
+            <p className="mt-4 text-gray-600">Cargando usuarios...</p>
         </div>
     );
 
     /* ------------------ Error ------------------ */
-
     if (error) return (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong className="font-bold">Error:</strong>
@@ -191,8 +279,7 @@ export function UsuariosTable() {
     );
 
     /* ------------------ No hay usuarios ------------------ */
-
-    if (usuarios.length === 0) return <p className="text-center py-10 text-gray-500">No hay usuarios disponibles.</p>;
+    if (!isLoading && usuarios.length === 0) return <p className="text-center py-10 text-gray-500">No hay usuarios disponibles.</p>;
 
 
     return (
@@ -218,6 +305,7 @@ export function UsuariosTable() {
                             <th className="px-4 py-2 text-center">Marcas</th>
                             <th className="px-4 py-2 text-center">Estado</th>
                             <th className="px-4 py-2 text-center">Sede</th>
+                            <th className="px-4 py-2 text-center">Rest-clave</th>
                             <th className="px-4 py-2 text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -234,14 +322,18 @@ export function UsuariosTable() {
                                 <td className="px-4 py-3">
                                     <Badge
                                         text={u.totalMarca.toString()}
-                                        color="bg-blue-100 text-blue-800 border-blue-200"
+                                        color="bg-blue-200 text-blue-800 border-blue-200"
                                         onHover={(e) =>
                                             showTooltip(
                                                 e,
                                                 <div className="flex flex-col gap-1">
-                                                    {u.marcas.map((m: string) => (
-                                                        <span key={m}>{m}</span>
-                                                    ))}
+                                                    {u.totalMarca === 0 || u.marcas.length === 0 ? (
+                                                        <span>Sin empresa</span>
+                                                    ) : (
+                                                        u.marcas.map((m: string) => (
+                                                            <span key={m}>{m}</span>
+                                                        ))
+                                                    )}
                                                 </div>
                                             )
                                         }
@@ -250,6 +342,7 @@ export function UsuariosTable() {
                                 </td>
 
                                 <td className="px-4 py-3">
+                             
                                     {u.estado === "Activo" ? (
                                         <span
                                             onClick={() => openModal(u, 'toggle-status')}
@@ -268,6 +361,16 @@ export function UsuariosTable() {
                                 </td>
 
                                 <td className="px-4 py-3">{u.sede || "Sin sede"}</td>
+
+                                <td className="px-4 py-3">
+                                    <button
+                                        onClick={() => handleResetPassword(u)}
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-sm hover:shadow-md hover:from-amber-600 hover:to-amber-700 transition-all text-xs font-semibold"
+                                    >
+                                        <KeyRound size={16} />
+                                        
+                                    </button>
+                                </td>
 
                                 <td className="px-4 py-3 flex justify-center">
                                     <button
@@ -344,23 +447,29 @@ export function UsuariosTable() {
                 open={editModalOpen}
                 usuario={selectedUsuario}
                 onClose={() => setEditModalOpen(false)}
-                onSave={handleEditUsuario}
+                onSave={handleUpdatePerfil}
+                perfilesDisponibles={todosLosPerfiles}
+                perfilActual={perfilDelUsuario}
             />
 
             <AgregarSedesModal
                 open={sedesModalOpen}
                 usuario={selectedUsuario}
                 onClose={() => setSedesModalOpen(false)}
-                onSave={handleAgregarSedes}
-                sedesDisponibles={sedesDisponibles}
+                onAsignar={handleAsignarSede}
+                onEliminar={handleEliminarSede}
+                sedesDisponibles={todasLasSedes}
+                sedesUsuario={sedesDelUsuario}
             />
 
             <AsignarJefeModal
                 open={jefeModalOpen}
                 usuario={selectedUsuario}
                 onClose={() => setJefeModalOpen(false)}
-                onSave={handleAsignarJefe}
-                jefesDisponibles={jefesDisponibles}
+                onAsignar={handleAsignarJefe}
+                onEliminar={handleEliminarJefe}
+                jefesDisponibles={todosLosJefes}
+                jefesUsuario={jefesDelUsuario}
             />
 
             <HorarioModal
@@ -368,7 +477,7 @@ export function UsuariosTable() {
                 usuario={selectedUsuario}
                 onClose={() => setHorarioModalOpen(false)}
                 onSave={handleGuardarHorario}
-                diasSemana={diasSemana}
+                horarioActual={horarioDelUsuario}
             />
 
             <AgregarEmpresaModal

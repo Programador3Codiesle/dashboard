@@ -8,7 +8,7 @@ export function useDropdown() {
     const openDropdown = (event: React.MouseEvent) => {
         const rect = event.currentTarget.getBoundingClientRect();
         setPosition({
-            x: rect.left,
+            x: rect.left - 50,
             y: rect.bottom + 5
         });
         setIsOpen(true);

@@ -6,14 +6,13 @@ import { ChevronDown, Loader2 } from "lucide-react";
 
 export default function AgregarUsuarioModal({
     open,
-    usuario,
     onClose,
     onSave,
     perfilesDisponibles = []
 }: AgregarUsuarioModalProps) {
 
     const [formData, setFormData] = useState({
-        usuario: '',
+        nit: '',
         perfil: '',
     });
 
@@ -21,19 +20,12 @@ export default function AgregarUsuarioModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (usuario) {
-            setFormData({
-                usuario: usuario.usuario?.toString() || '',
-                perfil: (usuario as any).perfil?.toString() || '',
-            });
-        } else {
-            setFormData({
-                usuario: '',
-                perfil: perfilesDisponibles[0]?.id?.toString() || '',
-            });
-        }
+        setFormData({
+            nit: '',
+            perfil: perfilesDisponibles[0]?.id?.toString() || '',
+        });
         setErrors({});
-    }, [usuario, open, perfilesDisponibles]);
+    }, [open, perfilesDisponibles]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -46,9 +38,8 @@ export default function AgregarUsuarioModal({
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.usuario.trim()) newErrors.usuario = 'El usuario es requerido';
-        else if (!/^\d+$/.test(formData.usuario)) newErrors.usuario = 'El usuario debe ser un número';
-        else if (parseInt(formData.usuario) <= 0) newErrors.usuario = 'El usuario debe ser mayor a 0';
+        if (!formData.nit.trim()) newErrors.nit = 'El NIT es requerido';
+        else if (!/^\d+$/.test(formData.nit)) newErrors.nit = 'El NIT debe ser numérico';
 
         if (!formData.perfil) newErrors.perfil = 'Seleccione un perfil';
 
@@ -62,12 +53,7 @@ export default function AgregarUsuarioModal({
 
         setIsSubmitting(true);
         try {
-            await onSave({
-                ...usuario,
-                usuario: parseInt(formData.usuario),
-                perfil: parseInt(formData.perfil),
-                estado: 'Activo' // Default state since it's removed from form
-            } as any);
+            await onSave(formData.nit, formData.perfil);
             onClose();
         } catch (error) {
             console.error(error);
@@ -85,24 +71,24 @@ export default function AgregarUsuarioModal({
         <Modal
             open={open}
             onClose={onClose}
-            title={usuario ? "Editar Usuario" : "Agregar Nuevo Usuario"}
+            title="Agregar Nuevo Usuario"
             width="500px"
         >
             <form onSubmit={handleSubmit} className="space-y-5 p-1">
 
-                {/* Usuario */}
+                {/* NIT */}
                 <div>
-                    <label className={labelClass}>Número de Usuario <span className="text-red-500">*</span></label>
+                    <label className={labelClass}>NIT del usuario <span className="text-red-500">*</span></label>
                     <input
                         type="number"
-                        name="usuario"
-                        value={formData.usuario}
+                        name="nit"
+                        value={formData.nit}
                         onChange={handleChange}
                         className={inputClass}
-                        placeholder="Ej: 12345"
+                        placeholder="Ej: 1095944272"
                         min="1"
                     />
-                    {errors.usuario && <span className={errorClass}>{errors.usuario}</span>}
+                    {errors.nit && <span className={errorClass}>{errors.nit}</span>}
                 </div>
 
                 {/* Perfil */}
@@ -154,7 +140,7 @@ export default function AgregarUsuarioModal({
                         className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isSubmitting && <Loader2 className="animate-spin" size={16} />}
-                        {usuario ? "Actualizar" : "Guardar"}
+                        Guardar
                     </button>
                 </div>
             </form>
