@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTicketsActions } from "@/modules/tickets/hooks/useTicketsActions";
 import { CrearTicketDTO } from "@/modules/tickets/types";
 import { useAuth } from "@/core/auth/hooks/useAuth";
+import { useToast } from "@/components/shared/ui/ToastContext";
 import { Upload, X, ChevronDown } from "lucide-react";
 
 export default function NuevoTicketModal({
@@ -15,25 +16,61 @@ export default function NuevoTicketModal({
 }) {
     const { crearTicket } = useTicketsActions();
     const { user } = useAuth();
+    const { showError } = useToast();
     const [form, setForm] = useState<CrearTicketDTO>({
         tipoSoporte: "",
         anydesk: "",
-        descripcion: "",
-        empresa: "",
-        prioridad: "media"
+        descripcion: ""
     });
     const [archivo, setArchivo] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.tipoSoporte || !form.descripcion || !form.empresa) return;
+        if (!form.tipoSoporte || !form.descripcion) return;
         setLoading(true);
+        
         try {
-            await crearTicket({ ...form, archivo, usuario: user?.email || user?.name || "anon" });
+            let archivoUrl: string | null = null;
+
+            // 1) Subir el archivo si existe
+            if (archivo) {
+                const formData = new FormData();
+                formData.append("file", archivo);
+
+                const resp = await fetch("/api/tickets/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!resp.ok) {
+                    throw new Error("No se pudo subir el archivo");
+                }
+
+                const json = await resp.json();
+                if (!json.status || !json.url) {
+                    throw new Error(json.message || "No se pudo subir el archivo");
+                }
+
+                archivoUrl = json.url as string;
+            }
+
+            // 2) Crear el ticket enviando la URL real (o null si no hay archivo)
+            await crearTicket({ ...form, archivoUrl });
+            
+            // Limpiar el formulario y cerrar modal
+            setForm({
+                tipoSoporte: "",
+                anydesk: "",
+                descripcion: ""
+            });
+            setArchivo(null);
             onClose();
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
+            // Mostrar toast específico si es error de subida de archivo
+            const errorMessage = err?.message || "Ocurrió un error al crear el ticket";
+            showError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -56,10 +93,13 @@ export default function NuevoTicketModal({
                                 required
                             >
                                 <option value="">Seleccione...</option>
-                                <option>Software</option>
+                                <option>Insumos de Impresora(Toner)</option>
                                 <option>Hardware</option>
-                                <option>Acceso</option>
-                                <option>Red</option>
+                                <option>Software</option>
+                                <option>CRM Comercial</option>
+                                <option>CRM PosVenta</option>
+                                <option>CRM DMS</option>
+                                <option>DMS</option>
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                         </div>
@@ -73,41 +113,6 @@ export default function NuevoTicketModal({
                             onChange={(e) => setForm({ ...form, anydesk: e.target.value })}
                             placeholder="Ej: 123 456 789"
                         />
-                    </div>
-
-                    <div>
-                        <label className={labelClass}>Empresa <span className="text-red-500">*</span></label>
-                        <div className="relative mt-1">
-                            <select
-                                className={`${inputClass} appearance-none pr-10`}
-                                value={form.empresa}
-                                onChange={(e) => setForm({ ...form, empresa: e.target.value })}
-                                required
-                            >
-                                <option value="">Seleccione...</option>
-                                <option value="Codiesel">Codiesel</option>
-                                <option value="Dieselco">Dieselco</option>
-                                <option value="Mitsubishi">Mitsubishi</option>
-                                <option value="BYD">BYD</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className={labelClass}>Prioridad</label>
-                        <div className="relative mt-1">
-                            <select
-                                className={`${inputClass} appearance-none pr-10`}
-                                value={form.prioridad}
-                                onChange={(e) => setForm({ ...form, prioridad: e.target.value as any })}
-                            >
-                                <option value="media">Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="baja">Baja</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-                        </div>
                     </div>
                 </div>
 

@@ -11,11 +11,13 @@ export default function TicketsLayout({ children }: { children: React.ReactNode 
     const pathname = usePathname();
     const [openNew, setOpenNew] = useState(false);
 
+    // Mostrar todas las pestañas solo si el perfil es 1 o 20
+    const canSeeAllTickets = user?.perfil_postventa === "1" || user?.perfil_postventa === "20";
+
     const tabs = [
-       
-        { name: "Activos", href: "/dashboard/tickets/activos", show: user?.role === "admin" },
-        { name: "Finalizados", href: "/dashboard/tickets/finalizados", show: user?.role === "admin" },
-         { name: "Mis Tickets", href: "/dashboard/tickets/mis-tickets", show: true },
+        { name: "Activos", href: "/dashboard/tickets/activos", show: canSeeAllTickets },
+        { name: "Finalizados", href: "/dashboard/tickets/finalizados", show: canSeeAllTickets },
+        { name: "Mis Tickets", href: "/dashboard/tickets/mis-tickets", show: true },
     ];
 
     return (

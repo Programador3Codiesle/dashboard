@@ -8,6 +8,7 @@ export interface AuthContextType {
     login: (credentials: { user: string; password: string }) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
+    getToken?: () => string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

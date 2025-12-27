@@ -40,20 +40,25 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     }
   }, [pathname, isMobile]);
 
-  // Si no está autenticado... (código omitido por brevedad)
+  // Redirigir al login si no está autenticado
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+
   if (!isAuthenticated) {
-     // ... el código de no autenticado que ya tienes
-     return (
-        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center p-8">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🔒</span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Acceso No Autorizado</h2>
-            <p className="text-gray-600">Por favor inicia sesión para continuar</p>
-          </motion.div>
-        </div>
-      );
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">🔒</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Acceso No Autorizado</h2>
+          <p className="text-gray-600">Por favor inicia sesión para continuar</p>
+        </motion.div>
+      </div>
+    );
   }
 
   // Ancho del margen en desktop (lg:ml-X)
@@ -70,6 +75,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         // ✨ PROPS NUEVAS
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        onLogout={logout}
       />
       
       {/* Contenido principal - margen izquierdo dinámico en desktop */}
@@ -77,7 +83,8 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         <Header 
           currentPath={pathname} 
           onToggleSidebar={() => setShowSidebar(!showSidebar)} 
-          onLogout={logout} 
+          onLogout={logout}
+          userName={user?.nombre_usuario}
         />
         
         <motion.main 

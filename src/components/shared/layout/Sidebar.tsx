@@ -12,7 +12,7 @@ import {
   ChevronDown,
   TextAlignJustify, // ✨ NUEVO: Icono para dropdown
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -24,6 +24,7 @@ interface Props {
   // ✨ PROPS NUEVAS
   isCollapsed: boolean; // Controla el estado colapsado/expandido en desktop
   onToggleCollapse: () => void; // Función para cambiar el estado de colapso
+  onLogout?: () => void; // Función para cerrar sesión
 }
 
 export const Sidebar: React.FC<Props> = ({
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<Props> = ({
   onClose,
   isCollapsed, // ✨ NUEVO
   onToggleCollapse, // ✨ NUEVO
+  onLogout, // ✨ NUEVO
 }) => {
   const [isHovered, setIsHovered] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -98,6 +100,30 @@ export const Sidebar: React.FC<Props> = ({
 
   // En desktop siempre visible, en móvil controlado por isVisible (se mantiene)
   const shouldShowOverlay = isMobile && isVisible;
+
+  // Función helper para determinar si una ruta está activa (incluye subrutas)
+  const isRouteActive = (routePath: string) => {
+    if (currentPath === routePath) return true;
+    // Si la ruta es "/dashboard", solo coincidir exactamente (no con subrutas)
+    if (routePath === "/dashboard") return currentPath === "/dashboard";
+    // Para otras rutas, verificar si el pathname actual comienza con la ruta seguida de "/"
+    return currentPath.startsWith(routePath + "/");
+  };
+
+  // Filtrar rutas según el perfil del usuario
+  // Solo usuarios con perfil "20" o "2" pueden ver la opción de Usuarios
+  const filteredRoutes = useMemo(() => {
+    const canViewUsuarios = user?.perfil_postventa === "20" || user?.perfil_postventa === "2";
+    
+    return ROUTES.filter(route => {
+      // Si es la ruta de usuarios, verificar permisos
+      if (route.path === "/dashboard/usuarios") {
+        return canViewUsuarios;
+      }
+      // Todas las demás rutas se muestran normalmente
+      return true;
+    });
+  }, [user?.perfil_postventa]);
 
   return (
     <>
@@ -187,7 +213,7 @@ export const Sidebar: React.FC<Props> = ({
           </p>
 
           <div className="space-y-2">
-            {ROUTES.map((route) => (
+            {filteredRoutes.map((route) => (
               <motion.button
                 key={route.path}
                 onClick={() => {
@@ -198,7 +224,7 @@ export const Sidebar: React.FC<Props> = ({
                 onHoverEnd={() => setIsHovered(null)}
                 className={`
                   relative flex items-center w-full p-2 rounded-xl transition-all duration-300
-                  ${currentPath === route.path
+                  ${isRouteActive(route.path)
                     ? "bg-linear-to-br from-amber-500/20 to-amber-600/20 border border-amber-500/30 shadow-lg shadow-amber-500/10"
                     : "hover:bg-gray-800/50 border border-transparent"
                   }
@@ -210,7 +236,7 @@ export const Sidebar: React.FC<Props> = ({
                   <div className={`
                     p-2 rounded-lg mr-0 transition-colors shrink-0
                     ${isCollapsed ? 'mr-0' : 'mr-3'} 
-                    ${currentPath === route.path
+                    ${isRouteActive(route.path)
                       ? "bg-amber-500 text-white"
                       : "bg-gray-800 text-amber-400"
                     }
@@ -227,8 +253,8 @@ export const Sidebar: React.FC<Props> = ({
                 {!isCollapsed && (
                   <motion.div
                     animate={{
-                      x: isHovered === route.path || currentPath === route.path ? 0 : -5,
-                      opacity: isHovered === route.path || currentPath === route.path ? 1 : 0
+                      x: isHovered === route.path || isRouteActive(route.path) ? 0 : -5,
+                      opacity: isHovered === route.path || isRouteActive(route.path) ? 1 : 0
                     }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
@@ -237,7 +263,7 @@ export const Sidebar: React.FC<Props> = ({
                 )}
 
                 {/* Indicador activo (ajustar posición si colapsado) */}
-                {currentPath === route.path && (
+                {isRouteActive(route.path) && (
                   <motion.div
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-amber-500 rounded-l-full`}
                     initial={{ scale: 0 }}
@@ -256,12 +282,17 @@ export const Sidebar: React.FC<Props> = ({
           <div className={`flex items-center space-x-3 mb-4 p-3 rounded-xl transition-all duration-300 ${isCollapsed ? 'justify-center bg-transparent' : 'bg-gray-800/50'}`}>
             <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-sm">
-                {user?.name?.charAt(0).toUpperCase()}
+                {user?.nombre_usuario?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
             {/* Ocultar texto al colapsar */}
             <div className={`flex-1 min-w-0 transition-opacity duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
-              <p className="text-sm font-semibold truncate">{user?.name}</p>
+              <p className="text-sm font-semibold truncate">
+                {user?.nombre_usuario 
+                  ? user.nombre_usuario.split(' ')[0] // Solo primer nombre
+                  : user?.name || 'Usuario'
+                }
+              </p>
               <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
             </div>
             <button className={`p-2 hover:bg-gray-700 rounded-lg transition-colors shrink-0 ${isCollapsed ? 'hidden' : 'block'}`}>
@@ -273,7 +304,11 @@ export const Sidebar: React.FC<Props> = ({
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => {/* agregar logout */ }}
+            onClick={() => {
+              if (onLogout) {
+                onLogout();
+              }
+            }}
             className={`
               flex items-center w-full p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20
               ${isCollapsed ? 'justify-center p-2' : 'justify-start'}

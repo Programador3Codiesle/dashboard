@@ -1,51 +1,297 @@
 import { ITicket, CrearTicketDTO } from "../types";
-import { MOCK_TICKETS as INITIAL_MOCK_TICKETS } from "../constants";
+import {
+  empresasDisponibles,
+  mapEmpresaCodesToNames,
+  mapEstadoFromApi,
+  normalizePrioridad,
+} from "../constants";
+import { getAuthHeaders } from "@/utils/api";
+import { getUser } from "@/utils/cookies";
 
-// Create a local mutable copy of the tickets
-let tickets = [...INITIAL_MOCK_TICKETS];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-function delay<T>(ms = 600, result?: T) {
-  return new Promise<T>((res) => setTimeout(() => res(result as T), ms));
+// ==== Tipos de respuesta de la API (raw) ====
+
+type TicketActivoApi = {
+  id: number;
+  tipo_soporte: string;
+  empresa: string | null;
+  prioridad: string | null;
+  estado: string;
+  fecha_creacion: string;
+  usuario_id: number;
+  nombre_usuario: string;
+  nombre_encargado: string | null;
+};
+
+type TicketFinalizadoApi = {
+  id: number;
+  tipo_soporte: string;
+  prioridad: string | null;
+  estado: string;
+  fecha_creacion: string;
+  usuario_id: number;
+  nombre_usuario: string;
+  nombre_encargado: string | null;
+};
+
+type TicketMisTicketsApi = {
+  id: number;
+  tipo_soporte: string;
+  prioridad: string | null;
+  estado: string;
+  fecha_creacion: string;
+  usuario_id: number;
+  nombre_usuario: string;
+  nombre_encargado: string | null;
+};
+
+type ApiMessageResponse<T = unknown> = {
+  status: boolean;
+  message: string;
+  data?: T;
+};
+
+// ==== Mapeadores ====
+
+function mapActivoFromApi(raw: TicketActivoApi): ITicket {
+
+  return {
+    id: raw.id,
+    tipoSoporte: raw.tipo_soporte,
+    anydesk: "", // la API actual no envía anydesk en listados
+    descripcion: "", // sólo viene en detalle/creación, no en los listados
+    archivoUrl: null,
+    empresa: mapEmpresaCodesToNames(raw.empresa),
+    prioridad: normalizePrioridad(raw.prioridad),
+    usuario: raw.nombre_usuario,
+    encargado: raw.nombre_encargado,
+    estado: mapEstadoFromApi(raw.estado),
+    fechaCreacion: raw.fecha_creacion,
+  };
 }
+
+function mapFinalizadoFromApi(raw: TicketFinalizadoApi): ITicket {
+  return {
+    id: raw.id,
+    tipoSoporte: raw.tipo_soporte,
+    anydesk: "",
+    descripcion: "",
+    archivoUrl: null,
+    empresa: "N/A",
+    prioridad: normalizePrioridad(raw.prioridad),
+    usuario: raw.nombre_usuario,
+    encargado: raw.nombre_encargado,
+    estado: mapEstadoFromApi(raw.estado),
+    fechaCreacion: raw.fecha_creacion,
+  };
+}
+
+function mapMisTicketsFromApi(raw: TicketMisTicketsApi): ITicket {
+  return {
+    id: raw.id,
+    tipoSoporte: raw.tipo_soporte,
+    anydesk: "",
+    descripcion: "",
+    archivoUrl: null,
+    empresa: "N/A",
+    prioridad: normalizePrioridad(raw.prioridad),
+    usuario: raw.nombre_usuario,
+    encargado: raw.nombre_encargado,
+    estado: mapEstadoFromApi(raw.estado),
+    fechaCreacion: raw.fecha_creacion,
+  };
+}
+
+// ==== Servicio contra API real ====
 
 export const ticketsService = {
   async listActivos(): Promise<ITicket[]> {
-    const data = tickets.filter(t => t.estado === "abierto");
-    return delay(500, data);
+    const resp = await fetch(`${API_URL}/tickets/activos`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudieron cargar los tickets activos");
+    }
+
+    const data: TicketActivoApi[] = await resp.json();
+    return data.map(mapActivoFromApi);
   },
+
   async listFinalizados(): Promise<ITicket[]> {
-    const data = tickets.filter(t => t.estado === "cerrado");
-    return delay(500, data);
+    const resp = await fetch(`${API_URL}/tickets/finalizados`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudieron cargar los tickets finalizados");
+    }
+
+    const data: TicketFinalizadoApi[] = await resp.json();
+    return data.map(mapFinalizadoFromApi);
   },
-  async listMisTickets(username: string): Promise<ITicket[]> {
-    const data = tickets.filter(t => t.usuario === "juan.perez");
-    return delay(500, data);
+
+  async listMisTickets(): Promise<ITicket[]> {
+    const user = getUser();
+    console.log('user', user);
+    
+    if (!user || !user.user) {
+      throw new Error("Usuario no autenticado");
+    }
+    const cedula = user.user; // El NIT del usuario
+
+    const resp = await fetch(`${API_URL}/tickets/mis-tickets/${cedula}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudieron cargar tus tickets");
+    }
+
+    const data: TicketMisTicketsApi[] = await resp.json();
+    return data.map(mapMisTicketsFromApi);
   },
-  async crearTicket(dto: CrearTicketDTO & { usuario: string }): Promise<ITicket> {
-    const nextId = Math.max(...tickets.map(t => t.id), 1000) + 1;
-    const ticket: ITicket = {
-      id: nextId,
-      tipoSoporte: dto.tipoSoporte,
+
+  // En esta versión asumimos que el archivo ya fue subido y tenemos una URL.
+  // El flujo de subida real se implementará en una ruta de API de Next.
+  async crearTicket(dto: CrearTicketDTO & { archivoUrl?: string | null }): Promise<ITicket> {
+    const user = getUser();
+    if (!user || !user.user) {
+      throw new Error("Usuario no autenticado");
+    }
+    
+    const body = {
+      tipo_soporte: dto.tipoSoporte,
       anydesk: dto.anydesk || "",
+      usuario_id: user.user, // NIT del usuario autenticado
       descripcion: dto.descripcion,
-      archivoUrl: dto.archivo ? URL.createObjectURL(dto.archivo) : null,
-      empresa: dto.empresa,
-      prioridad: dto.prioridad || "media",
-      usuario: dto.usuario,
-      encargado: null,
-      estado: "abierto",
-      fechaCreacion: new Date().toISOString()
+      estado: "activo",
+      archivo_url: dto.archivoUrl || null,
     };
-    tickets = [ticket, ...tickets];
-    return delay(700, ticket);
+
+    const resp = await fetch(`${API_URL}/tickets`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudo crear el ticket");
+    }
+
+    const data: ApiMessageResponse<TicketActivoApi & { anydesk?: string; archivo_url?: string | null; descripcion?: string }> =
+      await resp.json();
+
+    if (!data.status || !data.data) {
+      throw new Error(data.message || "No se pudo crear el ticket");
+    }
+
+    const raw = data.data;
+
+    return {
+      id: raw.id,
+      tipoSoporte: raw.tipo_soporte,
+      anydesk: raw.anydesk || "",
+      descripcion: raw.descripcion || "",
+      archivoUrl: raw.archivo_url || null,
+      empresa: "N/A",
+      prioridad: normalizePrioridad(raw.prioridad ?? ""),
+      usuario: raw.nombre_usuario ?? "",
+      encargado: raw.nombre_encargado ?? null,
+      estado: mapEstadoFromApi(raw.estado),
+      fechaCreacion: raw.fecha_creacion,
+    };
   },
-  async reasignar(id: number, encargado: string) {
-    tickets = tickets.map(t => t.id === id ? { ...t, encargado } : t);
-    return delay(300, true);
+
+  async reasignar(id: number, encargadoId: string, prioridad: string) {
+    const body = {
+      encargado_id: parseInt(encargadoId, 10), // Parsear a número
+      prioridad,
+    };
+
+    const resp = await fetch(`${API_URL}/tickets/${id}/reasignar`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudo reasignar el ticket");
+    }
+
+    const data: ApiMessageResponse = await resp.json();
+
+    if (!data.status) {
+      throw new Error(data.message || "No se pudo reasignar el ticket");
+    }
+
+    return true;
   },
-  async responder(id: number, mensaje: string, cerrar: boolean) {
-    // append pseudo-response (not stored) and optionally close
-    tickets = tickets.map(t => t.id === id ? { ...t, estado: cerrar ? "cerrado" : t.estado } : t);
-    return delay(300, true);
-  }
+
+  async responder(id: number, respuesta: string, estado: string, nombre: string) {
+    const body = {
+      respuesta,
+      estado,
+      nombre,
+    };
+
+    const resp = await fetch(`${API_URL}/tickets/${id}/responder`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudo enviar la respuesta");
+    }
+
+    const data: ApiMessageResponse = await resp.json();
+
+    if (!data.status) {
+      throw new Error(data.message || "No se pudo enviar la respuesta");
+    }
+
+    return true;
+  },
+
+  async getTicketById(id: number): Promise<{
+    id: number;
+    tipoSoporte: string;
+    descripcion: string;
+    prioridad: string;
+    estado: string;
+    fechaCreacion: string;
+    usuarioId: number;
+    anydesk: string;
+    archivoUrl: string | null;
+    respuestas: string;
+  }> {
+    const resp = await fetch(`${API_URL}/tickets/${id}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!resp.ok) {
+      throw new Error("No se pudo cargar el ticket");
+    }
+
+    const data = await resp.json();
+
+    return {
+      id: data.id,
+      tipoSoporte: data.tipo_soporte,
+      descripcion: data.descripcion,
+      prioridad: data.prioridad || "",
+      estado: data.estado,
+      fechaCreacion: data.fecha_creacion,
+      usuarioId: data.usuario_id,
+      anydesk: data.anydesk || "",
+      archivoUrl: data.archivo_url || null,
+      respuestas: data.respuestas || "",
+    };
+  },
 };

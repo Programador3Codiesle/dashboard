@@ -2,42 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { AuthContext, User } from "../context/AuthContext";
+import { authService } from "../services/auth.service";
+import { setUser, getUser, removeUser, setToken, removeToken, removeCookie } from "@/utils/cookies";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUserState] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
+    // Cargar usuario de cookies al iniciar
     useEffect(() => {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) setUser(JSON.parse(savedUser));
+        const savedUser = getUser();
+        if (savedUser) {
+            setUserState(savedUser);
+        }
+        setLoading(false);
     }, []);
 
     const login = async (credentials: { user: string; password: string }) => {
-        const { user, password } = credentials;
+        const nitUsuario = parseInt(credentials.user, 10);
+        
+        if (isNaN(nitUsuario)) {
+            throw new Error("El usuario debe ser un número NIT válido");
+        }
 
-        // Simulación login real
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                if (user === "1095944273" && password === "123456") {
-                    const mockUser: User = {
-                        id: "1",
-                        name: "Cristhian Sánchez",
-                        user: "1095944273",
-                        role: "admin",
-                    };
+        try {
+            const response = await authService.login({
+                nit_usuario: nitUsuario,
+                password: credentials.password,
+            });
 
-                    localStorage.setItem("user", JSON.stringify(mockUser));
-                    setUser(mockUser);
-                    resolve();
-                } else {
-                    reject(new Error("Credenciales incorrectas"));
-                }
-            }, 900);
-        });
+            // Guardar token en cookie
+            setToken(response.accessToken);
+
+            // Crear objeto usuario
+            const userData: User = {
+                id: response.user.id,
+                user: response.user.nit_usuario.toString(),
+                nit_usuario: response.user.nit_usuario,
+                perfil_postventa: response.user.perfil_postventa,
+                nombre_usuario: response.user.nombre_usuario,
+            };
+
+            // Guardar usuario en cookie
+            setUser(userData);
+            setUserState(userData);
+        } catch (error: any) {
+            throw error;
+        }
     };
 
     const logout = () => {
-        localStorage.removeItem("user");
-        setUser(null);
+        // Borrar todas las cookies relacionadas con la sesión
+        removeUser();
+        removeToken();
+        
+        // Borrar cualquier otra cookie que pueda existir (por seguridad)
+        removeCookie('refreshToken');
+        
+        // Limpiar el estado del usuario
+        setUserState(null);
+        
+        // Redirigir al login (se hace mediante el useEffect en DashboardLayout)
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+        }
     };
 
     return (

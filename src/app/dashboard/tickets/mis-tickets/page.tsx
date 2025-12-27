@@ -6,8 +6,7 @@ import { useTickets } from "@/modules/tickets/hooks/useTickets";
 
 export default function MisTicketsPage() {
     const { user } = useAuth();
-    const username = user?.email || user?.name;
-    const { tickets, loading } = useTickets("activos", username);
+  const { tickets, loading } = useTickets("mis");
 
     return (
         <div>

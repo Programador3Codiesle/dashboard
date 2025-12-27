@@ -1,10 +1,30 @@
 'use client';
-import React from "react";
+import React, { useMemo, useEffect } from "react";
 import { ITicket } from "@/modules/tickets/types";
 import { TicketBadgeEmpresa } from "./TicketsBadgeEmpresa";
 import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { usePagination } from "@/components/shared/ui/hooks/usePagination";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 export default function TicketsTableFinalizados({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
+    // Paginación: 10 items por página
+    const {
+        currentPage,
+        totalPages,
+        startIndex,
+        endIndex,
+        changePage,
+    } = usePagination(tickets.length, 5);
+
+    // Resetear a página 1 si la página actual está fuera de rango
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            changePage(1);
+        }
+    }, [tickets.length, currentPage, totalPages, changePage]);
+
+    const ticketsMostrados = useMemo(() => tickets.slice(startIndex, endIndex), [tickets, startIndex, endIndex]);
+
     if (loading) return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-pulse">
             <div className="h-8 bg-gray-100 rounded mb-4 w-1/3"></div>
@@ -24,48 +44,76 @@ export default function TicketsTableFinalizados({ tickets, loading }: { tickets:
     );
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="min-w-full text-left ">
+                <table className="min-w-full">
                     <thead>
-                        <tr className="bg-amber-500 border-b border-amber-500">
-                            <th className="py-4 px-6 font-medium text-gray-700">Ticket</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Estado</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Empresa</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Prioridad</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Soporte</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Usuario</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Encargado</th>
-                            <th className="py-4 px-6 font-medium text-gray-700">Fecha</th>
+                        <tr className="bg-linear-to-r from-amber-500 to-amber-600 border-b-2 border-amber-600 text-center">
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Ticket</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Estado</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Prioridad</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Soporte</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Usuario</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Encargado</th>
+                            <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Fecha</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 text-sm">
-                        {tickets.map(t => (
-                            <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="py-4 px-6 font-medium text-gray-900">#{t.id}</td>
-                                <td className="py-4 px-6">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                        <CheckCircle2 size={12} />
+                    <tbody className="bg-white divide-y divide-gray-100">
+                        {ticketsMostrados.map((t, index) => (
+                            <tr 
+                                key={t.id} 
+                                className={`transition-all duration-200 ${
+                                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                                } hover:bg-amber-50/50 hover:shadow-sm text-center`}
+                            >
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="text-sm font-bold text-gray-900">#{t.id}</span>
+                                </td>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm">
+                                        <CheckCircle2 size={14} className="text-green-600" />
                                         Finalizado
                                     </span>
                                 </td>
-                                <td className="py-4 px-6"><TicketBadgeEmpresa empresa={t.empresa} /></td>
-                                <td className="py-4 px-6">
-                                    <span className={`capitalize ${t.prioridad === 'alta' ? 'text-red-600 font-medium' :
-                                            t.prioridad === 'media' ? 'text-amber-600' : 'text-blue-600'
-                                        }`}>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold capitalize shadow-sm ${
+                                        t.prioridad === 'alta' 
+                                            ? 'bg-red-100 text-red-700 border border-red-200' 
+                                            : t.prioridad === 'media' 
+                                            ? 'bg-amber-100 text-amber-700 border border-amber-200' 
+                                            : 'bg-blue-100 text-blue-700 border border-blue-200'
+                                    }`}>
                                         {t.prioridad}
                                     </span>
                                 </td>
-                                <td className="py-4 px-6 text-gray-600">{t.tipoSoporte}</td>
-                                <td className="py-4 px-6 text-gray-600">{t.usuario}</td>
-                                <td className="py-4 px-6 text-gray-600">{t.encargado || "—"}</td>
-                                <td className="py-4 px-6 text-gray-500">{new Date(t.fechaCreacion).toLocaleDateString()}</td>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="text-sm font-medium text-gray-700">{t.tipoSoporte}</span>
+                                </td>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="text-sm text-gray-700">{t.usuario}</span>
+                                </td>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="text-sm text-gray-600">{t.encargado || <span className="text-gray-400 italic">—</span>}</span>
+                                </td>
+                                <td className="py-5 px-6 whitespace-nowrap">
+                                    <span className="text-sm text-gray-600">{new Date(t.fechaCreacion).toLocaleDateString()}</span>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="mt-6 px-6 pb-6 bg-gray-50/50 border-t border-gray-200 pt-6">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onChange={changePage}
+                    />
+                </div>
+            )}
         </div>
     );
 }

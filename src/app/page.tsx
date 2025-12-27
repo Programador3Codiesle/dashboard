@@ -1,15 +1,18 @@
-/* Tu CSS personalizado aquí */
-import Link from 'next/link';
-import { Button } from '@/components/shared/atoms/Button';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/login');
+  }, [router]);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <h1 className="text-9xl font-bold text-indigo-600 mb-4">Bienvenido a Panel Pro</h1>
-      <p className="text-gray-600 mb-6">Administra nómina, citas y garantías desde tu panel.</p>
-      <Link href="/dashboard">
-        <Button variant="primary">Ir al Dashboard</Button>
-      </Link>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
     </div>
   );
 }

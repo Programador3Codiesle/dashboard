@@ -9,9 +9,10 @@ interface Props {
   currentPath: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
+  userName?: string; // Nombre completo del usuario
 }
 
-export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout }) => {
+export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout, userName }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -19,6 +20,43 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
     () => ROUTES.find(r => r.path === currentPath)?.name || "Dashboard",
     [currentPath]
   );
+
+  // Función para formatear el nombre: convertir de mayúsculas a formato capitalizado
+  // y reordenar de APELLIDO1 APELLIDO2 NOMBRE1 NOMBRE2 a NOMBRE1 NOMBRE2 APELLIDO1 APELLIDO2
+  const formatNombre = (nombreCompleto: string): string => {
+    if (!nombreCompleto) return '';
+    
+    const palabras = nombreCompleto.trim().split(/\s+/).filter(p => p.length > 0);
+    if (palabras.length === 0) return nombreCompleto;
+    
+    // Capitalizar cada palabra (primera letra mayúscula, resto minúscula)
+    const palabrasCapitalizadas = palabras.map(palabra => 
+      palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()
+    );
+    
+    // Si tiene 1 o 2 palabras, devolver directamente capitalizadas
+    if (palabrasCapitalizadas.length <= 2) {
+      return palabrasCapitalizadas.join(' ');
+    }
+    
+    // Para 3 palabras: asumimos formato APELLIDO1 APELLIDO2 NOMBRE
+    // Resultado: NOMBRE APELLIDO1 APELLIDO2
+    if (palabrasCapitalizadas.length === 3) {
+      const [apellido1, apellido2, nombre] = palabrasCapitalizadas;
+      return `${nombre} ${apellido1} ${apellido2}`;
+    }
+    
+    // Para 4 o más palabras: asumimos formato APELLIDO1 APELLIDO2 NOMBRE1 NOMBRE2...
+    // Separamos en dos mitades: primera mitad son apellidos, segunda mitad son nombres
+    const mitad = Math.floor(palabrasCapitalizadas.length / 2);
+    const apellidos = palabrasCapitalizadas.slice(0, mitad);
+    const nombres = palabrasCapitalizadas.slice(mitad);
+    
+    // Retornar: NOMBRES APELLIDOS
+    return [...nombres, ...apellidos].join(' ');
+  };
+
+  const formattedName = userName ? formatNombre(userName) : '';
 
   return (
     <motion.header 
@@ -49,8 +87,9 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
 
         {/* Right Section */}
         <div className="flex items-center space-x-3">
-      
-          <p className="text-1xl text-gray-800">Cristhian Sanchez</p>
+          {formattedName && (
+            <p className="text-lg text-gray-800 font-medium">{formattedName}</p>
+          )}
           {/* Profile Menu */}
           <motion.div className="relative">
             <motion.button

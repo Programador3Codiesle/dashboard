@@ -9,7 +9,9 @@ export default function TicketsRootPage() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "admin") {
+      // Si el perfil es 1 o 20, mostrar activos; si no, mostrar mis tickets
+      const canSeeAllTickets = user.perfil_postventa === "1" || user.perfil_postventa === "20";
+      if (canSeeAllTickets) {
         router.replace("/dashboard/tickets/activos");
       } else {
         router.replace("/dashboard/tickets/mis-tickets");

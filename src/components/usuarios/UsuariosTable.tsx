@@ -26,7 +26,7 @@ import AgregarEmpresaModal from "./modals/AgregarEmpresaModal";
 import { empresasDisponibles } from "@/modules/usuarios/constants";
 
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
-import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound } from 'lucide-react';
+import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 interface UsuariosTableProps {
@@ -304,6 +304,7 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
                             <th className="px-4 py-2 text-center">Usuario</th>
                             <th className="px-4 py-2 text-center">Marcas</th>
                             <th className="px-4 py-2 text-center">Estado</th>
+                            <th className="px-4 py-2 text-center">Perfil</th>
                             <th className="px-4 py-2 text-center">Sede</th>
                             <th className="px-4 py-2 text-center">Rest-clave</th>
                             <th className="px-4 py-2 text-center">Acciones</th>
@@ -342,23 +343,25 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
                                 </td>
 
                                 <td className="px-4 py-3">
-                             
                                     {u.estado === "Activo" ? (
                                         <span
                                             onClick={() => openModal(u, 'toggle-status')}
-                                            className="text-green-600 bg-green-100 border-green-200 px-3 py-1 rounded-full text-xs font-medium border cursor-pointer hover:bg-green-200 transition-colors"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm cursor-pointer hover:bg-green-200 hover:shadow-md transition-all duration-200"
                                         >
+                                            <CheckCircle2 size={14} className="text-green-600" />
                                             Activo
                                         </span>
                                     ) : (
                                         <span
                                             onClick={() => openModal(u, 'toggle-status')}
-                                            className="text-red-600 bg-red-100 border-red-200 px-3 py-1 rounded-full text-xs font-medium border cursor-pointer hover:bg-red-200 transition-colors"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200 shadow-sm cursor-pointer hover:bg-red-200 hover:shadow-md transition-all duration-200"
                                         >
+                                            <XCircle size={14} className="text-red-600" />
                                             Inactivo
                                         </span>
                                     )}
                                 </td>
+                                <td className="px-4 py-3">{u.perfil || "Sin perfil"}</td>
 
                                 <td className="px-4 py-3">{u.sede || "Sin sede"}</td>
 

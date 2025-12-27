@@ -1,6 +1,6 @@
 // src/modules/tickets/types/index.ts
 export type Prioridad = "alta" | "media" | "baja";
-export type EstadoTicket = "abierto" | "cerrado" | "mio";
+export type EstadoTicket = "abierto" | "cerrado" | "mio" | "en proceso" | "activo";
 
 export interface ITicket {
   id: number;
@@ -20,7 +20,4 @@ export interface CrearTicketDTO {
   tipoSoporte: string;
   anydesk?: string;
   descripcion: string;
-  empresa: string;
-  archivo?: File | null;
-  prioridad?: Prioridad;
 }

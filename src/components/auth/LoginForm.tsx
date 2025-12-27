@@ -24,9 +24,9 @@ export const LoginForm = () => {
     try {
       await login({ user, password });
       router.push('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en login:', error);
-      setErrorMsg("Credenciales incorrectas");
+      setErrorMsg(error?.message || "Credenciales incorrectas");
     } finally {
       setIsLoading(false);
     }
