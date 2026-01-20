@@ -16,10 +16,25 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
-  const currentTitle = useMemo(
-    () => ROUTES.find(r => r.path === currentPath)?.name || "Dashboard",
-    [currentPath]
-  );
+  const currentTitle = useMemo(() => {
+    // Buscar coincidencia exacta primero
+    const exactMatch = ROUTES.find(r => r.path === currentPath);
+    if (exactMatch) return exactMatch.name;
+    
+    // Si no hay coincidencia exacta, buscar la ruta más específica que coincida
+    // Ordenar rutas por longitud (más largas primero) para encontrar la más específica
+    const sortedRoutes = [...ROUTES].sort((a, b) => b.path.length - a.path.length);
+    const matchingRoute = sortedRoutes.find(r => {
+      // Si la ruta es "/dashboard", solo coincidir exactamente
+      if (r.path === "/dashboard") {
+        return currentPath === "/dashboard";
+      }
+      // Para otras rutas, verificar si el pathname actual comienza con la ruta seguida de "/" o es exactamente igual
+      return currentPath.startsWith(r.path + "/") || currentPath === r.path;
+    });
+    
+    return matchingRoute?.name || "Dashboard";
+  }, [currentPath]);
 
   // Función para formatear el nombre: convertir de mayúsculas a formato capitalizado
   // y reordenar de APELLIDO1 APELLIDO2 NOMBRE1 NOMBRE2 a NOMBRE1 NOMBRE2 APELLIDO1 APELLIDO2
