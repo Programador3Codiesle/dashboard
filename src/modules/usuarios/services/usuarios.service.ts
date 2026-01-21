@@ -10,14 +10,14 @@ import {
     IUsuarioJefeCandidato,
     IApiMessageResponse
 } from "../types";
+import { fetchWithAuth } from "@/utils/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const usuariosService = {
     async getUsuarios(): Promise<IUsuario[]> {
-        const response = await fetch(`${API_URL}/usuarios`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar usuarios');
         const data: IUsuarioAPI[] = await response.json();
@@ -49,27 +49,24 @@ export const usuariosService = {
 
     // ========== JEFES ==========
     async getJefes(): Promise<IJefe[]> {
-        const response = await fetch(`${API_URL}/usuarios/jefes`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/jefes`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar jefes');
         return response.json();
     },
 
     async getJefesUsuario(idEmpleado: string): Promise<IJefe[]> {
-        const response = await fetch(`${API_URL}/usuarios/${idEmpleado}/jefes`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/jefes`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar jefes del usuario');
         return response.json();
     },
 
     async asignarJefe(idEmpleado: string, jefeId: string): Promise<IJefe> {
-        const response = await fetch(`${API_URL}/usuarios/${idEmpleado}/asignar-jefe`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/asignar-jefe`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jefeId }),
         });
         if (!response.ok) throw new Error('Error al asignar jefe');
@@ -77,9 +74,8 @@ export const usuariosService = {
     },
 
     async eliminarJefe(idEmpleado: string, jefeId: string): Promise<IJefe> {
-        const response = await fetch(`${API_URL}/usuarios/${idEmpleado}/eliminar-jefe`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/eliminar-jefe`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jefeId }),
         });
         if (!response.ok) throw new Error('Error al eliminar jefe');
@@ -88,27 +84,24 @@ export const usuariosService = {
 
     // ========== SEDES ==========
     async getSedes(): Promise<ISede[]> {
-        const response = await fetch(`${API_URL}/usuarios/sedes`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/sedes`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar sedes');
         return response.json();
     },
 
     async getSedesUsuario(usuarioId: string): Promise<{ id: string }[]> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/sedes`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/sedes`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar sedes del usuario');
         return response.json();
     },
 
     async asignarSede(usuarioId: string, idSede: string): Promise<ISede> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/asignar-sede`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/asignar-sede`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idSede }),
         });
         if (!response.ok) throw new Error('Error al asignar sede');
@@ -116,9 +109,8 @@ export const usuariosService = {
     },
 
     async eliminarSede(usuarioId: string, idSede: string): Promise<ISede> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/eliminar-sede`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/eliminar-sede`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idSede }),
         });
         if (!response.ok) throw new Error('Error al eliminar sede');
@@ -127,27 +119,24 @@ export const usuariosService = {
 
     // ========== PERFILES ==========
     async getPerfiles(): Promise<IPerfil[]> {
-        const response = await fetch(`${API_URL}/usuarios/perfiles`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/perfiles`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar perfiles');
         return response.json();
     },
 
     async getPerfilUsuario(nit: string): Promise<IPerfil[]> {
-        const response = await fetch(`${API_URL}/usuarios/${nit}/perfil`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${nit}/perfil`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar perfil del usuario');
         return response.json();
     },
 
     async updatePerfil(usuarioId: string, perfilId: string): Promise<IPerfil> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ perfil: perfilId }),
         });
         if (!response.ok) throw new Error('Error al actualizar perfil');
@@ -156,18 +145,16 @@ export const usuariosService = {
 
     // ========== HORARIO ==========
     async getHorario(nit: string): Promise<IHorarioApi> {
-        const response = await fetch(`${API_URL}/usuarios/${nit}/horario`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${nit}/horario`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar horario');
         return response.json();
     },
 
     async asignarHorario(nit: string, horario: IHorarioApi): Promise<IHorarioApi> {
-        const response = await fetch(`${API_URL}/usuarios/${nit}/asignar-horario`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${nit}/asignar-horario`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(horario),
         });
         if (!response.ok) throw new Error('Error al asignar horario');
@@ -176,18 +163,16 @@ export const usuariosService = {
 
     // ========== EMPRESAS ==========
     async asignarEmpresas(usuarioNit: string, empresas: string[]): Promise<void> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioNit}/asignar-empresa`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioNit}/asignar-empresa`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ empresas }),
         });
         if (!response.ok) throw new Error('Error al asignar empresas');
     },
 
     async eliminarEmpresas(usuarioNit: string, empresas: string[]): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioNit}/eliminar-empresa`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioNit}/eliminar-empresa`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ empresas }),
         });
 
@@ -203,9 +188,8 @@ export const usuariosService = {
 
     // ========== USUARIOS ==========
     async crearUsuario(nit: string, perfilId: string): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nit, perfil: perfilId }),
         });
 
@@ -224,9 +208,8 @@ export const usuariosService = {
     },
 
     async habilitarUsuario(usuarioId: string): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/habilitar`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/habilitar`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
         });
 
         const data = await response.json().catch(() => null);
@@ -240,9 +223,8 @@ export const usuariosService = {
     },
 
     async deshabilitarUsuario(usuarioId: string): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/deshabilitar`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/deshabilitar`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
         });
 
         const data = await response.json().catch(() => null);
@@ -256,9 +238,8 @@ export const usuariosService = {
     },
 
     async resetPassword(usuarioId: string, nit: string): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/reset-password`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/reset-password`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nit }),
         });
 
@@ -274,27 +255,24 @@ export const usuariosService = {
 
     // ========== JEFES GENERALES ==========
     async getJefesGeneral(): Promise<IJefeGeneral[]> {
-        const response = await fetch(`${API_URL}/usuarios/jefes-general`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/jefes-general`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar jefes generales');
         return response.json();
     },
 
     async getUsuariosJefes(): Promise<IUsuarioJefeCandidato[]> {
-        const response = await fetch(`${API_URL}/usuarios/usuarios-jefes`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/usuarios-jefes`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) throw new Error('Error al cargar usuarios candidatos a jefe');
         return response.json();
     },
 
     async crearJefe(nit: string, email: string): Promise<IApiMessageResponse> {
-        const response = await fetch(`${API_URL}/usuarios/crear-jefe`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/crear-jefe`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nit, email }),
         });
 
@@ -310,16 +288,15 @@ export const usuariosService = {
 
     // ========== OTROS ==========
     async toggleEstado(usuarioId: number, estado: 'Activo' | 'Inactivo'): Promise<void> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}/estado`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}/estado`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ estado }),
         });
         if (!response.ok) throw new Error('Error al cambiar estado');
     },
 
     async deleteUsuario(usuarioId: number): Promise<void> {
-        const response = await fetch(`${API_URL}/usuarios/${usuarioId}`, {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/${usuarioId}`, {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Error al eliminar usuario');

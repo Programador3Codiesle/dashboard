@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "@/utils/api";
+import { fetchWithAuth } from "@/utils/api";
 import { getUser } from "@/utils/cookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -117,9 +117,8 @@ export const formatoDesempenoService = {
    * Obtener evaluación por NIT de empleado
    */
   async obtenerEvaluacion(nitEmpleado: number): Promise<FormatoDesempenoAPI | null> {
-    const response = await fetch(`${API_URL}/administracion/formato-desempeno/${nitEmpleado}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/formato-desempeno/${nitEmpleado}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -142,9 +141,8 @@ export const formatoDesempenoService = {
    * Crear o actualizar evaluación
    */
   async crearActualizarEvaluacion(dto: FormatoDesempenoDTO): Promise<FormatoDesempenoAPI> {
-    const response = await fetch(`${API_URL}/administracion/formato-desempeno`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/formato-desempeno`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 
@@ -167,9 +165,8 @@ export const formatoDesempenoService = {
    * @param nitJefe - NIT del jefe
    */
   async relacionarEvaluacion(nitUsuario: number, nitJefe: number): Promise<void> {
-    const response = await fetch(`${API_URL}/administracion/evaluacion-desempeno/relacionar-evaluacion`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/evaluacion-desempeno/relacionar-evaluacion`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         nit_usuario: nitUsuario,
         nit_jefe: nitJefe

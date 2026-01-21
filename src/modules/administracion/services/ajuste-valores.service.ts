@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "@/utils/api";
+import { fetchWithAuth } from "@/utils/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -97,9 +97,8 @@ export const ajusteValoresService = {
    * Obtener valores contables por tipo y número
    */
   async obtenerValores(tipo: string, numero: number): Promise<AjusteValoresResponse | null> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores?tipo=${tipo}&numero=${numero}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores?tipo=${tipo}&numero=${numero}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -120,9 +119,8 @@ export const ajusteValoresService = {
    * Validar si los documentos están cerrados
    */
   async validarDocumentosCerrados(ano: number, mes: number): Promise<boolean> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/documentos-cerrados?ano=${ano}&mes=${mes}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/documentos-cerrados?ano=${ano}&mes=${mes}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -142,9 +140,8 @@ export const ajusteValoresService = {
    * Actualizar valores contables
    */
   async actualizarValores(numero: number, tipo: string, dto: ActualizarValoresDTO): Promise<AjusteValoresResponse> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 
@@ -165,9 +162,8 @@ export const ajusteValoresService = {
    * Obtener valores de cruce
    */
   async obtenerValoresCruce(tipo: string, numero: number): Promise<ValoresCruceResponse | null> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/valores-cruce?tipo=${tipo}&numero=${numero}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/valores-cruce?tipo=${tipo}&numero=${numero}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -188,9 +184,8 @@ export const ajusteValoresService = {
    * Actualizar valor aplicado 2 (valor cruce)
    */
   async actualizarValorCruce(numero: number, tipo: string, dto: ActualizarValoresCruceDTO): Promise<ValoresCruceResponse> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 
@@ -211,9 +206,8 @@ export const ajusteValoresService = {
    * Obtener valores2 (forma de pago)
    */
   async obtenerValores2(tipo: string, numero: number): Promise<Valores2Response | null> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/valores2?tipo=${tipo}&numero=${numero}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/valores2?tipo=${tipo}&numero=${numero}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -234,9 +228,8 @@ export const ajusteValoresService = {
    * Actualizar valores2 (forma de pago)
    */
   async actualizarValores2(numero: number, tipo: string, dto: ActualizarValores2DTO): Promise<Valores2Response> {
-    const response = await fetch(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 

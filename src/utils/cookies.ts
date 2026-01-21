@@ -23,18 +23,6 @@ export function removeCookie(name: string) {
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 }
 
-export function getToken(): string | null {
-  return getCookie('accessToken');
-}
-
-export function setToken(token: string) {
-  setCookie('accessToken', token, 7); // 7 días
-}
-
-export function removeToken() {
-  removeCookie('accessToken');
-}
-
 export function getUser(): any | null {
   const userStr = getCookie('user');
   if (!userStr) return null;

@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "@/utils/api";
+import { fetchWithAuth } from "@/utils/api";
 import { getUser } from "@/utils/cookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -63,9 +63,8 @@ export const controlVehiculosService = {
    * Listar todos los registros de salida y llegada
    */
   async listarRegistros(): Promise<VehiculoSalidaAPI[]> {
-    const response = await fetch(`${API_URL}/administracion/control-vehiculos`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -80,9 +79,8 @@ export const controlVehiculosService = {
    * Obtener modelos de vehículos disponibles
    */
   async obtenerModelos(): Promise<ModeloVehiculoAPI[]> {
-    const response = await fetch(`${API_URL}/administracion/control-vehiculos/vehiculos/modelos`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/vehiculos/modelos`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -115,9 +113,8 @@ export const controlVehiculosService = {
       placa_vh_remolcado: dto.placa_vh_remolcado || null,
     };
 
-    const response = await fetch(`${API_URL}/administracion/control-vehiculos/salida`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/salida`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(body),
     });
 
@@ -138,9 +135,8 @@ export const controlVehiculosService = {
    * Registrar llegada de vehículo
    */
   async registrarLlegada(id: number, dto: RegistrarLlegadaDTO): Promise<VehiculoSalidaAPI> {
-    const response = await fetch(`${API_URL}/administracion/control-vehiculos/${id}/llegada`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/${id}/llegada`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 

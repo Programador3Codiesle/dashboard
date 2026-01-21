@@ -1,4 +1,4 @@
-import { getAuthHeaders } from "@/utils/api";
+import { fetchWithAuth } from "@/utils/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -125,9 +125,8 @@ export const evaluacionDesempenoService = {
    * Obtener el ID del jefe a partir de su cédula
    */
   async obtenerIdJefe(cedula: number): Promise<number> {
-    const response = await fetch(`${API_URL}/administracion/evaluacion-desempeno/obtener-id-jefe/${cedula}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/evaluacion-desempeno/obtener-id-jefe/${cedula}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -142,9 +141,8 @@ export const evaluacionDesempenoService = {
    * Obtener empleados pendientes por calificar para un jefe usando su ID
    */
   async obtenerEmpleadosPendientes(idJefe: number): Promise<EmpleadoPendienteAPI[]> {
-    const response = await fetch(`${API_URL}/administracion/evaluacion-desempeno/jefe/${idJefe}/empleados-pendientes`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/evaluacion-desempeno/jefe/${idJefe}/empleados-pendientes`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -168,9 +166,8 @@ export const evaluacionDesempenoService = {
    * Obtener evaluación completa por ID de evaluación
    */
   async obtenerEvaluacion(idEvaluacion: number): Promise<EvaluacionCompletaAPI> {
-    const response = await fetch(`${API_URL}/administracion/evaluacion-desempeno/empleado/${idEvaluacion}`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/evaluacion-desempeno/empleado/${idEvaluacion}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -190,9 +187,8 @@ export const evaluacionDesempenoService = {
    * Calificar evaluación (actualizar campos del jefe)
    */
   async calificar(idEvaluacion: number, dto: CalificarDTO): Promise<EvaluacionCompletaAPI> {
-    const response = await fetch(`${API_URL}/administracion/evaluacion-desempeno/${idEvaluacion}/calificar`, {
+    const response = await fetchWithAuth(`${API_URL}/administracion/evaluacion-desempeno/${idEvaluacion}/calificar`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(dto),
     });
 

@@ -5,7 +5,7 @@ import {
   mapEstadoFromApi,
   normalizePrioridad,
 } from "../constants";
-import { getAuthHeaders } from "@/utils/api";
+import { fetchWithAuth } from "@/utils/api";
 import { getUser } from "@/utils/cookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -107,9 +107,8 @@ function mapMisTicketsFromApi(raw: TicketMisTicketsApi): ITicket {
 
 export const ticketsService = {
   async listActivos(): Promise<ITicket[]> {
-    const resp = await fetch(`${API_URL}/tickets/activos`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/activos`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
     });
 
     if (!resp.ok) {
@@ -121,9 +120,8 @@ export const ticketsService = {
   },
 
   async listFinalizados(): Promise<ITicket[]> {
-    const resp = await fetch(`${API_URL}/tickets/finalizados`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/finalizados`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!resp.ok) {
@@ -143,9 +141,8 @@ export const ticketsService = {
     }
     const cedula = user.user; // El NIT del usuario
 
-    const resp = await fetch(`${API_URL}/tickets/mis-tickets/${cedula}`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/mis-tickets/${cedula}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!resp.ok) {
@@ -173,9 +170,8 @@ export const ticketsService = {
       archivo_url: dto.archivoUrl || null,
     };
 
-    const resp = await fetch(`${API_URL}/tickets`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(body),
     });
 
@@ -213,9 +209,8 @@ export const ticketsService = {
       prioridad,
     };
 
-    const resp = await fetch(`${API_URL}/tickets/${id}/reasignar`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/${id}/reasignar`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(body),
     });
 
@@ -239,9 +234,8 @@ export const ticketsService = {
       nombre,
     };
 
-    const resp = await fetch(`${API_URL}/tickets/${id}/responder`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/${id}/responder`, {
       method: "PUT",
-      headers: getAuthHeaders(),
       body: JSON.stringify(body),
     });
 
@@ -270,9 +264,8 @@ export const ticketsService = {
     archivoUrl: string | null;
     respuestas: string;
   }> {
-    const resp = await fetch(`${API_URL}/tickets/${id}`, {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/${id}`, {
       method: "GET",
-      headers: getAuthHeaders(),
     });
 
     if (!resp.ok) {
