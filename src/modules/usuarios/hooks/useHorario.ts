@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { usuariosService } from '../services/usuarios.service';
 import { IHorarioApi } from '../types';
 import { IErrorResponse } from '@/types/global';
@@ -7,6 +7,8 @@ export const useHorarioUsuario = (nit: string | undefined) => {
   const [horario, setHorario] = useState<IHorarioApi | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<IErrorResponse | null>(null);
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchHorario = useCallback(async () => {
     if (!nit) {
@@ -14,36 +16,61 @@ export const useHorarioUsuario = (nit: string | undefined) => {
       return;
     }
 
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Crear nuevo AbortController para esta petición
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsLoading(true);
     setError(null);
+
     try {
       const data = await usuariosService.getHorario(nit);
-      setHorario(data);
+
+      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setHorario(data);
+      }
     } catch (err: any) {
-      setError({ 
-        message: err.message || 'Error al cargar horario del usuario', 
-        code: 500 
-      });
+      // Ignorar errores de cancelación
+      if (err.name === 'AbortError' || abortController.signal.aborted) {
+        return;
+      }
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setError({ 
+          message: err.message || 'Error al cargar horario del usuario', 
+          code: 500 
+        });
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [nit]);
 
   useEffect(() => {
+    mountedRef.current = true;
     fetchHorario();
+
+    // Cleanup: marcar como desmontado y cancelar petición pendiente
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchHorario]);
 
   const refetch = useCallback(() => {
-    if (nit) {
-      setIsLoading(true);
-      usuariosService.getHorario(nit)
-        .then(setHorario)
-        .catch((err: any) => {
-          setError({ message: err.message || 'Error al cargar horario', code: 500 });
-        })
-        .finally(() => setIsLoading(false));
+    if (nit && mountedRef.current) {
+      fetchHorario();
     }
-  }, [nit]);
+  }, [nit, fetchHorario]);
 
   return { horario, isLoading, error, refetch };
 };

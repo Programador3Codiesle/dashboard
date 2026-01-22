@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Search, Plus, CheckCircle2 } from "lucide-react";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
@@ -19,13 +19,19 @@ export default function ControlVehiculosPage() {
   const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState<VehiculoSalida | null>(null);
   const [vehiculos, setVehiculos] = useState<VehiculoSalida[]>([]);
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Cargar registros al montar el componente
-  useEffect(() => {
-    loadRegistros();
-  }, []);
+  const loadRegistros = useCallback(async () => {
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
 
-  const loadRegistros = async () => {
+    // Crear nuevo AbortController para esta petición
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setLoading(true);
     try {
       const data = await controlVehiculosService.listarRegistros();
@@ -48,13 +54,39 @@ export default function ControlVehiculosPage() {
         kmIngreso: item.km_llegada || undefined,
         observacion: item.observacion || undefined,
       }));
-      setVehiculos(vehiculosMapeados);
+
+      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setVehiculos(vehiculosMapeados);
+      }
     } catch (error: any) {
-      showError(error.message || "Error al cargar los registros de vehículos");
+      // Ignorar errores de cancelación
+      if (error.name === 'AbortError' || abortController.signal.aborted) {
+        return;
+      }
+      if (mountedRef.current && !abortController.signal.aborted) {
+        showError(error.message || "Error al cargar los registros de vehículos");
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  // Cargar registros al montar el componente
+  useEffect(() => {
+    mountedRef.current = true;
+    loadRegistros();
+
+    // Cleanup: marcar como desmontado y cancelar petición pendiente
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [loadRegistros]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return vehiculos;

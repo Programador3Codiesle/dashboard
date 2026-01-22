@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Save } from "lucide-react";
 import { COMPETENCIAS_TEMPLATE } from "@/modules/administracion/constants";
@@ -47,59 +47,89 @@ export default function FormatoDesempenoEmpleadoPage() {
     esAutoEvaluacion: true,
   });
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Cargar evaluación existente al montar
-  useEffect(() => {
-    const cargarEvaluacion = async () => {
-      if (!user?.nit_usuario) return;
+  const cargarEvaluacion = useCallback(async () => {
+    if (!user?.nit_usuario) return;
+
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Crear nuevo AbortController para esta petición
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    
+    setLoadingEvaluacion(true);
+    try {
+      const evaluacion = await formatoDesempenoService.obtenerEvaluacion(user.nit_usuario);
       
-      setLoadingEvaluacion(true);
-      try {
-        const evaluacion = await formatoDesempenoService.obtenerEvaluacion(user.nit_usuario);
-        if (evaluacion) {
-          setEvaluacionExistente(evaluacion);
+      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
+      if (mountedRef.current && !abortController.signal.aborted && evaluacion) {
+        setEvaluacionExistente(evaluacion);
+        
+        // Mapear datos de la API al formulario
+        const competenciasFlat = COMPETENCIAS_TEMPLATE.flatMap((categoria) => categoria.items);
+        const competenciasMapeadas = competenciasFlat.map((descripcion, idx) => {
+          const campo = MAPEO_COMPETENCIAS[idx] as keyof FormatoDesempenoAPI;
+          const valor = evaluacion[campo] as number | undefined;
           
-          // Mapear datos de la API al formulario
-          const competenciasFlat = COMPETENCIAS_TEMPLATE.flatMap((categoria) => categoria.items);
-          const competenciasMapeadas = competenciasFlat.map((descripcion, idx) => {
-            const campo = MAPEO_COMPETENCIAS[idx] as keyof FormatoDesempenoAPI;
-            const valor = evaluacion[campo] as number | undefined;
-            
-            // Encontrar la categoría correspondiente
-            const categoriaObj = COMPETENCIAS_TEMPLATE.find(cat => 
-              cat.items.includes(descripcion)
-            );
-            
-            return {
-              id: `${idx}`,
-              categoria: categoriaObj?.categoria || "",
-              descripcion,
-              autoEvaluacion: valor as EscalaDesempeño | undefined,
-            };
-          });
+          // Encontrar la categoría correspondiente
+          const categoriaObj = COMPETENCIAS_TEMPLATE.find(cat => 
+            cat.items.includes(descripcion)
+          );
           
-          setFormData({
-            nombreEmpleado: evaluacion.empleado,
-            area: evaluacion.area,
-            cargo: evaluacion.cargo,
-            sede: evaluacion.sede,
-            fecha: evaluacion.fecha,
-            competencias: competenciasMapeadas,
-            necesidadesCapacitacion: evaluacion.capacidades_entrenamiento || "",
-            compromisosTrabajador: evaluacion.compromisos || "",
-            esAutoEvaluacion: true,
-          });
-        }
-      } catch (error: any) {
-        // Si no hay evaluación, continuar con formulario vacío
+          return {
+            id: `${idx}`,
+            categoria: categoriaObj?.categoria || "",
+            descripcion,
+            autoEvaluacion: valor as EscalaDesempeño | undefined,
+          };
+        });
+        
+        setFormData({
+          nombreEmpleado: evaluacion.empleado,
+          area: evaluacion.area,
+          cargo: evaluacion.cargo,
+          sede: evaluacion.sede,
+          fecha: evaluacion.fecha,
+          competencias: competenciasMapeadas,
+          necesidadesCapacitacion: evaluacion.capacidades_entrenamiento || "",
+          compromisosTrabajador: evaluacion.compromisos || "",
+          esAutoEvaluacion: true,
+        });
+      }
+    } catch (error: any) {
+      // Ignorar errores de cancelación
+      if (error.name === 'AbortError' || abortController.signal.aborted) {
+        return;
+      }
+      // Si no hay evaluación, continuar con formulario vacío
+      if (mountedRef.current && !abortController.signal.aborted) {
         console.log("No se encontró evaluación existente");
-      } finally {
+      }
+    } finally {
+      if (mountedRef.current && !abortController.signal.aborted) {
         setLoadingEvaluacion(false);
       }
-    };
-
-    cargarEvaluacion();
+    }
   }, [user?.nit_usuario]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    cargarEvaluacion();
+
+    // Cleanup: marcar como desmontado y cancelar petición pendiente
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [cargarEvaluacion]);
 
   const handleCompetenciaChange = (id: string, value: EscalaDesempeño) => {
     setFormData({

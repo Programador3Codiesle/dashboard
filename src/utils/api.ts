@@ -16,6 +16,24 @@ type QueuedRequest = {
 
 const requestQueue: QueuedRequest[] = [];
 
+// Cache de peticiones en curso para evitar duplicados
+type PendingRequest = {
+  promise: Promise<Response>;
+  timestamp: number;
+};
+
+const pendingRequests = new Map<string, PendingRequest>();
+const REQUEST_CACHE_TIMEOUT = 1000; // 1 segundo - tiempo máximo para considerar una petición como duplicada
+
+/**
+ * Genera una clave única para una petición basada en URL y opciones
+ */
+function getRequestKey(url: string, options: RequestInit): string {
+  const method = options.method || 'GET';
+  const body = options.body ? JSON.stringify(options.body) : '';
+  return `${method}:${url}:${body}`;
+}
+
 /**
  * Refresca el token automáticamente con retry y backoff exponencial
  */
@@ -157,7 +175,7 @@ export function getAuthHeaders(): HeadersInit {
 
 /**
  * Wrapper para fetch que maneja automáticamente el refresh del token
- * cuando recibe un 401 (Unauthorized)
+ * cuando recibe un 401 (Unauthorized) y evita peticiones duplicadas
  * 
  * @param url - URL de la petición
  * @param options - Opciones de fetch (method, headers, body, etc.)
@@ -177,42 +195,83 @@ export async function fetchWithAuth(
     },
   };
 
-  // Primera petición
-  let response = await fetch(url, fetchOptions);
+  // Generar clave única para esta petición
+  const requestKey = getRequestKey(url, fetchOptions);
+  const now = Date.now();
 
-  // Si recibimos 401 (Unauthorized), intentar refrescar el token
-  if (response.status === 401) {
-    console.log("Token expirado detectado (401), intentando refrescar...");
-    
-    // Si ya hay un refresh en curso, agregar esta solicitud a la cola y esperar
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        requestQueue.push({
-          resolve,
-          reject,
-          url,
-          options: fetchOptions,
-        });
+  // Verificar si hay una petición idéntica en curso
+  const pendingRequest = pendingRequests.get(requestKey);
+  if (pendingRequest) {
+    // Si la petición está en curso y no ha expirado, clonar la respuesta
+    // para que cada llamada pueda leer su propio body stream
+    const age = now - pendingRequest.timestamp;
+    if (age < REQUEST_CACHE_TIMEOUT) {
+      return pendingRequest.promise.then(response => {
+        // Clonar la respuesta para que cada llamada tenga su propio body stream
+        // Esto evita el error "body stream already read"
+        return response.clone();
       });
+    } else {
+      // Si expiró, eliminarla del cache
+      pendingRequests.delete(requestKey);
     }
-
-    // Agregar esta solicitud a la cola antes de iniciar el refresh
-    // para que también sea reintentada cuando el refresh se complete
-    return new Promise((resolve, reject) => {
-      requestQueue.push({
-        resolve,
-        reject,
-        url,
-        options: fetchOptions,
-      });
-
-      // Iniciar el refresh (solo una vez)
-      // La cola será procesada automáticamente cuando el refresh se complete
-      refreshToken();
-    });
   }
 
-  return response;
+  // Crear la promesa de la petición
+  const requestPromise = (async (): Promise<Response> => {
+    try {
+      // Primera petición
+      let response = await fetch(url, fetchOptions);
+
+      // Si recibimos 401 (Unauthorized), intentar refrescar el token
+      if (response.status === 401) {
+        console.log("Token expirado detectado (401), intentando refrescar...");
+        
+        // Si ya hay un refresh en curso, agregar esta solicitud a la cola y esperar
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            requestQueue.push({
+              resolve,
+              reject,
+              url,
+              options: fetchOptions,
+            });
+          });
+        }
+
+        // Agregar esta solicitud a la cola antes de iniciar el refresh
+        // para que también sea reintentada cuando el refresh se complete
+        return new Promise((resolve, reject) => {
+          requestQueue.push({
+            resolve,
+            reject,
+            url,
+            options: fetchOptions,
+          });
+
+          // Iniciar el refresh (solo una vez)
+          // La cola será procesada automáticamente cuando el refresh se complete
+          refreshToken();
+        });
+      }
+
+      return response;
+    } finally {
+      // Limpiar la petición del cache después de completarse
+      // Usar setTimeout para permitir que otras peticiones duplicadas la reutilicen
+      setTimeout(() => {
+        pendingRequests.delete(requestKey);
+      }, REQUEST_CACHE_TIMEOUT);
+    }
+  })();
+
+  // Guardar la petición en el cache
+  pendingRequests.set(requestKey, {
+    promise: requestPromise,
+    timestamp: now,
+  });
+
+  return requestPromise;
 }
 
 

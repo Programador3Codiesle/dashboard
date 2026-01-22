@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { UserCheck, Save, Users, ArrowLeft } from "lucide-react";
 import { COMPETENCIAS_TEMPLATE } from "@/modules/administracion/constants";
@@ -67,31 +67,63 @@ export default function EvaluacionDesempenoPage() {
     esAutoEvaluacion: false,
   });
   const [loading, setLoading] = useState(false);
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Cargar empleados pendientes al montar
-  useEffect(() => {
-    const cargarPendientes = async () => {
-      if (!user?.nit_usuario) {
-        showError("No se pudo obtener la información del usuario");
-        setLoadingPendientes(false);
+  const cargarPendientes = useCallback(async () => {
+    if (!user?.nit_usuario) {
+      showError("No se pudo obtener la información del usuario");
+      setLoadingPendientes(false);
+      return;
+    }
+
+    // Cancelar petición anterior si existe
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Crear nuevo AbortController para esta petición
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    
+    setLoadingPendientes(true);
+    try {
+      const pendientes = await evaluacionDesempenoService.obtenerEmpleadosPendientesPorCedula(user.nit_usuario);
+      
+      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
+      if (mountedRef.current && !abortController.signal.aborted) {
+        setEmpleadosPendientes(pendientes);
+      }
+    } catch (error: any) {
+      // Ignorar errores de cancelación
+      if (error.name === 'AbortError' || abortController.signal.aborted) {
         return;
       }
-      
-      setLoadingPendientes(true);
-      try {
-        const pendientes = await evaluacionDesempenoService.obtenerEmpleadosPendientesPorCedula(user.nit_usuario);
-        setEmpleadosPendientes(pendientes);
-      } catch (error: any) {
+      if (mountedRef.current && !abortController.signal.aborted) {
         showError(error.message || "Error al cargar empleados pendientes");
-      } finally {
+      }
+    } finally {
+      if (mountedRef.current && !abortController.signal.aborted) {
         setLoadingPendientes(false);
       }
-    };
+    }
+  }, [user?.nit_usuario, showError]);
 
+  useEffect(() => {
+    mountedRef.current = true;
     if (user) {
       cargarPendientes();
     }
-  }, [user]);
+
+    // Cleanup: marcar como desmontado y cancelar petición pendiente
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [user, cargarPendientes]);
 
   // Cargar evaluación cuando se selecciona un empleado
   const handleSeleccionarEmpleado = async (empleado: EmpleadoPendiente) => {
