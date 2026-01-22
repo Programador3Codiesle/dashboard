@@ -72,7 +72,7 @@ export default function GestionComprasPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Gestión de Compras</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Gestión de Compras</h1>
           <p className="text-gray-500 mt-1">Gestiona las solicitudes de compra multiempresa</p>
         </div>
         <div className="flex gap-3">
@@ -85,7 +85,7 @@ export default function GestionComprasPage() {
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
           >
             <Plus size={18} />
             <span>Nueva Solicitud</span>
@@ -99,7 +99,7 @@ export default function GestionComprasPage() {
         <input
           type="text"
           placeholder="Buscar por descripción, usuario o número..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -155,7 +155,7 @@ export default function GestionComprasPage() {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-medium">
+                      <span className="px-2 py-1 brand-badge rounded text-xs font-medium">
                         {solicitud.estadoAutorizacion}
                       </span>
                     </td>

@@ -320,7 +320,7 @@ export default function EvaluacionDesempenoPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Evaluación de Desempeño</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Evaluación de Desempeño</h1>
           <p className="text-gray-500 mt-1">Evaluación de desempeño por jefe inmediato</p>
         </div>
 
@@ -347,7 +347,7 @@ export default function EvaluacionDesempenoPage() {
                   <div
                     key={`${empleado.id_empleado}-${empleado.id_evaluacion}`}
                     onClick={() => handleSeleccionarEmpleado(empleado)}
-                    className="p-4 border border-gray-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 cursor-pointer transition-colors"
+                    className="p-4 border border-gray-200 rounded-lg hover:brand-bg-light hover:border-[var(--color-primary)] cursor-pointer transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -355,7 +355,7 @@ export default function EvaluacionDesempenoPage() {
                         <p className="text-sm text-gray-500">NIT: {empleado.nit}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">Pendiente</span>
+                        <span className="text-xs brand-badge px-2 py-1 rounded">Pendiente</span>
                       </div>
                     </div>
                   </div>
@@ -381,7 +381,7 @@ export default function EvaluacionDesempenoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Evaluación de Desempeño</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Evaluación de Desempeño</h1>
         <p className="text-gray-500 mt-1">Evaluación de desempeño por jefe inmediato</p>
         <button
           onClick={() => {
@@ -499,7 +499,7 @@ export default function EvaluacionDesempenoPage() {
                   <p className="text-gray-600 text-xs mt-2 leading-relaxed">Desempeño que cumple con las expectativas</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
-                  <span className="font-bold text-amber-600">Satisfactorio (3):</span>
+                  <span className="font-bold brand-text">Satisfactorio (3):</span>
                   <p className="text-gray-600 text-xs mt-2 leading-relaxed">Cumple pero presenta algunas inconsistencias</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
@@ -536,7 +536,7 @@ export default function EvaluacionDesempenoPage() {
                         {cat.items.map((competencia, idx) => (
                           <tr 
                             key={competencia.id} 
-                            className={`border-b border-blue-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'} hover:bg-amber-50/50`}
+                            className={`border-b border-blue-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'} hover:brand-bg-light`}
                           >
                             <td className="py-4 px-6 text-sm text-gray-700 leading-relaxed">{competencia.descripcion}</td>
                             <td className="py-4 px-6 text-center">
@@ -550,7 +550,7 @@ export default function EvaluacionDesempenoPage() {
                             </td>
                             <td className="py-4 px-6 text-center">
                               <select
-                                className="border-2 border-blue-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-white hover:border-blue-400 shadow-sm w-20 text-center"
+                                className="border-2 border-blue-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all bg-white hover:border-blue-400 shadow-sm w-20 text-center"
                                 value={competencia.jefeEvaluacion || ""}
                                 onChange={(e) =>
                                   handleCompetenciaChange(
@@ -599,7 +599,7 @@ export default function EvaluacionDesempenoPage() {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-3">Necesidades de Capacitación y/o Entrenamiento</h2>
               <textarea
-                className="block w-full border-2 border-blue-200 rounded-xl p-4 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm resize-none"
+                className="block w-full border-2 border-blue-200 rounded-xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm resize-none"
                 rows={5}
                 value={formData.necesidadesCapacitacion}
                 onChange={(e) => setFormData({ ...formData, necesidadesCapacitacion: e.target.value })}
@@ -611,7 +611,7 @@ export default function EvaluacionDesempenoPage() {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-3">Compromisos del Trabajador</h2>
               <textarea
-                className="block w-full border-2 border-blue-200 rounded-xl p-4 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm resize-none"
+                className="block w-full border-2 border-blue-200 rounded-xl p-4 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm resize-none"
                 rows={5}
                 value={formData.compromisosTrabajador}
                 onChange={(e) => setFormData({ ...formData, compromisosTrabajador: e.target.value })}
@@ -624,7 +624,7 @@ export default function EvaluacionDesempenoPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-3 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
+                className="flex items-center gap-3 brand-bg brand-bg-hover text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
               >
                 <Save size={20} />
                 <span>{loading ? "Guardando..." : "Guardar Evaluación"}</span>

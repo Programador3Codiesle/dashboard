@@ -78,7 +78,7 @@ export default function DetalleAusentismoModal({
         <div className="flex justify-end pt-4">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+            className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
           >
             Cerrar
           </button>

@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, LogIn, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
-
 import { useRouter } from 'next/navigation';
+import { SelectorEmpresaModal } from './SelectorEmpresaModal';
 
 export const LoginForm = () => {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+  const { login, updateUser } = useAuth();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -23,13 +24,19 @@ export const LoginForm = () => {
 
     try {
       await login({ user, password });
-      router.push('/dashboard');
+      setShowEmpresaModal(true);
     } catch (error: any) {
       console.error('Error en login:', error);
       setErrorMsg(error?.message || "Credenciales incorrectas");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmpresaSelect = (empresaId: number) => {
+    updateUser({ empresa: empresaId });
+    setShowEmpresaModal(false);
+    router.push('/dashboard');
   };
 
 
@@ -48,7 +55,7 @@ export const LoginForm = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
-          className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+          className="w-16 h-16 brand-bg-gradient rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
         >
           <span className="text-white font-bold text-2xl">C</span>
         </motion.div>
@@ -88,7 +95,7 @@ export const LoginForm = () => {
               type="text"
               value={user}
               onChange={(e) => setUser(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 outline-none"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all duration-200 outline-none"
               placeholder="Usuario"
               required
             />
@@ -109,7 +116,7 @@ export const LoginForm = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 outline-none"
+              className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all duration-200 outline-none"
               placeholder="••••••••"
               required
             />
@@ -132,13 +139,13 @@ export const LoginForm = () => {
           <label className="flex items-center">
             <input
               type="checkbox"
-              className="w-4 h-4 text-amber-500 bg-gray-100 border-gray-300 rounded focus:ring-amber-500"
+              className="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-[var(--color-primary)] accent-[var(--color-primary)]"
             />
             <span className="ml-2 text-sm text-gray-600">Recordar sesión</span>
           </label>
           <button
             type="button"
-            className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+            className="text-sm brand-text brand-text-hover font-medium"
           >
             ¿Olvidaste tu contraseña?
           </button>
@@ -150,7 +157,7 @@ export const LoginForm = () => {
           disabled={isLoading}
           whileHover={{ scale: isLoading ? 1 : 1.02 }}
           whileTap={{ scale: isLoading ? 1 : 0.98 }}
-          className="w-full bg-gradient-to-br from-amber-500 to-amber-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full brand-bg-gradient text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {isLoading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -186,6 +193,12 @@ export const LoginForm = () => {
         </motion.button>
       </motion.form>
 
+      <SelectorEmpresaModal
+        open={showEmpresaModal}
+        onClose={() => setShowEmpresaModal(false)}
+        onSelect={handleEmpresaSelect}
+      />
+
       {/* Footer */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -195,7 +208,7 @@ export const LoginForm = () => {
       >
         <p className="text-sm text-gray-600">
           ¿No tienes una cuenta?{' '}
-          <button className="text-amber-600 hover:text-amber-700 font-medium">
+          <button className="brand-text brand-text-hover font-medium">
             Solicitar acceso
           </button>
         </p>

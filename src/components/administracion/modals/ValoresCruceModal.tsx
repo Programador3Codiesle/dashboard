@@ -46,7 +46,7 @@ export default function ValoresCruceModal({
     }
   };
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white";
+  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   if (!valoresCruce) return null;
@@ -57,7 +57,7 @@ export default function ValoresCruceModal({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b-2 border-amber-500 bg-gray-50">
+              <tr className="border-b-2 border-[var(--color-primary)] bg-gray-50">
                 <th className="text-left py-3 px-4 font-bold text-gray-900">Tipo</th>
                 <th className="text-left py-3 px-4 font-bold text-gray-900">Número</th>
                 <th className="text-left py-3 px-4 font-bold text-gray-900">Tipo Aplica</th>
@@ -96,7 +96,7 @@ export default function ValoresCruceModal({
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             <Save size={18} />

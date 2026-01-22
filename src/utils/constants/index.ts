@@ -1,5 +1,21 @@
 import { LayoutDashboard, User, Ticket, Settings } from "lucide-react";
 
+export type EmpresaId = 1 | 2 | 3 | 4;
+
+export interface EmpresaConfig {
+  id: EmpresaId;
+  nombre: string;
+  color: string;
+  colorHover?: string;
+}
+
+export const EMPRESAS: EmpresaConfig[] = [
+  { id: 1, nombre: "Codiesel", color: "#f59e0b", colorHover: "#d97706" },
+  { id: 2, nombre: "Dieselco", color: "#4CB8AA", colorHover: "#3da89a" },
+  { id: 3, nombre: "Mitsubishi", color: "#ED0000", colorHover: "#cc0000" },
+  { id: 4, nombre: "BYD", color: "#4F9EDD", colorHover: "#3d8bcc" },
+];
+
 export const ROUTES = [
   { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
   { path: "/dashboard/usuarios", name: "Usuarios", icon: User },

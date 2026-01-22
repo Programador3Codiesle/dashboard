@@ -59,7 +59,7 @@ export default function TicketsTableMisTickets({ tickets, loading }: { tickets: 
                 <div className="overflow-x-auto">
                     <table className="min-w-full">
                         <thead>
-                            <tr className="bg-linear-to-r from-amber-500 to-amber-600 border-b-2 border-amber-600 text-center">
+                            <tr className="brand-bg-gradient border-b-2 border-[var(--color-primary-dark)] text-center">
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Ticket</th>
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Estado</th>
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Prioridad</th>
@@ -77,7 +77,7 @@ export default function TicketsTableMisTickets({ tickets, loading }: { tickets: 
                                     key={t.id} 
                                     className={`transition-all duration-200 ${
                                         index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                                    } hover:bg-amber-50/50 hover:shadow-sm text-center`}
+                                    } hover:brand-bg-light hover:shadow-sm text-center`}
                                 >
                                     <td className="py-5 px-6 whitespace-nowrap">
                                         <span className="text-sm font-bold text-gray-900">#{t.id}</span>
@@ -100,7 +100,7 @@ export default function TicketsTableMisTickets({ tickets, loading }: { tickets: 
                                             t.prioridad === 'alta' 
                                                 ? 'bg-red-100 text-red-700 border border-red-200' 
                                                 : t.prioridad === 'media' 
-                                                ? 'bg-amber-100 text-amber-700 border border-amber-200' 
+                                                ? 'brand-badge border border-[var(--color-primary)]' 
                                                 : 'bg-blue-100 text-blue-700 border border-blue-200'
                                         }`}>
                                             {t.prioridad}

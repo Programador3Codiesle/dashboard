@@ -1,7 +1,7 @@
 'use client';
 
-import { Menu, LogOut, Bell, Search, User, Settings } from "lucide-react";
-import { ROUTES } from "@/utils/constants";
+import { Menu, LogOut, User, Settings } from "lucide-react";
+import { ROUTES, EMPRESAS } from "@/utils/constants";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,12 +9,13 @@ interface Props {
   currentPath: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
-  userName?: string; // Nombre completo del usuario
+  userName?: string;
+  empresaId?: number;
 }
 
-export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout, userName }) => {
-  const [showNotifications, setShowNotifications] = useState(false);
+export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout, userName, empresaId }) => {
   const [showProfile, setShowProfile] = useState(false);
+  const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
 
   const currentTitle = useMemo(() => {
     // Buscar coincidencia exacta primero
@@ -92,11 +93,21 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
             <Menu size={20} />
           </motion.button>
           
-          <div>
-            <h1 className="text-2xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              {currentTitle}
-            </h1>
-            <p className="text-sm text-gray-500">Bienvenido de vuelta</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                {currentTitle}
+              </h1>
+              <p className="text-sm text-gray-500">Bienvenido de vuelta</p>
+            </div>
+            {empresa && (
+              <span
+                className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
+                style={{ backgroundColor: empresa.color }}
+              >
+                {empresa.nombre}
+              </span>
+            )}
           </div>
         </div>
 
@@ -110,7 +121,7 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 p-2 bg-linear-to-br from-amber-500 to-amber-600 text-white rounded-xl"
+              className="flex items-center space-x-2 p-2 brand-bg-gradient text-white rounded-xl hover:opacity-90 transition-opacity"
               onClick={() => setShowProfile(!showProfile)}
             >
               <User size={18} />
@@ -146,6 +157,8 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
           </motion.div>
         </div>
       </div>
+      {/* Barra de marca por empresa */}
+      {empresa && <div className="h-0.5 w-full brand-bg" />}
     </motion.header>
   );
 };

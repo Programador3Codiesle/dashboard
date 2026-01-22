@@ -22,7 +22,7 @@ export const encargadosDisponibles = [
 
 export const COMPANY_STYLES: Record<string, string> = {
     Codiesel: "bg-blue-50 text-blue-700 border-blue-200 ring-blue-500/10",
-    Dieselco: "bg-amber-50 text-amber-700 border-amber-200 ring-amber-500/10",
+    Dieselco: "bg-teal-50 text-teal-700 border-teal-200 ring-teal-500/10",
     Mitsubishi: "bg-red-50 text-red-700 border-red-200 ring-red-500/10",
     BYD: "bg-teal-50 text-teal-700 border-teal-200 ring-teal-500/10",
     default: "bg-gray-50 text-gray-700 border-gray-200 ring-gray-500/10"

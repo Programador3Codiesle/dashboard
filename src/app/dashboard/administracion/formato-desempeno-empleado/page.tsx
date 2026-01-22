@@ -195,7 +195,7 @@ export default function FormatoDesempenoEmpleadoPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Formato Desempeño Empleado</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Formato Desempeño Empleado</h1>
         <p className="text-gray-500 mt-1">Autoevaluación de desempeño por empleado</p>
         {evaluacionExistente && (
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
@@ -225,7 +225,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 </label>
                 <input
                   type="text"
-                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
+                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
                   value={formData.nombreEmpleado}
                   onChange={(e) => setFormData({ ...formData, nombreEmpleado: e.target.value })}
                   required
@@ -237,7 +237,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 </label>
                 <input
                   type="text"
-                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
+                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
                   value={formData.area}
                   onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   required
@@ -249,7 +249,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 </label>
                 <input
                   type="text"
-                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
+                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
                   value={formData.cargo}
                   onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
                   required
@@ -261,7 +261,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 </label>
                 <input
                   type="text"
-                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
+                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
                   value={formData.sede}
                   onChange={(e) => setFormData({ ...formData, sede: e.target.value })}
                   required
@@ -273,7 +273,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 </label>
                 <input
                   type="date"
-                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
+                  className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm"
                   value={formData.fecha}
                   onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
                   required
@@ -298,7 +298,7 @@ export default function FormatoDesempenoEmpleadoPage() {
                 <p className="text-gray-600 text-xs mt-2 leading-relaxed">Desempeño que cumple con las expectativas</p>
               </div>
               <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
-                <span className="font-bold text-amber-600">Satisfactorio (3):</span>
+                <span className="font-bold brand-text">Satisfactorio (3):</span>
                 <p className="text-gray-600 text-xs mt-2 leading-relaxed">Cumple pero presenta algunas inconsistencias</p>
               </div>
               <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
@@ -335,12 +335,12 @@ export default function FormatoDesempenoEmpleadoPage() {
                       {cat.items.map((competencia, idx) => (
                         <tr 
                           key={competencia.id} 
-                          className={`border-b border-blue-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'} hover:bg-amber-50/50`}
+                          className={`border-b border-blue-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'} hover:brand-bg-light`}
                         >
                           <td className="py-4 px-6 text-sm text-gray-700 leading-relaxed">{competencia.descripcion}</td>
                           <td className="py-4 px-6 text-center">
                             <select
-                              className="border-2 border-blue-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-white hover:border-blue-400 shadow-sm w-20 text-center"
+                              className="border-2 border-blue-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all bg-white hover:border-blue-400 shadow-sm w-20 text-center"
                               value={competencia.autoEvaluacion || ""}
                               onChange={(e) =>
                                 handleCompetenciaChange(competencia.id, parseInt(e.target.value) as EscalaDesempeño)
@@ -394,7 +394,7 @@ export default function FormatoDesempenoEmpleadoPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-3 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
+              className="flex items-center gap-3 brand-bg brand-bg-hover text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
             >
               <Save size={20} />
               <span>{loading ? "Guardando..." : evaluacionExistente ? "Actualizar Autoevaluación" : "Guardar Autoevaluación"}</span>

@@ -88,7 +88,7 @@ export default function ResponderTicketModal({
             <div className="space-y-5 p-1">
                 {loadingData ? (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="animate-spin text-amber-500" size={32} />
+                        <Loader2 className="animate-spin brand-text" size={32} />
                     </div>
                 ) : (
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-2">

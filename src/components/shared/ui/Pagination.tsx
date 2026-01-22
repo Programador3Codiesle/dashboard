@@ -18,7 +18,7 @@ export function Pagination({ currentPage, totalPages, onChange }: PaginationProp
                     transition-all duration-200 ease-in-out
                     ${currentPage === 1
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
                     }
                 `}
             >
@@ -29,7 +29,7 @@ export function Pagination({ currentPage, totalPages, onChange }: PaginationProp
             {/* Indicador de página */}
             <div className="flex items-center gap-3 px-6 py-2.5 bg-white rounded-lg border border-gray-300 shadow-sm">
                 <span className="text-sm font-medium text-gray-600">Página</span>
-                <span className="flex items-center justify-center min-w-[32px] h-8 px-3 bg-linear-to-br from-amber-400 to-amber-500 text-white font-bold rounded-md shadow-md">
+                <span className="flex items-center justify-center min-w-[32px] h-8 px-3 brand-bg-gradient text-white font-bold rounded-md shadow-md">
                     {currentPage}
                 </span>
                 <span className="text-sm font-medium text-gray-600">de</span>
@@ -47,7 +47,7 @@ export function Pagination({ currentPage, totalPages, onChange }: PaginationProp
                     transition-all duration-200 ease-in-out
                     ${currentPage === totalPages
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
                     }
                 `}
             >

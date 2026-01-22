@@ -297,7 +297,7 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
             {/* ----------- TABLA ----------- */}
             <div className="overflow-x-auto border rounded-lg">
                 <table className="w-full ">
-                    <thead className="bg-amber-500 text-white text-center">
+                    <thead className="brand-bg text-white text-center">
                         <tr>
                             <th className="px-4 py-2 text-center">ID</th>
                             <th className="px-4 py-2 text-center">Nombre</th>
@@ -368,7 +368,7 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
                                 <td className="px-4 py-3">
                                     <button
                                         onClick={() => handleResetPassword(u)}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-sm hover:shadow-md hover:from-amber-600 hover:to-amber-700 transition-all text-xs font-semibold"
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full brand-bg-gradient text-white shadow-sm hover:shadow-md hover:opacity-90 transition-all text-xs font-semibold"
                                     >
                                         <KeyRound size={16} />
                                         

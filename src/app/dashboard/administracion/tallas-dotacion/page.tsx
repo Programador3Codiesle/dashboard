@@ -35,22 +35,22 @@ export default function TallasDotacionPage() {
     }
   };
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10";
+  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Tallas Dotación</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Tallas Dotación</h1>
         <p className="text-gray-500 mt-1">Actualiza la información de tallas para tu dotación</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
         {/* Información del Empleado */}
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-br from-[var(--color-primary-light)] to-white rounded-xl p-6 mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 brand-bg rounded-full flex items-center justify-center">
               <User className="text-white" size={32} />
             </div>
             <div>
@@ -170,7 +170,7 @@ export default function TallasDotacionPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
               <span>{loading ? "Guardando..." : "Guardar"}</span>

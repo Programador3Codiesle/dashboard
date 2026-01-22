@@ -14,7 +14,7 @@ export default function InformeSostenibilidadPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Informe de Sostenibilidad 2024</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Informe de Sostenibilidad 2024</h1>
         <p className="text-gray-500 mt-1">Visualización del informe anual de sostenibilidad</p>
       </div>
 
@@ -36,7 +36,7 @@ export default function InformeSostenibilidadPage() {
           </div>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
           >
             <Download size={18} />
             <span>Descargar PDF</span>
@@ -51,7 +51,7 @@ export default function InformeSostenibilidadPage() {
             <p className="text-sm text-gray-500 mt-2">El visor de PDF se cargará aquí</p>
             <button
               onClick={handleDownload}
-              className="mt-4 text-amber-500 hover:text-amber-600 font-medium underline"
+              className="mt-4 brand-text brand-text-hover font-medium underline"
             >
               O hacer clic para descargar
             </button>

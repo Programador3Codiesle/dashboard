@@ -1,6 +1,7 @@
 import "./globals.css";
 import AuthProvider from "@/core/auth/provider/AuthProvider";
 import { ToastProvider } from "@/components/shared/ui/ToastContext";
+import { EmpresaThemeProvider } from "@/core/theme/EmpresaThemeProvider";
 
 export const metadata = {
   title: "Codiesel - Dashboard",
@@ -20,9 +21,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <AuthProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <EmpresaThemeProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </EmpresaThemeProvider>
         </AuthProvider>
       </body>
     </html>

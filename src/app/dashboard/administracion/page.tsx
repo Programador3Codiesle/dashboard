@@ -170,7 +170,7 @@ export default function AdministracionPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Administración</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Administración</h1>
           <p className="text-gray-500 mt-1">Gestiona todos los módulos administrativos de la empresa</p>
         </div>
       </div>
@@ -189,13 +189,13 @@ export default function AdministracionPage() {
             <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${submodulo.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
               <submodulo.icono size={28} className="text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-amber-500 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:brand-text transition-colors">
               {submodulo.nombre}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
               {submodulo.descripcion}
             </p>
-            <div className="mt-4 flex items-center text-amber-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-4 flex items-center brand-text text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
               <span>Acceder</span>
               <motion.div
                 initial={{ x: -5 }}

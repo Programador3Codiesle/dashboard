@@ -6,9 +6,10 @@ import { useAuth } from "@/core/auth/hooks/useAuth";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { SelectorEmpresaModal } from "@/components/auth/SelectorEmpresaModal";
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, updateUser, isAuthenticated } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false); // Controla el overlay/visibilidad en mobile
@@ -47,6 +48,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     }
   }, [isAuthenticated, router]);
 
+  const handleEmpresaSelect = (empresaId: number) => {
+    updateUser({ empresa: empresaId });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -64,27 +69,28 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   // Ancho del margen en desktop (lg:ml-X)
   const desktopMargin = isCollapsed ? 'lg:ml-20' : 'lg:ml-80';
 
+  const needsEmpresa = isAuthenticated && user && user.empresa == null;
+
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-gray-50 via-white to-amber-50/30">
+    <div className="flex min-h-screen brand-dashboard-bg">
       <Sidebar 
         currentPath={pathname} 
         onNavigate={router.push} 
         user={user} 
         isVisible={showSidebar} 
         onClose={() => setShowSidebar(false)} 
-        // ✨ PROPS NUEVAS
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         onLogout={logout}
       />
       
-      {/* Contenido principal - margen izquierdo dinámico en desktop */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? '' : desktopMargin}`}>
         <Header 
           currentPath={pathname} 
           onToggleSidebar={() => setShowSidebar(!showSidebar)} 
           onLogout={logout}
           userName={user?.nombre_usuario}
+          empresaId={user?.empresa}
         />
         
         <motion.main 
@@ -92,11 +98,19 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 100 }}
-          className="flex-1 p-6"
+          className="flex-1 p-6 border-l-2 border-[var(--color-primary)]/20 min-h-0"
         >
           {children}
         </motion.main>
       </div>
+
+      {needsEmpresa && (
+        <SelectorEmpresaModal
+          open
+          onClose={() => {}}
+          onSelect={handleEmpresaSelect}
+        />
+      )}
     </div>
   );
 };

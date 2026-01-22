@@ -33,7 +33,7 @@ export default function ReasignarTicketModal({
         }
     };
 
-    const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white";
+    const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
     const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
     return (

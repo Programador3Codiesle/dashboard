@@ -64,7 +64,7 @@ export default function SolicitudTiempoSuplementarioPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Solicitud Tiempo Suplementario</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Solicitud Tiempo Suplementario</h1>
         <p className="text-gray-500 mt-1">Solicita tiempo suplementario seleccionando una fecha del calendario</p>
       </div>
 
@@ -112,9 +112,9 @@ export default function SolicitudTiempoSuplementarioPage() {
                   aspect-square p-2 rounded-xl border-2 transition-all
                   ${isPast 
                     ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" 
-                    : "bg-white border-gray-200 hover:border-amber-500 hover:bg-amber-50 cursor-pointer"
+                    : "bg-white border-gray-200 hover:border-[var(--color-primary)] hover:brand-bg-light cursor-pointer"
                   }
-                  ${isToday ? "ring-2 ring-amber-500 border-amber-500" : ""}
+                  ${isToday ? "ring-2 ring-[var(--color-primary)] border-[var(--color-primary)]" : ""}
                   ${tiemposDate.length > 0 ? "bg-purple-50 border-purple-300" : ""}
                 `}
               >

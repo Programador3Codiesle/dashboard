@@ -15,7 +15,7 @@ export default function ListaAusentismoPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Lista Ausentismo</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Lista Ausentismo</h1>
         <p className="text-gray-500 mt-1">Ausentismos del día actual</p>
       </div>
 

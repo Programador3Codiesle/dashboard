@@ -6,6 +6,48 @@
   --font-jakarta: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* ===== VARIABLES POR EMPRESA (data-empresa en html) ===== */
+[data-empresa="1"] {
+  --color-primary: #f59e0b;
+  --color-primary-hover: #d97706;
+  --color-primary-light: #fef3c7;
+  --color-primary-dark: #b45309;
+  --color-primary-ring: rgba(245, 158, 11, 0.5);
+}
+
+[data-empresa="2"] {
+  --color-primary: #4cb8aa;
+  --color-primary-hover: #3da89a;
+  --color-primary-light: #e6f7f5;
+  --color-primary-dark: #2d8a7e;
+  --color-primary-ring: rgba(76, 184, 170, 0.5);
+}
+
+[data-empresa="3"] {
+  --color-primary: #ed0000;
+  --color-primary-hover: #cc0000;
+  --color-primary-light: #fde8e8;
+  --color-primary-dark: #a30000;
+  --color-primary-ring: rgba(237, 0, 0, 0.5);
+}
+
+[data-empresa="4"] {
+  --color-primary: #4f9edd;
+  --color-primary-hover: #3d8bcc;
+  --color-primary-light: #e8f4fc;
+  --color-primary-dark: #2d7ab8;
+  --color-primary-ring: rgba(79, 158, 221, 0.5);
+}
+
+/* Default (sin empresa o Codiesel): amber */
+html:not([data-empresa]) {
+  --color-primary: #f59e0b;
+  --color-primary-hover: #d97706;
+  --color-primary-light: #fef3c7;
+  --color-primary-dark: #b45309;
+  --color-primary-ring: rgba(245, 158, 11, 0.5);
+}
+
 /* ===== ESTILOS BASE ===== */
 html {
   scroll-behavior: smooth;
@@ -41,7 +83,79 @@ body {
   }
 
   .gradient-text {
-    @apply bg-gradient-to-br from-amber-500 to-amber-600 bg-clip-text text-transparent;
+    background: linear-gradient(to bottom right, var(--color-primary), var(--color-primary-hover));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Clases brand (usan variables por empresa) */
+  .brand-bg {
+    background-color: var(--color-primary);
+  }
+
+  .brand-bg-gradient {
+    background: linear-gradient(to bottom right, var(--color-primary), var(--color-primary-hover));
+  }
+
+  .brand-bg-hover:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .brand-bg-light {
+    background-color: var(--color-primary-light);
+  }
+
+  .brand-bg-active {
+    background-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+
+  .brand-border-active {
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+
+  .brand-dashboard-bg {
+    background: linear-gradient(to bottom right, rgb(249 250 251), white, color-mix(in srgb, var(--color-primary-light) 30%, transparent));
+  }
+
+  .brand-text {
+    color: var(--color-primary);
+  }
+
+  .brand-text-hover:hover {
+    color: var(--color-primary-hover);
+  }
+
+  .brand-border {
+    border-color: var(--color-primary);
+  }
+
+  .brand-focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary-ring);
+  }
+
+  .brand-btn {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .brand-btn:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .brand-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary-ring);
+  }
+
+  .brand-card {
+    background-color: var(--color-primary-light);
+  }
+
+  .brand-badge {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary-dark);
   }
 
   /* Clases para si necesitas cambiar a Inter en algún lugar específico */

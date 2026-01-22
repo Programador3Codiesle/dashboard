@@ -51,9 +51,9 @@ export default function NuevaSolicitudCompraModal({
     onClose();
   };
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10";
+  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
-  const textareaClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white";
+  const textareaClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
 
   return (
     <Modal open={open} onClose={onClose} title="Nueva Solicitud de Compra" width="700px">
@@ -157,7 +157,7 @@ export default function NuevaSolicitudCompraModal({
                   value={nivel}
                   checked={formData.nivelUrgencia === nivel}
                   onChange={(e) => setFormData({ ...formData, nivelUrgencia: parseInt(e.target.value) as NivelUrgencia })}
-                  className="w-5 h-5 text-amber-500 focus:ring-amber-500"
+                  className="w-5 h-5 brand-text focus:ring-[var(--color-primary)]"
                   required
                 />
                 <span className="text-sm font-medium">
@@ -205,7 +205,7 @@ export default function NuevaSolicitudCompraModal({
           </button>
           <button
             type="submit"
-            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+            className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
           >
             Guardar
           </button>

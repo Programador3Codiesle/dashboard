@@ -1,5 +1,7 @@
 // Servicio de autenticación
 
+import { fetchWithAuth } from "@/utils/api";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export interface LoginCredentials {
@@ -67,9 +69,8 @@ export const authService = {
 
   async getProfile(): Promise<ProfileResponse | null> {
     try {
-      const response = await fetch(`${API_URL}/auth/profile`, {
+      const response = await fetchWithAuth(`${API_URL}/auth/profile`, {
         method: "GET",
-        credentials: "include",
       });
 
       if (!response.ok) {

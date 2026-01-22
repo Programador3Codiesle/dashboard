@@ -7,6 +7,7 @@ export interface IUser {
   nit_usuario?: number;
   perfil_postventa?: string; // Perfil del usuario (1, 20, etc.)
   nombre_usuario?: string; // Nombre completo del usuario
+  empresa?: number; // Codiesel=1, Dieselco=2, Mitsubishi=3, BYD=4
 }
 
 

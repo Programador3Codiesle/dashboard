@@ -61,7 +61,7 @@ export default function InasistenciaPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Informe Inasistencia Empleados</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Inasistencia Empleados</h1>
         <p className="text-gray-500 mt-1">Consulta y gestiona el informe de inasistencia</p>
       </div>
 
@@ -76,7 +76,7 @@ export default function InasistenciaPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Empleado</label>
             <div className="relative">
               <select
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10"
                 value={filtroEmpleado}
                 onChange={(e) => setFiltroEmpleado(e.target.value)}
               >
@@ -95,7 +95,7 @@ export default function InasistenciaPage() {
             <div className="relative">
               <input
                 type="date"
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white pr-10"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
               />
@@ -107,7 +107,7 @@ export default function InasistenciaPage() {
             <div className="relative">
               <input
                 type="date"
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white pr-10"
                 value={fechaFinal}
                 onChange={(e) => setFechaFinal(e.target.value)}
               />
@@ -133,7 +133,7 @@ export default function InasistenciaPage() {
           <input
             type="text"
             placeholder="Buscar por documento o nombre..."
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

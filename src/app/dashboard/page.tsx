@@ -3,6 +3,8 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, Users, DollarSign, Activity } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
+import { EMPRESAS } from "@/utils/constants";
 
 const stats = [
   { icon: DollarSign, value: "$45,231", label: "Ingresos", change: "+12%" },
@@ -12,8 +14,30 @@ const stats = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const empresa = user?.empresa != null ? EMPRESAS.find((e) => e.id === user.empresa) : null;
+
   return (
     <div className="space-y-6">
+      {/* Bienvenida por empresa */}
+      {empresa && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl p-6 shadow-lg border border-gray-100 overflow-hidden"
+          style={{
+            background: `linear-gradient(135deg, ${empresa.color}08 0%, ${empresa.color}18 50%, white 100%)`,
+            borderLeftWidth: "4px",
+            borderLeftColor: empresa.color,
+          }}
+        >
+          <h2 className="text-xl font-bold text-gray-900">
+            Bienvenido a <span className="gradient-text">{empresa.nombre}</span>
+          </h2>
+          <p className="text-gray-600 mt-1 text-sm">Tu panel de control y métricas del área postventa.</p>
+        </motion.div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
@@ -30,8 +54,8 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
                 <p className="text-sm text-green-500 font-medium mt-1">{stat.change}</p>
               </div>
-              <div className="p-3 bg-amber-100 rounded-xl">
-                <stat.icon className="text-amber-600" size={24} />
+              <div className="p-3 brand-bg-light rounded-xl">
+                <stat.icon className="brand-text" size={24} />
               </div>
             </div>
           </motion.div>

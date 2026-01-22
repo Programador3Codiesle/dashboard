@@ -225,7 +225,7 @@ export default function AjustesValoresContablesPage() {
     }
   };
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white";
+  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   // Generar concepto para mostrar en la tabla
@@ -235,7 +235,7 @@ export default function AjustesValoresContablesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Ajustes Valores Contables</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Ajustes Valores Contables</h1>
         <p className="text-gray-500 mt-1">Gestión y ajuste de valores contables multiempresa</p>
       </div>
 
@@ -276,7 +276,7 @@ export default function AjustesValoresContablesPage() {
             <button
               onClick={handleObtenerDatos1}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Search size={18} />
               <span>{loading ? "Cargando..." : "Obtener Datos"}</span>
@@ -306,7 +306,7 @@ export default function AjustesValoresContablesPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b-2 border-amber-500">
+                <tr className="border-b-2 border-[var(--color-primary)]">
                   <th className="text-left py-3 px-4 font-bold text-gray-900">Concepto</th>
                   <th className="text-left py-3 px-4 font-bold text-gray-900">Retención en la Fuente</th>
                   <th className="text-left py-3 px-4 font-bold text-gray-900">ReteIVA</th>
@@ -324,7 +324,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.retencion || 0}
                       onChange={(e) => handleValorChange("retencion", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -333,7 +333,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.retencion_iva || 0}
                       onChange={(e) => handleValorChange("retencion_iva", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -342,7 +342,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.retencion_ica || 0}
                       onChange={(e) => handleValorChange("retencion_ica", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -351,7 +351,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.iva || 0}
                       onChange={(e) => handleValorChange("iva", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -360,7 +360,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.Retencion_estampilla2 || 0}
                       onChange={(e) => handleValorChange("Retencion_estampilla2", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -369,7 +369,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.Retencion_estampilla1 || 0}
                       onChange={(e) => handleValorChange("Retencion_estampilla1", parseFloat(e.target.value) || 0)}
                       disabled={documentosCerrados}
@@ -378,7 +378,7 @@ export default function AjustesValoresContablesPage() {
                   <td className="py-3 px-4">
                     <input
                       type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                       value={valoresActuales.valor_aplicado || 0}
                       onChange={(e) => handleValorChange("valor_aplicado", parseFloat(e.target.value) || 0)}
                       onBlur={handleValorAplicadoBlur}
@@ -442,7 +442,7 @@ export default function AjustesValoresContablesPage() {
             <button
               onClick={handleObtenerDatos2}
               disabled={loading2}
-              className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Search size={18} />
               <span>{loading2 ? "Cargando..." : "Obtener Datos"}</span>

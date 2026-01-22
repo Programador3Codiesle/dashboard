@@ -139,12 +139,12 @@ export default function ControlVehiculosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Control Ingreso y Salida de Vehículos</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Control Ingreso y Salida de Vehículos</h1>
           <p className="text-gray-500 mt-1">Registro y control de ingresos y salidas de vehículos multimarca</p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+          className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
         >
           <Plus size={18} />
           <span>Registrar Salida</span>
@@ -157,7 +157,7 @@ export default function ControlVehiculosPage() {
         <input
           type="text"
           placeholder="Buscar por placa, conductor o taller..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -208,7 +208,7 @@ export default function ControlVehiculosPage() {
                   ) : (
                     vehiculosMostrados.map((vehiculo) => (
                       <tr key={vehiculo.id} className="border-b border-gray-100 hover:bg-gray-50 text-sm">
-                        <td className="py-4 px-6 font-semibold text-amber-600">{vehiculo.placa}</td>
+                        <td className="py-4 px-6 font-semibold brand-text">{vehiculo.placa}</td>
                         <td className="py-4 px-6">{vehiculo.fechaSalida}</td>
                         <td className="py-4 px-6">{vehiculo.horaSalida}</td>
                         <td className="py-4 px-6">{vehiculo.kmSalida.toLocaleString()}</td>
@@ -231,7 +231,7 @@ export default function ControlVehiculosPage() {
                         <td className="py-4 px-6">
                             <button
                               onClick={() => handleRegistrarLlegada(vehiculo)}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-linear-to-r from-amber-500 to-amber-500 text-white border border-amber-700 shadow-md hover:shadow-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 active:scale-95"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold brand-bg brand-bg-hover text-white border border-[var(--color-primary-dark)] shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
                             >
                               <CheckCircle2 size={14} className="text-white" />
                               Registrar

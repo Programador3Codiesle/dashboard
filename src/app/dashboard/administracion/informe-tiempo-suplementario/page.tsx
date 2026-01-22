@@ -64,14 +64,14 @@ export default function InformeTiempoSuplementarioPage() {
     console.log("Descargando Excel...", filtered);
   };
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10";
+  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Informe Tiempo Suplementario</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Tiempo Suplementario</h1>
           <p className="text-gray-500 mt-1">Informe de tiempo suplementario multiempresa</p>
         </div>
         <button
@@ -146,7 +146,7 @@ export default function InformeTiempoSuplementarioPage() {
         <input
           type="text"
           placeholder="Buscar por nombre, jefe o descripción..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

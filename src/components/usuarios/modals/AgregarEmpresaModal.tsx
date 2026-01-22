@@ -39,7 +39,7 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
                         <label
                             key={empresa.id}
                             className={`flex items-center p-3.5 border-2 rounded-lg cursor-pointer transition-all duration-200 ${selectedEmpresas.includes(empresa.id)
-                                    ? "border-amber-500 bg-amber-50"
+                                    ? "border-[var(--color-primary)] brand-bg-light"
                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                 }`}
                         >
@@ -47,7 +47,7 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
                                 type="checkbox"
                                 checked={selectedEmpresas.includes(empresa.id)}
                                 onChange={() => toggleEmpresa(empresa.id)}
-                                className="mr-3 w-5 h-5 cursor-pointer accent-amber-500"
+                                className="mr-3 w-5 h-5 cursor-pointer accent-[var(--color-primary)]"
                             />
                             <span className="text-2xl mr-3">
                                 {empresa.logo}
@@ -75,7 +75,7 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
                     </button>
                     <button
                         type="submit"
-                        className="px-4 py-2 text-white rounded-md border-none font-medium transition-all bg-amber-500 cursor-pointer hover:bg-amber-600"
+                        className="px-4 py-2 text-white rounded-md border-none font-medium transition-all brand-bg brand-bg-hover cursor-pointer"
                     >
                         Guardar
                     </button>

@@ -10,7 +10,7 @@ export const Button: React.FC<ButtonProps> = ({ variant = 'primary', children, c
   
   switch (variant) {
     case 'primary':
-      baseStyles += ' bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500/50';
+      baseStyles += ' brand-bg text-white brand-bg-hover focus:ring-[var(--color-primary-ring)]';
       break;
     case 'secondary':
       baseStyles += ' bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400/50';

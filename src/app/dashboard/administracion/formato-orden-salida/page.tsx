@@ -27,7 +27,7 @@ export default function FormatoOrdenSalidaPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Formato Orden de Salida</h1>
+        <h1 className="text-3xl font-bold brand-text tracking-tight">Formato Orden de Salida</h1>
         <p className="text-gray-500 mt-1">Consulta órdenes de salida por placa</p>
       </div>
 
@@ -43,7 +43,7 @@ export default function FormatoOrdenSalidaPage() {
           <input
             type="text"
             placeholder="Ingrese la placa del vehículo..."
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
             value={placaSearch}
             onChange={(e) => setPlacaSearch(e.target.value)}
           />
@@ -80,11 +80,11 @@ export default function FormatoOrdenSalidaPage() {
                   <tr key={orden.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-6 font-medium text-gray-900">{orden.numeroOrden}</td>
                     <td className="py-4 px-6">{orden.bodega}</td>
-                    <td className="py-4 px-6 font-semibold text-amber-600">{orden.placa}</td>
+                    <td className="py-4 px-6 font-semibold brand-text">{orden.placa}</td>
                     <td className="py-4 px-6">{orden.descripcionModelo}</td>
                     <td className="py-4 px-6 text-gray-600">{orden.fecha}</td>
                     <td className="py-4 px-6">
-                      <button className="text-amber-500 hover:text-amber-600 font-medium">
+                      <button className="brand-text brand-text-hover font-medium">
                         Ver Detalle
                       </button>
                     </td>

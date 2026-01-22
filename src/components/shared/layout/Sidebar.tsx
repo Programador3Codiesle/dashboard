@@ -1,19 +1,18 @@
 'use client';
 
-import { ROUTES } from "@/utils/constants";
+import { ROUTES, EMPRESAS } from "@/utils/constants";
 import { IUser } from "@/types/global";
 import {
-  Menu,
   X,
   ChevronRight,
   LogOut,
   Settings,
-  ChevronLeft, // ✨ NUEVO: Icono para colapsar
   ChevronDown,
-  TextAlignJustify, // ✨ NUEVO: Icono para dropdown
+  TextAlignJustify,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 interface Props {
   currentPath: string;
@@ -37,12 +36,13 @@ export const Sidebar: React.FC<Props> = ({
   onToggleCollapse, // ✨ NUEVO
   onLogout, // ✨ NUEVO
 }) => {
+  const { updateUser } = useAuth();
   const [isHovered, setIsHovered] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState("Codiesel");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const companies = ["Codiesel", "Dieselco", "Mitsubishi", "ByD"];
+  const selectedEmpresa = user?.empresa != null ? EMPRESAS.find((e) => e.id === user.empresa) : null;
+  const selectedCompanyName = selectedEmpresa?.nombre ?? "Seleccionar";
 
   // ... (Tu useEffect de detección de mobile, es correcto y se mantiene)
   useEffect(() => {
@@ -151,17 +151,17 @@ export const Sidebar: React.FC<Props> = ({
         {/* Header del Sidebar */}
         <div className={`p-6 border-b border-gray-800 flex items-center justify-between bg-gray-900/50 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className={`flex items-center space-x-3 transition-opacity ${isCollapsed ? 'opacity-0 absolute' : 'opacity-100 relative'}`}>
-            <div className="w-10 h-10 bg-linear-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-10 h-10 brand-bg-gradient rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-lg">{selectedEmpresa?.nombre.charAt(0) ?? "C"}</span>
             </div>
             <div>
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 font-bold text-lg bg-linear-to-br from-amber-200 to-amber-400 bg-clip-text text-transparent whitespace-nowrap hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-2 font-bold text-lg brand-text whitespace-nowrap hover:opacity-80 transition-opacity"
                 >
-                  {selectedCompany}
-                  <ChevronDown size={16} className={`text-amber-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  {selectedCompanyName}
+                  <ChevronDown size={16} className={`brand-text transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -172,17 +172,17 @@ export const Sidebar: React.FC<Props> = ({
                       exit={{ opacity: 0, y: -10 }}
                       className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden z-50"
                     >
-                      {companies.map((company) => (
+                      {EMPRESAS.map((empresa) => (
                         <button
-                          key={company}
+                          key={empresa.id}
                           onClick={() => {
-                            setSelectedCompany(company);
+                            updateUser({ empresa: empresa.id });
                             setIsDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-800 ${selectedCompany === company ? 'text-amber-400 font-medium bg-gray-800/50' : 'text-gray-300'
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-gray-800 ${user?.empresa === empresa.id ? 'brand-text font-medium bg-gray-800/50' : 'text-gray-300'
                             }`}
                         >
-                          {company}
+                          {empresa.nombre}
                         </button>
                       ))}
                     </motion.div>
@@ -201,7 +201,7 @@ export const Sidebar: React.FC<Props> = ({
             whileTap={{ scale: 0.95 }}
             animate={{ rotate: isMobile ? 0 : (isCollapsed ? 180 : 0) }}
           >
-            {isMobile ? <X size={20} /> : <TextAlignJustify size={20} className="text-amber-400" />}
+            {isMobile ? <X size={20} /> : <TextAlignJustify size={20} className="brand-text" />}
           </motion.button>
         </div>
 
@@ -223,10 +223,10 @@ export const Sidebar: React.FC<Props> = ({
                 onHoverStart={() => setIsHovered(route.path)}
                 onHoverEnd={() => setIsHovered(null)}
                 className={`
-                  relative flex items-center w-full p-2 rounded-xl transition-all duration-300
+                  relative flex items-center w-full p-2 rounded-xl transition-all duration-300 border
                   ${isRouteActive(route.path)
-                    ? "bg-linear-to-br from-amber-500/20 to-amber-600/20 border border-amber-500/30 shadow-lg shadow-amber-500/10"
-                    : "hover:bg-gray-800/50 border border-transparent"
+                    ? "brand-bg-active brand-border-active shadow-lg"
+                    : "hover:bg-gray-800/50 border-transparent"
                   }
                   ${isCollapsed ? 'justify-center' : 'justify-between px-4'}
                 `}
@@ -237,8 +237,8 @@ export const Sidebar: React.FC<Props> = ({
                     p-2 rounded-lg mr-0 transition-colors shrink-0
                     ${isCollapsed ? 'mr-0' : 'mr-3'} 
                     ${isRouteActive(route.path)
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-800 text-amber-400"
+                      ? "brand-bg text-white"
+                      : "bg-gray-800 brand-text"
                     }
                   `}>
                     <route.icon size={18} />
@@ -258,14 +258,14 @@ export const Sidebar: React.FC<Props> = ({
                     }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <ChevronRight size={16} className="text-amber-400" />
+                    <ChevronRight size={16} className="brand-text" />
                   </motion.div>
                 )}
 
                 {/* Indicador activo (ajustar posición si colapsado) */}
                 {isRouteActive(route.path) && (
                   <motion.div
-                    className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-amber-500 rounded-l-full`}
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 brand-bg rounded-l-full"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 300 }}

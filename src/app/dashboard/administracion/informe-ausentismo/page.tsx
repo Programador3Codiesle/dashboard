@@ -77,12 +77,12 @@ export default function InformeAusentismoPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-amber-500 tracking-tight">Informe Ausentismo</h1>
+          <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Ausentismo</h1>
           <p className="text-gray-500 mt-1">Informe detallado de ausentismo multiempresa</p>
         </div>
         <button
           onClick={() => setInformeModalOpen(true)}
-          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+          className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
         >
           <FileText size={18} />
           <span>Generar Informe</span>
@@ -101,7 +101,7 @@ export default function InformeAusentismoPage() {
             <div className="relative">
               <input
                 type="date"
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white pr-10"
                 value={fechaInicio}
                 onChange={(e) => setFechaInicio(e.target.value)}
               />
@@ -113,7 +113,7 @@ export default function InformeAusentismoPage() {
             <div className="relative">
               <input
                 type="date"
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white pr-10"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
               />
@@ -124,7 +124,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
             <div className="relative">
               <select
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10"
                 value={filtroSede}
                 onChange={(e) => setFiltroSede(e.target.value)}
               >
@@ -140,7 +140,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Central de Beneficios</label>
             <div className="relative">
               <select
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10"
                 value={filtroCentral}
                 onChange={(e) => setFiltroCentral(e.target.value)}
               >
@@ -161,7 +161,7 @@ export default function InformeAusentismoPage() {
         <input
           type="text"
           placeholder="Buscar por colaborador, gestionado por o motivo..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -219,7 +219,7 @@ export default function InformeAusentismoPage() {
                     <td className="py-4 px-6">
                       <button
                         onClick={() => handleVerDetalle(ausentismo)}
-                        className="text-amber-500 hover:text-amber-600"
+                        className="brand-text brand-text-hover"
                       >
                         <Eye size={18} />
                       </button>
@@ -253,7 +253,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
             <input
               type="date"
-              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white"
+              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white"
               value={informeConfig.desde}
               onChange={(e) => setInformeConfig({ ...informeConfig, desde: e.target.value })}
             />
@@ -262,7 +262,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
             <input
               type="date"
-              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white"
+              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white"
               value={informeConfig.hasta}
               onChange={(e) => setInformeConfig({ ...informeConfig, hasta: e.target.value })}
             />
@@ -271,7 +271,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
             <div className="relative">
               <select
-                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white appearance-none pr-10"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10"
                 value={informeConfig.sede}
                 onChange={(e) => setInformeConfig({ ...informeConfig, sede: e.target.value })}
               >
@@ -287,7 +287,7 @@ export default function InformeAusentismoPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Área</label>
             <input
               type="text"
-              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white"
+              className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white"
               value={informeConfig.area}
               onChange={(e) => setInformeConfig({ ...informeConfig, area: e.target.value })}
               placeholder="Área (opcional)"
@@ -302,7 +302,7 @@ export default function InformeAusentismoPage() {
             </button>
             <button
               onClick={handleGenerarInforme}
-              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+              className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
             >
               Generar Informe
             </button>

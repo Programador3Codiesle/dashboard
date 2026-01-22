@@ -63,7 +63,7 @@ export default function AgregarUsuarioModal({
         }
     };
 
-    const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all text-sm bg-white";
+    const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
     const labelClass = "block text-sm font-medium text-gray-700 mb-1";
     const errorClass = "text-red-500 text-xs mt-1";
 
@@ -137,7 +137,7 @@ export default function AgregarUsuarioModal({
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isSubmitting && <Loader2 className="animate-spin" size={16} />}
                         Guardar

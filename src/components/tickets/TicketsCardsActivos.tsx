@@ -60,11 +60,11 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
           
           // Estilos diferenciados con gradientes profesionales
           const cardStyles = isEnProceso
-            ? "group relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 p-6 rounded-2xl shadow-lg border-2 border-amber-300 hover:shadow-xl hover:border-amber-400 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+            ? "group relative bg-gradient-to-br from-[var(--color-primary-light)] via-white to-[var(--color-primary-light)] p-6 rounded-2xl shadow-lg border-2 border-[var(--color-primary)] hover:shadow-xl hover:border-[var(--color-primary-hover)] transition-all duration-300 flex flex-col justify-between overflow-hidden"
             : "group relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 p-6 rounded-2xl shadow-md border-2 border-blue-300 hover:shadow-lg hover:border-blue-400 transition-all duration-300 flex flex-col justify-between overflow-hidden";
 
           const estadoBadgeStyles = isEnProceso
-            ? "px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md flex items-center gap-1.5"
+            ? "px-3 py-1.5 rounded-full text-xs font-bold brand-bg-gradient text-white shadow-md flex items-center gap-1.5"
             : "px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center gap-1.5";
 
           return (
@@ -74,7 +74,7 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
           >
             <div>
               {/* Indicador de estado con línea decorativa */}
-              <div className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500'}`}></div>
+              <div className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'brand-bg' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500'}`}></div>
               
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -87,7 +87,7 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
                   {t.prioridad && (
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
                       t.prioridad === 'alta' ? 'bg-red-50 text-red-700 border-red-100' :
-                      t.prioridad === 'media' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                      t.prioridad === 'media' ? 'brand-badge' :
                       'bg-blue-50 text-blue-700 border-blue-100'
                     }`}>
                       {t.prioridad.charAt(0).toUpperCase() + t.prioridad.slice(1)}
@@ -121,12 +121,12 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
               </div>
             </div>
 
-            <div className={`flex items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-amber-200' : 'border-t border-blue-200'}`}>
+            <div className={`flex items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-[var(--color-primary)]' : 'border-t border-blue-200'}`}>
               <button
                 onClick={() => { setSelectedTicket(t); setOpenReasign(true); }}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   isEnProceso 
-                    ? 'text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300' 
+                    ? 'brand-text brand-bg-light hover:bg-[var(--color-primary)]/20 border border-[var(--color-primary)]' 
                     : 'text-blue-700 bg-blue-100 hover:bg-blue-200 border border-blue-300'
                 }`}
               >
@@ -137,7 +137,7 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
                 onClick={() => { setSelectedTicket(t); setOpenResponder(true); }}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all shadow-md hover:shadow-lg ${
                   isEnProceso 
-                    ? 'bg-amber-600 hover:bg-amber-700' 
+                    ? 'brand-bg brand-bg-hover' 
                     : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
