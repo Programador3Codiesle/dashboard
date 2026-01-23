@@ -38,15 +38,13 @@ const MAPEO_COMPETENCIAS_J: string[] = [
 
 export default function EvaluacionDesempenoPage() {
   const { user } = useAuth();
-  console.log(user);
   const { showSuccess, showError } = useToast();
   const [empleadosPendientes, setEmpleadosPendientes] = useState<EmpleadoPendiente[]>([]);
   const [evaluacionActual, setEvaluacionActual] = useState<EvaluacionCompleta | null>(null);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState<EmpleadoPendiente | null>(null);
   const [loadingPendientes, setLoadingPendientes] = useState(true);
-  console.log(empleadosPendientes);
   const [loadingEvaluacion, setLoadingEvaluacion] = useState(false);
-  
+
   const [formData, setFormData] = useState<EvaluacionDesempeño>({
     nombreEmpleado: "",
     area: "",
@@ -86,11 +84,11 @@ export default function EvaluacionDesempenoPage() {
     // Crear nuevo AbortController para esta petición
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
-    
+
     setLoadingPendientes(true);
     try {
       const pendientes = await evaluacionDesempenoService.obtenerEmpleadosPendientesPorCedula(user.nit_usuario);
-      
+
       // Solo actualizar estado si el componente sigue montado y no se canceló la petición
       if (mountedRef.current && !abortController.signal.aborted) {
         setEmpleadosPendientes(pendientes);
@@ -147,15 +145,15 @@ export default function EvaluacionDesempenoPage() {
       compromisosTrabajador: "",
       esAutoEvaluacion: false,
     });
-    
+
     setEmpleadoSeleccionado(empleado);
     setEvaluacionActual(null); // Limpiar evaluación anterior
     setLoadingEvaluacion(true);
-    
+
     try {
       const evaluacion = await evaluacionDesempenoService.obtenerEvaluacion(empleado.id_evaluacion);
       setEvaluacionActual(evaluacion);
-      
+
       // Mapear datos de la API al formulario
       const competenciasFlat = COMPETENCIAS_TEMPLATE.flatMap((categoria) => categoria.items);
       const competenciasMapeadas = competenciasFlat.map((descripcion, idx) => {
@@ -163,9 +161,9 @@ export default function EvaluacionDesempenoPage() {
         const campoJ = MAPEO_COMPETENCIAS_J[idx] as keyof EvaluacionCompleta;
         const valorE = evaluacion[campoE] as number | undefined;
         const valorJ = evaluacion[campoJ] as number | undefined;
-        
+
         const categoriaObj = COMPETENCIAS_TEMPLATE.find(cat => cat.items.includes(descripcion));
-        
+
         return {
           id: `${idx}`,
           categoria: categoriaObj?.categoria || "",
@@ -174,7 +172,7 @@ export default function EvaluacionDesempenoPage() {
           jefeEvaluacion: valorJ as EscalaDesempeño | undefined,
         };
       });
-      
+
       setFormData({
         nombreEmpleado: evaluacion.empleado,
         area: evaluacion.area,
@@ -211,14 +209,14 @@ export default function EvaluacionDesempenoPage() {
   const mapearCompetenciasADTO = (): Partial<CalificarDTO> => {
     const competenciasFlat = formData.competencias;
     const dto: any = {};
-    
+
     competenciasFlat.forEach((comp, idx) => {
       const campo = MAPEO_COMPETENCIAS_J[idx];
       if (campo && comp.jefeEvaluacion !== undefined) {
         dto[campo] = comp.jefeEvaluacion;
       }
     });
-    
+
     return dto as Partial<CalificarDTO>;
   };
 
@@ -227,26 +225,28 @@ export default function EvaluacionDesempenoPage() {
     const competenciasCompletas = formData.competencias.filter(
       (c) => c.autoEvaluacion !== undefined && c.jefeEvaluacion !== undefined
     );
-    
+
     if (competenciasCompletas.length === 0) return 0;
-    
+
     // Calcular promedio de auto-evaluación (empleado)
     const sumaEmpleado = competenciasCompletas.reduce((acc, c) => acc + (c.autoEvaluacion || 0), 0);
     const promedioEmpleado = sumaEmpleado / competenciasCompletas.length;
-    
+
     // Calcular promedio de evaluación del jefe
     const sumaJefe = competenciasCompletas.reduce((acc, c) => acc + (c.jefeEvaluacion || 0), 0);
     const promedioJefe = sumaJefe / competenciasCompletas.length;
-    
+
     // Calcular promedio total ponderado: 30% empleado + 70% jefe
     const promedioTotal = (promedioEmpleado * 0.30) + (promedioJefe * 0.70);
-    
+
     return promedioTotal;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (loading) return;
+
     if (!evaluacionActual || !empleadoSeleccionado) {
       showError("No hay evaluación seleccionada");
       return;
@@ -256,7 +256,7 @@ export default function EvaluacionDesempenoPage() {
     try {
       const competenciasDTO = mapearCompetenciasADTO();
       const calificacion = calcularCalificacion();
-      
+
       const dto: CalificarDTO = {
         ...competenciasDTO as CalificarDTO,
         calificacion: calificacion,
@@ -265,7 +265,7 @@ export default function EvaluacionDesempenoPage() {
       } as CalificarDTO;
 
       await evaluacionDesempenoService.calificar(evaluacionActual.id, dto);
-      
+
       // Relacionar evaluación con el jefe después de guardar exitosamente
       if (evaluacionActual.nit_empleado && user?.nit_usuario) {
         try {
@@ -276,15 +276,15 @@ export default function EvaluacionDesempenoPage() {
           showError(`Evaluación guardada pero no se pudo relacionar: ${error.message}`);
         }
       }
-      
+
       showSuccess("Evaluación calificada correctamente");
-      
+
       // Recargar empleados pendientes para actualizar lista
       if (user?.nit_usuario) {
         const pendientes = await evaluacionDesempenoService.obtenerEmpleadosPendientesPorCedula(user.nit_usuario);
         setEmpleadosPendientes(pendientes);
       }
-      
+
       // Limpiar selección
       setEmpleadoSeleccionado(null);
       setEvaluacionActual(null);
@@ -566,8 +566,8 @@ export default function EvaluacionDesempenoPage() {
                           </td>
                         </tr>
                         {cat.items.map((competencia, idx) => (
-                          <tr 
-                            key={competencia.id} 
+                          <tr
+                            key={competencia.id}
                             className={`border-b border-blue-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'} hover:brand-bg-light`}
                           >
                             <td className="py-4 px-6 text-sm text-gray-700 leading-relaxed">{competencia.descripcion}</td>

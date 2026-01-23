@@ -27,7 +27,6 @@ export default function TallasDotacionPage() {
       // Simulación de guardado - luego se conectará a API
       await new Promise(resolve => setTimeout(resolve, 1000));
       showSuccess("Tallas actualizadas correctamente");
-      console.log("Datos guardados:", formData);
     } catch (error) {
       showError("Error al actualizar las tallas");
     } finally {

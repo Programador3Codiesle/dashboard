@@ -29,7 +29,7 @@ const UsuariosPage: React.FC = () => {
     };
 
     const handleAgregarJefe = async () => {
-        console.log('Aca se hace el llamado a la api de jefes generales (se implementará en el flujo de jefes)');
+        // TODO: integrar API de jefes generales
     };
 
     return (

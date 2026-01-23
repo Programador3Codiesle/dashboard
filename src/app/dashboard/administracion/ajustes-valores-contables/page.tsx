@@ -178,9 +178,9 @@ export default function AjustesValoresContablesPage() {
         retencion_iva: valoresActuales.retencion_iva,
         retencion_ica: valoresActuales.retencion_ica,
         iva: valoresActuales.iva,
-        Retencion_estampilla2: valoresActuales.Retencion_estampilla2,
-        Retencion_estampilla1: valoresActuales.Retencion_estampilla1,
-        valor_aplicado: valoresActuales.valor_aplicado,
+        Retencion_estampilla2: valoresActuales.Retencion_estampilla2 ?? undefined,
+        Retencion_estampilla1: valoresActuales.Retencion_estampilla1 ?? undefined,
+        valor_aplicado: valoresActuales.valor_aplicado ?? undefined,
         valor_total: valoresActuales.valor_total,
       };
 

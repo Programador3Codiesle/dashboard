@@ -49,6 +49,7 @@ export default function ControlVehiculosPage() {
         quienAutorizo: item.persona_autorizo,
         vehiculoRemolcado: item.placa_vh_remolcado !== null && item.placa_vh_remolcado !== "",
         taller: item.taller,
+        empresaNombre: item.empresa_nombre,
         fechaIngreso: item.fecha_llegada || undefined,
         horaIngreso: item.hora_llegada || undefined,
         kmIngreso: item.km_llegada || undefined,
@@ -95,7 +96,8 @@ export default function ControlVehiculosPage() {
       (item) =>
         item.placa.toLowerCase().includes(searchLower) ||
         item.conductor.toLowerCase().includes(searchLower) ||
-        item.taller.toLowerCase().includes(searchLower)
+        item.taller.toLowerCase().includes(searchLower) ||
+        item.empresaNombre.toLowerCase().includes(searchLower)
     );
   }, [search, vehiculos]);
 
@@ -123,6 +125,7 @@ export default function ControlVehiculosPage() {
         quienAutorizo: resultado.persona_autorizo,
         vehiculoRemolcado: resultado.placa_vh_remolcado !== null && resultado.placa_vh_remolcado !== "",
         taller: resultado.taller,
+        empresaNombre: resultado.empresa_nombre,
         fechaIngreso: resultado.fecha_llegada || undefined,
         horaIngreso: resultado.hora_llegada || undefined,
         kmIngreso: resultado.km_llegada || undefined,
@@ -148,12 +151,12 @@ export default function ControlVehiculosPage() {
       const vehiculosActualizados = vehiculos.map((v) =>
         v.id === id
           ? {
-              ...v,
-              fechaIngreso: resultado.fecha_llegada || undefined,
-              horaIngreso: resultado.hora_llegada || undefined,
-              kmIngreso: resultado.km_llegada || undefined,
-              observacion: resultado.observacion || undefined,
-            }
+            ...v,
+            fechaIngreso: resultado.fecha_llegada || undefined,
+            horaIngreso: resultado.hora_llegada || undefined,
+            kmIngreso: resultado.km_llegada || undefined,
+            observacion: resultado.observacion || undefined,
+          }
           : v
       );
       setVehiculos(vehiculosActualizados);
@@ -213,6 +216,7 @@ export default function ControlVehiculosPage() {
                 <thead className="bg-gray-50 border-b border-gray-200 text-sm">
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">Placa</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Empresa</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">Fecha Salida</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">Hora Salida</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">KM. Salida</th>
@@ -241,6 +245,7 @@ export default function ControlVehiculosPage() {
                     vehiculosMostrados.map((vehiculo) => (
                       <tr key={vehiculo.id} className="border-b border-gray-100 hover:bg-gray-50 text-sm">
                         <td className="py-4 px-6 font-semibold brand-text">{vehiculo.placa}</td>
+                        <td className="py-4 px-6 font-medium text-gray-900">{vehiculo.empresaNombre}</td>
                         <td className="py-4 px-6">{vehiculo.fechaSalida}</td>
                         <td className="py-4 px-6">{vehiculo.horaSalida}</td>
                         <td className="py-4 px-6">{vehiculo.kmSalida.toLocaleString()}</td>
@@ -261,13 +266,13 @@ export default function ControlVehiculosPage() {
                         <td className="py-4 px-6">{vehiculo.horaIngreso || "-"}</td>
                         <td className="py-4 px-6">{vehiculo.kmIngreso?.toLocaleString() || "-"}</td>
                         <td className="py-4 px-6">
-                            <button
-                              onClick={() => handleRegistrarLlegada(vehiculo)}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold brand-bg brand-bg-hover text-white border border-[var(--color-primary-dark)] shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
-                            >
-                              <CheckCircle2 size={14} className="text-white" />
-                              Registrar
-                            </button>
+                          <button
+                            onClick={() => handleRegistrarLlegada(vehiculo)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold brand-bg brand-bg-hover text-white border border-[var(--color-primary-dark)] shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+                          >
+                            <CheckCircle2 size={14} className="text-white" />
+                            Registrar
+                          </button>
                         </td>
                         <td className="py-4 px-6 text-sm">{vehiculo.observacion || "-"}</td>
                       </tr>

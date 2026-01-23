@@ -134,8 +134,7 @@ export const ticketsService = {
 
   async listMisTickets(): Promise<ITicket[]> {
     const user = getUser();
-    console.log('user', user);
-    
+
     if (!user || !user.user) {
       throw new Error("Usuario no autenticado");
     }
@@ -155,7 +154,7 @@ export const ticketsService = {
 
   // En esta versión asumimos que el archivo ya fue subido y tenemos una URL.
   // El flujo de subida real se implementará en una ruta de API de Next.
-  async crearTicket(dto: CrearTicketDTO & { archivoUrl?: string | null }): Promise<ITicket> {
+  async crearTicket(dto: CrearTicketDTO & { archivoUrl?: string | null; empresa?: number[]; prioridad?: string }): Promise<ITicket> {
     const user = getUser();
     if (!user || !user.user) {
       throw new Error("Usuario no autenticado");
@@ -168,6 +167,8 @@ export const ticketsService = {
       descripcion: dto.descripcion,
       estado: "activo",
       archivo_url: dto.archivoUrl || null,
+      empresa: dto.empresa || [], // Array de números, por defecto vacío
+      prioridad: dto.prioridad || "media", // String requerido, por defecto "media"
     };
 
     const resp = await fetchWithAuth(`${API_URL}/tickets`, {

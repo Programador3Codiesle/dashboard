@@ -103,14 +103,8 @@ export default function FormatoDesempenoEmpleadoPage() {
         });
       }
     } catch (error: any) {
-      // Ignorar errores de cancelación
-      if (error.name === 'AbortError' || abortController.signal.aborted) {
-        return;
-      }
+      if (error.name === 'AbortError' || abortController.signal.aborted) return;
       // Si no hay evaluación, continuar con formulario vacío
-      if (mountedRef.current && !abortController.signal.aborted) {
-        console.log("No se encontró evaluación existente");
-      }
     } finally {
       if (mountedRef.current && !abortController.signal.aborted) {
         setLoadingEvaluacion(false);
@@ -172,7 +166,7 @@ export default function FormatoDesempenoEmpleadoPage() {
         area: formData.area,
         cargo: formData.cargo,
         sede: formData.sede,
-        id_empresa: evaluacionExistente?.id_empresa || 1, // Default o desde evaluación existente
+        id_empresa: user?.empresa || evaluacionExistente?.id_empresa || 1, // Usar empresa del usuario seleccionada, o de evaluación existente, o default
         ...competenciasDTO,
       } as FormatoDesempenoDTO;
 

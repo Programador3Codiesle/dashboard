@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { usuariosService } from '../services/usuarios.service';
-import { HorarioData } from '../types';
+import { HorarioData, IHorarioApi } from '../types';
 import { useToast } from '@/components/shared/ui/ToastContext';
 
 export function useUsuarioActions() {
@@ -69,7 +69,10 @@ export function useUsuarioActions() {
     // ========== HORARIO ==========
     const asignarHorario = useCallback((nit: string, horario: HorarioData) =>
         executeAction(
-            () => usuariosService.asignarHorario(nit, horario),
+            () => {
+                const payload: IHorarioApi = { nit_empleado: parseInt(nit, 10), ...horario };
+                return usuariosService.asignarHorario(nit, payload);
+            },
             'Horario guardado correctamente'
         ), [executeAction]);
 

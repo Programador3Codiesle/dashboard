@@ -225,7 +225,9 @@ export async function fetchWithAuth(
 
       // Si recibimos 401 (Unauthorized), intentar refrescar el token
       if (response.status === 401) {
-        console.log("Token expirado detectado (401), intentando refrescar...");
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Token expirado detectado (401), intentando refrescar...");
+        }
         
         // Si ya hay un refresh en curso, agregar esta solicitud a la cola y esperar
         if (isRefreshing) {
@@ -271,7 +273,9 @@ export async function fetchWithAuth(
     timestamp: now,
   });
 
-  return requestPromise;
+  // Retornar una versión clonada para que el original en caché nunca se consuma
+  // Esto permite que múltiples llamadas obtengan su propio body stream
+  return requestPromise.then(response => response.clone());
 }
 
 

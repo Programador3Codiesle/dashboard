@@ -15,6 +15,8 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
         hora_sal_am_viernes: "12:00",
         hora_ent_pm_viernes: "15:00",
         hora_sal_pm_viernes: "22:00",
+        hora_ent_viernes_pm: "15:00",
+        hora_sal_viernes: "22:00",
         hora_ent_fds: "08:30",
         hora_sal_fds: "15:00"
     });
@@ -31,6 +33,8 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
                 hora_sal_am_viernes: horarioActual.hora_sal_am_viernes || "12:00",
                 hora_ent_pm_viernes: horarioActual.hora_ent_pm_viernes || "15:00",
                 hora_sal_pm_viernes: horarioActual.hora_sal_pm_viernes || "22:00",
+                hora_ent_viernes_pm: horarioActual.hora_ent_viernes_pm || horarioActual.hora_ent_pm_viernes || "15:00",
+                hora_sal_viernes: horarioActual.hora_sal_viernes || horarioActual.hora_sal_pm_viernes || "22:00",
                 hora_ent_fds: horarioActual.hora_ent_fds || "08:30",
                 hora_sal_fds: horarioActual.hora_sal_fds || "15:00"
             });
@@ -213,7 +217,7 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
                     </div>
                 </div>
 
-                {/* Viernes PM */}
+                {/* Viernes PM (hora_ent_viernes_pm y hora_sal_viernes) */}
                 <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#fef3c7", borderRadius: "8px" }}>
                     <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
                         Viernes - Turno Tarde
@@ -225,8 +229,8 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
                             </label>
                             <input
                                 type="time"
-                                value={horario.hora_ent_pm_viernes || "15:00"}
-                                onChange={(e) => handleChange("hora_ent_pm_viernes", e.target.value)}
+                                value={horario.hora_ent_viernes_pm || "15:00"}
+                                onChange={(e) => handleChange("hora_ent_viernes_pm", e.target.value)}
                                 style={{
                                     width: "100%",
                                     padding: "8px 12px",
@@ -242,8 +246,8 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
                             </label>
                             <input
                                 type="time"
-                                value={horario.hora_sal_pm_viernes || "22:00"}
-                                onChange={(e) => handleChange("hora_sal_pm_viernes", e.target.value)}
+                                value={horario.hora_sal_viernes || "22:00"}
+                                onChange={(e) => handleChange("hora_sal_viernes", e.target.value)}
                                 style={{
                                     width: "100%",
                                     padding: "8px 12px",

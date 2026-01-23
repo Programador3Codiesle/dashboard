@@ -55,6 +55,8 @@ export interface IHorarioApi {
     hora_sal_am_viernes: string;
     hora_ent_pm_viernes?: string;
     hora_sal_pm_viernes?: string;
+    hora_ent_viernes_pm?: string;
+    hora_sal_viernes?: string;
     hora_ent_fds: string;
     hora_sal_fds: string;
 }
@@ -136,6 +138,8 @@ export interface HorarioData {
     hora_sal_am_viernes: string;
     hora_ent_pm_viernes?: string;
     hora_sal_pm_viernes?: string;
+    hora_ent_viernes_pm?: string;
+    hora_sal_viernes?: string;
     hora_ent_fds: string;
     hora_sal_fds: string;
 }

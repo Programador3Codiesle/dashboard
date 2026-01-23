@@ -221,6 +221,7 @@ export interface VehiculoSalida {
   quienAutorizo: string;
   vehiculoRemolcado: boolean;
   taller: string;
+  empresaNombre: string;
   fechaIngreso?: string;
   horaIngreso?: string;
   kmIngreso?: number;
