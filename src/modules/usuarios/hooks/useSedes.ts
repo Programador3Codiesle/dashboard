@@ -64,7 +64,7 @@ export const useSedes = () => {
   return { sedes, isLoading, error };
 };
 
-export const useSedesUsuario = (usuarioId: string | undefined) => {
+export const useSedesUsuario = (usuarioId: string | undefined, enabled: boolean = true) => {
   const [sedes, setSedes] = useState<{ id: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<IErrorResponse | null>(null);
@@ -72,7 +72,8 @@ export const useSedesUsuario = (usuarioId: string | undefined) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchSedes = useCallback(async () => {
-    if (!usuarioId) {
+    if (!usuarioId || !enabled) {
+      if (!enabled) return;
       setSedes([]);
       return;
     }
@@ -112,11 +113,13 @@ export const useSedesUsuario = (usuarioId: string | undefined) => {
         setIsLoading(false);
       }
     }
-  }, [usuarioId]);
+  }, [usuarioId, enabled]);
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchSedes();
+    if (enabled) {
+      fetchSedes();
+    }
 
     // Cleanup: marcar como desmontado y cancelar petición pendiente
     return () => {

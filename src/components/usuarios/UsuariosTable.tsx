@@ -83,16 +83,16 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
     const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
 
     /* ------------------ Hooks para datos ------------------ */
+    // Hooks globales (siempre cargados)
     const { jefes: todosLosJefes } = useJefes();
-    const { jefes: jefesDelUsuario, refetch: refetchJefes } = useJefesUsuario(selectedUsuario?.idEmpleado);
-    
     const { sedes: todasLasSedes } = useSedes();
-    const { sedes: sedesDelUsuario, refetch: refetchSedes } = useSedesUsuario(selectedUsuario?.id?.toString());
-    
     const { perfiles: todosLosPerfiles } = usePerfiles();
-    const { perfil: perfilDelUsuario, refetch: refetchPerfil } = usePerfilUsuario(selectedUsuario?.nit);
     
-    const { horario: horarioDelUsuario, refetch: refetchHorario } = useHorarioUsuario(selectedUsuario?.nit);
+    // Hooks de datos de usuario - solo fetch cuando el modal correspondiente está abierto (lazy loading)
+    const { jefes: jefesDelUsuario, refetch: refetchJefes } = useJefesUsuario(selectedUsuario?.idEmpleado, jefeModalOpen);
+    const { sedes: sedesDelUsuario, refetch: refetchSedes } = useSedesUsuario(selectedUsuario?.id?.toString(), sedesModalOpen);
+    const { perfil: perfilDelUsuario, refetch: refetchPerfil } = usePerfilUsuario(selectedUsuario?.nit, editModalOpen);
+    const { horario: horarioDelUsuario, refetch: refetchHorario } = useHorarioUsuario(selectedUsuario?.nit, horarioModalOpen);
 
     /* ------------------ Acciones (Mutations) ------------------ */
     const {

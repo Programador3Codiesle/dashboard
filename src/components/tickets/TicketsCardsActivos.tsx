@@ -1,12 +1,17 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { ITicket } from "@/modules/tickets/types";
 import ReasignarTicketModal from "./modals/ReasignarTicketModal";
 import ResponderTicketModal from "./modals/ResponderTicketModal";
 import { TicketBadgeEmpresa as Badge } from "./TicketsBadgeEmpresa";
 import { Clock, User, MessageSquare, ArrowRightLeft, Calendar, PlayCircle, CheckCircle2 } from "lucide-react";
 
-export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
+interface TicketsCardsActivosProps {
+  tickets: ITicket[];
+  loading: boolean;
+}
+
+function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosProps) {
   const [openReasign, setOpenReasign] = useState(false);
   const [openResponder, setOpenResponder] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<ITicket | null>(null);
@@ -173,3 +178,7 @@ export default function TicketsCardsActivos({ tickets, loading }: { tickets: ITi
     </>
   );
 }
+
+// Memoizar el componente para evitar re-renders innecesarios
+const TicketsCardsActivos = memo(TicketsCardsActivosComponent);
+export default TicketsCardsActivos;

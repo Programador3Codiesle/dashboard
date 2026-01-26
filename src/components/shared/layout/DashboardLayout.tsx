@@ -4,8 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
 import { SelectorEmpresaModal } from "@/components/auth/SelectorEmpresaModal";
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -48,20 +47,20 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     }
   }, [isAuthenticated, router]);
 
-  const handleEmpresaSelect = (empresaId: number) => {
+  const handleEmpresaSelect = useCallback((empresaId: number) => {
     updateUser({ empresa: empresaId });
-  };
+  }, [updateUser]);
 
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center p-8">
+        <div className="text-center p-8 animate-fade-in">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🔒</span>
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Acceso No Autorizado</h2>
           <p className="text-gray-600">Por favor inicia sesión para continuar</p>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -82,6 +81,8 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         onLogout={logout}
+        isMobile={isMobile}
+        updateUser={updateUser}
       />
       
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? '' : desktopMargin}`}>
@@ -93,15 +94,9 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           empresaId={user?.empresa}
         />
         
-        <motion.main 
-          key={pathname}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 100 }}
-          className="flex-1 p-6 border-l-2 border-[var(--color-primary)]/20 min-h-0"
-        >
+        <main className="flex-1 p-6 border-l-2 border-[var(--color-primary)]/20 min-h-0">
           {children}
-        </motion.main>
+        </main>
       </div>
 
       {needsEmpresa && (

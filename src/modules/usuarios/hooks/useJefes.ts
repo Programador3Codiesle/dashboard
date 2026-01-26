@@ -64,7 +64,7 @@ export const useJefes = () => {
   return { jefes, isLoading, error };
 };
 
-export const useJefesUsuario = (idEmpleado: string | undefined) => {
+export const useJefesUsuario = (idEmpleado: string | undefined, enabled: boolean = true) => {
   const [jefes, setJefes] = useState<IJefe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<IErrorResponse | null>(null);
@@ -72,7 +72,8 @@ export const useJefesUsuario = (idEmpleado: string | undefined) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchJefes = useCallback(async () => {
-    if (!idEmpleado) {
+    if (!idEmpleado || !enabled) {
+      if (!enabled) return; // Si no está habilitado, no limpiar datos
       setJefes([]);
       return;
     }
@@ -112,11 +113,13 @@ export const useJefesUsuario = (idEmpleado: string | undefined) => {
         setIsLoading(false);
       }
     }
-  }, [idEmpleado]);
+  }, [idEmpleado, enabled]);
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchJefes();
+    if (enabled) {
+      fetchJefes();
+    }
 
     // Cleanup: marcar como desmontado y cancelar petición pendiente
     return () => {

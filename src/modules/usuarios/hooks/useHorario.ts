@@ -3,7 +3,7 @@ import { usuariosService } from '../services/usuarios.service';
 import { IHorarioApi } from '../types';
 import { IErrorResponse } from '@/types/global';
 
-export const useHorarioUsuario = (nit: string | undefined) => {
+export const useHorarioUsuario = (nit: string | undefined, enabled: boolean = true) => {
   const [horario, setHorario] = useState<IHorarioApi | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<IErrorResponse | null>(null);
@@ -11,7 +11,8 @@ export const useHorarioUsuario = (nit: string | undefined) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchHorario = useCallback(async () => {
-    if (!nit) {
+    if (!nit || !enabled) {
+      if (!enabled) return;
       setHorario(null);
       return;
     }
@@ -51,11 +52,13 @@ export const useHorarioUsuario = (nit: string | undefined) => {
         setIsLoading(false);
       }
     }
-  }, [nit]);
+  }, [nit, enabled]);
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchHorario();
+    if (enabled) {
+      fetchHorario();
+    }
 
     // Cleanup: marcar como desmontado y cancelar petición pendiente
     return () => {

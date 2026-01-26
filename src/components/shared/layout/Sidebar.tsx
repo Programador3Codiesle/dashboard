@@ -10,51 +10,39 @@ import {
   ChevronDown,
   TextAlignJustify,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/core/auth/hooks/useAuth";
 
-interface Props {
+interface SidebarProps {
   currentPath: string;
   onNavigate: (path: string) => void;
   user: IUser | null;
-  isVisible: boolean; // Controla la visibilidad en mobile
-  onClose: () => void; // Cierra en mobile
-  // ✨ PROPS NUEVAS
-  isCollapsed: boolean; // Controla el estado colapsado/expandido en desktop
-  onToggleCollapse: () => void; // Función para cambiar el estado de colapso
-  onLogout?: () => void; // Función para cerrar sesión
+  isVisible: boolean;
+  onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  onLogout?: () => void;
+  isMobile: boolean;
+  updateUser: (partial: Partial<IUser>) => void;
 }
 
-export const Sidebar: React.FC<Props> = ({
+function SidebarComponent({
   currentPath,
   onNavigate,
   user,
   isVisible,
   onClose,
-  isCollapsed, // ✨ NUEVO
-  onToggleCollapse, // ✨ NUEVO
-  onLogout, // ✨ NUEVO
-}) => {
-  const { updateUser } = useAuth();
+  isCollapsed,
+  onToggleCollapse,
+  onLogout,
+  isMobile,
+  updateUser,
+}: SidebarProps) {
   const [isHovered, setIsHovered] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const selectedEmpresa = user?.empresa != null ? EMPRESAS.find((e) => e.id === user.empresa) : null;
   const selectedCompanyName = selectedEmpresa?.nombre ?? "Seleccionar";
-
-  // ... (Tu useEffect de detección de mobile, es correcto y se mantiene)
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Variantes de framer-motion para mobile/desktop
   const sidebarVariants = {
@@ -193,16 +181,14 @@ export const Sidebar: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Botón de Colapsar/Cerrar */}
-          <motion.button
+          {/* Botón de Colapsar/Cerrar - Usando CSS transitions en lugar de Framer Motion */}
+          <button
             onClick={isMobile ? onClose : onToggleCollapse}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors shrink-0"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            animate={{ rotate: isMobile ? 0 : (isCollapsed ? 180 : 0) }}
+            className="p-2 hover:bg-gray-800 rounded-lg transition-all duration-200 shrink-0 hover:scale-105 active:scale-95"
+            style={{ transform: !isMobile && isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}
           >
             {isMobile ? <X size={20} /> : <TextAlignJustify size={20} className="brand-text" />}
-          </motion.button>
+          </button>
         </div>
 
         {/* Navegación */}
@@ -214,14 +200,14 @@ export const Sidebar: React.FC<Props> = ({
 
           <div className="space-y-2">
             {filteredRoutes.map((route) => (
-              <motion.button
+              <button
                 key={route.path}
                 onClick={() => {
                   onNavigate(route.path);
                   if (isMobile) onClose();
                 }}
-                onHoverStart={() => setIsHovered(route.path)}
-                onHoverEnd={() => setIsHovered(null)}
+                onMouseEnter={() => setIsHovered(route.path)}
+                onMouseLeave={() => setIsHovered(null)}
                 className={`
                   relative flex items-center w-full p-2 rounded-xl transition-all duration-300 border
                   ${isRouteActive(route.path)
@@ -249,29 +235,24 @@ export const Sidebar: React.FC<Props> = ({
                   </span>
                 </div>
 
-                {/* Flecha (ocultar si colapsado, mostrar si activo o hover) */}
+                {/* Flecha (ocultar si colapsado, mostrar si activo o hover) - Usando CSS transitions */}
                 {!isCollapsed && (
-                  <motion.div
-                    animate={{
-                      x: isHovered === route.path || isRouteActive(route.path) ? 0 : -5,
-                      opacity: isHovered === route.path || isRouteActive(route.path) ? 1 : 0
-                    }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                  <div
+                    className={`transition-all duration-200 ${
+                      isHovered === route.path || isRouteActive(route.path) 
+                        ? 'opacity-100 translate-x-0' 
+                        : 'opacity-0 -translate-x-1'
+                    }`}
                   >
                     <ChevronRight size={16} className="brand-text" />
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* Indicador activo (ajustar posición si colapsado) */}
+                {/* Indicador activo (ajustar posición si colapsado) - Usando CSS transitions */}
                 {isRouteActive(route.path) && (
-                  <motion.div
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 brand-bg rounded-l-full"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  />
+                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 brand-bg rounded-l-full animate-scale-in" />
                 )}
-              </motion.button>
+              </button>
             ))}
           </div>
         </nav>
@@ -300,17 +281,15 @@ export const Sidebar: React.FC<Props> = ({
             </button>
           </div>
 
-          {/* Botón de Cerrar Sesión: se vuelve solo un icono al colapsar */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          {/* Botón de Cerrar Sesión: se vuelve solo un icono al colapsar - Usando CSS transitions */}
+          <button
             onClick={() => {
               if (onLogout) {
                 onLogout();
               }
             }}
             className={`
-              flex items-center w-full p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20
+              flex items-center w-full p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 border border-red-500/20 hover:scale-[1.02] active:scale-[0.98]
               ${isCollapsed ? 'justify-center p-2' : 'justify-start'}
             `}
           >
@@ -318,9 +297,12 @@ export const Sidebar: React.FC<Props> = ({
             <span className={`font-medium whitespace-nowrap transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
               Cerrar Sesión
             </span>
-          </motion.button>
+          </button>
         </div>
       </motion.aside>
     </>
   );
 };
+
+// Memoizar el componente para evitar re-renders innecesarios
+export const Sidebar = memo(SidebarComponent);

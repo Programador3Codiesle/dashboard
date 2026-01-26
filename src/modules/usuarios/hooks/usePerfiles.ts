@@ -64,7 +64,7 @@ export const usePerfiles = () => {
   return { perfiles, isLoading, error };
 };
 
-export const usePerfilUsuario = (nit: string | undefined) => {
+export const usePerfilUsuario = (nit: string | undefined, enabled: boolean = true) => {
   const [perfil, setPerfil] = useState<IPerfil | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<IErrorResponse | null>(null);
@@ -72,7 +72,8 @@ export const usePerfilUsuario = (nit: string | undefined) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchPerfil = useCallback(async () => {
-    if (!nit) {
+    if (!nit || !enabled) {
+      if (!enabled) return;
       setPerfil(null);
       return;
     }
@@ -112,11 +113,13 @@ export const usePerfilUsuario = (nit: string | undefined) => {
         setIsLoading(false);
       }
     }
-  }, [nit]);
+  }, [nit, enabled]);
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchPerfil();
+    if (enabled) {
+      fetchPerfil();
+    }
 
     // Cleanup: marcar como desmontado y cancelar petición pendiente
     return () => {

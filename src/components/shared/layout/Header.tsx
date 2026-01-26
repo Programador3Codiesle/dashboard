@@ -2,10 +2,10 @@
 
 import { Menu, LogOut, User, Settings } from "lucide-react";
 import { ROUTES, EMPRESAS } from "@/utils/constants";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface Props {
+interface HeaderProps {
   currentPath: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
@@ -13,7 +13,7 @@ interface Props {
   empresaId?: number;
 }
 
-export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout, userName, empresaId }) => {
+function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, empresaId }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
 
@@ -162,3 +162,6 @@ export const Header: React.FC<Props> = ({ currentPath, onToggleSidebar, onLogout
     </motion.header>
   );
 };
+
+// Memoizar el componente para evitar re-renders innecesarios
+export const Header = memo(HeaderComponent);
