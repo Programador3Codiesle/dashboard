@@ -1,137 +1,359 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { HorarioData, IHorarioApi } from '../types';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { USUARIOS_QUERY_KEY } from './useUsuarios';
 
+/**
+ * Hook de acciones de usuario con React Query Mutations
+ * - Invalidación automática de caché después de cada mutación exitosa
+ * - Manejo de errores centralizado
+ * - Toast de feedback al usuario
+ */
 export function useUsuarioActions() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const { showSuccess, showError } = useToast();
 
-    const executeAction = useCallback(async (action: () => Promise<any>, successMessage?: string) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const result = await action();
-            if (successMessage) {
-                showSuccess(successMessage);
-            }
-            return true;
-        } catch (err: any) {
-            const message = err.message || 'Ocurrió un error inesperado';
-            setError(message);
-            showError(message);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
-    }, [showSuccess, showError]);
+    // Función helper para invalidar y refetch inmediato de usuarios
+    const invalidateUsuarios = useCallback(async () => {
+        // Invalida y fuerza re-fetch inmediato
+        await queryClient.invalidateQueries({ 
+            queryKey: USUARIOS_QUERY_KEY,
+            refetchType: 'all' // Fuerza re-fetch aunque la query no esté activa
+        });
+    }, [queryClient]);
 
     // ========== JEFES ==========
-    const asignarJefe = useCallback((idEmpleado: string, jefeId: string) =>
-        executeAction(
-            () => usuariosService.asignarJefe(idEmpleado, jefeId),
-            'Jefe asignado correctamente'
-        ), [executeAction]);
+    const asignarJefeMutation = useMutation({
+        mutationFn: ({ idEmpleado, jefeId }: { idEmpleado: string; jefeId: string }) =>
+            usuariosService.asignarJefe(idEmpleado, jefeId),
+        onSuccess: () => {
+            showSuccess('Jefe asignado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al asignar jefe');
+        },
+    });
 
-    const eliminarJefe = useCallback((idEmpleado: string, jefeId: string) =>
-        executeAction(
-            () => usuariosService.eliminarJefe(idEmpleado, jefeId),
-            'Jefe eliminado correctamente'
-        ), [executeAction]);
+    const eliminarJefeMutation = useMutation({
+        mutationFn: ({ idEmpleado, jefeId }: { idEmpleado: string; jefeId: string }) =>
+            usuariosService.eliminarJefe(idEmpleado, jefeId),
+        onSuccess: () => {
+            showSuccess('Jefe eliminado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al eliminar jefe');
+        },
+    });
 
-    const crearJefeGeneral = useCallback((nit: string, email: string) =>
-        executeAction(
-            () => usuariosService.crearJefe(nit, email),
-            'Jefe creado correctamente'
-        ), [executeAction]);
+    const crearJefeMutation = useMutation({
+        mutationFn: ({ nit, email }: { nit: string; email: string }) =>
+            usuariosService.crearJefe(nit, email),
+        onSuccess: () => {
+            showSuccess('Jefe creado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al crear jefe');
+        },
+    });
 
     // ========== SEDES ==========
-    const asignarSede = useCallback((usuarioId: string, idSede: string) =>
-        executeAction(
-            () => usuariosService.asignarSede(usuarioId, idSede),
-            'Sede asignada correctamente'
-        ), [executeAction]);
+    const asignarSedeMutation = useMutation({
+        mutationFn: ({ usuarioId, idSede }: { usuarioId: string; idSede: string }) =>
+            usuariosService.asignarSede(usuarioId, idSede),
+        onSuccess: () => {
+            showSuccess('Sede asignada correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al asignar sede');
+        },
+    });
 
-    const eliminarSede = useCallback((usuarioId: string, idSede: string) =>
-        executeAction(
-            () => usuariosService.eliminarSede(usuarioId, idSede),
-            'Sede eliminada correctamente'
-        ), [executeAction]);
+    const eliminarSedeMutation = useMutation({
+        mutationFn: ({ usuarioId, idSede }: { usuarioId: string; idSede: string }) =>
+            usuariosService.eliminarSede(usuarioId, idSede),
+        onSuccess: () => {
+            showSuccess('Sede eliminada correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al eliminar sede');
+        },
+    });
 
     // ========== PERFILES ==========
-    const updatePerfil = useCallback((usuarioId: string, perfilId: string) =>
-        executeAction(
-            () => usuariosService.updatePerfil(usuarioId, perfilId),
-            'Perfil actualizado correctamente'
-        ), [executeAction]);
+    const updatePerfilMutation = useMutation({
+        mutationFn: ({ usuarioId, perfilId }: { usuarioId: string; perfilId: string }) =>
+            usuariosService.updatePerfil(usuarioId, perfilId),
+        onSuccess: () => {
+            showSuccess('Perfil actualizado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al actualizar perfil');
+        },
+    });
 
     // ========== HORARIO ==========
-    const asignarHorario = useCallback((nit: string, horario: HorarioData) =>
-        executeAction(
-            () => {
-                const payload: IHorarioApi = { nit_empleado: parseInt(nit, 10), ...horario };
-                return usuariosService.asignarHorario(nit, payload);
-            },
-            'Horario guardado correctamente'
-        ), [executeAction]);
+    const asignarHorarioMutation = useMutation({
+        mutationFn: ({ nit, horario }: { nit: string; horario: HorarioData }) => {
+            const payload: IHorarioApi = { nit_empleado: parseInt(nit, 10), ...horario };
+            return usuariosService.asignarHorario(nit, payload);
+        },
+        onSuccess: () => {
+            showSuccess('Horario guardado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al guardar horario');
+        },
+    });
 
     // ========== EMPRESAS ==========
-    const asignarEmpresas = useCallback((usuarioNit: string, empresas: string[]) =>
-        executeAction(
-            () => usuariosService.asignarEmpresas(usuarioNit, empresas),
-            'Empresas asignadas correctamente'
-        ), [executeAction]);
+    const asignarEmpresasMutation = useMutation({
+        mutationFn: ({ usuarioNit, empresas }: { usuarioNit: string; empresas: string[] }) =>
+            usuariosService.asignarEmpresas(usuarioNit, empresas),
+        onSuccess: () => {
+            showSuccess('Empresas asignadas correctamente');
+            // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al asignar empresas');
+            // El componente se encarga de revertir el optimistic update si falla
+        },
+    });
 
-    const eliminarEmpresas = useCallback((usuarioNit: string, empresas: string[]) =>
-        executeAction(
-            () => usuariosService.eliminarEmpresas(usuarioNit, empresas),
-            'Empresas eliminadas correctamente'
-        ), [executeAction]);
+    const eliminarEmpresasMutation = useMutation({
+        mutationFn: ({ usuarioNit, empresas }: { usuarioNit: string; empresas: string[] }) =>
+            usuariosService.eliminarEmpresas(usuarioNit, empresas),
+        onSuccess: () => {
+            showSuccess('Empresas eliminadas correctamente');
+            // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al eliminar empresas');
+            // El componente se encarga de revertir el optimistic update si falla
+        },
+    });
 
     // ========== USUARIOS ==========
-    const crearUsuario = useCallback((nit: string, perfilId: string) =>
-        executeAction(
-            () => usuariosService.crearUsuario(nit, perfilId),
-            'Usuario creado correctamente'
-        ), [executeAction]);
+    const crearUsuarioMutation = useMutation({
+        mutationFn: ({ nit, perfilId }: { nit: string; perfilId: string }) =>
+            usuariosService.crearUsuario(nit, perfilId),
+        onSuccess: () => {
+            showSuccess('Usuario creado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al crear usuario');
+        },
+    });
 
-    const habilitarUsuario = useCallback((usuarioId: string) =>
-        executeAction(
-            () => usuariosService.habilitarUsuario(usuarioId),
-            'Usuario habilitado correctamente'
-        ), [executeAction]);
+    const habilitarUsuarioMutation = useMutation({
+        mutationFn: (usuarioId: string) => usuariosService.habilitarUsuario(usuarioId),
+        onSuccess: () => {
+            showSuccess('Usuario habilitado correctamente');
+            // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al habilitar usuario');
+            // El componente se encarga de revertir el optimistic update si falla
+        },
+    });
 
-    const deshabilitarUsuario = useCallback((usuarioId: string) =>
-        executeAction(
-            () => usuariosService.deshabilitarUsuario(usuarioId),
-            'Usuario deshabilitado correctamente'
-        ), [executeAction]);
+    const deshabilitarUsuarioMutation = useMutation({
+        mutationFn: (usuarioId: string) => usuariosService.deshabilitarUsuario(usuarioId),
+        onSuccess: () => {
+            showSuccess('Usuario deshabilitado correctamente');
+            // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al deshabilitar usuario');
+            // El componente se encarga de revertir el optimistic update si falla
+        },
+    });
 
-    const resetPassword = useCallback((usuarioId: string, nit: string) =>
-        executeAction(
-            () => usuariosService.resetPassword(usuarioId, nit),
-            'Contraseña actualizada correctamente'
-        ), [executeAction]);
+    const resetPasswordMutation = useMutation({
+        mutationFn: ({ usuarioId, nit }: { usuarioId: string; nit: string }) =>
+            usuariosService.resetPassword(usuarioId, nit),
+        onSuccess: () => {
+            showSuccess('Contraseña actualizada correctamente');
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al actualizar contraseña');
+        },
+    });
 
-    // ========== OTROS ==========
-    const toggleEstado = useCallback((usuarioId: number, nuevoEstado: 'Activo' | 'Inactivo') => {
-        // nuevoEstado representa el estado al que queremos ir
+    const deleteUsuarioMutation = useMutation({
+        mutationFn: (usuarioId: number) => usuariosService.deleteUsuario(usuarioId),
+        onSuccess: () => {
+            showSuccess('Usuario eliminado correctamente');
+            invalidateUsuarios();
+        },
+        onError: (error: any) => {
+            showError(error.message || 'Error al eliminar usuario');
+        },
+    });
+
+    // ========== FUNCIONES WRAPPER (mantener API compatible) ==========
+    const asignarJefe = useCallback(async (idEmpleado: string, jefeId: string) => {
+        try {
+            await asignarJefeMutation.mutateAsync({ idEmpleado, jefeId });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [asignarJefeMutation]);
+
+    const eliminarJefe = useCallback(async (idEmpleado: string, jefeId: string) => {
+        try {
+            await eliminarJefeMutation.mutateAsync({ idEmpleado, jefeId });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [eliminarJefeMutation]);
+
+    const crearJefeGeneral = useCallback(async (nit: string, email: string) => {
+        try {
+            await crearJefeMutation.mutateAsync({ nit, email });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [crearJefeMutation]);
+
+    const asignarSede = useCallback(async (usuarioId: string, idSede: string) => {
+        try {
+            await asignarSedeMutation.mutateAsync({ usuarioId, idSede });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [asignarSedeMutation]);
+
+    const eliminarSede = useCallback(async (usuarioId: string, idSede: string) => {
+        try {
+            await eliminarSedeMutation.mutateAsync({ usuarioId, idSede });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [eliminarSedeMutation]);
+
+    const updatePerfil = useCallback(async (usuarioId: string, perfilId: string) => {
+        try {
+            await updatePerfilMutation.mutateAsync({ usuarioId, perfilId });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [updatePerfilMutation]);
+
+    const asignarHorario = useCallback(async (nit: string, horario: HorarioData) => {
+        try {
+            await asignarHorarioMutation.mutateAsync({ nit, horario });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [asignarHorarioMutation]);
+
+    const asignarEmpresas = useCallback(async (usuarioNit: string, empresas: string[]) => {
+        try {
+            await asignarEmpresasMutation.mutateAsync({ usuarioNit, empresas });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [asignarEmpresasMutation]);
+
+    const eliminarEmpresas = useCallback(async (usuarioNit: string, empresas: string[]) => {
+        try {
+            await eliminarEmpresasMutation.mutateAsync({ usuarioNit, empresas });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [eliminarEmpresasMutation]);
+
+    const crearUsuario = useCallback(async (nit: string, perfilId: string) => {
+        try {
+            await crearUsuarioMutation.mutateAsync({ nit, perfilId });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [crearUsuarioMutation]);
+
+    const habilitarUsuario = useCallback(async (usuarioId: string) => {
+        try {
+            await habilitarUsuarioMutation.mutateAsync(usuarioId);
+            return true;
+        } catch {
+            return false;
+        }
+    }, [habilitarUsuarioMutation]);
+
+    const deshabilitarUsuario = useCallback(async (usuarioId: string) => {
+        try {
+            await deshabilitarUsuarioMutation.mutateAsync(usuarioId);
+            return true;
+        } catch {
+            return false;
+        }
+    }, [deshabilitarUsuarioMutation]);
+
+    const resetPassword = useCallback(async (usuarioId: string, nit: string) => {
+        try {
+            await resetPasswordMutation.mutateAsync({ usuarioId, nit });
+            return true;
+        } catch {
+            return false;
+        }
+    }, [resetPasswordMutation]);
+
+    const toggleEstado = useCallback(async (usuarioId: number, nuevoEstado: 'Activo' | 'Inactivo') => {
         if (nuevoEstado === 'Activo') {
             return habilitarUsuario(usuarioId.toString());
         }
         return deshabilitarUsuario(usuarioId.toString());
     }, [habilitarUsuario, deshabilitarUsuario]);
 
-    const deleteUsuario = useCallback((usuarioId: number) =>
-        executeAction(
-            () => usuariosService.deleteUsuario(usuarioId),
-            'Usuario eliminado correctamente'
-        ), [executeAction]);
+    const deleteUsuario = useCallback(async (usuarioId: number) => {
+        try {
+            await deleteUsuarioMutation.mutateAsync(usuarioId);
+            return true;
+        } catch {
+            return false;
+        }
+    }, [deleteUsuarioMutation]);
+
+    // Estado de carga global
+    const isLoading = 
+        asignarJefeMutation.isPending ||
+        eliminarJefeMutation.isPending ||
+        crearJefeMutation.isPending ||
+        asignarSedeMutation.isPending ||
+        eliminarSedeMutation.isPending ||
+        updatePerfilMutation.isPending ||
+        asignarHorarioMutation.isPending ||
+        asignarEmpresasMutation.isPending ||
+        eliminarEmpresasMutation.isPending ||
+        crearUsuarioMutation.isPending ||
+        habilitarUsuarioMutation.isPending ||
+        deshabilitarUsuarioMutation.isPending ||
+        resetPasswordMutation.isPending ||
+        deleteUsuarioMutation.isPending;
 
     return {
         isLoading,
-        error,
+        error: null,
         // Jefes
         asignarJefe,
         eliminarJefe,

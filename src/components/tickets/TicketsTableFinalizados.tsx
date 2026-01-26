@@ -1,12 +1,13 @@
 'use client';
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, memo } from "react";
 import { ITicket } from "@/modules/tickets/types";
 import { TicketBadgeEmpresa } from "./TicketsBadgeEmpresa";
 import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
 
-export default function TicketsTableFinalizados({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
+// Componente memoizado para evitar re-renders innecesarios
+const TicketsTableFinalizados = memo(function TicketsTableFinalizados({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
     // Paginación: 10 items por página
     const {
         currentPage,
@@ -116,4 +117,9 @@ export default function TicketsTableFinalizados({ tickets, loading }: { tickets:
             )}
         </div>
     );
-}
+});
+
+// Display name para debugging
+TicketsTableFinalizados.displayName = 'TicketsTableFinalizados';
+
+export default TicketsTableFinalizados;

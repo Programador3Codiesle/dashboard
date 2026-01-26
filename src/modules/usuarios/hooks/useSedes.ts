@@ -1,140 +1,57 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { ISede } from '../types';
-import { IErrorResponse } from '@/types/global';
 
-export const useSedes = () => {
-  const [sedes, setSedes] = useState<ISede[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<IErrorResponse | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+// Query keys para sedes
+export const SEDES_QUERY_KEYS = {
+  all: ['sedes'] as const,
+  usuario: (usuarioId: string) => ['sedes', 'usuario', usuarioId] as const,
+};
 
-  useEffect(() => {
-    mountedRef.current = true;
+/**
+ * Hook optimizado con React Query para obtener todas las sedes
+ * - Caché de 15 minutos (datos muy estáticos)
+ */
+export const useSedes = (options?: { enabled?: boolean }) => {
+  const { 
+    data: sedes = [], 
+    isLoading, 
+    error: queryError 
+  } = useQuery({
+    queryKey: SEDES_QUERY_KEYS.all,
+    queryFn: () => usuariosService.getSedes(),
+    staleTime: 15 * 60 * 1000, // 15 minutos
+    enabled: options?.enabled ?? true,
+  });
 
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const fetchSedes = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await usuariosService.getSedes();
-
-        // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setSedes(data);
-        }
-      } catch (err: any) {
-        // Ignorar errores de cancelación
-        if (err.name === 'AbortError' || abortController.signal.aborted) {
-          return;
-        }
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setError({ 
-            message: err.message || 'Error al cargar sedes', 
-            code: 500 
-          });
-        }
-      } finally {
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchSedes();
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  const error = queryError 
+    ? { message: (queryError as Error).message || 'Error al cargar sedes', code: 500 } 
+    : null;
 
   return { sedes, isLoading, error };
 };
 
+/**
+ * Hook optimizado con React Query para obtener sedes de un usuario específico
+ * - Caché de 5 minutos
+ * - Solo se ejecuta si usuarioId está definido y enabled es true
+ */
 export const useSedesUsuario = (usuarioId: string | undefined, enabled: boolean = true) => {
-  const [sedes, setSedes] = useState<{ id: string }[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<IErrorResponse | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const { 
+    data: sedes = [], 
+    isLoading, 
+    error: queryError,
+    refetch 
+  } = useQuery({
+    queryKey: SEDES_QUERY_KEYS.usuario(usuarioId || ''),
+    queryFn: () => usuariosService.getSedesUsuario(usuarioId!),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !!usuarioId && enabled,
+  });
 
-  const fetchSedes = useCallback(async () => {
-    if (!usuarioId || !enabled) {
-      if (!enabled) return;
-      setSedes([]);
-      return;
-    }
-
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await usuariosService.getSedesUsuario(usuarioId);
-
-      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setSedes(data);
-      }
-    } catch (err: any) {
-      // Ignorar errores de cancelación
-      if (err.name === 'AbortError' || abortController.signal.aborted) {
-        return;
-      }
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setError({ 
-          message: err.message || 'Error al cargar sedes del usuario', 
-          code: 500 
-        });
-      }
-    } finally {
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [usuarioId, enabled]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    if (enabled) {
-      fetchSedes();
-    }
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchSedes]);
-
-  const refetch = useCallback(() => {
-    if (usuarioId && mountedRef.current) {
-      fetchSedes();
-    }
-  }, [usuarioId, fetchSedes]);
+  const error = queryError 
+    ? { message: (queryError as Error).message || 'Error al cargar sedes del usuario', code: 500 } 
+    : null;
 
   return { sedes, isLoading, error, refetch };
 };

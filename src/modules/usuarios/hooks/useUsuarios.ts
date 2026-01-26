@@ -1,65 +1,47 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { IUsuario } from '@/modules/usuarios/types';
-import { IErrorResponse } from '@/types/global';
 import { usuariosService } from '../services/usuarios.service';
 
+// Query key para usuarios
+export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
+
+/**
+ * Hook optimizado con React Query para gestión de usuarios
+ * - Caché automática de 5 minutos
+ * - Retry automático en caso de error
+ * - Sincronización entre componentes
+ * - Cancelación automática de peticiones
+ */
 export const useUsuarios = () => {
-  const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<IErrorResponse | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchUsuarios = useCallback(async () => {
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+  const { 
+    data: usuarios = [], 
+    isLoading, 
+    error,
+    refetch 
+  } = useQuery({
+    queryKey: USUARIOS_QUERY_KEY,
+    queryFn: () => usuariosService.getUsuarios(),
+    staleTime: 30 * 1000, // 30 segundos - más reactivo para cambios frecuentes
+    gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos (garbage collection)
+  });
 
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await usuariosService.getUsuarios();
-
-      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setUsuarios(data);
+  // Función para actualizar el cache manualmente (para optimistic updates)
+  const setUsuarios = (newUsuarios: IUsuario[] | ((prev: IUsuario[]) => IUsuario[])) => {
+    queryClient.setQueryData(USUARIOS_QUERY_KEY, (old: IUsuario[] | undefined) => {
+      if (typeof newUsuarios === 'function') {
+        return newUsuarios(old || []);
       }
-    } catch (err: any) {
-      // Ignorar errores de cancelación
-      if (err.name === 'AbortError' || abortController.signal.aborted) {
-        return;
-      }
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setError({
-          message: err.message || 'Error al cargar usuarios',
-          code: 500
-        });
-      }
-    } finally {
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setTimeout(() => setIsLoading(false), 200); // pequeña pausa para mejor UX
-      }
-    }
-  }, []);
+      return newUsuarios;
+    });
+  };
 
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchUsuarios();
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchUsuarios]);
-
-  return { usuarios, isLoading, error, refetch: fetchUsuarios, setUsuarios };
+  return { 
+    usuarios, 
+    isLoading, 
+    error: error ? { message: (error as Error).message || 'Error al cargar usuarios', code: 500 } : null, 
+    refetch, 
+    setUsuarios 
+  };
 };

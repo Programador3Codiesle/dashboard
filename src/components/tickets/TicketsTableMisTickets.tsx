@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, memo } from "react";
 import { ITicket } from "@/modules/tickets/types";
 import { TicketBadgeEmpresa } from "./TicketsBadgeEmpresa";
 import ReasignarTicketModal from "./modals/ReasignarTicketModal";
@@ -9,7 +9,8 @@ import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 
-export default function TicketsTableMisTickets({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
+// Componente memoizado para evitar re-renders innecesarios
+const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, loading }: { tickets: ITicket[]; loading: boolean; }) {
     const [select, setSelect] = useState<{ id: number | null; action: "reasign" | "resp" | null }>({ id: null, action: null });
     const [selectedTicket, setSelectedTicket] = useState<ITicket | null>(null);
     const { user } = useAuth();
@@ -207,4 +208,9 @@ export default function TicketsTableMisTickets({ tickets, loading }: { tickets: 
             />
         </>
     );
-}
+});
+
+// Display name para debugging
+TicketsTableMisTickets.displayName = 'TicketsTableMisTickets';
+
+export default TicketsTableMisTickets;

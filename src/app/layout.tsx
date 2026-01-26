@@ -1,5 +1,6 @@
 import "./globals.css";
 import AuthProvider from "@/core/auth/provider/AuthProvider";
+import { QueryProvider } from "@/core/query/QueryProvider";
 import { ToastProvider } from "@/components/shared/ui/ToastContext";
 import { EmpresaThemeProvider } from "@/core/theme/EmpresaThemeProvider";
 
@@ -21,13 +22,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        <AuthProvider>
-          <EmpresaThemeProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          </EmpresaThemeProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <EmpresaThemeProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </EmpresaThemeProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -26,14 +26,17 @@ import AgregarEmpresaModal from "./modals/AgregarEmpresaModal";
 import { empresasDisponibles } from "@/modules/usuarios/constants";
 
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
-import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle } from 'lucide-react';
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { USUARIOS_QUERY_KEY } from "@/modules/usuarios/hooks/useUsuarios";
 
 interface UsuariosTableProps {
     onRefetchReady?: (refetch: () => void) => void;
 }
 
-export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
+// Componente memoizado para evitar re-renders innecesarios
+export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -82,6 +85,13 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
     const [horarioModalOpen, setHorarioModalOpen] = useState(false);
     const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
 
+    /* ------------------ Estados de Loading por acción ------------------ */
+    const [loadingEstadoId, setLoadingEstadoId] = useState<number | null>(null);
+    const [loadingEmpresaId, setLoadingEmpresaId] = useState<number | null>(null);
+    
+    /* ------------------ Query Client para Optimistic Updates ------------------ */
+    const queryClient = useQueryClient();
+
     /* ------------------ Hooks para datos ------------------ */
     // Hooks globales (siempre cargados)
     const { jefes: todosLosJefes } = useJefes();
@@ -115,19 +125,52 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
         const success = await deleteUsuario(modal.usuario.id);
         if (success) {
             closeModal();
-            refetchUsuarios();
         }
-    }, [modal.usuario, deleteUsuario, closeModal, refetchUsuarios]);
+    }, [modal.usuario, deleteUsuario, closeModal]);
 
     const handleToggleStatus = useCallback(async () => {
         if (!modal.usuario) return;
-        const newStatus = modal.usuario.estado === "Activo" ? "Inactivo" : "Activo";
-        const success = await toggleEstado(modal.usuario.id, newStatus);
-        if (success) {
-            closeModal();
-            refetchUsuarios();
+        
+        // Guardar valores ANTES de cerrar el modal
+        const usuarioId = modal.usuario.id;
+        const estadoOriginal = modal.usuario.estado;
+        const newStatus = estadoOriginal === "Activo" ? "Inactivo" : "Activo";
+        
+        // Cerrar modal y mostrar loading en la fila
+        closeModal();
+        setLoadingEstadoId(usuarioId);
+        
+        // Optimistic Update: actualizar la UI inmediatamente
+        queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+            if (!oldData) return oldData;
+            return oldData.map(u => 
+                u.id === usuarioId ? { ...u, estado: newStatus } : u
+            );
+        });
+        
+        try {
+            const success = await toggleEstado(usuarioId, newStatus);
+            if (!success) {
+                // Si falla, revertir el optimistic update usando el estado guardado
+                queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+                    if (!oldData) return oldData;
+                    return oldData.map(u => 
+                        u.id === usuarioId ? { ...u, estado: estadoOriginal } : u
+                    );
+                });
+            }
+        } catch {
+            // Si hay error, también revertir
+            queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+                if (!oldData) return oldData;
+                return oldData.map(u => 
+                    u.id === usuarioId ? { ...u, estado: estadoOriginal } : u
+                );
+            });
+        } finally {
+            setLoadingEstadoId(null);
         }
-    }, [modal.usuario, toggleEstado, closeModal, refetchUsuarios]);
+    }, [modal.usuario, toggleEstado, closeModal, queryClient]);
 
     const handleOpenDropdown = useCallback((e: React.MouseEvent, usuario: IUsuario) => {
         setSelectedUsuario(usuario);
@@ -181,14 +224,19 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
         if (success) {
             setHorarioModalOpen(false);
             refetchHorario();
-            refetchUsuarios();
+            // La invalidación de caché ya se hace en useUsuarioActions
         }
-    }, [selectedUsuario, asignarHorario, refetchHorario, refetchUsuarios]);
+    }, [selectedUsuario, asignarHorario, refetchHorario]);
 
     const handleAgregarEmpresa = useCallback(async (empresasSeleccionadas: string[]) => {
         if (!selectedUsuario || !selectedUsuario.nit) return;
 
-        const empresasOriginales = selectedUsuario.empresas || [];
+        // Guardar valores ANTES de cualquier operación async
+        const usuarioId = selectedUsuario.id;
+        const usuarioNit = selectedUsuario.nit;
+        const empresasOriginales = [...(selectedUsuario.empresas || [])];
+        const marcasOriginales = [...(selectedUsuario.marcas || [])];
+        const totalMarcaOriginal = selectedUsuario.totalMarca;
 
         const empresasAAgregar = empresasSeleccionadas.filter(
             (id) => !empresasOriginales.includes(id)
@@ -197,21 +245,68 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
             (id) => !empresasSeleccionadas.includes(id)
         );
 
-        let success = true;
-
-        if (empresasAAgregar.length > 0) {
-            success = (await asignarEmpresas(selectedUsuario.nit, empresasAAgregar)) && success;
-        }
-
-        if (empresasAEliminar.length > 0) {
-            success = (await eliminarEmpresas(selectedUsuario.nit, empresasAEliminar)) && success;
-        }
-
-        if (success) {
+        // Si no hay cambios, no hacer nada
+        if (empresasAAgregar.length === 0 && empresasAEliminar.length === 0) {
             setEmpresaModalOpen(false);
-            refetchUsuarios();
+            return;
         }
-    }, [selectedUsuario, asignarEmpresas, eliminarEmpresas, refetchUsuarios]);
+
+        // Cerrar modal y mostrar loading
+        setEmpresaModalOpen(false);
+        setLoadingEmpresaId(usuarioId);
+
+        // Calcular nuevas marcas para optimistic update
+        const nuevasEmpresas = [...empresasSeleccionadas];
+        const nuevasMarcas = empresasDisponibles
+            .filter(e => nuevasEmpresas.includes(e.id))
+            .map(e => e.nombre);
+
+        // Optimistic Update: actualizar la UI inmediatamente
+        queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+            if (!oldData) return oldData;
+            return oldData.map(u => 
+                u.id === usuarioId 
+                    ? { ...u, empresas: nuevasEmpresas, marcas: nuevasMarcas, totalMarca: nuevasMarcas.length } 
+                    : u
+            );
+        });
+
+        try {
+            let success = true;
+
+            if (empresasAAgregar.length > 0) {
+                success = (await asignarEmpresas(usuarioNit, empresasAAgregar)) && success;
+            }
+
+            if (empresasAEliminar.length > 0) {
+                success = (await eliminarEmpresas(usuarioNit, empresasAEliminar)) && success;
+            }
+
+            if (!success) {
+                // Si falla, revertir el optimistic update usando los valores guardados
+                queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+                    if (!oldData) return oldData;
+                    return oldData.map(u => 
+                        u.id === usuarioId 
+                            ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal } 
+                            : u
+                    );
+                });
+            }
+        } catch {
+            // Si hay error, también revertir
+            queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
+                if (!oldData) return oldData;
+                return oldData.map(u => 
+                    u.id === usuarioId 
+                        ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal } 
+                        : u
+                );
+            });
+        } finally {
+            setLoadingEmpresaId(null);
+        }
+    }, [selectedUsuario, asignarEmpresas, eliminarEmpresas, queryClient]);
 
     const handleResetPassword = useCallback(async (usuario: IUsuario) => {
         if (!usuario.nit) return;
@@ -321,29 +416,40 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
                                 <td className="px-4 py-3">{u.usuario || "Sin usuario"}</td>
 
                                 <td className="px-4 py-3">
-                                    <Badge
-                                        text={u.totalMarca.toString()}
-                                        color="bg-blue-200 text-blue-800 border-blue-200"
-                                        onHover={(e) =>
-                                            showTooltip(
-                                                e,
-                                                <div className="flex flex-col gap-1">
-                                                    {u.totalMarca === 0 || u.marcas.length === 0 ? (
-                                                        <span>Sin empresa</span>
-                                                    ) : (
-                                                        u.marcas.map((m: string) => (
-                                                            <span key={m}>{m}</span>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            )
-                                        }
-                                        onLeave={hideTooltip}
-                                    />
+                                    {loadingEmpresaId === u.id ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-600 border border-blue-200">
+                                            <Loader2 size={12} className="animate-spin" />
+                                        </span>
+                                    ) : (
+                                        <Badge
+                                            text={u.totalMarca.toString()}
+                                            color="bg-blue-200 text-blue-800 border-blue-200"
+                                            onHover={(e) =>
+                                                showTooltip(
+                                                    e,
+                                                    <div className="flex flex-col gap-1">
+                                                        {u.totalMarca === 0 || u.marcas.length === 0 ? (
+                                                            <span>Sin empresa</span>
+                                                        ) : (
+                                                            u.marcas.map((m: string) => (
+                                                                <span key={m}>{m}</span>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                )
+                                            }
+                                            onLeave={hideTooltip}
+                                        />
+                                    )}
                                 </td>
 
                                 <td className="px-4 py-3">
-                                    {u.estado === "Activo" ? (
+                                    {loadingEstadoId === u.id ? (
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
+                                            <Loader2 size={14} className="animate-spin" />
+                                            Procesando...
+                                        </span>
+                                    ) : u.estado === "Activo" ? (
                                         <span
                                             onClick={() => openModal(u, 'toggle-status')}
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm cursor-pointer hover:bg-green-200 hover:shadow-md transition-all duration-200"
@@ -492,4 +598,7 @@ export function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
             />
         </div>
     );
-}
+});
+
+// Display name para debugging
+UsuariosTable.displayName = 'UsuariosTable';

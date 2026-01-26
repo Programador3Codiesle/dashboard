@@ -1,140 +1,57 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { IJefe } from '../types';
-import { IErrorResponse } from '@/types/global';
 
-export const useJefes = () => {
-  const [jefes, setJefes] = useState<IJefe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<IErrorResponse | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+// Query keys para jefes
+export const JEFES_QUERY_KEYS = {
+  all: ['jefes'] as const,
+  usuario: (idEmpleado: string) => ['jefes', 'usuario', idEmpleado] as const,
+};
 
-  useEffect(() => {
-    mountedRef.current = true;
+/**
+ * Hook optimizado con React Query para obtener todos los jefes
+ * - Caché de 10 minutos (datos estáticos)
+ */
+export const useJefes = (options?: { enabled?: boolean }) => {
+  const { 
+    data: jefes = [], 
+    isLoading, 
+    error: queryError 
+  } = useQuery({
+    queryKey: JEFES_QUERY_KEYS.all,
+    queryFn: () => usuariosService.getJefes(),
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    enabled: options?.enabled ?? true,
+  });
 
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const fetchJefes = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await usuariosService.getJefes();
-
-        // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setJefes(data);
-        }
-      } catch (err: any) {
-        // Ignorar errores de cancelación
-        if (err.name === 'AbortError' || abortController.signal.aborted) {
-          return;
-        }
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setError({ 
-            message: err.message || 'Error al cargar jefes', 
-            code: 500 
-          });
-        }
-      } finally {
-        if (mountedRef.current && !abortController.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchJefes();
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  const error = queryError 
+    ? { message: (queryError as Error).message || 'Error al cargar jefes', code: 500 } 
+    : null;
 
   return { jefes, isLoading, error };
 };
 
+/**
+ * Hook optimizado con React Query para obtener jefes de un usuario específico
+ * - Caché de 5 minutos
+ * - Solo se ejecuta si idEmpleado está definido y enabled es true
+ */
 export const useJefesUsuario = (idEmpleado: string | undefined, enabled: boolean = true) => {
-  const [jefes, setJefes] = useState<IJefe[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<IErrorResponse | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const { 
+    data: jefes = [], 
+    isLoading, 
+    error: queryError,
+    refetch 
+  } = useQuery({
+    queryKey: JEFES_QUERY_KEYS.usuario(idEmpleado || ''),
+    queryFn: () => usuariosService.getJefesUsuario(idEmpleado!),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !!idEmpleado && enabled,
+  });
 
-  const fetchJefes = useCallback(async () => {
-    if (!idEmpleado || !enabled) {
-      if (!enabled) return; // Si no está habilitado, no limpiar datos
-      setJefes([]);
-      return;
-    }
-
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await usuariosService.getJefesUsuario(idEmpleado);
-
-      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setJefes(data);
-      }
-    } catch (err: any) {
-      // Ignorar errores de cancelación
-      if (err.name === 'AbortError' || abortController.signal.aborted) {
-        return;
-      }
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setError({ 
-          message: err.message || 'Error al cargar jefes del usuario', 
-          code: 500 
-        });
-      }
-    } finally {
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [idEmpleado, enabled]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    if (enabled) {
-      fetchJefes();
-    }
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchJefes]);
-
-  const refetch = useCallback(() => {
-    if (idEmpleado && mountedRef.current) {
-      fetchJefes();
-    }
-  }, [idEmpleado, fetchJefes]);
+  const error = queryError 
+    ? { message: (queryError as Error).message || 'Error al cargar jefes del usuario', code: 500 } 
+    : null;
 
   return { jefes, isLoading, error, refetch };
 };

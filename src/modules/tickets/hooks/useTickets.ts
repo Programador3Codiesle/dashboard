@@ -1,90 +1,75 @@
 // src/modules/tickets/hooks/useTickets.ts
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ITicket } from "../types";
 import { ticketsService } from "../services/tickets.service";
 
 type TicketsKind = "activos" | "finalizados" | "mis";
 
+// Query keys para diferentes tipos de tickets
+export const TICKETS_QUERY_KEYS = {
+  activos: ['tickets', 'activos'] as const,
+  finalizados: ['tickets', 'finalizados'] as const,
+  mis: ['tickets', 'mis'] as const,
+};
+
+/**
+ * Hook optimizado con React Query para gestión de tickets
+ * - Caché automática diferenciada por tipo de ticket
+ * - Retry automático en caso de error
+ * - Sincronización entre componentes
+ * - Invalidación automática con evento 'tickets:updated'
+ */
 export function useTickets(kind: TicketsKind) {
-  const [tickets, setTickets] = useState<ITicket[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = TICKETS_QUERY_KEYS[kind];
 
-  const fetchTickets = useCallback(async () => {
-    // Cancelar petición anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+  const fetchFn = async (): Promise<ITicket[]> => {
+    switch (kind) {
+      case "activos":
+        return ticketsService.listActivos();
+      case "finalizados":
+        return ticketsService.listFinalizados();
+      case "mis":
+        return ticketsService.listMisTickets();
+      default:
+        return [];
     }
+  };
 
-    // Crear nuevo AbortController para esta petición
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
+  const { 
+    data: tickets = [], 
+    isLoading: loading, 
+    error: queryError,
+    refetch 
+  } = useQuery({
+    queryKey,
+    queryFn: fetchFn,
+    staleTime: 2 * 60 * 1000, // 2 minutos para tickets (datos más dinámicos)
+  });
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      let data: ITicket[] = [];
-
-      if (kind === "activos") data = await ticketsService.listActivos();
-      if (kind === "finalizados") data = await ticketsService.listFinalizados();
-      if (kind === "mis") data = await ticketsService.listMisTickets();
-
-      // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setTickets(data);
-      }
-    } catch (err: any) {
-      // Ignorar errores de cancelación
-      if (err.name === 'AbortError' || abortController.signal.aborted) {
-        return;
-      }
-      console.error(err);
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setError("No se pudieron cargar los tickets");
-      }
-    } finally {
-      if (mountedRef.current && !abortController.signal.aborted) {
-        setLoading(false);
-      }
-    }
-  }, [kind]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchTickets();
-
-    // Cleanup: marcar como desmontado y cancelar petición pendiente
-    return () => {
-      mountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [fetchTickets]);
-
-  // Permite que otras partes del front pidan refrescar los datos
+  // Escuchar evento global para invalidar caché
   useEffect(() => {
     const handler = () => {
-      if (mountedRef.current) {
-        fetchTickets();
-      }
+      // Invalidar todas las queries de tickets
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
     };
 
     window.addEventListener("tickets:updated", handler);
+    return () => window.removeEventListener("tickets:updated", handler);
+  }, [queryClient]);
 
-    return () => {
-      window.removeEventListener("tickets:updated", handler);
-    };
-  }, [fetchTickets]);
+  // Función para actualizar el cache manualmente (para optimistic updates)
+  const setTickets = (newTickets: ITicket[] | ((prev: ITicket[]) => ITicket[])) => {
+    queryClient.setQueryData(queryKey, (old: ITicket[] | undefined) => {
+      if (typeof newTickets === 'function') {
+        return newTickets(old || []);
+      }
+      return newTickets;
+    });
+  };
 
-  const refetch = useCallback(() => {
-    if (mountedRef.current) {
-      fetchTickets();
-    }
-  }, [fetchTickets]);
+  const error = queryError ? "No se pudieron cargar los tickets" : null;
 
   return { tickets, loading, error, setTickets, refetch };
 }
