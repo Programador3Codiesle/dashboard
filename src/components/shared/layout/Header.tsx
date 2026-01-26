@@ -18,7 +18,7 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, emp
   const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
 
   const currentTitle = useMemo(() => {
-    // Buscar coincidencia exacta primero
+    
     const exactMatch = ROUTES.find(r => r.path === currentPath);
     if (exactMatch) return exactMatch.name;
     

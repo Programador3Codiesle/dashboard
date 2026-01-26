@@ -47,9 +47,9 @@ export default function TicketsLayout({ children }: { children: React.ReactNode 
                                 className={`
                   whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
                   ${isActive
-                                        ? "border-[var(--color-primary)] brand-text"
-                                        : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
-                                    }
+                        ? "border-[var(--color-primary)] brand-text"
+                        : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
+                    }
                 `}
                             >
                                 {tab.name}
