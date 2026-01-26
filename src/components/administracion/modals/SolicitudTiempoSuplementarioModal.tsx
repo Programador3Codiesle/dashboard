@@ -5,6 +5,8 @@ import Modal from "@/components/shared/ui/Modal";
 import { SolicitudTiempoSuplementarioDTO } from "@/modules/administracion/types";
 import { SEDES, AREAS_SOLICITA } from "@/modules/administracion/constants";
 import { ChevronDown } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 interface SolicitudTiempoSuplementarioModalProps {
   open: boolean;
@@ -102,16 +104,14 @@ export default function SolicitudTiempoSuplementarioModal({
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
             </div>
           </div>
-          <div>
-            <label className={labelClass}>Cargo del empleado <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.cargo}
-              onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
-              required
-            />
-          </div>
+          <OptimizedInput
+            label="Cargo del empleado"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.cargo}
+            onValueChange={(val) => setFormData({ ...formData, cargo: val })}
+            required
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -132,28 +132,25 @@ export default function SolicitudTiempoSuplementarioModal({
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
             </div>
           </div>
-          <div>
-            <label className={labelClass}>Empleado <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.empleado}
-              onChange={(e) => setFormData({ ...formData, empleado: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className={labelClass}>Describe el motivo de la solicitud <span className="text-red-500">*</span></label>
-          <textarea
-            className={textareaClass}
-            rows={4}
-            value={formData.descripcionMotivo}
-            onChange={(e) => setFormData({ ...formData, descripcionMotivo: e.target.value })}
+          <OptimizedInput
+            label="Empleado"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.empleado}
+            onValueChange={(val) => setFormData({ ...formData, empleado: val })}
             required
           />
         </div>
+
+        <OptimizedTextarea
+          label="Describe el motivo de la solicitud"
+          labelClassName={labelClass}
+          className={textareaClass}
+          rows={4}
+          value={formData.descripcionMotivo}
+          onValueChange={(val) => setFormData({ ...formData, descripcionMotivo: val })}
+          required
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <button

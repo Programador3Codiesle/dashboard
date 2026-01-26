@@ -6,6 +6,8 @@ import { CrearTicketDTO } from "@/modules/tickets/types";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { Upload, X, ChevronDown } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 export default function NuevoTicketModal({
     open,
@@ -29,7 +31,7 @@ export default function NuevoTicketModal({
         e.preventDefault();
         if (!form.tipoSoporte || !form.descripcion) return;
         setLoading(true);
-        
+
         try {
             let archivoUrl: string | null = null;
 
@@ -57,7 +59,7 @@ export default function NuevoTicketModal({
 
             // 2) Crear el ticket enviando la URL real (o null si no hay archivo)
             await crearTicket({ ...form, archivoUrl });
-            
+
             // Limpiar el formulario y cerrar modal
             setForm({
                 tipoSoporte: "",
@@ -105,27 +107,25 @@ export default function NuevoTicketModal({
                         </div>
                     </div>
 
-                    <div>
-                        <label className={labelClass}>Anydesk</label>
-                        <input
-                            className={`mt-1 ${inputClass}`}
-                            value={form.anydesk}
-                            onChange={(e) => setForm({ ...form, anydesk: e.target.value })}
-                            placeholder="Ej: 123 456 789"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className={labelClass}>Descripción del problema <span className="text-red-500">*</span></label>
-                    <textarea
-                        className={`mt-1 ${inputClass} min-h-[120px] resize-y`}
-                        value={form.descripcion}
-                        onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                        placeholder="Describe detalladamente el problema..."
-                        required
+                    <OptimizedInput
+                        label="Anydesk"
+                        labelClassName={labelClass}
+                        className={`mt-1 ${inputClass}`}
+                        value={form.anydesk}
+                        onValueChange={(val) => setForm({ ...form, anydesk: val })}
+                        placeholder="Ej: 123 456 789"
                     />
                 </div>
+
+                <OptimizedTextarea
+                    label="Descripción del problema"
+                    labelClassName={labelClass}
+                    className={`mt-1 ${inputClass} min-h-[120px] resize-y`}
+                    value={form.descripcion}
+                    onValueChange={(val) => setForm({ ...form, descripcion: val })}
+                    placeholder="Describe detalladamente el problema..."
+                    required
+                />
 
                 <div>
                     <label className={labelClass}>Adjuntar archivo (opcional)</label>

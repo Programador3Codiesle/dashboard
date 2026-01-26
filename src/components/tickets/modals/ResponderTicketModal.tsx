@@ -5,6 +5,7 @@ import { useTicketsActions } from "@/modules/tickets/hooks/useTicketsActions";
 import { ticketsService } from "@/modules/tickets/services/tickets.service";
 import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 export default function ResponderTicketModal({
     open,
@@ -165,17 +166,16 @@ export default function ResponderTicketModal({
                 )}
 
                 <form onSubmit={submit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Respuesta</label>
-                        <textarea
-                            className={inputClass}
-                            rows={5}
-                            value={mensaje}
-                            onChange={(e) => setMensaje(e.target.value)}
-                            placeholder="Escribe tu respuesta para el usuario..."
-                            autoFocus
-                        />
-                    </div>
+                    <OptimizedTextarea
+                        label="Respuesta"
+                        labelClassName="block text-sm font-medium text-gray-700 mb-1"
+                        className={inputClass}
+                        rows={5}
+                        value={mensaje}
+                        onValueChange={(val) => setMensaje(val)}
+                        placeholder="Escribe tu respuesta para el usuario..."
+                        autoFocus
+                    />
 
                     <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors w-fit">
                         <input

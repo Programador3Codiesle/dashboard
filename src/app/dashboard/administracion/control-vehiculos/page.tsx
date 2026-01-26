@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Search, Plus, CheckCircle2 } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { VehiculoSalida, RegistrarSalidaDTO, RegistrarLlegadaDTO, VehiculoSalidaAPI } from "@/modules/administracion/types";
@@ -189,12 +190,11 @@ export default function ControlVehiculosPage() {
       {/* Búsqueda */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
+        <OptimizedInput
           placeholder="Buscar por placa, conductor o taller..."
           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onValueChange={(val) => setSearch(val)}
         />
       </div>
 

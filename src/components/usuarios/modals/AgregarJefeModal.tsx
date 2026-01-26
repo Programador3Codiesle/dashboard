@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useJefesGeneral, useUsuariosJefes } from "@/modules/usuarios/hooks/useJefesGeneral";
 import { useUsuarioActions } from "@/modules/usuarios/hooks/useUsuarioActions";
 import { Loader2 } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 
 export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProps) {
     const { jefes, isLoading: loadingJefes, refetch: refetchJefes } = useJefesGeneral();
@@ -118,25 +119,23 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
                             )}
                         </div>
 
-                        <div style={{ marginBottom: "16px" }}>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>
-                                Correo electrónico
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #d1d5db",
-                                    borderRadius: "6px",
-                                    fontSize: "14px",
-                                }}
-                                placeholder="correo@empresa.com"
-                            />
-                        </div>
+                        <OptimizedInput
+                            label="Correo electrónico"
+                            labelClassName="block mb-5 font-medium"
+                            containerClassName="mb-16"
+                            type="email"
+                            value={email}
+                            onValueChange={(val) => setEmail(val)}
+                            required
+                            style={{
+                                width: "100%",
+                                padding: "8px 12px",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "6px",
+                                fontSize: "14px",
+                            }}
+                            placeholder="correo@empresa.com"
+                        />
 
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
                             <button

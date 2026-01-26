@@ -3,6 +3,7 @@ import Modal from "../../shared/ui/Modal";
 import { AgregarUsuarioModalProps } from "@/modules/usuarios/types";
 import { useState, useEffect } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 
 export default function AgregarUsuarioModal({
     open,
@@ -77,19 +78,18 @@ export default function AgregarUsuarioModal({
             <form onSubmit={handleSubmit} className="space-y-5 p-1">
 
                 {/* NIT */}
-                <div>
-                    <label className={labelClass}>NIT del usuario <span className="text-red-500">*</span></label>
-                    <input
-                        type="number"
-                        name="nit"
-                        value={formData.nit}
-                        onChange={handleChange}
-                        className={inputClass}
-                        placeholder="Ej: 1095944272"
-                        min="1"
-                    />
-                    {errors.nit && <span className={errorClass}>{errors.nit}</span>}
-                </div>
+                <OptimizedInput
+                    label="NIT del usuario"
+                    labelClassName={labelClass}
+                    required
+                    type="number"
+                    name="nit"
+                    value={formData.nit}
+                    onValueChange={(val) => setFormData(prev => ({ ...prev, nit: val }))}
+                    className={inputClass}
+                    placeholder="Ej: 1095944272"
+                    min="1"
+                />
 
                 {/* Perfil */}
                 <div>

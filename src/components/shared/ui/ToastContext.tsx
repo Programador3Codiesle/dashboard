@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState, useMemo } from "react";
 
 type ToastVariant = "success" | "error" | "info";
 
@@ -32,15 +32,17 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 4000);
   }, []);
 
-  const showSuccess = (message: string) => addToast(message, "success");
-  const showError = (message: string) => addToast(message, "error");
-  const showInfo = (message: string) => addToast(message, "info");
+  const showSuccess = useCallback((message: string) => addToast(message, "success"), [addToast]);
+  const showError = useCallback((message: string) => addToast(message, "error"), [addToast]);
+  const showInfo = useCallback((message: string) => addToast(message, "info"), [addToast]);
+
+  const value = useMemo(() => ({ showSuccess, showError, showInfo }), [showSuccess, showError, showInfo]);
 
   return (
-    <ToastContext.Provider value={{ showSuccess, showError, showInfo }}>
+    <ToastContext.Provider value={value}>
       {children}
       {/* Contenedor visual de toasts */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col items-end space-y-3">
+      <div className="fixed top-4 right-4 z-9999 flex flex-col items-end space-y-3">
         {toasts.map((toast) => (
           <div
             key={toast.id}
@@ -59,8 +61,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               {toast.variant === "success"
                 ? "Éxito"
                 : toast.variant === "error"
-                ? "Error"
-                : "Info"}
+                  ? "Error"
+                  : "Info"}
             </span>
             <span className="text-gray-800 text-sm">{toast.message}</span>
           </div>

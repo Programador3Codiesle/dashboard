@@ -6,6 +6,8 @@ import { RegistrarSalidaDTO, ModeloVehiculo } from "@/modules/administracion/typ
 import { controlVehiculosService } from "@/modules/administracion/services/control-vehiculos.service";
 import { ChevronDown } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 interface RegistrarSalidaVehiculoModalProps {
   open: boolean;
@@ -90,28 +92,25 @@ export default function RegistrarSalidaVehiculoModal({
     <Modal open={open} onClose={onClose} title="Registrar Salida" width="600px">
       <form onSubmit={handleSubmit} className="space-y-5 p-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>Placa <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.placa}
-              onChange={(e) => setFormData({ ...formData, placa: e.target.value.toUpperCase() })}
-              required
-            />
-          </div>
+          <OptimizedInput
+            label="Placa"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.placa}
+            onValueChange={(val) => setFormData({ ...formData, placa: val.toUpperCase() })}
+            required
+          />
 
-          <div>
-            <label className={labelClass}>KM. Salida <span className="text-red-500">*</span></label>
-            <input
-              type="number"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.km_salida}
-              onChange={(e) => setFormData({ ...formData, km_salida: parseInt(e.target.value) || 0 })}
-              required
-              min="0"
-            />
-          </div>
+          <OptimizedInput
+            label="KM. Salida"
+            labelClassName={labelClass}
+            type="number"
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.km_salida.toString()}
+            onValueChange={(val) => setFormData({ ...formData, km_salida: parseInt(val) || 0 })}
+            required
+            min="0"
+          />
 
           <div>
             <label className={labelClass}>Tipo Vehículo <span className="text-red-500">*</span></label>
@@ -176,50 +175,44 @@ export default function RegistrarSalidaVehiculoModal({
           </div>
 
           {formData.tipo_vehiculo === "Vehículo Remolcado" && (
-            <div>
-              <label className={labelClass}>Placa Vehículo Remolcado</label>
-              <input
-                type="text"
-                className={inputClass.replace("appearance-none pr-10", "")}
-                value={formData.placa_vh_remolcado || ""}
-                onChange={(e) => setFormData({ ...formData, placa_vh_remolcado: e.target.value.toUpperCase() })}
-              />
-            </div>
+            <OptimizedInput
+              label="Placa Vehículo Remolcado"
+              labelClassName={labelClass}
+              type="text"
+              className={inputClass.replace("appearance-none pr-10", "")}
+              value={formData.placa_vh_remolcado || ""}
+              onValueChange={(val) => setFormData({ ...formData, placa_vh_remolcado: val.toUpperCase() })}
+            />
           )}
         </div>
 
-        <div>
-          <label className={labelClass}>Nombre de quien conduce el vehículo <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            className={inputClass.replace("appearance-none pr-10", "")}
-            value={formData.conductor}
-            onChange={(e) => setFormData({ ...formData, conductor: e.target.value })}
-            required
-          />
-        </div>
+        <OptimizedInput
+          label="Nombre de quien conduce el vehículo"
+          labelClassName={labelClass}
+          className={inputClass.replace("appearance-none pr-10", "")}
+          value={formData.conductor}
+          onValueChange={(val) => setFormData({ ...formData, conductor: val })}
+          required
+        />
 
-        <div>
-          <label className={labelClass}>Quien autorizó <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            className={inputClass.replace("appearance-none pr-10", "")}
-            value={formData.persona_autorizo}
-            onChange={(e) => setFormData({ ...formData, persona_autorizo: e.target.value })}
-            required
-          />
-        </div>
+        <OptimizedInput
+          label="Quien autorizó"
+          labelClassName={labelClass}
+          className={inputClass.replace("appearance-none pr-10", "")}
+          value={formData.persona_autorizo}
+          onValueChange={(val) => setFormData({ ...formData, persona_autorizo: val })}
+          required
+        />
 
-        <div>
-          <label className={labelClass}>Nombres empleados que van en el vehículo</label>
-          <textarea
-            className={textareaClass}
-            rows={3}
-            value={formData.pasajeros}
-            onChange={(e) => setFormData({ ...formData, pasajeros: e.target.value })}
-            placeholder="Liste los nombres de los empleados separados por comas..."
-          />
-        </div>
+        <OptimizedTextarea
+          label="Nombres empleados que van en el vehículo"
+          labelClassName={labelClass}
+          className={textareaClass}
+          rows={3}
+          value={formData.pasajeros}
+          onValueChange={(val) => setFormData({ ...formData, pasajeros: val })}
+          placeholder="Liste los nombres de los empleados separados por comas..."
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <button

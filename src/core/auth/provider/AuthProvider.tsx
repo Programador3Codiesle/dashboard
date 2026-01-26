@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import { setUser, getUser, removeUser, removeCookie } from "@/utils/cookies";
@@ -11,13 +11,13 @@ const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "act
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUserState] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [lastActivity, setLastActivity] = useState<number>(() => Date.now());
+    const lastActivity = useRef<number>(Date.now());
 
     // Cargar usuario de cookies al iniciar y verificar sesión con el backend
     useEffect(() => {
         const initializeAuth = async () => {
             const savedUser = getUser();
-            
+
             if (savedUser) {
                 // Verificar que la sesión sigue válida en el backend
                 try {
@@ -36,7 +36,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                     setUserState(null);
                 }
             }
-            
+
             setLoading(false);
         };
 
@@ -68,7 +68,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     // Registrar actividad del usuario (mouse, teclado, clics, scroll, focus)
     useEffect(() => {
         const updateActivity = () => {
-            setLastActivity(Date.now());
+            lastActivity.current = Date.now();
         };
 
         // Eventos que indican actividad del usuario
@@ -94,8 +94,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         if (!user) return;
 
         const inactivityInterval = setInterval(() => {
-            const inactiveTime = Date.now() - lastActivity;
-            
+            const inactiveTime = Date.now() - lastActivity.current;
+
             if (inactiveTime > INACTIVITY_LIMIT_MS) {
                 // 4 horas sin actividad → cerrar sesión
                 logout();
@@ -103,7 +103,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         }, 60 * 1000); // Verificar cada minuto
 
         return () => clearInterval(inactivityInterval);
-    }, [user, lastActivity, logout]);
+    }, [user, logout]);
 
     // Refresh preventivo solo si hay actividad reciente (últimos 30 minutos)
     // Se ejecuta con delay aleatorio entre 13.5 y 14 minutos para distribuir las solicitudes
@@ -112,38 +112,30 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         if (!user) return;
 
         const scheduleRefresh = () => {
-            // Calcular tiempo aleatorio entre 13.5 y 14 minutos
-            // Esto distribuye las solicitudes de refresh en un rango de 30 segundos
-            // para evitar picos de carga cuando hay muchos usuarios
-            const minTime = 13.5 * 60 * 1000; // 13.5 minutos
-            const maxTime = 14 * 60 * 1000;   // 14 minutos
+            const minTime = 13.5 * 60 * 1000;
+            const maxTime = 14 * 60 * 1000;
             const randomDelay = Math.random() * (maxTime - minTime) + minTime;
 
             const refreshTimeout = setTimeout(async () => {
-                const inactiveTime = Date.now() - lastActivity;
-                
-                // Solo refrescar si hay actividad reciente
+                const inactiveTime = Date.now() - lastActivity.current;
+
                 if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
                     try {
                         const success = await authService.refreshToken();
                         if (!success) {
-                            // Si falla y estamos activos, logout inmediato
                             console.error("Refresh preventivo falló, cerrando sesión");
                             logout();
                         } else {
                             console.log("Token refrescado preventivamente");
-                            // Programar el siguiente refresh
                             scheduleRefresh();
                         }
                     } catch (error) {
                         console.error("Error en refresh preventivo:", error);
-                        // Si hay error y estamos activos, intentar logout
                         if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
                             logout();
                         }
                     }
                 } else {
-                    // Si no hay actividad, programar otro intento más tarde
                     scheduleRefresh();
                 }
             }, randomDelay);
@@ -154,11 +146,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         const timeoutId = scheduleRefresh();
 
         return () => clearTimeout(timeoutId);
-    }, [user, lastActivity, logout]);
+    }, [user, logout]);
 
     const login = async (credentials: { user: string; password: string }) => {
         const nitUsuario = parseInt(credentials.user, 10);
-        
+
         if (isNaN(nitUsuario)) {
             throw new Error("El usuario debe ser un número NIT válido");
         }
@@ -180,7 +172,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
             setUser(userData);
             setUserState(userData);
-            setLastActivity(Date.now());
+            lastActivity.current = Date.now();
         } catch (error: any) {
             throw error;
         }
@@ -195,16 +187,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         });
     }, []);
 
+    const authValue = useMemo(() => ({
+        user,
+        login,
+        logout,
+        updateUser,
+        isAuthenticated: !!user,
+    }), [user, logout, updateUser]);
+
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                login,
-                logout,
-                updateUser,
-                isAuthenticated: !!user,
-            }}
-        >
+        <AuthContext.Provider value={authValue}>
             {children}
         </AuthContext.Provider>
     );

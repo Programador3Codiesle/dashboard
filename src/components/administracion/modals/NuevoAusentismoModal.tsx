@@ -5,6 +5,8 @@ import Modal from "@/components/shared/ui/Modal";
 import { NuevoAusentismoDTO } from "@/modules/administracion/types";
 import { SEDES, AREAS_SOLICITA } from "@/modules/administracion/constants";
 import { ChevronDown } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 interface NuevoAusentismoModalProps {
   open: boolean;
@@ -107,16 +109,14 @@ export default function NuevoAusentismoModal({
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
             </div>
           </div>
-          <div>
-            <label className={labelClass}>Cargo del empleado <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.cargo}
-              onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
-              required
-            />
-          </div>
+          <OptimizedInput
+            label="Cargo del empleado"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.cargo}
+            onValueChange={(val) => setFormData({ ...formData, cargo: val })}
+            required
+          />
         </div>
 
         <div>
@@ -137,27 +137,24 @@ export default function NuevoAusentismoModal({
           </div>
         </div>
 
-        <div>
-          <label className={labelClass}>Motivo del permiso <span className="text-red-500">*</span></label>
-          <input
-            type="text"
-            className={inputClass.replace("appearance-none pr-10", "")}
-            value={formData.motivo}
-            onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
-            required
-          />
-        </div>
+        <OptimizedInput
+          label="Motivo del permiso"
+          labelClassName={labelClass}
+          className={inputClass.replace("appearance-none pr-10", "")}
+          value={formData.motivo}
+          onValueChange={(val) => setFormData({ ...formData, motivo: val })}
+          required
+        />
 
-        <div>
-          <label className={labelClass}>Describe el motivo del permiso <span className="text-red-500">*</span></label>
-          <textarea
-            className={textareaClass}
-            rows={4}
-            value={formData.descripcionMotivo}
-            onChange={(e) => setFormData({ ...formData, descripcionMotivo: e.target.value })}
-            required
-          />
-        </div>
+        <OptimizedTextarea
+          label="Describe el motivo del permiso"
+          labelClassName={labelClass}
+          className={textareaClass}
+          rows={4}
+          value={formData.descripcionMotivo}
+          onValueChange={(val) => setFormData({ ...formData, descripcionMotivo: val })}
+          required
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <button

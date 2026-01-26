@@ -5,6 +5,8 @@ import Modal from "@/components/shared/ui/Modal";
 import { NuevaSolicitudCompraDTO, NivelUrgencia } from "@/modules/administracion/types";
 import { AREAS_SOLICITA, GERENTES_AUTORIZA, SEDES } from "@/modules/administracion/constants";
 import { ChevronDown } from "lucide-react";
+import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
+import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
 interface NuevaSolicitudCompraModalProps {
   open: boolean;
@@ -95,27 +97,23 @@ export default function NuevaSolicitudCompraModal({
             </div>
           </div>
 
-          <div>
-            <label className={labelClass}>Nombre de la persona que realiza la solicitud <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.nombrePersona}
-              onChange={(e) => setFormData({ ...formData, nombrePersona: e.target.value })}
-              required
-            />
-          </div>
+          <OptimizedInput
+            label="Nombre de la persona que realiza la solicitud"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.nombrePersona}
+            onValueChange={(val) => setFormData({ ...formData, nombrePersona: val })}
+            required
+          />
 
-          <div>
-            <label className={labelClass}>Cargo de la persona que está solicitando la compra <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.cargoPersona}
-              onChange={(e) => setFormData({ ...formData, cargoPersona: e.target.value })}
-              required
-            />
-          </div>
+          <OptimizedInput
+            label="Cargo de la persona que está solicitando la compra"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.cargoPersona}
+            onValueChange={(val) => setFormData({ ...formData, cargoPersona: val })}
+            required
+          />
 
           <div>
             <label className={labelClass}>Nombre del gerente de área que autoriza la compra <span className="text-red-500">*</span></label>
@@ -135,15 +133,13 @@ export default function NuevaSolicitudCompraModal({
             </div>
           </div>
 
-          <div>
-            <label className={labelClass}>Proveedores o contratistas sugeridos</label>
-            <input
-              type="text"
-              className={inputClass.replace("appearance-none pr-10", "")}
-              value={formData.proveedoresSugeridos}
-              onChange={(e) => setFormData({ ...formData, proveedoresSugeridos: e.target.value })}
-            />
-          </div>
+          <OptimizedInput
+            label="Proveedores o contratistas sugeridos"
+            labelClassName={labelClass}
+            className={inputClass.replace("appearance-none pr-10", "")}
+            value={formData.proveedoresSugeridos}
+            onValueChange={(val) => setFormData({ ...formData, proveedoresSugeridos: val })}
+          />
         </div>
 
         <div>
@@ -171,29 +167,27 @@ export default function NuevaSolicitudCompraModal({
           </div>
         </div>
 
-        <div>
-          <label className={labelClass}>Área y % a la que se debe cargar la compra <span className="text-red-500">*</span></label>
-          <textarea
-            className={textareaClass}
-            rows={3}
-            value={formData.areaCarga}
-            onChange={(e) => setFormData({ ...formData, areaCarga: e.target.value })}
-            placeholder="Ej: Administración 100%"
-            required
-          />
-        </div>
+        <OptimizedTextarea
+          label="Área y % a la que se debe cargar la compra"
+          labelClassName={labelClass}
+          className={textareaClass}
+          rows={3}
+          value={formData.areaCarga}
+          onValueChange={(val) => setFormData({ ...formData, areaCarga: val })}
+          placeholder="Ej: Administración 100%"
+          required
+        />
 
-        <div>
-          <label className={labelClass}>Descripción de producto o servicio <span className="text-red-500">*</span></label>
-          <textarea
-            className={textareaClass}
-            rows={4}
-            value={formData.descripcion}
-            onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-            placeholder="Describa el producto o servicio a solicitar..."
-            required
-          />
-        </div>
+        <OptimizedTextarea
+          label="Descripción de producto o servicio"
+          labelClassName={labelClass}
+          className={textareaClass}
+          rows={4}
+          value={formData.descripcion}
+          onValueChange={(val) => setFormData({ ...formData, descripcion: val })}
+          placeholder="Describa el producto o servicio a solicitar..."
+          required
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <button
