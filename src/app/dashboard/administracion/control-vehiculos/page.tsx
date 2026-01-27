@@ -11,9 +11,14 @@ import { controlVehiculosService } from "@/modules/administracion/services/contr
 import RegistrarSalidaVehiculoModal from "@/components/administracion/modals/RegistrarSalidaVehiculoModal";
 import RegistrarLlegadaModal from "@/components/administracion/modals/RegistrarLlegadaModal";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 export default function ControlVehiculosPage() {
   const { showSuccess, showError } = useToast();
+  const { user } = useAuth();
+  
+  // Verificar si el usuario puede ver la columna de observación (perfiles 1 o 20)
+  const puedeVerObservacion = user?.perfil_postventa === '1' || user?.perfil_postventa === '20';
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLlegadaOpen, setModalLlegadaOpen] = useState(false);
@@ -231,13 +236,15 @@ export default function ControlVehiculosPage() {
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">Hora Ingreso</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">KM Ingreso</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-700">Registrar Llegada</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Observación</th>
+                    {puedeVerObservacion && (
+                      <th className="text-left py-4 px-6 font-semibold text-gray-700">Observación</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {vehiculosMostrados.length === 0 ? (
                     <tr>
-                      <td colSpan={16} className="text-center py-10 text-gray-500">
+                      <td colSpan={puedeVerObservacion ? 16 : 15} className="text-center py-10 text-gray-500">
                         No se encontraron registros
                       </td>
                     </tr>
@@ -274,7 +281,9 @@ export default function ControlVehiculosPage() {
                             Registrar
                           </button>
                         </td>
-                        <td className="py-4 px-6 text-sm">{vehiculo.observacion || "-"}</td>
+                        {puedeVerObservacion && (
+                          <td className="py-4 px-6 text-sm">{vehiculo.observacion || "-"}</td>
+                        )}
                       </tr>
                     ))
                   )}
