@@ -4,7 +4,8 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import React from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevaSolicitudCompraDTO, NivelUrgencia } from "@/modules/administracion/types";
-import { AREAS_SOLICITA, SEDES } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { usuariosService } from "@/modules/usuarios/services/usuarios.service";
 import type { IUsuario } from "@/modules/usuarios/types";
 import { useAuth } from "@/core/auth/hooks/useAuth";
@@ -26,6 +27,7 @@ const NuevaSolicitudCompraModalComponent = ({
   onSave,
 }: NuevaSolicitudCompraModalProps) => {
   const { user } = useAuth();
+  const sedes = useSedesByEmpresa();
   const formRef = useRef<HTMLFormElement>(null);
   const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
   const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
@@ -109,7 +111,7 @@ const NuevaSolicitudCompraModalComponent = ({
             <div className="relative mt-1">
               <select className={inputClass} name="sede" required>
                 <option value="">Seleccione...</option>
-                {SEDES.map((sede) => (
+                {sedes.map((sede) => (
                   <option key={sede} value={sede}>
                     {sede}
                   </option>

@@ -7,6 +7,7 @@ import { COMPETENCIAS_TEMPLATE } from "@/modules/administracion/constants";
 import { EvaluacionDesempeño, FormatoDesempenoAPI, FormatoDesempenoDTO } from "@/modules/administracion/types";
 import type { EscalaDesempeño } from "@/modules/administracion/types";
 import { formatoDesempenoService } from "@/modules/administracion/services/formato-desempeno.service";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 
@@ -78,7 +79,7 @@ const HeaderSeccion = React.memo(({ evaluacionExistente }: { evaluacionExistente
 ));
 HeaderSeccion.displayName = "HeaderSeccion";
 
-const InfoGeneral = React.memo(({ formData, onFieldChange }: { formData: any, onFieldChange: (field: string, value: string) => void }) => (
+const InfoGeneral = React.memo(({ formData, onFieldChange, sedes }: { formData: any, onFieldChange: (field: string, value: string) => void, sedes: string[] }) => (
   <div className="border-b-2 border-blue-100 pb-8">
     <div className="flex items-center gap-3 mb-6">
       <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-md">
@@ -101,7 +102,12 @@ const InfoGeneral = React.memo(({ formData, onFieldChange }: { formData: any, on
       </div>
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">Sede <span className="text-red-500">*</span></label>
-        <input type="text" className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm" value={formData.sede} onChange={(e) => onFieldChange('sede', e.target.value)} required />
+        <select className="block w-full border-2 border-blue-200 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-blue-50/30 hover:bg-white hover:border-blue-300 shadow-sm appearance-none pr-10" value={formData.sede} onChange={(e) => onFieldChange('sede', e.target.value)} required>
+          <option value="">Seleccione sede...</option>
+          {sedes.map((sede) => (
+            <option key={sede} value={sede}>{sede}</option>
+          ))}
+        </select>
       </div>
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha <span className="text-red-500">*</span></label>
@@ -146,6 +152,7 @@ EscalaEvaluacion.displayName = "EscalaEvaluacion";
 
 export default function FormatoDesempenoEmpleadoPage() {
   const { user } = useAuth();
+  const sedes = useSedesByEmpresa();
   const { showSuccess, showError } = useToast();
   const [evaluacionExistente, setEvaluacionExistente] = useState<FormatoDesempenoAPI | null>(null);
   const [loadingEvaluacion, setLoadingEvaluacion] = useState(true);
@@ -313,7 +320,7 @@ export default function FormatoDesempenoEmpleadoPage() {
       <HeaderSeccion evaluacionExistente={evaluacionExistente} />
       <form onSubmit={handleSubmit}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-8 space-y-8">
-          <InfoGeneral formData={formData} onFieldChange={handleFieldChange} />
+          <InfoGeneral formData={formData} onFieldChange={handleFieldChange} sedes={sedes} />
           <EscalaEvaluacion />
 
           <div>

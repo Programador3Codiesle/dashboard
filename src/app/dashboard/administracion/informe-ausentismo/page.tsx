@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect, useCallback, memo } from "react";
 import { motion } from "framer-motion";
 import { FileText, Loader2, ChevronDown } from "lucide-react";
-import { SEDES, AREAS_INFORME_AUSENTISMO } from "@/modules/administracion/constants";
+import { AREAS_INFORME_AUSENTISMO } from "@/modules/administracion/constants";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { informeAusentismoService, AusentismoInforme } from "@/modules/administracion/services/informe-ausentismo.service";
 import DetalleAusentismoModal from "@/components/administracion/modals/DetalleAusentismoModal";
@@ -135,6 +136,7 @@ const FiltersSection = memo(function FiltersSection({
   fechaFin,
   filtroSede,
   filtroArea,
+  sedesOptions,
   onFechaInicioChange,
   onFechaFinalChange,
   onFiltroSedeChange,
@@ -144,6 +146,7 @@ const FiltersSection = memo(function FiltersSection({
   fechaFin: string;
   filtroSede: string;
   filtroArea: string;
+  sedesOptions: { value: string; label: string }[];
   onFechaInicioChange: (v: string) => void;
   onFechaFinalChange: (v: string) => void;
   onFiltroSedeChange: (v: string) => void;
@@ -167,7 +170,7 @@ const FiltersSection = memo(function FiltersSection({
           label="Sede"
           value={filtroSede}
           onChange={onFiltroSedeChange}
-          options={SEDES.map((sede) => ({ value: sede, label: sede }))}
+          options={sedesOptions}
           placeholder="Todas"
         />
         <SelectFilter
@@ -194,6 +197,8 @@ const SearchSection = memo(function SearchSection({
 
 export default function InformeAusentismoPage() {
   const { showError } = useToast();
+  const sedes = useSedesByEmpresa();
+  const sedesOptions = useMemo(() => sedes.map((sede) => ({ value: sede, label: sede })), [sedes]);
   const [search, setSearch] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
@@ -276,6 +281,7 @@ export default function InformeAusentismoPage() {
         fechaFin={fechaFin}
         filtroSede={filtroSede}
         filtroArea={filtroArea}
+        sedesOptions={sedesOptions}
         onFechaInicioChange={setFechaInicio}
         onFechaFinalChange={setFechaFin}
         onFiltroSedeChange={setFiltroSede}
@@ -351,7 +357,7 @@ export default function InformeAusentismoPage() {
                 onChange={(e) => setInformeConfig({ ...informeConfig, sede: e.target.value })}
               >
                 <option value="">Todas</option>
-                {SEDES.map((sede) => (
+                {sedes.map((sede) => (
                   <option key={sede} value={sede}>{sede}</option>
                 ))}
               </select>

@@ -11,6 +11,7 @@ import {
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useMisJefes } from "@/modules/usuarios/hooks/useJefes";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 
 const AREAS = [
   "Administración",
@@ -26,16 +27,6 @@ const AREAS = [
   "Accesorios",
 ];
 
-const SEDES = [
-  "Giron",
-  "Rosita",
-  "Chevropartes",
-  "Solochevrolet",
-  "Barrancabermeja",
-  "Bocono",
-  "Malecon",
-];
-
 export default function FormatoOrdenSalidaPage() {
   const today = useMemo(
     () => new Date().toISOString().split("T")[0],
@@ -43,6 +34,7 @@ export default function FormatoOrdenSalidaPage() {
   );
 
   const { user } = useAuth();
+  const sedes = useSedesByEmpresa();
   const { jefes, isLoading: loadingJefes } = useMisJefes();
 
   const [tiposSalida, setTiposSalida] = useState<TipoSalida[]>([]);
@@ -51,7 +43,7 @@ export default function FormatoOrdenSalidaPage() {
   const [form, setForm] = useState<CrearOrdenSalidaDTO>({
     fecha_salida: today,
     area: "",
-    sede: "Giron",
+    sede: "",
     jefe: 0,
     tipoSalida: 0,
     quienSale: "",
@@ -70,6 +62,15 @@ export default function FormatoOrdenSalidaPage() {
       }));
     }
   }, [user?.empresa]);
+
+  // Sede por defecto: primera de la empresa; si la actual no está en la lista, actualizar
+  useEffect(() => {
+    if (sedes.length === 0) return;
+    setForm((prev) => {
+      const sedeValida = prev.sede && sedes.includes(prev.sede);
+      return sedeValida ? prev : { ...prev, sede: sedes[0] ?? "" };
+    });
+  }, [sedes]);
 
   const { showError, showSuccess } = useToast();
   const [selectedJefeNit, setSelectedJefeNit] = useState<number | null>(null);
@@ -151,7 +152,7 @@ export default function FormatoOrdenSalidaPage() {
       setForm({
         fecha_salida: today,
         area: "",
-        sede: "Giron",
+        sede: sedes[0] ?? "",
         jefe: 0,
         tipoSalida: 0,
         quienSale: "",
@@ -241,7 +242,8 @@ export default function FormatoOrdenSalidaPage() {
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
               required
             >
-              {SEDES.map((sede) => (
+              <option value="">Seleccione sede...</option>
+              {sedes.map((sede) => (
                 <option key={sede} value={sede}>
                   {sede}
                 </option>

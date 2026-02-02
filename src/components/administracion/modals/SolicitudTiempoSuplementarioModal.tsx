@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { SolicitudTiempoSuplementarioDTO } from "@/modules/administracion/types";
-import { SEDES, AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
@@ -36,6 +37,7 @@ export default function SolicitudTiempoSuplementarioModal({
   resetKey = 0,
 }: SolicitudTiempoSuplementarioModalProps) {
   const { usuarios, isLoading: loadingUsuarios } = useUsuarios();
+  const sedes = useSedesByEmpresa();
   const [formData, setFormData] = useState<SolicitudTiempoSuplementarioDTO>(() => getInitialFormData(fechaSeleccionada));
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export default function SolicitudTiempoSuplementarioModal({
               required
             >
               <option value="">Seleccione...</option>
-              {SEDES.map((sede) => (
+              {sedes.map((sede) => (
                 <option key={sede} value={sede}>{sede}</option>
               ))}
             </select>

@@ -88,6 +88,7 @@ export const AREAS_SOLICITA = [
   "Negocios",
 ];
 
+/** Lista histórica: usar getSedesByEmpresa(empresaId) para filtrar por empresa seleccionada */
 export const SEDES = [
   "Giron",
   "Rosita",
@@ -98,7 +99,23 @@ export const SEDES = [
   "Bocono",
   "Dieselco",
   "Duitama",
+  "Cucuta",
+  "Tunja",
 ];
+
+/** Sedes por empresa (id: 1 Codiesel, 2 Dieselco, 3 Mitsubishi, 4 BYD). Usar en select de sede según empresa elegida en dashboard/modal. */
+export const SEDES_POR_EMPRESA: Record<number, string[]> = {
+  1: ["Giron", "Rosita", "Bocono", "Barrancabermeja", "Chevropartes"], // Codiesel
+  2: ["Giron", "Duitama", "Cucuta"], // Dieselco
+  3: ["Cucuta", "Tunja"], // Mitsubishi
+  4: ["Cucuta", "Tunja"], // BYD
+};
+
+/** Devuelve las sedes correspondientes a la empresa seleccionada; [] si no hay empresa. */
+export function getSedesByEmpresa(empresaId: number | undefined): string[] {
+  if (empresaId == null) return [];
+  return SEDES_POR_EMPRESA[empresaId] ?? [];
+}
 
 export const MOTIVOS_PERMISO = [
   "Cumpleaños",

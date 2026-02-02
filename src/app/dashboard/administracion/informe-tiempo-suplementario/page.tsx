@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { Download, Loader2 } from "lucide-react";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
-import { SEDES, AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { informeTiempoSuplementarioService, TiempoSuplementarioInforme } from "@/modules/administracion/services/informe-tiempo-suplementario.service";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { SearchFilter } from "@/components/administracion/filters/SearchFilter";
@@ -139,6 +140,7 @@ const FiltersSection = memo(function FiltersSection({
   filtroSede,
   filtroArea,
   filtroEmpleado,
+  sedesOptions,
   empleadosOptions,
   onFiltroMesChange,
   onFiltroSedeChange,
@@ -149,6 +151,7 @@ const FiltersSection = memo(function FiltersSection({
   filtroSede: string;
   filtroArea: string;
   filtroEmpleado: string;
+  sedesOptions: { value: string; label: string }[];
   empleadosOptions: { value: string; label: string }[];
   onFiltroMesChange: (v: string) => void;
   onFiltroSedeChange: (v: string) => void;
@@ -175,7 +178,7 @@ const FiltersSection = memo(function FiltersSection({
           label="Seleccionar Sede"
           value={filtroSede}
           onChange={onFiltroSedeChange}
-          options={SEDES.map((sede) => ({ value: sede, label: sede }))}
+          options={sedesOptions}
           placeholder="Todas"
         />
         <SelectFilter
@@ -209,6 +212,8 @@ const SearchSection = memo(function SearchSection({
 
 export default function InformeTiempoSuplementarioPage() {
   const { showError, showSuccess } = useToast();
+  const sedes = useSedesByEmpresa();
+  const sedesOptions = useMemo(() => sedes.map((sede) => ({ value: sede, label: sede })), [sedes]);
   const [search, setSearch] = useState("");
   const [filtroMes, setFiltroMes] = useState("");
   const [filtroSede, setFiltroSede] = useState("");
@@ -327,6 +332,7 @@ export default function InformeTiempoSuplementarioPage() {
         filtroSede={filtroSede}
         filtroArea={filtroArea}
         filtroEmpleado={filtroEmpleado}
+        sedesOptions={sedesOptions}
         empleadosOptions={empleadosOptions}
         onFiltroMesChange={setFiltroMes}
         onFiltroSedeChange={setFiltroSede}

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevoAusentismoDTO } from "@/modules/administracion/types";
-import { SEDES, AREAS_SOLICITA, MOTIVOS_PERMISO } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA, MOTIVOS_PERMISO } from "@/modules/administracion/constants";
+import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
@@ -35,6 +36,7 @@ export default function NuevoAusentismoModal({
   fechaSeleccionada,
   resetKey = 0,
 }: NuevoAusentismoModalProps) {
+  const sedes = useSedesByEmpresa();
   const [formData, setFormData] = useState<NuevoAusentismoDTO>(() => getInitialFormData(fechaSeleccionada));
 
   useEffect(() => {
@@ -140,7 +142,7 @@ export default function NuevoAusentismoModal({
               required
             >
               <option value="">Seleccione...</option>
-              {SEDES.map((sede) => (
+              {sedes.map((sede) => (
                 <option key={sede} value={sede}>{sede}</option>
               ))}
             </select>
