@@ -26,6 +26,7 @@ export default function SolicitudTiempoSuplementarioPage() {
   const [detalleAbierto, setDetalleAbierto] = useState<TiempoSuplementarioCalendario | null>(null);
   const [tiemposSuplementarios, setTiemposSuplementarios] = useState<TiempoSuplementarioCalendario[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const cargarTiemposSuplementarios = useCallback(async () => {
     setLoading(true);
@@ -75,6 +76,7 @@ export default function SolicitudTiempoSuplementarioPage() {
   }, []);
 
   const handleSave = async (data: SolicitudTiempoSuplementarioDTO) => {
+    setSaving(true);
     try {
       const payload = {
         fecha: data.fechaInicio,
@@ -94,6 +96,8 @@ export default function SolicitudTiempoSuplementarioPage() {
     } catch (error) {
       console.error("Error al crear solicitud:", error);
       showError("Error al registrar la solicitud de tiempo suplementario");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -194,6 +198,7 @@ export default function SolicitudTiempoSuplementarioPage() {
         onSave={handleSave}
         fechaSeleccionada={selectedDate}
         resetKey={modalResetKey}
+        saving={saving}
       />
       <DetalleTiempoSuplementarioCalendarioModal
         open={detalleAbierto !== null}

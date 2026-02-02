@@ -5,7 +5,7 @@ import Modal from "@/components/shared/ui/Modal";
 import { SolicitudTiempoSuplementarioDTO } from "@/modules/administracion/types";
 import { AREAS_SOLICITA } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 import { useUsuarios } from "@/modules/usuarios/hooks/useUsuarios";
@@ -27,6 +27,8 @@ interface SolicitudTiempoSuplementarioModalProps {
   onSave: (data: SolicitudTiempoSuplementarioDTO) => void;
   fechaSeleccionada: string;
   resetKey?: number;
+  /** true mientras se guarda y se envía el correo (muestra loader en el botón) */
+  saving?: boolean;
 }
 
 export default function SolicitudTiempoSuplementarioModal({
@@ -35,6 +37,7 @@ export default function SolicitudTiempoSuplementarioModal({
   onSave,
   fechaSeleccionada,
   resetKey = 0,
+  saving = false,
 }: SolicitudTiempoSuplementarioModalProps) {
   const { usuarios, isLoading: loadingUsuarios } = useUsuarios();
   const sedes = useSedesByEmpresa();
@@ -182,15 +185,24 @@ export default function SolicitudTiempoSuplementarioModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+            disabled={saving}
+            className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
+            disabled={saving}
+            className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-80 disabled:cursor-wait flex items-center justify-center gap-2 min-w-[120px]"
           >
-            Guardar
+            {saving ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                Enviando...
+              </>
+            ) : (
+              "Guardar"
+            )}
           </button>
         </div>
       </form>

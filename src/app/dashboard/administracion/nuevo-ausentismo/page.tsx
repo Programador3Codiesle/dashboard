@@ -26,6 +26,7 @@ export default function NuevoAusentismoPage() {
   const [detalleAbierto, setDetalleAbierto] = useState<AusentismoCalendario | null>(null);
   const [ausentismos, setAusentismos] = useState<AusentismoCalendario[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const cargarAusentismos = useCallback(async () => {
     setLoading(true);
@@ -75,6 +76,7 @@ export default function NuevoAusentismoPage() {
   }, []);
 
   const handleSave = async (data: NuevoAusentismoDTO) => {
+    setSaving(true);
     try {
       const payload = { ...data, id_empresa: data.id_empresa ?? user?.empresa ?? 1 };
       await nuevoAusentismoService.crearAusentismo(payload);
@@ -84,6 +86,8 @@ export default function NuevoAusentismoPage() {
     } catch (error) {
       console.error("Error al crear ausentismo:", error);
       showError("Error al registrar el ausentismo");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -188,6 +192,7 @@ export default function NuevoAusentismoPage() {
         onSave={handleSave}
         fechaSeleccionada={selectedDate}
         resetKey={modalResetKey}
+        saving={saving}
       />
       <DetalleAusentismoCalendarioModal
         open={detalleAbierto !== null}
