@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Users,
   AlertCircle,
+  Receipt,
 } from "lucide-react";
 
 interface Submodulo {
@@ -70,6 +71,14 @@ const SUBMODULOS: Submodulo[] = [
     ruta: "/dashboard/administracion/formato-orden-salida",
     icono: ClipboardList,
     color: "from-stone-500 to-stone-600",
+  },
+  {
+    id: "formatos-nomina",
+    nombre: "Formatos Nómina",
+    descripcion: "Consulta, visualiza y descarga los formatos de nómina vigentes",
+    ruta: "/dashboard/administracion/formatos-nomina",
+    icono: Receipt,
+    color: "from-amber-500 to-amber-600",
   },
   {
     id: "gestion-compras",

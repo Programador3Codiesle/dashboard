@@ -1,4 +1,5 @@
 'use client';
+import React, { useCallback } from 'react';
 import { Portal } from "./Portal";
 
 interface ModalProps {
@@ -9,7 +10,21 @@ interface ModalProps {
     width?: string;
 }
 
-export default function Modal({ open, onClose, title, children, width = "450px" }: ModalProps) {
+/**
+ * Componente Modal memoizado
+ * Evita re-renders innecesarios cuando no está abierto
+ */
+export default React.memo(function Modal({ open, onClose, title, children, width = "450px" }: ModalProps) {
+    const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const handleContentClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+    }, []);
+
     if (!open) return null;
 
     return (
@@ -42,4 +57,13 @@ export default function Modal({ open, onClose, title, children, width = "450px" 
             </div>
         </Portal>
     );
-}
+}, (prevProps, nextProps) => {
+  // Solo re-renderizar si cambian las props relevantes
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.title === nextProps.title &&
+    prevProps.width === nextProps.width &&
+    prevProps.onClose === nextProps.onClose &&
+    prevProps.children === nextProps.children
+  );
+});

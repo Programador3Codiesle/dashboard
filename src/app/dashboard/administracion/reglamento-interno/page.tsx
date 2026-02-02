@@ -1,15 +1,12 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { FileText, Download, BookOpen } from "lucide-react";
+import { BookOpen, ExternalLink } from "lucide-react";
+
+/** PDF del Reglamento Interno (public/uploads/formatos/administracion) */
+const PDF_REGLAMENTO_URL = encodeURI("/uploads/formatos/administracion/REGLAMENTO INTERNO DE TRABAJO CODIESEL 2025.pdf");
 
 export default function ReglamentoInternoPage() {
-  const handleDownload = () => {
-    // Simulación de descarga - luego se conectará a API
-    console.log("Descargando reglamento interno de trabajo");
-    // En producción: window.open('/api/reglamento-interno/download', '_blank');
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -26,36 +23,32 @@ export default function ReglamentoInternoPage() {
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
-              <BookOpen className="text-slate-600" size={24} />
+            <div className="w-12 h-12 brand-bg rounded-xl flex items-center justify-center">
+              <BookOpen className="text-white" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Reglamento Interno de Trabajo</h2>
+              <h2 className="text-lg font-semibold brand-text">Reglamento Interno de Trabajo Codiesel 2025</h2>
               <p className="text-sm text-gray-600">Documento oficial del reglamento interno</p>
             </div>
           </div>
-          <button
-            onClick={handleDownload}
+          <a
+            href={PDF_REGLAMENTO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg"
           >
-            <Download size={18} />
-            <span>Descargar PDF</span>
-          </button>
+            <ExternalLink size={18} />
+            <span>Abrir en nueva pestaña</span>
+          </a>
         </div>
 
-        {/* Visor de PDF - En producción se usaría un componente de visor de PDF */}
-        <div className="border-2 border-dashed border-gray-200 rounded-xl p-12 text-center bg-gray-50 min-h-[600px] flex items-center justify-center">
-          <div>
-            <FileText className="text-gray-400 mx-auto mb-4" size={64} />
-            <p className="text-gray-600 font-medium">Vista previa del Reglamento Interno de Trabajo</p>
-            <p className="text-sm text-gray-500 mt-2">El visor de PDF se cargará aquí</p>
-            <button
-              onClick={handleDownload}
-              className="mt-4 brand-text brand-text-hover font-medium underline"
-            >
-              O hacer clic para descargar
-            </button>
-          </div>
+        {/* Visor de PDF embebido */}
+        <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-100 min-h-[600px]">
+          <iframe
+            src={`${PDF_REGLAMENTO_URL}#view=FitH`}
+            title="Reglamento Interno de Trabajo Codiesel 2025"
+            className="w-full h-[calc(100vh-280px)] min-h-[600px]"
+          />
         </div>
       </motion.div>
     </div>

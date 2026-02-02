@@ -26,41 +26,7 @@ export const MOCK_VALORES_CONTABLES: ValorContable[] = [
   },
 ];
 
-// ========== CONTROL VEHÍCULOS ==========
-export const MOCK_VEHICULOS_SALIDA: VehiculoSalida[] = [
-  {
-    id: 1,
-    placa: "ABC123",
-    fechaSalida: "2025-01-15",
-    horaSalida: "08:00",
-    kmSalida: 50000,
-    tipoVehiculo: "Camioneta",
-    modelo: "2020",
-    conductor: "Juan Pérez",
-    pasajeros: "María González, Carlos Rodríguez",
-    quienAutorizo: "Jefe de Taller",
-    vehiculoRemolcado: false,
-    taller: "Taller Central",
-    fechaIngreso: "2025-01-15",
-    horaIngreso: "17:00",
-    kmIngreso: 50150,
-    observacion: "Sin novedades",
-  },
-  {
-    id: 2,
-    placa: "XYZ789",
-    fechaSalida: "2025-01-16",
-    horaSalida: "07:30",
-    kmSalida: 35000,
-    tipoVehiculo: "Automóvil",
-    modelo: "2021",
-    conductor: "Ana Martínez",
-    pasajeros: "",
-    quienAutorizo: "Gerente General",
-    vehiculoRemolcado: false,
-    taller: "Taller Norte",
-  },
-];
+
 
 export const TIPOS_VEHICULO = ["Automóvil", "Camioneta", "Motocicleta", "Bus"];
 export const TALLERES = ["Taller Central", "Taller Norte", "Taller Sur", "Taller Este"];
@@ -106,7 +72,48 @@ export const MOCK_SOLICITUDES_COMPRA: SolicitudCompra[] = [
   },
 ];
 
-export const AREAS_SOLICITA = ["Administración", "Taller", "Ventas", "Servicio al Cliente", "RRHH"];
+export const AREAS_SOLICITA = [
+  "Administración",
+  "Contact center",
+  "Central de Beneficio",
+  "Vehiculos nuevos",
+  "Vehiculos usados",
+  "Alistamiento",
+  "Mecanica gasolina",
+  "Mecanica diesel",
+  "Lamina y pintura",
+  "Accesorios",
+  "Repuestos",
+  "Sistemas",
+  "Negocios",
+];
+
+export const SEDES = [
+  "Giron",
+  "Rosita",
+  "Chevropartes",
+  "Solochevrolet",
+  "Barrancabermeja",
+  "Malecon",
+  "Bocono",
+  "Dieselco",
+  "Duitama",
+];
+
+export const MOTIVOS_PERMISO = [
+  "Cumpleaños",
+  "Cita Medica/Odontologica DEL TRABAJADOR",
+  "Licencias(Paternidad o Luto)",
+  "Grave Calamidad Domestica Comprobada",
+  "Reunion o capacitacion programada por la Empresa",
+  "Permiso no Remunerado con descuento de nomina",
+  "Personal",
+  "Estudio",
+  "Dia de la familia",
+  "Grado o matrimonio del trabajador",
+  "Jurado votacion",
+];
+
 export const GERENTES_AUTORIZA = ["Carlos Rodríguez", "Ana Martínez", "Luis Sánchez", "Patricia Gómez"];
 
 // ========== INASISTENCIA ==========
@@ -150,8 +157,22 @@ export const MOCK_AUSENTISMOS: Ausentismo[] = [
   },
 ];
 
-export const SEDES = ["Sede Principal", "Sede Norte", "Sede Sur", "Sede Este"];
 export const CENTRALES_BENEFICIOS = ["Central 1", "Central 2", "Central 3"];
+
+export const AREAS_INFORME_AUSENTISMO = [
+  "Administracion",
+  "Administracion Servicio",
+  "Central de Beneficio",
+  "Vehiculos Nuevos",
+  "Vehiculos Usados",
+  "Repuestos",
+  "Taller Gasolina",
+  "Taller Diesel",
+  "Lamina Y Pintura",
+  "Alistamiento",
+  "Contact Center",
+  "Accesorios",
+];
 
 // ========== TIEMPO SUPLEMENTARIO ==========
 export const MOCK_TIEMPO_SUPLEMENTARIO: TiempoSuplementario[] = [
@@ -181,6 +202,13 @@ export const MOCK_TALLA_DOTACION: TallaDotacion = {
 };
 
 export const GENEROS = ["Masculino", "Femenino", "Otro"];
+
+/** Opciones de género para tallas dotación (igual que Postventa: 0 = Mujer, 1 = Hombre) */
+export const GENEROS_TALLA_DOTACION = [
+  { value: "0", label: "Mujer" },
+  { value: "1", label: "Hombre" },
+];
+
 export const TALLAS_CAMISA = ["XS", "S", "M", "L", "XL", "XXL"];
 export const TALLAS_PANTALON = ["28", "30", "32", "34", "36", "38", "40", "42"];
 export const TALLAS_BOTAS = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45"];

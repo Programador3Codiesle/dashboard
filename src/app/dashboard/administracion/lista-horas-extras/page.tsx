@@ -1,15 +1,33 @@
 'use client';
 
-import { useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Clock, TrendingUp, User, Calendar } from "lucide-react";
-import { MOCK_TIEMPO_SUPLEMENTARIO } from "@/modules/administracion/constants";
+import { TrendingUp, Loader2 } from "lucide-react";
+import { listaHorasExtrasService, HorasExtrasDiaActual } from "@/modules/administracion/services/lista-horas-extras.service";
+import { useToast } from "@/components/shared/ui/ToastContext";
+import { HorasExtrasCard } from "@/components/administracion/cards/HorasExtrasCard";
 
 export default function ListaHorasExtrasPage() {
-  const horasExtrasHoy = useMemo(() => {
-    const hoy = new Date().toISOString().split("T")[0];
-    return MOCK_TIEMPO_SUPLEMENTARIO.filter((tiempo) => tiempo.fechaInicio === hoy);
-  }, []);
+  const { showError } = useToast();
+  const [horasExtrasHoy, setHorasExtrasHoy] = useState<HorasExtrasDiaActual[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const cargarHorasExtras = useCallback(async () => {
+    setLoading(true);
+    try {
+      const datos = await listaHorasExtrasService.obtenerDiaActual();
+      setHorasExtrasHoy(datos);
+    } catch (error) {
+      console.error("Error al cargar horas extras:", error);
+      showError("Error al cargar las horas extras del día");
+    } finally {
+      setLoading(false);
+    }
+  }, [showError]);
+
+  useEffect(() => {
+    cargarHorasExtras();
+  }, [cargarHorasExtras]);
 
   return (
     <div className="space-y-6">
@@ -19,7 +37,18 @@ export default function ListaHorasExtrasPage() {
         <p className="text-gray-500 mt-1">Horas extras del día actual</p>
       </div>
 
-      {horasExtrasHoy.length === 0 ? (
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center"
+        >
+          <div className="flex items-center justify-center gap-2 text-gray-500">
+            <Loader2 className="animate-spin" size={24} />
+            <span>Cargando horas extras...</span>
+          </div>
+        </motion.div>
+      ) : horasExtrasHoy.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -37,35 +66,8 @@ export default function ListaHorasExtrasPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="text-teal-600" size={24} />
-                </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                  {tiempo.autorizacion}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{tiempo.nombreEmpleado}</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <User size={16} className="text-gray-400" />
-                  <span>Jefe: {tiempo.nombreJefe}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-gray-400" />
-                  <span>Hora inicio: {tiempo.horaInicio}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-400" />
-                  <span>{tiempo.area} - {tiempo.sede}</span>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="font-medium text-gray-900">Descripción:</p>
-                  <p className="text-gray-700">{tiempo.descripcion}</p>
-                </div>
-              </div>
+              <HorasExtrasCard horasExtras={tiempo} index={index} />
             </motion.div>
           ))}
         </div>

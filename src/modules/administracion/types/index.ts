@@ -431,6 +431,7 @@ export interface NuevaSolicitudCompraDTO {
   nivelUrgencia: NivelUrgencia;
   areaCarga: string;
   descripcion: string;
+  fechaTentativa: string;
 }
 
 // ========== INASISTENCIA ==========
@@ -467,6 +468,7 @@ export interface NuevoAusentismoDTO {
   sede: string;
   motivo: string;
   descripcionMotivo: string;
+  id_empresa?: number;
 }
 
 // ========== TIEMPO SUPLEMENTARIO ==========
@@ -491,8 +493,9 @@ export interface SolicitudTiempoSuplementarioDTO {
   area: string;
   cargo: string;
   sede: string;
-  empleado: string;
   descripcionMotivo: string;
+  id_empresa?: number;
+  empleado?: number;
 }
 
 // ========== TALLAS DOTACIÓN ==========
@@ -510,6 +513,7 @@ export interface ActualizarTallaDotacionDTO {
   tallaCamisa: string;
   tallaPantalon: string;
   tallaBotas: string;
+  id_empresa?: number;
 }
 
 // ========== ORDEN DE SALIDA ==========

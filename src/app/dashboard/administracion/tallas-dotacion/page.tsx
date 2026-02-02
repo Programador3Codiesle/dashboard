@@ -1,41 +1,94 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Save, User } from "lucide-react";
+import { Save, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useToast } from "@/components/shared/ui/ToastContext";
-import { MOCK_TALLA_DOTACION, GENEROS, TALLAS_CAMISA, TALLAS_PANTALON, TALLAS_BOTAS } from "@/modules/administracion/constants";
+import { tallasDotacionService, TallaDotacion } from "@/modules/administracion/services/tallas-dotacion.service";
 import { ActualizarTallaDotacionDTO } from "@/modules/administracion/types";
-import { ChevronDown } from "lucide-react";
+import { TallaDotacionForm } from "@/components/administracion/forms/TallaDotacionForm";
 
 export default function TallasDotacionPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
+  const [tallasActuales, setTallasActuales] = useState<TallaDotacion | null>(null);
+  const idEmpresa = user?.empresa ?? 1;
   const [formData, setFormData] = useState<ActualizarTallaDotacionDTO>({
-    genero: MOCK_TALLA_DOTACION.genero,
-    tallaCamisa: MOCK_TALLA_DOTACION.tallaCamisa,
-    tallaPantalon: MOCK_TALLA_DOTACION.tallaPantalon,
-    tallaBotas: MOCK_TALLA_DOTACION.tallaBotas,
+    genero: "",
+    tallaCamisa: "",
+    tallaPantalon: "",
+    tallaBotas: "",
+    id_empresa: idEmpresa,
   });
   const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const prevEmpresaRef = useRef<number | undefined>(undefined);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const cargarTallas = useCallback(async (idEmp?: number) => {
+    setCargando(true);
+    try {
+      const emp = idEmp ?? user?.empresa ?? 1;
+      const datos = await tallasDotacionService.obtenerTallas(emp);
+      setTallasActuales(datos);
+      setFormData((prev) => ({
+        ...prev,
+        genero: datos.genero === "0" || datos.genero === "1" ? datos.genero : "",
+        tallaCamisa: datos.tallaCamisa || "",
+        tallaPantalon: datos.tallaPantalon || "",
+        tallaBotas: datos.tallaBotas || "",
+        id_empresa: emp,
+      }));
+    } catch (error) {
+      console.error("Error al cargar tallas:", error);
+      showError("Error al cargar las tallas actuales");
+    } finally {
+      setCargando(false);
+    }
+  }, [showError, user?.empresa]);
+
+  useEffect(() => {
+    if (user) {
+      cargarTallas(user.empresa ?? 1);
+    }
+  }, [user, cargarTallas]);
+
+  // Sincronizar id_empresa cuando el usuario cambia de empresa en el dashboard (cookie)
+  useEffect(() => {
+    const emp = user?.empresa;
+    if (emp == null) return;
+    const prev = prevEmpresaRef.current;
+    prevEmpresaRef.current = emp;
+    setFormData((prevForm) => ({ ...prevForm, id_empresa: emp }));
+    if (prev !== undefined && prev !== emp) {
+      cargarTallas(emp);
+    }
+  }, [user?.empresa, cargarTallas]);
+
+  const handleFormDataChange = useCallback((data: ActualizarTallaDotacionDTO) => {
+    setFormData(data);
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+
     setLoading(true);
     try {
-      // Simulación de guardado - luego se conectará a API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const payload: ActualizarTallaDotacionDTO = {
+        ...formData,
+        id_empresa: formData.id_empresa ?? user?.empresa ?? 1,
+      };
+      await tallasDotacionService.actualizarTallas(payload);
+      await cargarTallas(payload.id_empresa);
       showSuccess("Tallas actualizadas correctamente");
     } catch (error) {
+      console.error("Error al actualizar tallas:", error);
       showError("Error al actualizar las tallas");
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, user?.empresa, cargarTallas, showSuccess, showError]);
 
-  const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
     <div className="space-y-6">
@@ -54,7 +107,7 @@ export default function TallasDotacionPage() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">
-                Actualización de tallas para {user?.nombre_usuario || "USUARIO"}
+                Actualización de tallas para {user?.nombre_usuario || user?.user || "USUARIO"}
               </h2>
               <p className="text-gray-600 mt-1">Aquí puedes actualizar la información de tallas. Selecciona las opciones correspondientes y luego haz clic en Guardar.</p>
             </div>
@@ -62,107 +115,49 @@ export default function TallasDotacionPage() {
         </div>
 
         {/* Información Actual */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Información de tallas actual</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">NIT:</span>
-              <p className="font-medium text-gray-900">{MOCK_TALLA_DOTACION.nit}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Género:</span>
-              <p className="font-medium text-gray-900">{MOCK_TALLA_DOTACION.genero}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Camisa:</span>
-              <p className="font-medium text-gray-900">{MOCK_TALLA_DOTACION.tallaCamisa}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Pantalón:</span>
-              <p className="font-medium text-gray-900">{MOCK_TALLA_DOTACION.tallaPantalon}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Última actualización:</span>
-              <p className="font-medium text-gray-900">{MOCK_TALLA_DOTACION.ultimaActualizacion}</p>
+        {cargando ? (
+          <div className="bg-gray-50 rounded-xl p-4 mb-6 text-center">
+            <div className="flex items-center justify-center gap-2 text-gray-500">
+              <Loader2 className="animate-spin" size={20} />
+              <span>Cargando información...</span>
             </div>
           </div>
-        </div>
+        ) : tallasActuales && (
+          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <h3 className="font-semibold text-gray-900 mb-3">Información de tallas actual</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">NIT:</span>
+                <p className="font-medium text-gray-900">{tallasActuales.nit}</p>
+              </div>
+              <div>
+                <span className="text-gray-600">Género:</span>
+                <p className="font-medium text-gray-900">
+                  {tallasActuales.genero === "1" ? "Hombre" : tallasActuales.genero === "0" ? "Mujer" : tallasActuales.genero || "No definido"}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-600">Camisa:</span>
+                <p className="font-medium text-gray-900">{tallasActuales.tallaCamisa || "No definido"}</p>
+              </div>
+              <div>
+                <span className="text-gray-600">Pantalón:</span>
+                <p className="font-medium text-gray-900">{tallasActuales.tallaPantalon || "No definido"}</p>
+              </div>
+              <div>
+                <span className="text-gray-600">Última actualización:</span>
+                <p className="font-medium text-gray-900">{tallasActuales.ultimaActualizacion || "Nunca"}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Género */}
-            <div>
-              <label className={labelClass}>Género <span className="text-red-500">*</span></label>
-              <div className="relative mt-1">
-                <select
-                  className={inputClass}
-                  value={formData.genero}
-                  onChange={(e) => setFormData({ ...formData, genero: e.target.value })}
-                  required
-                >
-                  {GENEROS.map((gen) => (
-                    <option key={gen} value={gen}>{gen}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-
-            {/* Talla Camisa */}
-            <div>
-              <label className={labelClass}>Talla Camisa <span className="text-red-500">*</span></label>
-              <div className="relative mt-1">
-                <select
-                  className={inputClass}
-                  value={formData.tallaCamisa}
-                  onChange={(e) => setFormData({ ...formData, tallaCamisa: e.target.value })}
-                  required
-                >
-                  {TALLAS_CAMISA.map((talla) => (
-                    <option key={talla} value={talla}>{talla}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-
-            {/* Talla Pantalón */}
-            <div>
-              <label className={labelClass}>Talla Pantalón <span className="text-red-500">*</span></label>
-              <div className="relative mt-1">
-                <select
-                  className={inputClass}
-                  value={formData.tallaPantalon}
-                  onChange={(e) => setFormData({ ...formData, tallaPantalon: e.target.value })}
-                  required
-                >
-                  {TALLAS_PANTALON.map((talla) => (
-                    <option key={talla} value={talla}>{talla}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-
-            {/* Talla Botas */}
-            <div>
-              <label className={labelClass}>Talla Botas <span className="text-red-500">*</span></label>
-              <div className="relative mt-1">
-                <select
-                  className={inputClass}
-                  value={formData.tallaBotas}
-                  onChange={(e) => setFormData({ ...formData, tallaBotas: e.target.value })}
-                  required
-                >
-                  {TALLAS_BOTAS.map((talla) => (
-                    <option key={talla} value={talla}>{talla}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
-            </div>
-          </div>
+          <TallaDotacionForm
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+          />
 
           {/* Botón Guardar */}
           <div className="flex justify-end">

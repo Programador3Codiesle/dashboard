@@ -1,3 +1,6 @@
+'use client';
+
+import React, { useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
@@ -6,12 +9,23 @@ interface PaginationProps {
     onChange: (page: number) => void;
 }
 
-export function Pagination({ currentPage, totalPages, onChange }: PaginationProps) {
+/**
+ * Componente de paginación memoizado
+ * Evita re-renders innecesarios cuando las props no cambian
+ */
+export const Pagination = React.memo(({ currentPage, totalPages, onChange }: PaginationProps) => {
+  const handlePrev = useCallback(() => {
+    onChange(currentPage - 1);
+  }, [currentPage, onChange]);
+
+  const handleNext = useCallback(() => {
+    onChange(currentPage + 1);
+  }, [currentPage, onChange]);
     return (
         <div className="flex justify-center items-center gap-4 bg-linear-to-r from-gray-50 to-gray-100 p-4 rounded-xl shadow-md border border-gray-200">
             {/* Botón Anterior */}
             <button
-                onClick={() => onChange(currentPage - 1)}
+                onClick={handlePrev}
                 disabled={currentPage === 1}
                 className={`
                     flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium
@@ -40,7 +54,7 @@ export function Pagination({ currentPage, totalPages, onChange }: PaginationProp
 
             {/* Botón Siguiente */}
             <button
-                onClick={() => onChange(currentPage + 1)}
+                onClick={handleNext}
                 disabled={currentPage === totalPages}
                 className={`
                     flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium
@@ -56,4 +70,13 @@ export function Pagination({ currentPage, totalPages, onChange }: PaginationProp
             </button>
         </div>
     );
-}
+}, (prevProps, nextProps) => {
+  // Solo re-renderizar si cambian las props relevantes
+  return (
+    prevProps.currentPage === nextProps.currentPage &&
+    prevProps.totalPages === nextProps.totalPages &&
+    prevProps.onChange === nextProps.onChange
+  );
+});
+
+Pagination.displayName = 'Pagination';

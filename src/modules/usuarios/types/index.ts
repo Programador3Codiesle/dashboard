@@ -20,6 +20,7 @@ export interface IUsuarioAPI {
 export interface IJefe {
     id: number;
     nombre: string;
+    nit?: string;
 }
 
 // Jefes generales (tienen información adicional)

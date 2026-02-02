@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevoAusentismoDTO } from "@/modules/administracion/types";
-import { SEDES, AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { SEDES, AREAS_SOLICITA, MOTIVOS_PERMISO } from "@/modules/administracion/constants";
 import { ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
@@ -13,24 +13,29 @@ interface NuevoAusentismoModalProps {
   onClose: () => void;
   onSave: (data: NuevoAusentismoDTO) => void;
   fechaSeleccionada: string;
+  /** Cambia tras guardar exitoso para reiniciar el formulario sin cerrar el modal */
+  resetKey?: number;
 }
+
+const getInitialFormData = (fecha: string): NuevoAusentismoDTO => ({
+  fecha,
+  horaInicio: "",
+  horaFin: "",
+  area: "",
+  cargo: "",
+  sede: "",
+  motivo: "",
+  descripcionMotivo: "",
+});
 
 export default function NuevoAusentismoModal({
   open,
   onClose,
   onSave,
   fechaSeleccionada,
+  resetKey = 0,
 }: NuevoAusentismoModalProps) {
-  const [formData, setFormData] = useState<NuevoAusentismoDTO>({
-    fecha: fechaSeleccionada,
-    horaInicio: "",
-    horaFin: "",
-    area: "",
-    cargo: "",
-    sede: "",
-    motivo: "",
-    descripcionMotivo: "",
-  });
+  const [formData, setFormData] = useState<NuevoAusentismoDTO>(() => getInitialFormData(fechaSeleccionada));
 
   useEffect(() => {
     if (open) {
@@ -38,10 +43,16 @@ export default function NuevoAusentismoModal({
     }
   }, [open, fechaSeleccionada]);
 
+  useEffect(() => {
+    if (open && resetKey > 0) {
+      setFormData(getInitialFormData(fechaSeleccionada));
+    }
+  }, [resetKey, open, fechaSeleccionada]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    onClose();
+    // No cerrar el modal; la página incrementa resetKey y el form se reinicia para agregar otro
   };
 
   const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
@@ -137,14 +148,23 @@ export default function NuevoAusentismoModal({
           </div>
         </div>
 
-        <OptimizedInput
-          label="Motivo del permiso"
-          labelClassName={labelClass}
-          className={inputClass.replace("appearance-none pr-10", "")}
-          value={formData.motivo}
-          onValueChange={(val) => setFormData({ ...formData, motivo: val })}
-          required
-        />
+        <div>
+          <label className={labelClass}>Motivo del permiso <span className="text-red-500">*</span></label>
+          <div className="relative mt-1">
+            <select
+              className={inputClass}
+              value={formData.motivo}
+              onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+              required
+            >
+              <option value="">Seleccione...</option>
+              {MOTIVOS_PERMISO.map((motivo) => (
+                <option key={motivo} value={motivo}>{motivo}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+          </div>
+        </div>
 
         <OptimizedTextarea
           label="Describe el motivo del permiso"

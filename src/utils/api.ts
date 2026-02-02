@@ -185,12 +185,14 @@ export async function fetchWithAuth(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
   // Configurar credentials por defecto
   const fetchOptions: RequestInit = {
     ...options,
     credentials: "include" as RequestCredentials,
     headers: {
-      ...getAuthHeaders(),
+      ...(isFormData ? {} : getAuthHeaders()),
       ...options.headers,
     },
   };

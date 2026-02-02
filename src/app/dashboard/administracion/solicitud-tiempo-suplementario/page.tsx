@@ -1,89 +1,171 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { SolicitudTiempoSuplementarioDTO, TiempoSuplementario } from "@/modules/administracion/types";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { SolicitudTiempoSuplementarioDTO } from "@/modules/administracion/types";
+import { solicitudTiempoSuplementarioService, TiempoSuplementarioCalendario } from "@/modules/administracion/services/solicitud-tiempo-suplementario.service";
 import SolicitudTiempoSuplementarioModal from "@/components/administracion/modals/SolicitudTiempoSuplementarioModal";
+import DetalleTiempoSuplementarioCalendarioModal from "@/components/administracion/modals/DetalleTiempoSuplementarioCalendarioModal";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { TiempoSuplementarioCalendarDay } from "@/components/administracion/calendar/TiempoSuplementarioCalendarDay";
+import { useAuth } from "@/core/auth/hooks/useAuth";
+
+const todayDate = new Date();
+const initialMes = todayDate.getMonth() + 1;
+const initialAnio = todayDate.getFullYear();
 
 export default function SolicitudTiempoSuplementarioPage() {
-  const { showSuccess } = useToast();
+  const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const [mesActual, setMesActual] = useState(initialMes);
+  const [anioActual, setAnioActual] = useState(initialAnio);
   const [selectedDate, setSelectedDate] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [tiemposSuplementarios, setTiemposSuplementarios] = useState<TiempoSuplementario[]>([]);
+  const [modalResetKey, setModalResetKey] = useState(0);
+  const [detalleAbierto, setDetalleAbierto] = useState<TiempoSuplementarioCalendario | null>(null);
+  const [tiemposSuplementarios, setTiemposSuplementarios] = useState<TiempoSuplementarioCalendario[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleDateClick = (date: string) => {
-    const today = new Date().toISOString().split("T")[0];
-    if (date >= today) {
+  const cargarTiemposSuplementarios = useCallback(async () => {
+    setLoading(true);
+    try {
+      const datos = await solicitudTiempoSuplementarioService.obtenerCalendario(mesActual, anioActual);
+      setTiemposSuplementarios(datos);
+    } catch (error) {
+      console.error("Error al cargar tiempos suplementarios:", error);
+      showError("Error al cargar los tiempos suplementarios");
+    } finally {
+      setLoading(false);
+    }
+  }, [mesActual, anioActual, showError]);
+
+  useEffect(() => {
+    cargarTiemposSuplementarios();
+  }, [cargarTiemposSuplementarios]);
+
+  const irMesAnterior = useCallback(() => {
+    if (mesActual === 1) {
+      setMesActual(12);
+      setAnioActual((a) => a - 1);
+    } else {
+      setMesActual((m) => m - 1);
+    }
+  }, [mesActual]);
+
+  const irMesSiguiente = useCallback(() => {
+    if (mesActual === 12) {
+      setMesActual(1);
+      setAnioActual((a) => a + 1);
+    } else {
+      setMesActual((m) => m + 1);
+    }
+  }, [mesActual]);
+
+  const handleCrearClick = useCallback((date: string) => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (date >= todayStr) {
       setSelectedDate(date);
       setModalOpen(true);
     }
+  }, []);
+
+  const handleVerDetalle = useCallback((item: TiempoSuplementarioCalendario) => {
+    setDetalleAbierto(item);
+  }, []);
+
+  const handleSave = async (data: SolicitudTiempoSuplementarioDTO) => {
+    try {
+      const payload = {
+        fecha: data.fechaInicio,
+        horaInicio: data.horaInicio,
+        horaFin: data.horaFin || "",
+        area: data.area,
+        cargo: data.cargo,
+        sede: data.sede,
+        descripcion: data.descripcionMotivo,
+        id_empresa: data.id_empresa ?? user?.empresa ?? 1,
+        empleado: data.empleado,
+      };
+      await solicitudTiempoSuplementarioService.crearSolicitud(payload);
+      showSuccess("Solicitud de tiempo suplementario registrada correctamente");
+      setModalResetKey((k) => k + 1);
+      await cargarTiemposSuplementarios();
+    } catch (error) {
+      console.error("Error al crear solicitud:", error);
+      showError("Error al registrar la solicitud de tiempo suplementario");
+    }
   };
 
-  const handleSave = (data: SolicitudTiempoSuplementarioDTO) => {
-    const nuevoTiempo: TiempoSuplementario = {
-      id: tiemposSuplementarios.length + 1,
-      nombreJefe: "Usuario Actual", // En producción vendría del auth
-      nombreEmpleado: data.empleado,
-      sede: data.sede,
-      area: data.area,
-      cargo: data.cargo,
-      fechaInicio: data.fechaInicio,
-      horaInicio: data.horaInicio,
-      fechaSolicitud: new Date().toISOString().split("T")[0],
-      descripcion: data.descripcionMotivo,
-      autorizacion: "Pendiente",
-    };
-    setTiemposSuplementarios([...tiemposSuplementarios, nuevoTiempo]);
-    showSuccess("Solicitud de tiempo suplementario registrada correctamente");
-  };
-
-  // Generar días del mes actual
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const todayStr = new Date().toISOString().split("T")[0];
+  const firstDay = new Date(anioActual, mesActual - 1, 1);
+  const lastDay = new Date(anioActual, mesActual, 0);
   const daysInMonth = lastDay.getDate();
   const startingDayOfWeek = firstDay.getDay();
 
-  const days = [];
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
-    days.push(dateStr);
-  }
+  const days = useMemo(() => {
+    const arr: (string | null)[] = [];
+    for (let i = 0; i < startingDayOfWeek; i++) arr.push(null);
+    for (let i = 1; i <= daysInMonth; i++) {
+      arr.push(
+        `${anioActual}-${String(mesActual).padStart(2, "0")}-${String(i).padStart(2, "0")}`
+      );
+    }
+    return arr;
+  }, [anioActual, mesActual, daysInMonth, startingDayOfWeek]);
 
-  const todayStr = today.toISOString().split("T")[0];
+  const getTiemposForDate = useCallback((date: string) => {
+    return tiemposSuplementarios.filter((t) => t.fecha === date);
+  }, [tiemposSuplementarios]);
 
-  const getTiemposForDate = (date: string) => {
-    return tiemposSuplementarios.filter((t) => t.fechaInicio === date);
-  };
+  const mesTitulo = useMemo(
+    () =>
+      new Date(anioActual, mesActual - 1, 1).toLocaleDateString("es-ES", {
+        month: "long",
+        year: "numeric",
+      }),
+    [mesActual, anioActual]
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold brand-text tracking-tight">Solicitud Tiempo Suplementario</h1>
         <p className="text-gray-500 mt-1">Solicita tiempo suplementario seleccionando una fecha del calendario</p>
       </div>
 
-      {/* Calendario */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString("es-ES", {
-              month: "long",
-              year: "numeric",
-            })}
+          <button
+            type="button"
+            onClick={irMesAnterior}
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+            aria-label="Mes anterior"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h2 className="text-xl font-semibold text-gray-900 capitalize first-letter:uppercase">
+            {mesTitulo}
           </h2>
+          <button
+            type="button"
+            onClick={irMesSiguiente}
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+            aria-label="Mes siguiente"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
+        {loading && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="animate-spin text-[var(--color-primary)]" size={28} />
+          </div>
+        )}
 
-        {/* Días de la semana */}
         <div className="grid grid-cols-7 gap-2 mb-2">
           {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day) => (
             <div key={day} className="text-center font-semibold text-gray-700 py-2">
@@ -92,41 +174,17 @@ export default function SolicitudTiempoSuplementarioPage() {
           ))}
         </div>
 
-        {/* Días del mes */}
         <div className="grid grid-cols-7 gap-2">
-          {days.map((date, index) => {
-            if (!date) {
-              return <div key={`empty-${index}`} className="aspect-square" />;
-            }
-
-            const tiemposDate = getTiemposForDate(date);
-            const isPast = date < todayStr;
-            const isToday = date === todayStr;
-
-            return (
-              <button
-                key={date}
-                onClick={() => handleDateClick(date)}
-                disabled={isPast}
-                className={`
-                  aspect-square p-2 rounded-xl border-2 transition-all
-                  ${isPast 
-                    ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed" 
-                    : "bg-white border-gray-200 hover:border-[var(--color-primary)] hover:brand-bg-light cursor-pointer"
-                  }
-                  ${isToday ? "ring-2 ring-[var(--color-primary)] border-[var(--color-primary)]" : ""}
-                  ${tiemposDate.length > 0 ? "bg-purple-50 border-purple-300" : ""}
-                `}
-              >
-                <div className="text-sm font-medium">{date.split("-")[2]}</div>
-                {tiemposDate.length > 0 && (
-                  <div className="mt-1 text-xs text-purple-600 font-medium">
-                    {tiemposDate[0].horaInicio} - {tiemposDate[0].nombreEmpleado}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+          {days.map((date, index) => (
+            <TiempoSuplementarioCalendarDay
+              key={date || `empty-${index}`}
+              date={date}
+              todayStr={todayStr}
+              tiempos={date ? getTiemposForDate(date) : []}
+              onCrear={handleCrearClick}
+              onVerDetalle={handleVerDetalle}
+            />
+          ))}
         </div>
       </motion.div>
 
@@ -135,8 +193,13 @@ export default function SolicitudTiempoSuplementarioPage() {
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
         fechaSeleccionada={selectedDate}
+        resetKey={modalResetKey}
+      />
+      <DetalleTiempoSuplementarioCalendarioModal
+        open={detalleAbierto !== null}
+        onClose={() => setDetalleAbierto(null)}
+        item={detalleAbierto}
       />
     </div>
   );
 }
-

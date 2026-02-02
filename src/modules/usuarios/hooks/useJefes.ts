@@ -6,6 +6,7 @@ import { IJefe } from '../types';
 export const JEFES_QUERY_KEYS = {
   all: ['jefes'] as const,
   usuario: (idEmpleado: string) => ['jefes', 'usuario', idEmpleado] as const,
+  misJefes: ['jefes', 'mios'] as const,
 };
 
 /**
@@ -55,4 +56,27 @@ export const useJefesUsuario = (idEmpleado: string | undefined, enabled: boolean
 
   return { jefes, isLoading, error, refetch };
 };
+
+/**
+ * Hook para obtener los jefes del usuario autenticado (usando /usuarios/mis-jefes).
+ */
+export const useMisJefes = (options?: { enabled?: boolean }) => {
+  const {
+    data: jefes = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: JEFES_QUERY_KEYS.misJefes,
+    queryFn: () => usuariosService.getMisJefes(),
+    staleTime: 5 * 60 * 1000,
+    enabled: options?.enabled ?? true,
+  });
+
+  const error = queryError
+    ? { message: (queryError as Error).message || 'Error al cargar jefes del usuario', code: 500 }
+    : null;
+
+  return { jefes, isLoading, error };
+};
+
 

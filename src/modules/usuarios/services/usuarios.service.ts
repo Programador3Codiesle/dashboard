@@ -56,6 +56,14 @@ export const usuariosService = {
         return response.json();
     },
 
+    async getMisJefes(): Promise<IJefe[]> {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/mis-jefes`, {
+            method: 'GET',
+        });
+        if (!response.ok) throw new Error('Error al cargar jefes del usuario');
+        return response.json();
+    },
+
     async getJefesUsuario(idEmpleado: string): Promise<IJefe[]> {
         const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/jefes`, {
             method: 'GET',
