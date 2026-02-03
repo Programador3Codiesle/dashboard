@@ -33,6 +33,7 @@ export interface ActualizarTallaDotacionDTO {
   tallaCamisa: string;
   tallaPantalon: string;
   tallaBotas: string;
+  id_empresa?: number;
 }
 
 type ApiMessageResponse<T = unknown> = {
