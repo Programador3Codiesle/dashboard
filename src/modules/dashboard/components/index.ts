@@ -1,0 +1,10 @@
+export { DashboardJefeTaller } from "./DashboardJefeTaller";
+export { DashboardTecnicos } from "./DashboardTecnicos";
+export { DashboardAdmin } from "./DashboardAdmin";
+export { DashboardAgenteCC } from "./DashboardAgenteCC";
+export { DashboardGerencia } from "./DashboardGerencia";
+export { DashboardCompras } from "./DashboardCompras";
+export { DashboardAsesorRep } from "./DashboardAsesorRep";
+export { DashboardInformeMto } from "./DashboardInformeMto";
+export { DashboardEmpty } from "./DashboardEmpty";
+export { DashboardSkeleton } from "./DashboardSkeleton";
