@@ -4,8 +4,12 @@ import type { DashboardData } from "../types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export const dashboardService = {
-  async getDashboard(): Promise<DashboardData> {
-    const resp = await fetchWithAuth(`${API_URL}/dashboard`, {
+  async getDashboard(idsede?: number): Promise<DashboardData> {
+    const url =
+      idsede != null
+        ? `${API_URL}/dashboard?idsede=${encodeURIComponent(idsede)}`
+        : `${API_URL}/dashboard`;
+    const resp = await fetchWithAuth(url, {
       method: "GET",
     });
 

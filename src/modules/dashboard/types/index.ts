@@ -109,10 +109,12 @@ export interface DashboardCompras extends DashboardBase {
 
 export interface DashboardAsesorRep extends DashboardBase {
   variant: "asesor_rep";
+  sedes?: Array<{ idsede: number; idsede_v: string; descripcion: string }>;
   presupuestos_sede?: Array<{ sede: string; presupuesto: number }>;
   resumen_actual?: Array<{
     nombre: string;
     sede: string;
+    sede_label2?: string;
     venta_neta: number;
     margen_bruto: number;
     utilidad_bruta: number;

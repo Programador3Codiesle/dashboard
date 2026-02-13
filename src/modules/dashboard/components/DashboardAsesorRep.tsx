@@ -8,17 +8,39 @@ const COLOR_PRESUPUESTO = "#64748b";
 
 type EstadoCumplimiento = "malo" | "buena" | "bueno";
 
-function DashboardAsesorRepInner({ data }: { data: DashboardAsesorRepType }) {
+export interface SedeOption {
+  idsede: number;
+  idsede_v: string;
+  descripcion: string;
+}
+
+interface DashboardAsesorRepProps {
+  data: DashboardAsesorRepType;
+  sedes?: SedeOption[];
+  selectedIdsede?: number;
+  onSedeChange?: (idsede: number) => void;
+}
+
+function DashboardAsesorRepInner({
+  data,
+  sedes,
+  selectedIdsede,
+  onSedeChange,
+}: DashboardAsesorRepProps) {
   const presupuestos = data.presupuestos_sede ?? [];
   const resumen = data.resumen_actual ?? [];
+  const showTabs = sedes != null && sedes.length > 1 && selectedIdsede != null && onSedeChange;
 
   const chartData = useMemo(() => {
     const presuMap = new Map(
       presupuestos.map((p) => [p.sede.trim().toLowerCase(), p.presupuesto])
     );
-    const resumenMap = new Map(
-      resumen.map((r) => [r.sede.trim().toLowerCase(), r.venta_neta])
-    );
+    const resumenMap = new Map<string, number>();
+    resumen.forEach((r) => {
+      const key = r.sede.trim().toLowerCase();
+      const current = resumenMap.get(key) ?? 0;
+      resumenMap.set(key, current + r.venta_neta);
+    });
     const sedesSet = new Set([...presuMap.keys(), ...resumenMap.keys()]);
     const rows: Array<{
       sede: string;
@@ -70,6 +92,31 @@ function DashboardAsesorRepInner({ data }: { data: DashboardAsesorRepType }) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 py-4">
+      {/* Tabs por sede cuando el usuario tiene más de una */}
+      {showTabs && (
+        <nav
+          className="flex flex-wrap gap-1 rounded-xl border border-gray-200/80 bg-white p-1 shadow-sm"
+          aria-label="Sedes"
+        >
+          {sedes!.map((sede) => {
+            const isActive = sede.idsede === selectedIdsede;
+            return (
+              <button
+                key={sede.idsede}
+                type="button"
+                onClick={() => onSedeChange!(sede.idsede)}
+                className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                  isActive ? "text-white shadow-sm" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+                style={isActive ? { backgroundColor: "var(--color-primary)" } : undefined}
+              >
+                {sede.descripcion}
+              </button>
+            );
+          })}
+        </nav>
+      )}
+
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -166,8 +213,17 @@ function DashboardAsesorRepInner({ data }: { data: DashboardAsesorRepType }) {
                   <p className="text-sm font-semibold text-gray-700 truncate">
                     {row.sede}
                   </p>
+
+                  {row.sede_label2 && (
+                    <p className="text-xs text-gray-500 truncate">
+                      {row.sede_label2}
+                    </p>
+                  )}
+
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {new Intl.NumberFormat("es-CO").format(row.venta_neta)}
+                    {new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(
+                      row.venta_neta
+                    )}
                   </p>
                   <div className="mt-3 flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-2">
                     <span>Margen</span>
@@ -306,7 +362,9 @@ function DashboardAsesorRepInner({ data }: { data: DashboardAsesorRepType }) {
                       {new Intl.NumberFormat("es-CO").format(row.presupuesto)}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums text-gray-700">
-                      {new Intl.NumberFormat("es-CO").format(row.vendido)}
+                      {new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(
+                        row.vendido
+                      )}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums font-medium">
                       {row.porcentaje.toFixed(1)}%

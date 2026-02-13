@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { SelectorEmpresaModal } from "@/components/auth/SelectorEmpresaModal";
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, logout, updateUser, isAuthenticated } = useAuth();
+  const { user, logout, updateUser, isAuthenticated, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false); // Controla el overlay/visibilidad en mobile
@@ -40,16 +40,28 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     }
   }, [pathname, isMobile]);
 
-  // Redirigir al login si no está autenticado
+  // Redirigir al login solo cuando la verificación de sesión haya terminado y no esté autenticado
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [loading, isAuthenticated, router]);
 
   const handleEmpresaSelect = useCallback((empresaId: number) => {
     updateUser({ empresa: empresaId });
   }, [updateUser]);
+
+  // Mostrar loading mientras se verifica la sesión (evita redirección prematura al recargar)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+        <div className="text-center p-8 animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useDashboard } from "@/modules/dashboard/hooks/useDashboard";
 import { isDashboardAllowedPerfil } from "@/modules/dashboard/constants";
@@ -29,9 +30,14 @@ import type {
 export default function DashboardPage() {
   const { user } = useAuth();
   const allowed = isDashboardAllowedPerfil(user?.perfil_postventa);
+  const [selectedIdsede, setSelectedIdsede] = useState<number | undefined>(undefined);
   const { data, isLoading, error } = useDashboard(user?.id, {
     enabled: allowed,
+    idsede: selectedIdsede,
   });
+  const onSedeChange = useCallback((idsede: number) => {
+    setSelectedIdsede(idsede);
+  }, []);
 
   if (!user) {
     return (
@@ -86,8 +92,19 @@ export default function DashboardPage() {
       return wrap(<DashboardGerencia data={data as DG} />);
     case "compras":
       return wrap(<DashboardCompras data={data as DC} />);
-    case "asesor_rep":
-      return wrap(<DashboardAsesorRep data={data as DAR} />);
+    case "asesor_rep": {
+      const asesorData = data as DAR;
+      const sedes = asesorData.sedes;
+      const activeIdsede = selectedIdsede ?? sedes?.[0]?.idsede;
+      return wrap(
+        <DashboardAsesorRep
+          data={asesorData}
+          sedes={sedes}
+          selectedIdsede={activeIdsede}
+          onSedeChange={onSedeChange}
+        />
+      );
+    }
     case "informe_mto":
       return wrap(<DashboardInformeMto data={data as DIM} />);
     default:

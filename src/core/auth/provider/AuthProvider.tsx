@@ -189,11 +189,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     const authValue = useMemo(() => ({
         user,
+        loading,
         login,
         logout,
         updateUser,
         isAuthenticated: !!user,
-    }), [user, logout, updateUser]);
+    }), [user, loading, logout, updateUser]);
 
     return (
         <AuthContext.Provider value={authValue}>

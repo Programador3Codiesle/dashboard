@@ -6,6 +6,7 @@ export const DASHBOARD_QUERY_KEY = ["dashboard"] as const;
 
 export interface UseDashboardOptions {
   enabled?: boolean;
+  idsede?: number;
 }
 
 export function useDashboard(
@@ -13,14 +14,15 @@ export function useDashboard(
   options?: UseDashboardOptions
 ) {
   const enabled = !!userId && (options?.enabled !== false);
+  const idsede = options?.idsede;
   const {
     data,
     isLoading,
     error,
     refetch,
   } = useQuery<DashboardData>({
-    queryKey: [...DASHBOARD_QUERY_KEY, userId],
-    queryFn: () => dashboardService.getDashboard(),
+    queryKey: [...DASHBOARD_QUERY_KEY, userId, idsede],
+    queryFn: () => dashboardService.getDashboard(idsede),
     enabled,
     staleTime: 2 * 60 * 1000,
   });
