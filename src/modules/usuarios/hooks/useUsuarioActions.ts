@@ -17,10 +17,9 @@ export function useUsuarioActions() {
 
     // Función helper para invalidar y refetch inmediato de usuarios
     const invalidateUsuarios = useCallback(async () => {
-        // Invalida y fuerza re-fetch inmediato
         await queryClient.invalidateQueries({ 
             queryKey: USUARIOS_QUERY_KEY,
-            refetchType: 'all' // Fuerza re-fetch aunque la query no esté activa
+            refetchType: 'all'
         });
     }, [queryClient]);
 

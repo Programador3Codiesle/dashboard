@@ -11,6 +11,26 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+type BodegaRow = DashboardJefeTallerType["data_bodegas"][number];
+
+const DashboardBodegaRow = memo(function DashboardBodegaRow({
+  tecnico,
+  numero_orden,
+  cliente,
+  rptos,
+  MO,
+}: BodegaRow) {
+  return (
+    <tr>
+      <td className="px-4 py-2 text-sm text-gray-900">{tecnico}</td>
+      <td className="px-4 py-2 text-sm text-gray-900">{numero_orden}</td>
+      <td className="px-4 py-2 text-sm text-gray-900">{cliente}</td>
+      <td className="px-4 py-2 text-sm text-right">{formatCurrency(rptos)}</td>
+      <td className="px-4 py-2 text-sm text-right">{formatCurrency(MO)}</td>
+    </tr>
+  );
+});
+
 function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
   return (
     <div className="space-y-6">
@@ -85,13 +105,10 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {data.data_bodegas.map((row) => (
-                  <tr key={`${row.numero_orden}-${row.operario}`}>
-                    <td className="px-4 py-2 text-sm text-gray-900">{row.tecnico}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{row.numero_orden}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{row.cliente}</td>
-                    <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.rptos)}</td>
-                    <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.MO)}</td>
-                  </tr>
+                  <DashboardBodegaRow
+                    key={`${row.numero_orden}-${row.operario}`}
+                    {...row}
+                  />
                 ))}
               </tbody>
             </table>

@@ -15,8 +15,9 @@ import { fetchWithAuth } from "@/utils/api";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const usuariosService = {
-    async getUsuarios(): Promise<IUsuario[]> {
-        const response = await fetchWithAuth(`${API_URL}/usuarios`, {
+    async getUsuarios(page: number = 1, limit: number = 1500): Promise<IUsuario[]> {
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        const response = await fetchWithAuth(`${API_URL}/usuarios?${params}`, {
             method: 'GET',
         });
         if (!response.ok) throw new Error('Error al cargar usuarios');

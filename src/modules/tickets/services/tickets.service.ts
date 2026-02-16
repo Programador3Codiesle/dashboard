@@ -106,8 +106,9 @@ function mapMisTicketsFromApi(raw: TicketMisTicketsApi): ITicket {
 // ==== Servicio contra API real ====
 
 export const ticketsService = {
-  async listActivos(): Promise<ITicket[]> {
-    const resp = await fetchWithAuth(`${API_URL}/tickets/activos`, {
+  async listActivos(page: number = 1, limit: number = 100): Promise<ITicket[]> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const resp = await fetchWithAuth(`${API_URL}/tickets/activos?${params}`, {
       method: "GET",
     });
 
@@ -119,8 +120,9 @@ export const ticketsService = {
     return data.map(mapActivoFromApi);
   },
 
-  async listFinalizados(): Promise<ITicket[]> {
-    const resp = await fetchWithAuth(`${API_URL}/tickets/finalizados`, {
+  async listFinalizados(page: number = 1, limit: number = 100): Promise<ITicket[]> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const resp = await fetchWithAuth(`${API_URL}/tickets/finalizados?${params}`, {
       method: "GET",
     });
 

@@ -28,8 +28,6 @@ import { empresasDisponibles } from "@/modules/usuarios/constants";
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
 import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { USUARIOS_QUERY_KEY } from "@/modules/usuarios/hooks/useUsuarios";
 
 interface UsuariosTableProps {
     onRefetchReady?: (refetch: () => void) => void;
@@ -44,7 +42,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
     }, []);
 
     /* ------------------ Fetch Usuarios ------------------ */
-    const { usuarios, isLoading, error, refetch: refetchUsuarios } = useUsuarios();
+    const { usuarios, isLoading, error, refetch: refetchUsuarios, setUsuarios } = useUsuarios();
 
     // Exponer refetchUsuarios al componente padre
     useEffect(() => {
@@ -89,9 +87,6 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
     const [loadingEstadoId, setLoadingEstadoId] = useState<number | null>(null);
     const [loadingEmpresaId, setLoadingEmpresaId] = useState<number | null>(null);
     
-    /* ------------------ Query Client para Optimistic Updates ------------------ */
-    const queryClient = useQueryClient();
-
     /* ------------------ Hooks para datos ------------------ */
     // Hooks globales (siempre cargados)
     const { jefes: todosLosJefes } = useJefes();
@@ -141,36 +136,25 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
         setLoadingEstadoId(usuarioId);
         
         // Optimistic Update: actualizar la UI inmediatamente
-        queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-            if (!oldData) return oldData;
-            return oldData.map(u => 
-                u.id === usuarioId ? { ...u, estado: newStatus } : u
-            );
-        });
-        
+        setUsuarios((oldData) =>
+            oldData.map(u => (u.id === usuarioId ? { ...u, estado: newStatus } : u))
+        );
+
         try {
             const success = await toggleEstado(usuarioId, newStatus);
             if (!success) {
-                // Si falla, revertir el optimistic update usando el estado guardado
-                queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-                    if (!oldData) return oldData;
-                    return oldData.map(u => 
-                        u.id === usuarioId ? { ...u, estado: estadoOriginal } : u
-                    );
-                });
+                setUsuarios((oldData) =>
+                    oldData.map(u => (u.id === usuarioId ? { ...u, estado: estadoOriginal } : u))
+                );
             }
         } catch {
-            // Si hay error, también revertir
-            queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-                if (!oldData) return oldData;
-                return oldData.map(u => 
-                    u.id === usuarioId ? { ...u, estado: estadoOriginal } : u
-                );
-            });
+            setUsuarios((oldData) =>
+                oldData.map(u => (u.id === usuarioId ? { ...u, estado: estadoOriginal } : u))
+            );
         } finally {
             setLoadingEstadoId(null);
         }
-    }, [modal.usuario, toggleEstado, closeModal, queryClient]);
+    }, [modal.usuario, toggleEstado, closeModal, setUsuarios]);
 
     const handleOpenDropdown = useCallback((e: React.MouseEvent, usuario: IUsuario) => {
         setSelectedUsuario(usuario);
@@ -262,14 +246,13 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
             .map(e => e.nombre);
 
         // Optimistic Update: actualizar la UI inmediatamente
-        queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-            if (!oldData) return oldData;
-            return oldData.map(u => 
-                u.id === usuarioId 
-                    ? { ...u, empresas: nuevasEmpresas, marcas: nuevasMarcas, totalMarca: nuevasMarcas.length } 
+        setUsuarios((oldData) =>
+            oldData.map(u =>
+                u.id === usuarioId
+                    ? { ...u, empresas: nuevasEmpresas, marcas: nuevasMarcas, totalMarca: nuevasMarcas.length }
                     : u
-            );
-        });
+            )
+        );
 
         try {
             let success = true;
@@ -283,30 +266,26 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
             }
 
             if (!success) {
-                // Si falla, revertir el optimistic update usando los valores guardados
-                queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-                    if (!oldData) return oldData;
-                    return oldData.map(u => 
-                        u.id === usuarioId 
-                            ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal } 
+                setUsuarios((oldData) =>
+                    oldData.map(u =>
+                        u.id === usuarioId
+                            ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal }
                             : u
-                    );
-                });
+                    )
+                );
             }
         } catch {
-            // Si hay error, también revertir
-            queryClient.setQueryData(USUARIOS_QUERY_KEY, (oldData: IUsuario[] | undefined) => {
-                if (!oldData) return oldData;
-                return oldData.map(u => 
-                    u.id === usuarioId 
-                        ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal } 
+            setUsuarios((oldData) =>
+                oldData.map(u =>
+                    u.id === usuarioId
+                        ? { ...u, empresas: empresasOriginales, marcas: marcasOriginales, totalMarca: totalMarcaOriginal }
                         : u
-                );
-            });
+                )
+            );
         } finally {
             setLoadingEmpresaId(null);
         }
-    }, [selectedUsuario, asignarEmpresas, eliminarEmpresas, queryClient]);
+    }, [selectedUsuario, asignarEmpresas, eliminarEmpresas, setUsuarios]);
 
     const handleResetPassword = useCallback(async (usuario: IUsuario) => {
         if (!usuario.nit) return;

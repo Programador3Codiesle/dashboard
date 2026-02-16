@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { dashboardService } from "../services/dashboard.service";
 import type { DashboardData } from "../types";
 
@@ -25,6 +25,7 @@ export function useDashboard(
     queryFn: () => dashboardService.getDashboard(idsede),
     enabled,
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   return {

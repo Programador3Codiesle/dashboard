@@ -9,11 +9,11 @@ export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
  * Hook optimizado con React Query para gestión de usuarios
  * - Caché automática de 5 minutos
  * - Retry automático en caso de error
- * - Sincronización entre componentes
- * - Cancelación automática de peticiones
+ * - Paginación real en backend (page, limit)
  */
-export const useUsuarios = () => {
+export const useUsuarios = (page: number = 1, limit: number = 1500) => {
   const queryClient = useQueryClient();
+  const queryKey = [...USUARIOS_QUERY_KEY, page, limit];
 
   const { 
     data: usuarios = [], 
@@ -21,15 +21,15 @@ export const useUsuarios = () => {
     error,
     refetch 
   } = useQuery({
-    queryKey: USUARIOS_QUERY_KEY,
-    queryFn: () => usuariosService.getUsuarios(),
+    queryKey,
+    queryFn: () => usuariosService.getUsuarios(page, limit),
     staleTime: 30 * 1000, // 30 segundos - más reactivo para cambios frecuentes
     gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos (garbage collection)
   });
 
   // Función para actualizar el cache manualmente (para optimistic updates)
   const setUsuarios = (newUsuarios: IUsuario[] | ((prev: IUsuario[]) => IUsuario[])) => {
-    queryClient.setQueryData(USUARIOS_QUERY_KEY, (old: IUsuario[] | undefined) => {
+    queryClient.setQueryData(queryKey, (old: IUsuario[] | undefined) => {
       if (typeof newUsuarios === 'function') {
         return newUsuarios(old || []);
       }

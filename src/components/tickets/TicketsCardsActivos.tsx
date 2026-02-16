@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, memo } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { ITicket } from "@/modules/tickets/types";
 import ReasignarTicketModal from "./modals/ReasignarTicketModal";
 import ResponderTicketModal from "./modals/ResponderTicketModal";
@@ -15,6 +15,16 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
   const [openReasign, setOpenReasign] = useState(false);
   const [openResponder, setOpenResponder] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<ITicket | null>(null);
+
+  const handleReasignar = useCallback((t: ITicket) => {
+    setSelectedTicket(t);
+    setOpenReasign(true);
+  }, []);
+
+  const handleResponder = useCallback((t: ITicket) => {
+    setSelectedTicket(t);
+    setOpenResponder(true);
+  }, []);
 
   // Función helper para extraer primer nombre y primer apellido
   const getNombreCorto = (nombreCompleto: string): string => {
@@ -128,7 +138,7 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
 
             <div className={`flex items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-[var(--color-primary)]' : 'border-t border-blue-200'}`}>
               <button
-                onClick={() => { setSelectedTicket(t); setOpenReasign(true); }}
+                onClick={() => handleReasignar(t)}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   isEnProceso 
                     ? 'brand-text brand-bg-light hover:bg-[var(--color-primary)]/20 border border-[var(--color-primary)]' 
@@ -139,7 +149,7 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
                 Reasignar
               </button>
               <button
-                onClick={() => { setSelectedTicket(t); setOpenResponder(true); }}
+                onClick={() => handleResponder(t)}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all shadow-md hover:shadow-lg ${
                   isEnProceso 
                     ? 'brand-bg brand-bg-hover' 

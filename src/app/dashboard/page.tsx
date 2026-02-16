@@ -55,29 +55,21 @@ export default function DashboardPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <DashboardSkeleton />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 text-red-600">
-        No se pudo cargar el dashboard. Intenta de nuevo.
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
-  }
-
   const wrap = (children: React.ReactNode) => (
     <div className="p-6">{children}</div>
   );
+
+  if (error) {
+    return wrap(
+      <p className="text-red-600">
+        No se pudo cargar el dashboard. Intenta de nuevo.
+      </p>
+    );
+  }
+
+  if (isLoading || !data) {
+    return wrap(<DashboardSkeleton />);
+  }
 
   switch (data.variant) {
     case "jefe_taller":

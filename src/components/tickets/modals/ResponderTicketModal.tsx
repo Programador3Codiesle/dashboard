@@ -2,7 +2,7 @@
 import Modal from "@/components/shared/ui/Modal";
 import { useState, useEffect } from "react";
 import { useTicketsActions } from "@/modules/tickets/hooks/useTicketsActions";
-import { ticketsService } from "@/modules/tickets/services/tickets.service";
+import { useTicketDetail } from "@/modules/tickets/hooks/useTicketDetail";
 import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
@@ -28,42 +28,25 @@ export default function ResponderTicketModal({
     const [mensaje, setMensaje] = useState("");
     const [cerrar, setCerrar] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [loadingData, setLoadingData] = useState(false);
-    const [ticketData, setTicketData] = useState<{
-        id: number;
-        tipoSoporte: string;
-        descripcion: string;
-        anydesk: string;
-        archivoUrl: string | null;
-        respuestas: string;
-        usuario: string;
-    } | null>(null);
     const { responder } = useTicketsActions();
 
-    // Cargar data completa del ticket cuando se abre el modal
+    // Cargar detalle del ticket con React Query (solo cuando el modal está abierto)
+    const { ticketData: apiTicketData, loading: loadingData } = useTicketDetail(
+        ticket?.id ?? null,
+        open && !!ticket?.id
+    );
+
+    // Merge datos de API con usuario del listado; resetear form al cerrar
+    const ticketData = apiTicketData
+        ? { ...apiTicketData, usuario: ticket?.usuario || "Usuario" }
+        : null;
+
     useEffect(() => {
-        if (open && ticket?.id) {
-            setLoadingData(true);
-            ticketsService.getTicketById(ticket.id)
-                .then((data) => {
-                    setTicketData({
-                        ...data,
-                        usuario: ticket.usuario || "Usuario",
-                    });
-                })
-                .catch((err) => {
-                    console.error("Error cargando ticket:", err);
-                })
-                .finally(() => {
-                    setLoadingData(false);
-                });
-        } else if (!open) {
-            // Limpiar cuando se cierra
-            setTicketData(null);
+        if (!open) {
             setMensaje("");
             setCerrar(false);
         }
-    }, [open, ticket?.id, ticket?.usuario]);
+    }, [open]);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
