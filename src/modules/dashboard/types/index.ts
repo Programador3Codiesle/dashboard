@@ -16,6 +16,33 @@ export interface DashboardBase {
   img_user?: string;
 }
 
+/** Punto para gráficos (label + valor). */
+export interface DataPoint {
+  label: string;
+  y: number;
+}
+
+/** Datos por sede para tabs y gráficos del dashboard jefe de taller. */
+export interface JefeTallerSedeItem {
+  sede: string;
+  totalVenta: number;
+  totalVentaManoObra: number;
+  totalVentaRepuesto: number;
+  totalVentaTot: number;
+  totalHoras: number;
+  objectiveNpsIntCurrent: number;
+  objectiveNpsGMIntCurrent: number;
+  dataPoints1: DataPoint[];
+  dataPoints2: DataPoint[];
+  dataPoints3: DataPoint[];
+  dataPoints4: DataPoint[];
+  dataPoints5: DataPoint[];
+  dataPoints6: DataPoint[];
+  dataPoints7: DataPoint[];
+  objetiveNps: DataPoint[];
+  objetiveNpsGM: DataPoint[];
+}
+
 export interface DashboardJefeTaller extends DashboardBase {
   variant: "jefe_taller";
   nps_int: number;
@@ -35,6 +62,8 @@ export interface DashboardJefeTaller extends DashboardBase {
     MO: number;
     horas_facturadas: number;
   }>;
+  /** Por sede: totales y series para tabs y 4 gráficos. */
+  sedes?: JefeTallerSedeItem[];
 }
 
 export interface DashboardTecnicos extends DashboardBase {
@@ -56,6 +85,55 @@ export interface DashboardTecnicos extends DashboardBase {
     suma_todo: number;
   }> | null;
   tope_ran_pres: number;
+  ventas_mensuales?: Array<{
+    mes: string;
+    mo: number;
+    repuestos: number;
+    total: number;
+  }>;
+  horas_mensuales?: Array<{
+    mes: string;
+    horas: number;
+  }>;
+  nps_interno_mensual?: Array<{
+    mes: string;
+    nps: number;
+  }>;
+  nps_gm_mensual?: Array<{
+    mes: string;
+    nps: number;
+  }>;
+}
+
+export interface AdminSedePresupuesto {
+  /** Clave interna de sede, ej: giron, rosita, barranca, bocono, solochevrolet, chevropartes. */
+  key: string;
+  /** Nombre legible de la sede. */
+  sede: string;
+  /** Presupuesto mensual de la sede. */
+  presupuesto: number;
+  /** Total vendido acumulado en el mes. */
+  total: number;
+  /** Porcentaje de cumplimiento frente al presupuesto (0–∞). */
+  porcentaje: number;
+  /** true si porcentaje >= 100 (meta cumplida). */
+  metaCumplida: boolean;
+}
+
+export interface AdminTallerDetalle {
+  nombre: string;
+  total: number;
+  porcentaje: number;
+  metaCumplida: boolean;
+  mo?: number;
+  tot?: number;
+  rep?: number;
+}
+
+export interface AdminSedeTalleres {
+  key: string;
+  sede: string;
+  talleres: AdminTallerDetalle[];
 }
 
 export interface DashboardAdmin extends DashboardBase {
@@ -78,6 +156,8 @@ export interface DashboardAdmin extends DashboardBase {
   procesoPre?: number;
   finalizadasPre?: number;
   data_estado?: Array<{ estado: string }>;
+  sedes_presupuesto?: AdminSedePresupuesto[];
+  sedes_talleres?: AdminSedeTalleres[];
 }
 
 export interface DashboardAgenteCC extends DashboardBase {

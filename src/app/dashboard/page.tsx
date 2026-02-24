@@ -31,9 +31,35 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const allowed = isDashboardAllowedPerfil(user?.perfil_postventa);
   const [selectedIdsede, setSelectedIdsede] = useState<number | undefined>(undefined);
-  const { data, isLoading, error } = useDashboard(user?.id, {
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+  });
+
+  const handleMonthChange = useCallback(
+    (value: string) => {
+      setSelectedMonth(value);
+    },
+    []
+  );
+
+  const { data, isLoading, isFetching, error } = useDashboard(user?.id, {
     enabled: allowed,
     idsede: selectedIdsede,
+    mes: (() => {
+      if (!selectedMonth) return undefined;
+      const [anoStr, mesStr] = selectedMonth.split("-");
+      const val = Number(mesStr || 0);
+      return Number.isFinite(val) && val > 0 ? val : undefined;
+    })(),
+    ano: (() => {
+      if (!selectedMonth) return undefined;
+      const [anoStr] = selectedMonth.split("-");
+      const val = Number(anoStr || 0);
+      return Number.isFinite(val) && val > 0 ? val : undefined;
+    })(),
   });
   const onSedeChange = useCallback((idsede: number) => {
     setSelectedIdsede(idsede);
@@ -55,8 +81,46 @@ export default function DashboardPage() {
     );
   }
 
-  const wrap = (children: React.ReactNode) => (
-    <div className="p-6">{children}</div>
+  const wrap = (
+    children: React.ReactNode,
+    withFilter = false,
+    showLoading = false
+  ) => (
+    <div className="p-6 space-y-4 relative">
+      {withFilter && (
+        <div className="flex flex-wrap items-center gap-3 justify-between">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Dashboard Técnicos
+          </h1>
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="month-filter"
+              className="text-sm text-gray-600 whitespace-nowrap"
+            >
+              Mes:
+            </label>
+            <input
+              id="month-filter"
+              type="month"
+              className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+              value={selectedMonth}
+              onChange={(e) => handleMonthChange(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+      {showLoading && (
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-start justify-center pt-50 md:pt-80 rounded-lg overflow-hidden">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-600 font-medium">
+              Cargando datos del mes seleccionado...
+            </p>
+          </div>
+        </div>
+      )}
+      {children}
+    </div>
   );
 
   if (error) {
@@ -68,14 +132,18 @@ export default function DashboardPage() {
   }
 
   if (isLoading || !data) {
-    return wrap(<DashboardSkeleton />);
+    return wrap(<DashboardSkeleton />, false);
   }
 
   switch (data.variant) {
     case "jefe_taller":
       return wrap(<DashboardJefeTaller data={data as DJT} />);
     case "tecnicos":
-      return wrap(<DashboardTecnicos data={data as DT} />);
+      return wrap(
+        <DashboardTecnicos data={data as DT} />,
+        true,
+        isFetching
+      );
     case "admin":
       return wrap(<DashboardAdmin data={data as DA} />);
     case "agente_cc":

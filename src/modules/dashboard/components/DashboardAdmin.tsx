@@ -57,6 +57,29 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
   const maxGraf = grafSedes.length
     ? Math.max(...grafSedes.map((s) => s.total), 1)
     : 1;
+  const sedesPresupuesto = data.sedes_presupuesto ?? [];
+  const sedesTalleres = data.sedes_talleres ?? [];
+  const sedesTalleresIndex = new Map(
+    sedesTalleres.map((s) => [s.key, s.talleres])
+  );
+  const hasSedesDetalle = sedesTalleres.length > 0;
+
+  const sedesParaUi =
+    sedesPresupuesto.length > 0
+      ? sedesPresupuesto
+      : hasSedesDetalle
+      ? sedesTalleres.map((sede) => ({
+          key: sede.key,
+          sede: sede.sede,
+          presupuesto: 0,
+          total: sede.talleres.reduce(
+            (acc, t) => acc + (t.total ?? 0),
+            0
+          ),
+          porcentaje: 0,
+          metaCumplida: false,
+        }))
+      : [];
 
   return (
     <div className="space-y-6">
@@ -71,38 +94,32 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {data.nps_int != null && (
-          <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-            <p className="text-sm text-gray-600">NPS Codiesel</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {Math.round(data.nps_int)}%
-            </p>
-          </div>
-        )}
-        {data.cal_pac?.Calificacion != null && (
-          <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-            <p className="text-sm text-gray-600">NPS Colmotores (PAC)</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {data.cal_pac.Calificacion}%
-            </p>
-          </div>
-        )}
-        {data.to_posv != null && (
-          <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-            <p className="text-sm text-gray-600">Total Postventa</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {new Intl.NumberFormat("es-CO").format(data.to_posv)}
-            </p>
-          </div>
-        )}
-        {data.to_inv != null && (
-          <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-            <p className="text-sm text-gray-600">Valor inventario</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {new Intl.NumberFormat("es-CO").format(data.to_inv)}
-            </p>
-          </div>
-        )}
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
+          <p className="text-sm text-gray-600">NPS Codiesel</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {Math.round(data.nps_int ?? 0)}%{" "}
+            <span className="text-sm font-normal text-gray-500">/ 81%</span>
+          </p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
+          <p className="text-sm text-gray-600">NPS Colmotores (PAC)</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {(data.cal_pac?.Calificacion ?? 0)}%{" "}
+            <span className="text-sm font-normal text-gray-500">/ 81%</span>
+          </p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
+          <p className="text-sm text-gray-600">Total Postventa</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {new Intl.NumberFormat("es-CO").format(data.to_posv ?? 0)}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
+          <p className="text-sm text-gray-600">Valor inventario</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {new Intl.NumberFormat("es-CO").format(data.to_inv ?? 0)}
+          </p>
+        </div>
       </div>
 
       {grafSedes.length > 0 && (
@@ -133,54 +150,240 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
         </div>
       )}
 
-      {hasPorcen && (
+      {(sedesParaUi.length > 0 || hasPorcen || hasSedesDetalle) && (
         <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Porcentaje objetivo por sede (mes)
+            Desempeño mensual por sede
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.porcen_giron != null && (
-              <ProgressBar
-                value={data.porcen_giron}
-                label="Girón"
-                max={100}
-              />
-            )}
-            {data.porcen_rosita != null && (
-              <ProgressBar
-                value={data.porcen_rosita}
-                label="La Rosita"
-                max={100}
-              />
-            )}
-            {data.porcen_barranca != null && (
-              <ProgressBar
-                value={data.porcen_barranca}
-                label="Barranca"
-                max={100}
-              />
-            )}
-            {data.porcen_bocono != null && (
-              <ProgressBar
-                value={data.porcen_bocono}
-                label="Bocono"
-                max={100}
-              />
-            )}
-            {data.porcen_soloc != null && (
-              <ProgressBar
-                value={data.porcen_soloc}
-                label="Solo Chevrolet"
-                max={100}
-              />
-            )}
-            {data.porcen_chev != null && (
-              <ProgressBar
-                value={data.porcen_chev}
-                label="Chevropartes"
-                max={100}
-              />
-            )}
+          {sedesParaUi.length > 0 && (
+            <div className="mb-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 flex flex-wrap items-center justify-between gap-2">
+              {(() => {
+                const totalPresupuesto = sedesParaUi.reduce(
+                  (acc, sede) => acc + sede.presupuesto,
+                  0
+                );
+                const totalVendido = sedesParaUi.reduce(
+                  (acc, sede) => acc + sede.total,
+                  0
+                );
+                const porcentajeGeneral =
+                  totalPresupuesto > 0
+                    ? (totalVendido * 100) / totalPresupuesto
+                    : undefined;
+                return (
+                  <>
+                    <span className="font-semibold text-gray-900">
+                      Codiesel (general)
+                    </span>
+                    <span>
+                      Meta:{" "}
+                      <span className="font-medium text-gray-900">
+                        $
+                        {new Intl.NumberFormat("es-CO").format(
+                          totalPresupuesto
+                        )}
+                      </span>
+                    </span>
+                    <span>
+                      Vendido:{" "}
+                      <span className="font-medium text-gray-900">
+                        $
+                        {new Intl.NumberFormat("es-CO").format(totalVendido)}
+                      </span>
+                    </span>
+                    {porcentajeGeneral != null && (
+                      <span>
+                        Porcentaje:{" "}
+                        <span className="font-medium text-gray-900">
+                          {porcentajeGeneral.toFixed(1)}%
+                        </span>
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {sedesParaUi.length > 0
+              ? sedesParaUi.map((sede) => (
+                  <div
+                    key={sede.key}
+                    className="rounded-xl border border-gray-100 p-4 flex flex-col gap-3 bg-gradient-to-br from-white via-white to-[var(--color-primary-light)]/20"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {sede.sede}
+                      </p>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          sede.metaCumplida
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                        }`}
+                      >
+                        {sede.metaCumplida ? "Meta cumplida" : "En progreso"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>
+                        Meta:{" "}
+                        <span className="font-medium text-gray-900">
+                          $
+                          {new Intl.NumberFormat("es-CO").format(
+                            sede.presupuesto
+                          )}
+                        </span>
+                      </span>
+                      <span>
+                        Vendido:{" "}
+                        <span className="font-medium text-gray-900">
+                          $
+                          {new Intl.NumberFormat("es-CO").format(sede.total)}
+                        </span>
+                      </span>
+                    </div>
+                    <ProgressBar
+                      value={sede.porcentaje ?? 0}
+                      label="Cumplimiento mensual"
+                      max={100}
+                    />
+                    {sedesTalleresIndex.get(sede.key)?.length ? (
+                      <details className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-600">
+                        <summary className="cursor-pointer text-[0.7rem] font-medium text-gray-700 uppercase tracking-wide">
+                          Ver detalle por taller
+                        </summary>
+                        <div className="mt-2 space-y-2">
+                          {sedesTalleresIndex.get(sede.key)!.map((taller) => (
+                            <div
+                              key={taller.nombre}
+                              className="flex items-start justify-between gap-3"
+                            >
+                              <div className="flex-1">
+                                <p className="text-[0.75rem] font-semibold text-gray-900">
+                                  {taller.nombre}
+                                </p>
+                                <p className="text-[0.7rem] text-gray-600">
+                                  Vendido:{" "}
+                                  <span className="font-medium text-gray-900">
+                                    $
+                                    {new Intl.NumberFormat("es-CO").format(
+                                      taller.total
+                                    )}
+                                  </span>
+                                </p>
+                                {(taller.mo != null ||
+                                  taller.tot != null ||
+                                  taller.rep != null) && (
+                                  <p className="text-[0.7rem] text-gray-500 mt-0.5">
+                                    {taller.mo != null && (
+                                      <span>
+                                        MO:{" "}
+                                        <span className="font-medium text-gray-900">
+                                          $
+                                          {new Intl.NumberFormat(
+                                            "es-CO"
+                                          ).format(taller.mo)}
+                                        </span>
+                                      </span>
+                                    )}
+                                    {taller.tot != null && (
+                                      <span>
+                                        {" "}
+                                        · TOT:{" "}
+                                        <span className="font-medium text-gray-900">
+                                          $
+                                          {new Intl.NumberFormat(
+                                            "es-CO"
+                                          ).format(taller.tot)}
+                                        </span>
+                                      </span>
+                                    )}
+                                    {taller.rep != null && (
+                                      <span>
+                                        {" "}
+                                        · REP:{" "}
+                                        <span className="font-medium text-gray-900">
+                                          $
+                                          {new Intl.NumberFormat(
+                                            "es-CO"
+                                          ).format(taller.rep)}
+                                        </span>
+                                      </span>
+                                    )}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="w-32">
+                                <ProgressBar
+                                  value={taller.porcentaje}
+                                  label="Cumplimiento"
+                                  max={100}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    ) : null}
+                  </div>
+                ))
+              : [
+                  data.porcen_giron != null && {
+                    key: "giron",
+                    sede: "Girón",
+                    porcentaje: data.porcen_giron,
+                  },
+                  data.porcen_rosita != null && {
+                    key: "rosita",
+                    sede: "La Rosita",
+                    porcentaje: data.porcen_rosita,
+                  },
+                  data.porcen_barranca != null && {
+                    key: "barranca",
+                    sede: "Barranca",
+                    porcentaje: data.porcen_barranca,
+                  },
+                  data.porcen_bocono != null && {
+                    key: "bocono",
+                    sede: "Bocono",
+                    porcentaje: data.porcen_bocono,
+                  },
+                  data.porcen_soloc != null && {
+                    key: "solochevrolet",
+                    sede: "Solo Chevrolet",
+                    porcentaje: data.porcen_soloc,
+                  },
+                  data.porcen_chev != null && {
+                    key: "chevropartes",
+                    sede: "Chevropartes",
+                    porcentaje: data.porcen_chev,
+                  },
+                ]
+                  .filter(
+                    (
+                      sede
+                    ): sede is {
+                      key: string;
+                      sede: string;
+                      porcentaje: number;
+                    } => Boolean(sede)
+                  )
+                  .map((sede) => (
+                    <div
+                      key={sede.key}
+                      className="rounded-xl border border-gray-100 p-4 flex flex-col gap-3"
+                    >
+                      <p className="text-sm font-semibold text-gray-900">
+                        {sede.sede}
+                      </p>
+                      <ProgressBar
+                        value={sede.porcentaje}
+                        label="Cumplimiento mensual"
+                        max={100}
+                      />
+                    </div>
+                  ))}
           </div>
         </div>
       )}
