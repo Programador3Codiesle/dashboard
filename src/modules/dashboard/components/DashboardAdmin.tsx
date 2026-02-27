@@ -22,15 +22,28 @@ function ProgressBar({
   max?: number;
 }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+
+  // Colores según nivel de cumplimiento
+  // < 80%: rojo (malo), 80-90%: amarillo (bueno), >= 90%: verde (muy bueno).
+  let barColor = "bg-red-500";
+  let textColor = "text-red-600";
+  if (pct >= 90) {
+    barColor = "bg-emerald-500";
+    textColor = "text-emerald-600";
+  } else if (pct >= 80) {
+    barColor = "bg-amber-400";
+    textColor = "text-amber-600";
+  }
+
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-sm">
         <span className="text-gray-600">{label}</span>
-        <span className="font-medium text-gray-900">{value.toFixed(1)}%</span>
+        <span className={`font-medium ${textColor}`}>{pct.toFixed(1)}%</span>
       </div>
       <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
         <div
-          className="h-full rounded-full brand-bg transition-all"
+          className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -85,12 +98,16 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900">Panel Administrativo</h2>
 
-      <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Fecha actual</p>
-        <p className="text-lg font-medium text-gray-900">{data.fecha_actual}</p>
-        {data.dia_festivo === 1 && (
-          <p className="text-sm text-amber-600 mt-1">Día festivo</p>
-        )}
+      <div className="flex justify-end">
+        <div className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-white shadow-md text-sm">
+          <span className="font-semibold">Fecha:</span>
+          <span className="text-base font-semibold">{data.fecha_actual}</span>
+          {data.dia_festivo === 1 && (
+            <span className="ml-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.7rem] font-medium">
+              Día festivo
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -111,13 +128,17 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
         <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">Total Postventa</p>
           <p className="text-2xl font-bold text-gray-900">
-            {new Intl.NumberFormat("es-CO").format(data.to_posv ?? 0)}
+            {new Intl.NumberFormat("es-CO", {
+              maximumFractionDigits: 0,
+            }).format(Math.round(data.to_posv ?? 0))}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">Valor inventario</p>
           <p className="text-2xl font-bold text-gray-900">
-            {new Intl.NumberFormat("es-CO").format(data.to_inv ?? 0)}
+            {new Intl.NumberFormat("es-CO", {
+              maximumFractionDigits: 0,
+            }).format(Math.round(data.to_inv ?? 0))}
           </p>
         </div>
       </div>
@@ -142,7 +163,9 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                   />
                 </div>
                 <span className="text-sm font-medium text-gray-900 w-28 text-right">
-                  {new Intl.NumberFormat("es-CO").format(s.total)}
+                  {new Intl.NumberFormat("es-CO", {
+                    maximumFractionDigits: 0,
+                  }).format(Math.round(s.total))}
                 </span>
               </div>
             ))}
@@ -179,16 +202,18 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                       Meta:{" "}
                       <span className="font-medium text-gray-900">
                         $
-                        {new Intl.NumberFormat("es-CO").format(
-                          totalPresupuesto
-                        )}
+                        {new Intl.NumberFormat("es-CO", {
+                          maximumFractionDigits: 0,
+                        }).format(Math.round(totalPresupuesto))}
                       </span>
                     </span>
                     <span>
                       Vendido:{" "}
                       <span className="font-medium text-gray-900">
                         $
-                        {new Intl.NumberFormat("es-CO").format(totalVendido)}
+                        {new Intl.NumberFormat("es-CO", {
+                          maximumFractionDigits: 0,
+                        }).format(Math.round(totalVendido))}
                       </span>
                     </span>
                     {porcentajeGeneral != null && (
@@ -204,7 +229,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
               })()}
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
             {sedesParaUi.length > 0
               ? sedesParaUi.map((sede) => (
                   <div
@@ -230,16 +255,18 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                         Meta:{" "}
                         <span className="font-medium text-gray-900">
                           $
-                          {new Intl.NumberFormat("es-CO").format(
-                            sede.presupuesto
-                          )}
+                          {new Intl.NumberFormat("es-CO", {
+                            maximumFractionDigits: 0,
+                          }).format(Math.round(sede.presupuesto))}
                         </span>
                       </span>
                       <span>
                         Vendido:{" "}
                         <span className="font-medium text-gray-900">
                           $
-                          {new Intl.NumberFormat("es-CO").format(sede.total)}
+                          {new Intl.NumberFormat("es-CO", {
+                            maximumFractionDigits: 0,
+                          }).format(Math.round(sede.total))}
                         </span>
                       </span>
                     </div>
@@ -249,41 +276,53 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                       max={100}
                     />
                     {sedesTalleresIndex.get(sede.key)?.length ? (
-                      <details className="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-600">
-                        <summary className="cursor-pointer text-[0.7rem] font-medium text-gray-700 uppercase tracking-wide">
+                      <details className="mt-2 border-t border-gray-100 pt-2 text-gray-600">
+                        <summary className="cursor-pointer text-xs font-medium text-gray-700 uppercase tracking-wide">
                           Ver detalle por taller
                         </summary>
-                        <div className="mt-2 space-y-2">
+                        <div className="mt-1.5 space-y-1.5">
                           {sedesTalleresIndex.get(sede.key)!.map((taller) => (
                             <div
                               key={taller.nombre}
-                              className="flex items-start justify-between gap-3"
+                              className="flex items-start gap-3 border-b border-gray-100 pb-1.5 last:border-0 last:pb-0 min-w-0"
                             >
-                              <div className="flex-1">
-                                <p className="text-[0.75rem] font-semibold text-gray-900">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-gray-900">
                                   {taller.nombre}
                                 </p>
-                                <p className="text-[0.7rem] text-gray-600">
+                                <p className="text-xs text-gray-600 mt-0.5">
+                                  Meta:{" "}
+                                  <span className="font-medium text-gray-900">
+                                    $
+                                    {new Intl.NumberFormat("es-CO", {
+                                      maximumFractionDigits: 0,
+                                    }).format(Math.round(taller.presupuesto ?? 0))}
+                                  </span>
+                                  {" · "}
                                   Vendido:{" "}
                                   <span className="font-medium text-gray-900">
                                     $
-                                    {new Intl.NumberFormat("es-CO").format(
-                                      taller.total
-                                    )}
+                                    {new Intl.NumberFormat("es-CO", {
+                                      maximumFractionDigits: 0,
+                                    }).format(Math.round(taller.total))}
+                                  </span>
+                                  {" · "}
+                                  <span className={taller.metaCumplida ? "text-green-600 font-medium" : "text-gray-700"}>
+                                    {taller.porcentaje}%
                                   </span>
                                 </p>
                                 {(taller.mo != null ||
                                   taller.tot != null ||
                                   taller.rep != null) && (
-                                  <p className="text-[0.7rem] text-gray-500 mt-0.5">
+                                  <p className="text-xs text-gray-500 mt-0.5">
                                     {taller.mo != null && (
                                       <span>
                                         MO:{" "}
                                         <span className="font-medium text-gray-900">
                                           $
-                                          {new Intl.NumberFormat(
-                                            "es-CO"
-                                          ).format(taller.mo)}
+                                          {new Intl.NumberFormat("es-CO", {
+                                            maximumFractionDigits: 0,
+                                          }).format(Math.round(taller.mo))}
                                         </span>
                                       </span>
                                     )}
@@ -293,9 +332,9 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                         · TOT:{" "}
                                         <span className="font-medium text-gray-900">
                                           $
-                                          {new Intl.NumberFormat(
-                                            "es-CO"
-                                          ).format(taller.tot)}
+                                          {new Intl.NumberFormat("es-CO", {
+                                            maximumFractionDigits: 0,
+                                          }).format(Math.round(taller.tot))}
                                         </span>
                                       </span>
                                     )}
@@ -305,16 +344,16 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                         · REP:{" "}
                                         <span className="font-medium text-gray-900">
                                           $
-                                          {new Intl.NumberFormat(
-                                            "es-CO"
-                                          ).format(taller.rep)}
+                                          {new Intl.NumberFormat("es-CO", {
+                                            maximumFractionDigits: 0,
+                                          }).format(Math.round(taller.rep))}
                                         </span>
                                       </span>
                                     )}
                                   </p>
                                 )}
                               </div>
-                              <div className="w-32">
+                              <div className="shrink-0 w-[8.5rem]">
                                 <ProgressBar
                                   value={taller.porcentaje}
                                   label="Cumplimiento"

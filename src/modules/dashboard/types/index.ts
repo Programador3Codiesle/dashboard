@@ -122,6 +122,8 @@ export interface AdminSedePresupuesto {
 
 export interface AdminTallerDetalle {
   nombre: string;
+  /** Meta (presupuesto) del taller para el mes. */
+  presupuesto: number;
   total: number;
   porcentaje: number;
   metaCumplida: boolean;

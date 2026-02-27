@@ -7,12 +7,16 @@ function DashboardComprasInner({ data }: { data: DashboardComprasType }) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900">Compras</h2>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Fecha actual</p>
-        <p className="text-lg font-medium text-gray-900">{data.fecha_actual}</p>
-        {data.dia_festivo === 1 && (
-          <p className="text-sm text-amber-600 mt-1">Día festivo</p>
-        )}
+      <div className="flex justify-end">
+        <div className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-white shadow-md text-sm">
+          <span className="font-semibold">Fecha:</span>
+          <span className="text-base font-semibold">{data.fecha_actual}</span>
+          {data.dia_festivo === 1 && (
+            <span className="ml-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.7rem] font-medium">
+              Día festivo
+            </span>
+          )}
+        </div>
       </div>
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">

@@ -13,12 +13,16 @@ function DashboardAgenteCCInner({ data }: { data: DashboardAgenteCCType }) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-gray-900">Agente Call Center</h2>
-      <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
-        <p className="text-sm text-gray-600 mb-2">Fecha actual</p>
-        <p className="text-lg font-medium text-gray-900">{data.fecha_actual}</p>
-        {data.dia_festivo === 1 && (
-          <p className="text-sm text-amber-600 mt-1">Día festivo</p>
-        )}
+      <div className="flex justify-end">
+        <div className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-white shadow-md text-sm">
+          <span className="font-semibold">Fecha:</span>
+          <span className="text-base font-semibold">{data.fecha_actual}</span>
+          {data.dia_festivo === 1 && (
+            <span className="ml-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.7rem] font-medium">
+              Día festivo
+            </span>
+          )}
+        </div>
       </div>
       <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
         <h3 className="font-bold text-gray-900 mb-3">Cambiar estado</h3>

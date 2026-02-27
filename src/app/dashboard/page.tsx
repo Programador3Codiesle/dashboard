@@ -132,7 +132,15 @@ export default function DashboardPage() {
   }
 
   if (isLoading || !data) {
-    return wrap(<DashboardSkeleton />, false);
+    return wrap(
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="w-10 h-10 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-gray-600 font-medium">
+          Cargando información del dashboard...
+        </p>
+      </div>,
+      false
+    );
   }
 
   switch (data.variant) {
