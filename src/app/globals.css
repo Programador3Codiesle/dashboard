@@ -111,7 +111,8 @@ body {
   }
 
   .brand-border-active {
-    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    /* Similar a un tono 300 del color de la empresa */
+    border-color: color-mix(in srgb, var(--color-primary) 40%, white);
   }
 
   .brand-dashboard-bg {
@@ -151,6 +152,10 @@ body {
 
   .brand-card {
     background-color: var(--color-primary-light);
+  }
+
+  .brand-card-elevated {
+    box-shadow: 0 18px 35px -20px var(--color-primary-ring);
   }
 
   .brand-badge {

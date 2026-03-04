@@ -1,9 +1,10 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function AutorizarConfirmacionPage() {
+function AutorizarConfirmacionInner() {
   const searchParams = useSearchParams();
   const resultado = searchParams.get('resultado');
   const accion = searchParams.get('accion');
@@ -66,5 +67,13 @@ export default function AutorizarConfirmacionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AutorizarConfirmacionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
+      <AutorizarConfirmacionInner />
+    </Suspense>
   );
 }

@@ -338,9 +338,9 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
 
     /* ------------------ Loading ------------------ */
     if (!mounted || isLoading) return (
-        <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando usuarios...</p>
+        <div className="py-10 flex flex-col items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-9 w-9 border-2 border-[var(--color-primary)] border-t-transparent mx-auto" />
+            <p className="text-sm text-gray-600 font-medium">Cargando usuarios...</p>
         </div>
     );
 
@@ -361,7 +361,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
             {/* ----------- BUSCADOR ----------- */}
             <div className="flex justify-between items-center mb-4">
                 <input
-                    className="border px-3 py-2 rounded w-64"
+                    className="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none brand-focus-ring"
                     placeholder="Buscar usuario..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -369,7 +369,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
             </div>
 
             {/* ----------- TABLA ----------- */}
-            <div className="overflow-x-auto border rounded-lg">
+            <div className="overflow-x-auto border rounded-lg bg-white shadow-sm">
                 <table className="w-full ">
                     <thead className="brand-bg text-white text-center">
                         <tr>
