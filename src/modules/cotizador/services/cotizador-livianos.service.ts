@@ -18,6 +18,7 @@ export interface VehiculoCotizacionLivianos {
   km_estimado: number | null;
   n_carac: number;
   caract_10: string | null;
+   prepagado: string | null;
 }
 
 export interface LivianosInitData {
@@ -71,6 +72,7 @@ export interface CrearCotizacionGeneralPayload {
   usuario: string | number;
   observaciones?: string | null;
   estado: number;
+  tipoMantenimiento?: number | null;
 }
 
 export interface RepuestoCotizacionPayload {
@@ -96,6 +98,19 @@ export interface CrearCotizacionLivianosPayload {
   general: CrearCotizacionGeneralPayload;
   repuestos: RepuestoCotizacionPayload[];
   manoObra: ManoObraCotizacionPayload[];
+}
+
+export interface EnviarEmailCotizacionLivianosPayload {
+  idCotizacion: number;
+  placa: string;
+  estado: number;
+}
+
+export interface CrearPosibleRetornoPayload {
+  placa: string;
+  tipo_retorno: number;
+  observacion: string;
+  bodega: number | null;
 }
 
 export const cotizadorLivianosService = {
@@ -143,11 +158,17 @@ export const cotizadorLivianosService = {
     return data;
   },
 
-  async getRevisionDetalle(params: { bodega: number; clase: string; revision: number }): Promise<CotizacionRevisionDetalle> {
+  async getRevisionDetalle(params: {
+    bodega: number;
+    clase: string;
+    revision: number;
+    yearModel: number;
+  }): Promise<CotizacionRevisionDetalle> {
     const search = new URLSearchParams({
-      bodega: String(params.bodega),
-      clase: params.clase,
-      revision: String(params.revision),
+        bodega: String(params.bodega),
+        clase: params.clase,
+        revision: String(params.revision),
+        yearModel: String(params.yearModel),
     });
 
     const response = await fetchWithAuth(`${API_URL}/cotizador/livianos/detalle?${search.toString()}`, {
@@ -174,6 +195,61 @@ export const cotizadorLivianosService = {
     }
 
     const data = (await response.json()) as { idCotizacion: number };
+    return data;
+  },
+
+  async enviarEmailCotizacion(
+    payload: EnviarEmailCotizacionLivianosPayload,
+  ): Promise<{ ok: boolean; message: string }> {
+    const response = await fetchWithAuth(`${API_URL}/cotizador/livianos/cotizacion/email`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "No se pudo enviar el correo de la cotización.");
+    }
+
+    const data = (await response.json()) as { ok: boolean; message: string };
+    return data;
+  },
+
+  async getAdicionalesModal(params: {
+    clase: string;
+    bodega: number;
+    adicional: number;
+    year: number;
+  }): Promise<{ soloManoObra: boolean; repuestos: any[]; manoObra: any[] }> {
+    const search = new URLSearchParams({
+      clase: params.clase,
+      bodega: String(params.bodega),
+      adicional: String(params.adicional),
+      year: String(params.year),
+    });
+    const response = await fetchWithAuth(
+      `${API_URL}/cotizador/livianos/adicionales-modal?${search.toString()}`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "No se pudieron cargar los datos del adicional.");
+    }
+    return response.json();
+  },
+
+  async crearPosibleRetorno(payload: CrearPosibleRetornoPayload): Promise<{ idRetorno: number }> {
+    const response = await fetchWithAuth(`${API_URL}/cotizador/livianos/posible-retorno`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "No se pudo crear el posible retorno.");
+    }
+
+    const data = (await response.json()) as { idRetorno: number };
     return data;
   },
 };

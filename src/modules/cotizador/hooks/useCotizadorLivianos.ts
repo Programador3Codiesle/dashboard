@@ -78,8 +78,19 @@ export function useRevisionesLivianos(clase: string | null) {
   };
 }
 
-export function useRevisionDetalleLivianos(params: { bodega: number | null; clase: string | null; revision: number | null }) {
-  const enabled = !!params.bodega && !!params.clase && !!params.revision;
+export function useRevisionDetalleLivianos(params: {
+  bodega: number | null;
+  clase: string | null;
+  revision: number | null;
+  kmClienteValido: boolean;
+  yearModel: number | null;
+}) {
+  const enabled =
+    !!params.bodega &&
+    !!params.clase &&
+    !!params.revision &&
+    params.kmClienteValido === true &&
+    params.yearModel != null;
 
   const {
     data,
@@ -97,6 +108,7 @@ export function useRevisionDetalleLivianos(params: { bodega: number | null; clas
         bodega: params.bodega as number,
         clase: params.clase as string,
         revision: params.revision as number,
+        yearModel: params.yearModel as number,
       }),
     enabled,
     staleTime: 2 * 60 * 1000,

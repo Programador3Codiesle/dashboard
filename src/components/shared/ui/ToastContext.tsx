@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useState, useMemo } from "react";
+import React, { createContext, useCallback, useContext, useState, useMemo, useRef } from "react";
 
 type ToastVariant = "success" | "error" | "info";
 
@@ -20,11 +20,22 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const lastToastRef = useRef<{ key: string; ts: number } | null>(null);
 
   const addToast = useCallback((message: string, variant: ToastVariant) => {
+    const key = `${variant}:${message}`;
+    const now = Date.now();
+
+    // Evita duplicados inmediatos (por StrictMode u otros dobles disparos)
+    if (lastToastRef.current && lastToastRef.current.key === key && now - lastToastRef.current.ts < 500) {
+      return;
+    }
+
+    lastToastRef.current = { key, ts: now };
+
     setToasts((prev) => [
       ...prev,
-      { id: Date.now() + Math.random(), message, variant },
+      { id: now + Math.random(), message, variant },
     ]);
     // Auto-remove después de unos segundos
     setTimeout(() => {
