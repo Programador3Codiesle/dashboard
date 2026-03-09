@@ -32,6 +32,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     icono: Car,
     color: "from-blue-500 to-blue-600",
   },
+  /*
   {
     id: "pesados",
     nombre: "Pesados",
@@ -40,6 +41,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     icono: Truck,
     color: "from-emerald-500 to-emerald-600",
   },
+  */
   {
     id: "informe-cotizaciones",
     nombre: "Informe de cotizaciones",
@@ -80,6 +82,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     icono: PlusCircle,
     color: "from-purple-500 to-purple-600",
   },
+  /*
   {
     id: "adicionales-pesados",
     nombre: "Adicionales Pesados",
@@ -88,6 +91,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     icono: PlusCircle,
     color: "from-pink-500 to-pink-600",
   },
+  */
   {
     id: "editar-repuesto-mano-obra",
     nombre: "Editar repuesto / mano de obra",

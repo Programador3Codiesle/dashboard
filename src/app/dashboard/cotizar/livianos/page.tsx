@@ -61,9 +61,24 @@ export default function CotizarLivianosPage() {
     bodega: bodegaSeleccionada,
     clase: vehiculoClase,
     revision: revisionSeleccionada,
-    kmClienteValido,
+    // Sólo cargamos la plantilla automática en MTTO GARANTÍA.
+    kmClienteValido: kmClienteValido && tipoMantenimiento === "0",
     yearModel: (vehiculo as any)?.year ?? null,
   });
+
+  // Cuando cambia el tipo de mantenimiento, reseteamos selección y tablas
+  useEffect(() => {
+    // Si aún no hay vehículo cargado, no hacemos nada
+    if (!vehiculo) return;
+
+    setRevisionSeleccionada(null);
+    setKilometrajeCliente("");
+    setAgendarCita(false);
+    setObservaciones("");
+    setAdicionalSeleccionado("");
+    setRepuestosState([]);
+    setManoObraState([]);
+  }, [tipoMantenimiento, vehiculo]);
 
   useEffect(() => {
     if (!detalle) {
@@ -231,10 +246,130 @@ export default function CotizarLivianosPage() {
     showSuccess(`Operación "${mo.operacion}" agregada a la cotización.`);
   };
 
+  const [adicionalRepuestosSeleccionados, setAdicionalRepuestosSeleccionados] = useState<
+    Record<string, boolean>
+  >({});
+  const [adicionalManoSeleccionados, setAdicionalManoSeleccionados] = useState<
+    Record<string, boolean>
+  >({});
+
+  const totalModalRepuestos = useMemo(() => {
+    if (!adicionalModalData?.repuestos?.length) return 0;
+    return adicionalModalData.repuestos.reduce((acc: number, r: any) => {
+      const key = String(r.codigo);
+      if (!adicionalRepuestosSeleccionados[key]) return acc;
+      const precio = Number(r.Valor ?? r.valor ?? 0);
+      const desc = Number(r.descuento ?? 0) / 100;
+      const precioConDesc = Math.round(precio * (1 - desc));
+      return acc + precioConDesc;
+    }, 0);
+  }, [adicionalModalData?.repuestos, adicionalRepuestosSeleccionados]);
+
+  const totalModalManoObra = useMemo(() => {
+    if (!adicionalModalData?.manoObra?.length) return 0;
+    return adicionalModalData.manoObra.reduce((acc: number, mo: any) => {
+      const key = String(mo.id ?? mo.operacion);
+      if (!adicionalManoSeleccionados[key]) return acc;
+      const precioBase = usarValorMenos5
+        ? Number(mo.valor_menos_5anos ?? 0)
+        : Number(mo.valor_mas_5anos ?? 0);
+      const desc = Number(mo.descuento ?? 0) / 100;
+      const precioConDesc = Math.round(precioBase * (1 - desc));
+      return acc + precioConDesc;
+    }, 0);
+  }, [adicionalModalData?.manoObra, adicionalManoSeleccionados, usarValorMenos5]);
+
+  const handleAgregarAdicionalSeleccionados = () => {
+    if (!adicionalModalData) return;
+
+    const nuevosRepuestos = (adicionalModalData.repuestos ?? []).filter((r: any) =>
+      adicionalRepuestosSeleccionados[String(r.codigo)],
+    );
+    const nuevosManos = (adicionalModalData.manoObra ?? []).filter((m: any) => {
+      const key = String(m.id ?? m.operacion);
+      return adicionalManoSeleccionados[key];
+    });
+
+    if (!nuevosRepuestos.length && !nuevosManos.length) {
+      showError("Seleccione al menos un repuesto o una mano de obra del adicional.");
+      return;
+    }
+
+    setRepuestosState((prev) => {
+      const baseSeq =
+        prev && prev.length && prev[prev.length - 1]?.seq != null
+          ? Number(prev[prev.length - 1].seq)
+          : 0;
+      let offset = 1;
+      const agregados = nuevosRepuestos.map((r: any) => {
+        const precioBase = Number(r.Valor ?? r.valor ?? 0);
+        const desc = Number(r.descuento ?? 0) / 100;
+        const valor = Math.round(precioBase * (1 - desc));
+        const seq = baseSeq + offset++;
+        return {
+          seq,
+          codigo: r.codigo,
+          descripcion: r.descripcion,
+          cantidad: Number(r.cantidad ?? 1),
+          categoria: r.categoria ?? "ADICIONAL",
+          unidades_disponibles: Number(r.unidades_disponibles ?? 0),
+          valor,
+          autorizado: true,
+          obligatorio: false,
+          adicional: r.name_adicional ?? "Adicional",
+        };
+      });
+      return [...prev, ...agregados];
+    });
+
+    setManoObraState((prev) => {
+      const agregados = nuevosManos.map((mo: any) => {
+        const precioBase = usarValorMenos5
+          ? Number(mo.valor_menos_5anos ?? 0)
+          : Number(mo.valor_mas_5anos ?? 0);
+        const desc = Number(mo.descuento ?? 0) / 100;
+        const valor = Math.round(precioBase * (1 - desc));
+        return {
+          operacion: mo.operacion,
+          descripcion_operacion: mo.operacion,
+          valor_unitario: valor,
+          cant_horas: Number(mo.tiempo ?? mo.cant_horas ?? 0),
+          autorizado: true,
+          adicional: mo.name_adicional ?? "Adicional",
+        };
+      });
+      return [...prev, ...agregados];
+    });
+
+    setAdicionalRepuestosSeleccionados({});
+    setAdicionalManoSeleccionados({});
+    setOpenAdicionalModal(false);
+    setAdicionalModalData(null);
+    showSuccess("Adicional agregado a la cotización.");
+  };
+
   const guardarMutation = useMutation({
     mutationFn: async () => {
-      if (!vehiculo || !detalle || !bodegaSeleccionada || !revisionSeleccionada) {
+      if (!vehiculo || bodegaSeleccionada == null || revisionSeleccionada == null) {
         throw new Error("Faltan datos para guardar la cotización.");
+      }
+
+      // En MTTO GARANTÍA exigimos haber cargado la plantilla base.
+      if (tipoMantenimiento === "0" && !detalle) {
+        throw new Error(
+          "No se pudo cargar el detalle base de la cotización. Verifique bodega, revisión y kilometraje.",
+        );
+      }
+
+      // En MTTO A LA MEDIDA las tablas empiezan vacías y el cliente
+      // debe agregar manualmente repuestos y/o mano de obra.
+      if (
+        tipoMantenimiento === "1" &&
+        (!repuestosState?.length && !manoObraState?.length)
+      ) {
+        throw new Error(
+          "En MTTO A LA MEDIDA debe agregar al menos un repuesto o una mano de obra antes de guardar.",
+        );
       }
 
       const v = vehiculo as any;
@@ -270,7 +405,7 @@ export default function CotizarLivianosPage() {
         uni_disponibles: r.unidades_disponibles,
         valor: r.valor,
         estado: r.autorizado ? 1 : 0,
-        adicional: null,
+        adicional: r.adicional ?? null,
       }));
 
       const manoObra = (manoObraState ?? []).map((m: any) => ({
@@ -569,10 +704,12 @@ export default function CotizarLivianosPage() {
                 onClick={() => guardarMutation.mutate()}
                 disabled={
                   guardarMutation.isPending ||
-                  !detalle ||
-                  !bodegaSeleccionada ||
-                  !revisionSeleccionada ||
-                  !kmClienteValido
+                  bodegaSeleccionada == null ||
+                  revisionSeleccionada == null ||
+                  !kmClienteValido ||
+                  (tipoMantenimiento === "0"
+                    ? !detalle
+                    : !(repuestosState?.length || manoObraState?.length))
                 }
                 className="inline-flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl text-sm font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
@@ -616,7 +753,11 @@ export default function CotizarLivianosPage() {
       )}
 
       {/* Loader local: se muestra al traer detalle (bodega + revisión + km cliente válidos) */}
-      {kmClienteValido && bodegaSeleccionada != null && revisionSeleccionada != null && loadingDetalle && (
+      {kmClienteValido &&
+        tipoMantenimiento === "0" &&
+        bodegaSeleccionada != null &&
+        revisionSeleccionada != null &&
+        loadingDetalle && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -627,8 +768,13 @@ export default function CotizarLivianosPage() {
         </motion.div>
       )}
 
-      {/* Tabla simple con detalle de repuestos y mano de obra */}
-      {detalle && !loadingDetalle && (
+      {/* Tabla con detalle de repuestos y mano de obra.
+          En MTTO GARANTÍA se alimenta desde la plantilla (detalle).
+          En MTTO A LA MEDIDA se alimenta sólo con los adicionales que agregue el usuario. */}
+      {!loadingDetalle &&
+        (tipoMantenimiento === "0"
+          ? !!detalle
+          : !!(repuestosState?.length || manoObraState?.length)) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -681,7 +827,7 @@ export default function CotizarLivianosPage() {
               </thead>
               <tbody>
                 {(repuestosState ?? []).map((r: any) => (
-                  <tr key={r.seq} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={r.seq ?? r.codigo} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-2 px-3">{r.codigo}</td>
                     <td className="py-2 px-3">{r.descripcion}</td>
                     <td className="py-2 px-3 text-center">{r.cantidad}</td>
@@ -710,7 +856,9 @@ export default function CotizarLivianosPage() {
                 {!(repuestosState ?? []).length && (
                   <tr>
                     <td colSpan={8} className="py-3 px-3 text-center text-gray-500">
-                      No hay repuestos configurados para esta revisión.
+                      {tipoMantenimiento === "1"
+                        ? "No hay repuestos agregados. Usa el panel de adicionales para añadirlos."
+                        : "No hay repuestos configurados para esta revisión."}
                     </td>
                   </tr>
                 )}
@@ -780,9 +928,15 @@ export default function CotizarLivianosPage() {
 
       {/* Modal Agregar adicionales */}
       {openAdicionalModal && adicionalModalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Agregar adicionales</h3>
+
+            {/* Caso 1: adicionales solo de mano de obra (Diagnóstico u otros que no tienen repuestos) */}
             {(adicionalModalData.soloManoObra || adicionalSeleccionado === "2") &&
             adicionalModalData.manoObra?.length > 0 ? (
               <div className="space-y-4">
@@ -807,15 +961,24 @@ export default function CotizarLivianosPage() {
                         const desc = Number(mo.descuento ?? 0) / 100;
                         const precioConDesc = Math.round(precio * (1 - desc));
                         return (
-                          <tr key={mo.id ?? mo.operacion} className="border-b border-gray-100 hover:bg-gray-50">
+                          <tr
+                            key={mo.id ?? mo.operacion}
+                            className="border-b border-gray-100 hover:bg-gray-50"
+                          >
                             <td className="py-2 px-3">{mo.operacion}</td>
                             <td className="py-2 px-3 text-center">{Number(mo.tiempo)}</td>
-                            <td className="py-2 px-3 text-center">{Number(mo.descuento ?? 0)}%</td>
-                            <td className="py-2 px-3 text-right">
-                              {new Intl.NumberFormat("es-CO", { minimumFractionDigits: 0 }).format(precio)}
+                            <td className="py-2 px-3 text-center">
+                              {Number(mo.descuento ?? 0)}%
                             </td>
                             <td className="py-2 px-3 text-right">
-                              {new Intl.NumberFormat("es-CO", { minimumFractionDigits: 0 }).format(precioConDesc)}
+                              {new Intl.NumberFormat("es-CO", {
+                                minimumFractionDigits: 0,
+                              }).format(precio)}
+                            </td>
+                            <td className="py-2 px-3 text-right">
+                              {new Intl.NumberFormat("es-CO", {
+                                minimumFractionDigits: 0,
+                              }).format(precioConDesc)}
                             </td>
                             <td className="py-2 px-3 text-center">
                               <button
@@ -834,16 +997,201 @@ export default function CotizarLivianosPage() {
                 </div>
               </div>
             ) : adicionalModalData.repuestos?.length > 0 || adicionalModalData.manoObra?.length > 0 ? (
-              <div className="text-sm text-gray-600">
-                Repuestos y/o mano de obra disponibles (flujo completo en construcción).
+              // Caso 2: MTTO A LA MEDIDA (u otros adicionales con repuestos y/o mano de obra)
+              <div className="space-y-6">
+                {adicionalModalData.repuestos?.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700">Repuestos del adicional</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200 text-center">
+                            <th className="py-2 px-3 text-left">Código</th>
+                            <th className="py-2 px-3 text-left">Descripción</th>
+                            <th className="py-2 px-3">Cantidad</th>
+                            <th className="py-2 px-3">Descuento</th>
+                            <th className="py-2 px-3 text-right">Precio</th>
+                            <th className="py-2 px-3 text-right">Precio con descuento</th>
+                            <th className="py-2 px-3">Und. disp.</th>
+                            <th className="py-2 px-3">Agregar</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adicionalModalData.repuestos.map((r: any) => {
+                            const precio = Number(r.Valor ?? r.valor ?? 0);
+                            const desc = Number(r.descuento ?? 0) / 100;
+                            const precioConDesc = Math.round(precio * (1 - desc));
+                            const key = String(r.codigo);
+                            const checked = !!adicionalRepuestosSeleccionados[key];
+                            return (
+                              <tr
+                                key={key}
+                                className="border-b border-gray-100 hover:bg-gray-50"
+                              >
+                                <td className="py-2 px-3">{r.codigo}</td>
+                                <td className="py-2 px-3">{r.descripcion}</td>
+                                <td className="py-2 px-3 text-center">
+                                  {Number(r.cantidad ?? 1)}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  {Number(r.descuento ?? 0)}%
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  {new Intl.NumberFormat("es-CO", {
+                                    minimumFractionDigits: 0,
+                                  }).format(precio)}
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  {new Intl.NumberFormat("es-CO", {
+                                    minimumFractionDigits: 0,
+                                  }).format(precioConDesc)}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  {Number(r.unidades_disponibles ?? 0)}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary)"
+                                    checked={checked}
+                                    onChange={(e) =>
+                                      setAdicionalRepuestosSeleccionados((prev) => ({
+                                        ...prev,
+                                        [key]: e.target.checked,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <th
+                              colSpan={8}
+                              className="py-2 px-3 text-right font-semibold text-gray-800"
+                            >
+                              Total:{" "}
+                              {new Intl.NumberFormat("es-CO", {
+                                style: "currency",
+                                currency: "COP",
+                                minimumFractionDigits: 0,
+                              }).format(totalModalRepuestos)}
+                            </th>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {adicionalModalData.manoObra?.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-gray-700">Mano de obra del adicional</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200 text-center">
+                            <th className="py-2 px-3 text-left">Operación</th>
+                            <th className="py-2 px-3">Tiempo</th>
+                            <th className="py-2 px-3">Descuento</th>
+                            <th className="py-2 px-3 text-right">Precio</th>
+                            <th className="py-2 px-3 text-right">Precio con descuento</th>
+                            <th className="py-2 px-3">Agregar</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {adicionalModalData.manoObra.map((mo: any) => {
+                            const precioBase = usarValorMenos5
+                              ? Number(mo.valor_menos_5anos ?? 0)
+                              : Number(mo.valor_mas_5anos ?? 0);
+                            const desc = Number(mo.descuento ?? 0) / 100;
+                            const precioConDesc = Math.round(precioBase * (1 - desc));
+                            const key = String(mo.id ?? mo.operacion);
+                            const checked = !!adicionalManoSeleccionados[key];
+                            return (
+                              <tr
+                                key={key}
+                                className="border-b border-gray-100 hover:bg-gray-50"
+                              >
+                                <td className="py-2 px-3">{mo.operacion}</td>
+                                <td className="py-2 px-3 text-center">
+                                  {Number(mo.tiempo ?? 0)}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  {Number(mo.descuento ?? 0)}%
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  {new Intl.NumberFormat("es-CO", {
+                                    minimumFractionDigits: 0,
+                                  }).format(precioBase)}
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  {new Intl.NumberFormat("es-CO", {
+                                    minimumFractionDigits: 0,
+                                  }).format(precioConDesc)}
+                                </td>
+                                <td className="py-2 px-3 text-center">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-(--color-primary) focus:ring-(--color-primary)"
+                                    checked={checked}
+                                    onChange={(e) =>
+                                      setAdicionalManoSeleccionados((prev) => ({
+                                        ...prev,
+                                        [key]: e.target.checked,
+                                      }))
+                                    }
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <th
+                              colSpan={6}
+                              className="py-2 px-3 text-right font-semibold text-gray-800"
+                            >
+                              Total:{" "}
+                              {new Intl.NumberFormat("es-CO", {
+                                style: "currency",
+                                currency: "COP",
+                                minimumFractionDigits: 0,
+                              }).format(totalModalManoObra)}
+                            </th>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleAgregarAdicionalSeleccionados}
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium brand-bg brand-bg-hover text-white"
+                  >
+                    Agregar seleccionados
+                  </button>
+                </div>
               </div>
             ) : (
               <p className="text-sm text-gray-500">No hay datos disponibles para este adicional.</p>
             )}
+
             <div className="mt-6 flex justify-end">
               <button
                 type="button"
-                onClick={() => { setOpenAdicionalModal(false); setAdicionalModalData(null); }}
+                onClick={() => {
+                  setOpenAdicionalModal(false);
+                  setAdicionalModalData(null);
+                  setAdicionalRepuestosSeleccionados({});
+                  setAdicionalManoSeleccionados({});
+                }}
                 className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cerrar

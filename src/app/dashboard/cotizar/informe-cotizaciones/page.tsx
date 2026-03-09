@@ -2,9 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarRange, FileText, Truck } from "lucide-react";
+import { CalendarRange, FileText, Mail, Truck } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useInformeCotizaciones } from "@/modules/cotizador/hooks/useInformeCotizaciones";
-import { TipoCotizacion } from "@/modules/cotizador/services/cotizador-informes.service";
+import {
+  cotizadorInformesService,
+  TipoCotizacion,
+} from "@/modules/cotizador/services/cotizador-informes.service";
+import { useToast } from "@/components/shared/ui/ToastContext";
+import { usePagination } from "@/components/shared/ui/hooks/usePagination";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 function getDefaultDates() {
   const today = new Date();
@@ -23,15 +31,98 @@ export default function InformeCotizacionesPage() {
   const [tipo, setTipo] = useState<TipoCotizacion>("livianos");
   const [dateStart, setDateStart] = useState<string>(defaults.start);
   const [dateEnd, setDateEnd] = useState<string>(defaults.end);
+  const [emailLoadingId, setEmailLoadingId] = useState<number | null>(null);
+  const [agendaLoadingId, setAgendaLoadingId] = useState<number | null>(null);
 
-  const { cotizaciones, loading, error } = useInformeCotizaciones(tipo, dateStart, dateEnd);
+  const { user } = useAuth();
+  const { cotizaciones, loading, error, refetch } = useInformeCotizaciones(tipo, dateStart, dateEnd);
+  const { showSuccess, showError } = useToast();
+
+  const emailMutation = useMutation({
+    mutationFn: async (vars: { idCotizacion: number; placa: string }) => {
+      setEmailLoadingId(vars.idCotizacion);
+      return cotizadorInformesService.enviarEmail({
+        tipo,
+        idCotizacion: vars.idCotizacion,
+        placa: vars.placa,
+        estado: 0,
+        agenda: false,
+        empresa: user?.empresa,
+      });
+    },
+    onSuccess: (data) => {
+      showSuccess(data?.message ?? "Correo de cotización enviado correctamente.");
+    },
+    onError: (err: any) => {
+      showError(err?.message ?? "No se pudo enviar el correo de la cotización.");
+    },
+    onSettled: () => {
+      setEmailLoadingId(null);
+    },
+  });
+
+  const agendaMutation = useMutation({
+    mutationFn: async (vars: { idCotizacion: number; placa: string }) => {
+      setAgendaLoadingId(vars.idCotizacion);
+      await cotizadorInformesService.actualizarEstado({
+        tipo,
+        idCotizacion: vars.idCotizacion,
+      });
+      const result = await cotizadorInformesService.enviarEmail({
+        tipo,
+        idCotizacion: vars.idCotizacion,
+        placa: vars.placa,
+        estado: 1,
+        agenda: true,
+        empresa: user?.empresa,
+      });
+      return result;
+    },
+    onSuccess: async (data) => {
+      showSuccess(data?.message ?? "Estado de agenda actualizado y correo enviado.");
+      await refetch();
+    },
+    onError: (err: any) => {
+      showError(err?.message ?? "No se pudo actualizar la agenda de la cotización.");
+    },
+    onSettled: () => {
+      setAgendaLoadingId(null);
+    },
+  });
+
+  const handleVerPdf = (c: { id_cotizacion: number; placa: string; origen: TipoCotizacion }) => {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    let url = `${baseUrl}/cotizador/informe-cotizaciones/pdf?origen=${c.origen}&idCotizacion=${c.id_cotizacion}&placa=${encodeURIComponent(
+      c.placa,
+    )}`;
+    if (user?.empresa != null) url += `&empresa=${user.empresa}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const filtered = useMemo(() => cotizaciones, [cotizaciones]);
 
   const resumen = useMemo(() => {
-    const total = cotizaciones.length;
-    const agendadas = cotizaciones.filter((c) => c.estado === 1).length;
+    const total = filtered.length;
+    const agendadas = filtered.filter((c) => c.estado === 1).length;
     const sinAgenda = total - agendadas;
     return { total, agendadas, sinAgenda };
-  }, [cotizaciones]);
+  }, [filtered]);
+
+  const { currentPage, totalPages, startIndex, endIndex, changePage } = usePagination(filtered.length, 20);
+
+  const cotizacionesMostradas = useMemo(
+    () => filtered.slice(startIndex, endIndex),
+    [filtered, startIndex, endIndex],
+  );
+
+  const PaginacionCotizaciones = () => {
+    if (totalPages <= 1) return null;
+    return (
+      <div className="p-4 border-t border-gray-200">
+        <Pagination currentPage={currentPage} totalPages={totalPages} onChange={changePage} />
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -166,15 +257,23 @@ export default function InformeCotizacionesPage() {
                 <th className="text-left py-2 px-3">Bodega</th>
                 <th className="text-center py-2 px-3">Estado</th>
                 <th className="text-left py-2 px-3">Fecha</th>
+                <th className="text-center py-2 px-3">PDF</th>
+                <th className="text-center py-2 px-3">Email</th>
+                <th className="text-center py-2 px-3">Agenda</th>
               </tr>
             </thead>
             <tbody>
-              {cotizaciones.map((c) => {
+              {cotizacionesMostradas.map((c) => {
                 const estadoLabel = c.estado === 1 ? "AGENDADA" : "SIN AGENDAR";
                 const estadoClass =
                   c.estado === 1
                     ? "bg-green-100 text-green-800 border border-green-200"
                     : "bg-amber-100 text-amber-800 border border-amber-200";
+                const todayIso = new Date().toISOString().slice(0, 10);
+                const caducidadValida = c.caducidad != null && c.caducidad >= todayIso;
+                const puedeAgendar = c.estado === 0 && caducidadValida;
+                const isEmailLoading = emailLoadingId === c.id_cotizacion;
+                const isAgendaLoading = agendaLoadingId === c.id_cotizacion;
 
                 return (
                   <tr key={`${c.origen}-${c.id_cotizacion}`} className="border-b border-gray-100 hover:bg-gray-50">
@@ -203,12 +302,53 @@ export default function InformeCotizacionesPage() {
                         timeStyle: "short",
                       })}
                     </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleVerPdf(c)}
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <FileText size={14} className="mr-1" />
+                        Ver
+                      </button>
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        type="button"
+                        disabled={isEmailLoading}
+                        onClick={() =>
+                          emailMutation.mutate({
+                            idCotizacion: c.id_cotizacion,
+                            placa: c.placa,
+                          })
+                        }
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium brand-bg brand-bg-hover text-white disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Mail size={14} className="mr-1" />
+                        {isEmailLoading ? "Enviando..." : "Email"}
+                      </button>
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        type="button"
+                        disabled={!puedeAgendar || isAgendaLoading}
+                        onClick={() =>
+                          agendaMutation.mutate({
+                            idCotizacion: c.id_cotizacion,
+                            placa: c.placa,
+                          })
+                        }
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-medium border border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isAgendaLoading ? "Actualizando..." : "Agenda"}
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
-              {!loading && cotizaciones.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="py-4 px-3 text-center text-gray-500">
+                  <td colSpan={13} className="py-4 px-3 text-center text-gray-500">
                     No se encontraron cotizaciones para el rango seleccionado.
                   </td>
                 </tr>
@@ -216,6 +356,7 @@ export default function InformeCotizacionesPage() {
             </tbody>
           </table>
         </div>
+        <PaginacionCotizaciones />
       </motion.div>
     </div>
   );

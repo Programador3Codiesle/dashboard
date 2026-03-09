@@ -26,6 +26,21 @@ export interface ListarCotizacionesParams {
   dateEnd: string;
 }
 
+export interface EnviarEmailCotizacionParams {
+  tipo: TipoCotizacion;
+  idCotizacion: number;
+  placa: string;
+  estado?: number;
+  agenda?: boolean;
+  /** 1=Codiesel, 2=Dieselco, 3=Mitsubishi, 4=BYD. Opcional; para colores del PDF adjunto. */
+  empresa?: number;
+}
+
+export interface ActualizarEstadoCotizacionParams {
+  tipo: TipoCotizacion;
+  idCotizacion: number;
+}
+
 export const cotizadorInformesService = {
   async listar(tipo: TipoCotizacion, params: ListarCotizacionesParams): Promise<CotizacionResumen[]> {
     const search = new URLSearchParams({
@@ -48,6 +63,52 @@ export const cotizadorInformesService = {
 
     const data = (await response.json()) as CotizacionResumen[];
     return data;
+  },
+
+  async enviarEmail(params: EnviarEmailCotizacionParams): Promise<{ ok: boolean; message: string }> {
+    const body = {
+      origen: params.tipo,
+      idCotizacion: params.idCotizacion,
+      placa: params.placa,
+      estado: params.estado ?? 0,
+      agenda: params.agenda ?? false,
+      ...(params.empresa != null && { empresa: params.empresa }),
+    };
+
+    const response = await fetchWithAuth(`${API_URL}/cotizador/informe-cotizaciones/email`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo enviar el correo de la cotización.");
+    }
+
+    const data = (await response.json()) as { ok: boolean; message: string };
+    return data;
+  },
+
+  async actualizarEstado(params: ActualizarEstadoCotizacionParams): Promise<void> {
+    const body = {
+      origen: params.tipo,
+      idCotizacion: params.idCotizacion,
+    };
+
+    const response = await fetchWithAuth(`${API_URL}/cotizador/informe-cotizaciones/agenda`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo actualizar el estado de la cotización.");
+    }
+
+    // No necesitamos el body de respuesta; con que no falle es suficiente.
+    try {
+      await response.json();
+    } catch {
+      // ignorar si no hay cuerpo JSON
+    }
   },
 };
 

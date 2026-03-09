@@ -8,6 +8,8 @@ import {
   useEjecucionCotizacionToFacturado,
   useEjecucionFacturadoToCotizacion,
 } from "@/modules/cotizador/hooks/useEjecucionCotizadoVsFacturado";
+import { usePagination } from "@/components/shared/ui/hooks/usePagination";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 function getDefaultDates() {
   const today = new Date();
@@ -47,6 +49,34 @@ export default function EjecucionCotizadoVsFacturadoPage() {
     loading: loadingFactToCot,
     error: errorFactToCot,
   } = useEjecucionFacturadoToCotizacion(filtro);
+
+  // Paginación Cotizado -> Facturado
+  const {
+    currentPage: currentPageCotToFact,
+    totalPages: totalPagesCotToFact,
+    startIndex: startCotToFact,
+    endIndex: endCotToFact,
+    changePage: changePageCotToFact,
+  } = usePagination(filasCotToFact.length, 10);
+
+  const filasCotToFactMostradas = useMemo(
+    () => filasCotToFact.slice(startCotToFact, endCotToFact),
+    [filasCotToFact, startCotToFact, endCotToFact],
+  );
+
+  // Paginación Facturado -> Cotizado
+  const {
+    currentPage: currentPageFactToCot,
+    totalPages: totalPagesFactToCot,
+    startIndex: startFactToCot,
+    endIndex: endFactToCot,
+    changePage: changePageFactToCot,
+  } = usePagination(filasFactToCot.length, 10);
+
+  const filasFactToCotMostradas = useMemo(
+    () => filasFactToCot.slice(startFactToCot, endFactToCot),
+    [filasFactToCot, startFactToCot, endFactToCot],
+  );
 
   return (
     <div className="space-y-6">
@@ -222,7 +252,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
               </tr>
             </thead>
             <tbody>
-              {filasCotToFact.map((f) => (
+              {filasCotToFactMostradas.map((f) => (
                 <tr key={`${f.id_cotizacion}-${f.numero}-${f.codigo}-${f.operacion}`} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-2 px-3 text-center">{f.id_cotizacion}</td>
                   <td className="py-2 px-3 text-center">{f.numero}</td>
@@ -250,6 +280,15 @@ export default function EjecucionCotizadoVsFacturadoPage() {
             </tbody>
           </table>
         </div>
+        {totalPagesCotToFact > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPageCotToFact}
+              totalPages={totalPagesCotToFact}
+              onChange={changePageCotToFact}
+            />
+          </div>
+        )}
       </motion.div>
 
       {/* Tabla Facturado a Cotizado */}
@@ -285,7 +324,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
               </tr>
             </thead>
             <tbody>
-              {filasFactToCot.map((f) => (
+              {filasFactToCotMostradas.map((f) => (
                 <tr key={`${f.id_cotizacion}-${f.numero}-${f.codigo}-${f.operacion}`} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-2 px-3 text-center">{f.id_cotizacion}</td>
                   <td className="py-2 px-3 text-center">{f.numero}</td>
@@ -313,6 +352,15 @@ export default function EjecucionCotizadoVsFacturadoPage() {
             </tbody>
           </table>
         </div>
+        {totalPagesFactToCot > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPageFactToCot}
+              totalPages={totalPagesFactToCot}
+              onChange={changePageFactToCot}
+            />
+          </div>
+        )}
       </motion.div>
     </div>
   );
