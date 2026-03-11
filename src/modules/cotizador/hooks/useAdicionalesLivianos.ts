@@ -4,6 +4,7 @@ import {
   BulkManoObraAdicionalLivianoInput,
   BulkRepuestoAdicionalLivianoInput,
   BulkResultAdicionalLiviano,
+  CodigoRepuestoValidationResponse,
   ListarAdicionalesLivianosResponse,
   cotizadorAdicionalesLivianosService,
 } from "../services/cotizador-adicionales-livianos.service";
@@ -42,6 +43,18 @@ export function useCrearAdicionalLiviano() {
   });
 }
 
+export function useUpdateEstadoAdicionalLiviano() {
+  const client = useQueryClient();
+
+  return useMutation<void, Error, { id: number; estado: number }>({
+    mutationFn: ({ id, estado }) =>
+      cotizadorAdicionalesLivianosService.updateAdicionalEstado(id, estado),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ADICIONALES_LIVIANOS_KEYS.init });
+    },
+  });
+}
+
 export function useCargarAdicionalLiviano() {
   return useMutation<
     BulkResultAdicionalLiviano,
@@ -55,6 +68,17 @@ export function useCargarAdicionalLiviano() {
   >({
     mutationFn: (payload) =>
       cotizadorAdicionalesLivianosService.cargarItems(payload),
+  });
+}
+
+export function useValidarCodigoRepuesto() {
+  return useMutation<
+    CodigoRepuestoValidationResponse,
+    Error,
+    { codigo: string }
+  >({
+    mutationFn: ({ codigo }) =>
+      cotizadorAdicionalesLivianosService.validarCodigoRepuesto(codigo),
   });
 }
 
@@ -82,5 +106,91 @@ export function useListarAdicionalesLivianos(params: {
     error: error ? "No se pudo listar los adicionales." : null,
     refetch,
   };
+}
+
+export function useUpdateRepuestoAdicionalLiviano() {
+  const client = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    {
+      seq: number;
+      descripcion: string;
+      cantidad: number;
+      yearStart: number;
+      yearEnd: number;
+      descuento?: number | null;
+    }
+  >({
+    mutationFn: (payload) =>
+      cotizadorAdicionalesLivianosService.updateRepuestoAdicional(payload),
+    onSuccess: () => {
+      client.invalidateQueries({
+        queryKey: ADICIONALES_LIVIANOS_KEYS.lista(undefined, "all"),
+      });
+    },
+  });
+}
+
+export function useUpdateManoObraAdicionalLiviano() {
+  const client = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    {
+      id: number;
+      operacion: string;
+      tiempo: number;
+      valorMenos5: number;
+      valorMas5: number;
+      descuento?: number | null;
+    }
+  >({
+    mutationFn: (payload) =>
+      cotizadorAdicionalesLivianosService.updateManoObraAdicional(payload),
+    onSuccess: () => {
+      client.invalidateQueries({
+        queryKey: ADICIONALES_LIVIANOS_KEYS.lista(undefined, "all"),
+      });
+    },
+  });
+}
+
+export function useDeleteRepuestoAdicionalLiviano() {
+  const client = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    { seq: number; codigo: string; adicionalId: number }
+  >({
+    mutationFn: (payload) =>
+      cotizadorAdicionalesLivianosService.deleteRepuestoAdicional(payload),
+    onSuccess: () => {
+      client.invalidateQueries({
+        queryKey: ADICIONALES_LIVIANOS_KEYS.lista(undefined, "all"),
+      });
+    },
+  });
+}
+
+export function useDeleteManoObraAdicionalLiviano() {
+  const client = useQueryClient();
+
+  return useMutation<
+    void,
+    Error,
+    { id: number; operacion: string; adicionalId: number }
+  >({
+    mutationFn: (payload) =>
+      cotizadorAdicionalesLivianosService.deleteManoObraAdicional(payload),
+    onSuccess: () => {
+      client.invalidateQueries({
+        queryKey: ADICIONALES_LIVIANOS_KEYS.lista(undefined, "all"),
+      });
+    },
+  });
 }
 

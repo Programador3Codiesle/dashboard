@@ -74,6 +74,12 @@ export interface ListarAdicionalesLivianosResponse {
   manoObra: AdicionalManoObraLiviano[];
 }
 
+export interface CodigoRepuestoValidationResponse {
+  response: 'success' | 'error';
+  codigo?: string;
+  alterno?: string | null;
+}
+
 export const cotizadorAdicionalesLivianosService = {
   async getInit(): Promise<AdicionalesLivianosInitResponse> {
     const resp = await fetchWithAuth(
@@ -100,6 +106,21 @@ export const cotizadorAdicionalesLivianosService = {
     if (!resp.ok) {
       const msg = await resp.text();
       throw new Error(msg || "No se pudo crear el adicional.");
+    }
+  },
+
+  async updateAdicionalEstado(id: number, estado: number): Promise<void> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/adicionales-livianos/adicional/estado`,
+      {
+        method: "POST",
+        body: JSON.stringify({ id, estado }),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(msg || "No se pudo actualizar el estado del adicional.");
     }
   },
 
@@ -144,6 +165,115 @@ export const cotizadorAdicionalesLivianosService = {
     }
 
     return (await resp.json()) as ListarAdicionalesLivianosResponse;
+  },
+
+  async validarCodigoRepuesto(
+    codigo: string
+  ): Promise<CodigoRepuestoValidationResponse> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/repuestos/validar-codigo`,
+      {
+        method: "POST",
+        body: JSON.stringify({ codigo }),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(msg || "No se pudo validar el código del repuesto.");
+    }
+
+    return (await resp.json()) as CodigoRepuestoValidationResponse;
+  },
+
+  async updateRepuestoAdicional(payload: {
+    seq: number;
+    descripcion: string;
+    cantidad: number;
+    yearStart: number;
+    yearEnd: number;
+    descuento?: number | null;
+  }): Promise<void> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/adicionales-livianos/items/repuesto`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(
+        msg || "No se pudo actualizar el repuesto del adicional."
+      );
+    }
+  },
+
+  async updateManoObraAdicional(payload: {
+    id: number;
+    operacion: string;
+    tiempo: number;
+    valorMenos5: number;
+    valorMas5: number;
+    descuento?: number | null;
+  }): Promise<void> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/adicionales-livianos/items/mano-obra`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(
+        msg || "No se pudo actualizar la mano de obra del adicional."
+      );
+    }
+  },
+
+  async deleteRepuestoAdicional(payload: {
+    seq: number;
+    codigo: string;
+    adicionalId: number;
+  }): Promise<void> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/adicionales-livianos/items/repuesto`,
+      {
+        method: "DELETE",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(
+        msg || "No se pudo eliminar el repuesto del adicional."
+      );
+    }
+  },
+
+  async deleteManoObraAdicional(payload: {
+    id: number;
+    operacion: string;
+    adicionalId: number;
+  }): Promise<void> {
+    const resp = await fetchWithAuth(
+      `${API_URL}/cotizador/adicionales-livianos/items/mano-obra`,
+      {
+        method: "DELETE",
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      throw new Error(
+        msg || "No se pudo eliminar la mano de obra del adicional."
+      );
+    }
   },
 };
 

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarRange, Search, AlertTriangle, Package } from "lucide-react";
 import { useRepuestosNoDisponibles } from "@/modules/cotizador/hooks/useRepuestosNoDisponibles";
+import { usePagination } from "@/components/shared/ui/hooks/usePagination";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 function getDefaultDates() {
   const today = new Date();
@@ -40,6 +42,20 @@ export default function RepuestosNoDisponiblesPage() {
     refetch,
     enabled,
   } = useRepuestosNoDisponibles(filtro);
+
+  // Paginación local de filas (cliente) – 10 ítems por página
+  const {
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    changePage,
+  } = usePagination(filas.length, 10);
+
+  const filasMostradas = useMemo(
+    () => filas.slice(startIndex, endIndex),
+    [filas, startIndex, endIndex],
+  );
 
   const handleBuscar = () => {
     if (dateStart && dateEnd && dateStart > dateEnd) {
@@ -196,7 +212,7 @@ export default function RepuestosNoDisponiblesPage() {
                   </td>
                 </tr>
               )}
-              {filas.map((row, idx) => (
+              {filasMostradas.map((row, idx) => (
                 <tr
                   key={`${row.bodega}-${row.codigo}-${idx}`}
                   className="hover:bg-gray-50/80 transition-colors"
@@ -214,6 +230,11 @@ export default function RepuestosNoDisponiblesPage() {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="px-5 py-4 border-t border-gray-100 flex justify-center">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onChange={changePage} />
+          </div>
+        )}
       </motion.div>
     </div>
   );

@@ -59,32 +59,66 @@ export default function EditarRepuestoManoObraPage() {
   const [filtros, setFiltros] = useState<Record<string, string>>({});
   const [campos, setCampos] = useState<Record<string, string>>({});
 
-  const { data: opcionesClase } = useEdicionFiltroOpciones({
+  const filtrosConfig = tablaConfig?.filtros ?? [];
+  const filtro1 = filtrosConfig[0] ?? null;
+  const filtro2 = filtrosConfig[1] ?? null;
+  const filtro3 = filtrosConfig[2] ?? null;
+
+  const { data: opcionesFiltro1 } = useEdicionFiltroOpciones({
     tablaKey,
-    filtro: tablaConfig?.columna_clase ?? null,
+    filtro: filtro1,
     whereParcial: {},
   });
 
-  const { data: opcionesRevision } = useEdicionFiltroOpciones({
+  const { data: opcionesFiltro2 } = useEdicionFiltroOpciones({
     tablaKey,
-    filtro: tablaConfig?.filtros.includes("Revision")
-      ? "Revision"
-      : tablaConfig?.filtros.includes("revision")
-      ? "revision"
-      : null,
+    filtro: filtro2,
+    whereParcial:
+      filtro1 != null
+        ? {
+            [filtro1]: filtros[filtro1] ?? "",
+          }
+        : {},
+  });
+
+  const { data: opcionesFiltro3 } = useEdicionFiltroOpciones({
+    tablaKey,
+    filtro: filtro3,
     whereParcial: {
-      [tablaConfig?.columna_clase ?? ""]: filtros[tablaConfig?.columna_clase ?? ""] ?? "",
+      ...(filtro1 != null ? { [filtro1]: filtros[filtro1] ?? "" } : {}),
+      ...(filtro2 != null ? { [filtro2]: filtros[filtro2] ?? "" } : {}),
     },
   });
 
   const handleAplicar = async () => {
     if (!tablaKey || !tablaConfig) return;
-    if (!Object.keys(filtros).length || !Object.keys(campos).length) return;
+
+    // Normalizar filtros: sólo los permitidos por la tabla y con valor
+    const filtrosValidos: Record<string, string> = {};
+    for (const key of tablaConfig.filtros) {
+      const val = filtros[key];
+      if (val !== undefined && val !== "") {
+        filtrosValidos[key] = val;
+      }
+    }
+
+    // Normalizar campos: sólo columnas editables con valor
+    const camposValidos: Record<string, string> = {};
+    for (const col of tablaConfig.columnas_editables) {
+      const val = campos[col];
+      if (val !== undefined && val !== "") {
+        camposValidos[col] = val;
+      }
+    }
+
+    if (!Object.keys(filtrosValidos).length || !Object.keys(camposValidos).length) {
+      return;
+    }
 
     await aplicarMutation.mutateAsync({
       tablaKey,
-      filtros,
-      campos,
+      filtros: filtrosValidos,
+      campos: camposValidos,
     });
   };
 
@@ -132,9 +166,12 @@ export default function EditarRepuestoManoObraPage() {
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() =>
-                        setTipoVehiculo(opt.id as TipoVehiculo)
-                      }
+                      onClick={() => {
+                        setTipoVehiculo(opt.id as TipoVehiculo);
+                        setFiltros({});
+                        setCampos({});
+                        aplicarMutation.reset();
+                      }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                         tipoVehiculo === opt.id
                           ? "border-(--color-primary) text-(--color-primary) bg-gray-50"
@@ -159,9 +196,13 @@ export default function EditarRepuestoManoObraPage() {
                     <button
                       key={opt.id}
                       type="button"
-                      onClick={() =>
-                        setTipoRegistro(opt.id as TipoRegistro)
-                      }
+                      onClick={() => {
+                        setTipoRegistro(opt.id as TipoRegistro);
+                        setTipoMano(null);
+                        setFiltros({});
+                        setCampos({});
+                        aplicarMutation.reset();
+                      }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                         tipoRegistro === opt.id
                           ? "border-(--color-primary) text-(--color-primary) bg-gray-50"
@@ -187,9 +228,12 @@ export default function EditarRepuestoManoObraPage() {
                       <button
                         key={opt.id}
                         type="button"
-                        onClick={() =>
-                          setTipoMano(opt.id as TipoMano)
-                        }
+                        onClick={() => {
+                          setTipoMano(opt.id as TipoMano);
+                          setFiltros({});
+                          setCampos({});
+                          aplicarMutation.reset();
+                        }}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                           tipoMano === opt.id
                             ? "border-(--color-primary) text-(--color-primary) bg-gray-50"
@@ -227,84 +271,55 @@ export default function EditarRepuestoManoObraPage() {
               </p>
             ) : (
               <div className="space-y-3">
-                {/* Clase */}
-                {tablaConfig.columna_clase && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Clase
-                    </label>
-                    <select
-                      className="block w-full border border-gray-300 rounded-xl p-2 text-xs bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
-                      value={filtros[tablaConfig.columna_clase] ?? ""}
-                      onChange={(e) =>
-                        setFiltros((prev) => ({
-                          ...prev,
-                          [tablaConfig.columna_clase]: e.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Todas</option>
-                      {opcionesClase?.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                {filtrosConfig.map((filtroNombre, index) => {
+                  const esClase = filtroNombre === tablaConfig.columna_clase;
+                  const labelBase = esClase
+                    ? "Clase"
+                    : filtroNombre.charAt(0).toUpperCase() +
+                      filtroNombre.slice(1).replace(/_/g, " ");
 
-                {/* Revisión si aplica */}
-                {opcionesRevision && (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Revisión
-                    </label>
-                    <select
-                      className="block w-full border border-gray-300 rounded-xl p-2 text-xs bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
-                      value={filtros.Revision ?? filtros.revision ?? ""}
-                      onChange={(e) =>
-                        setFiltros((prev) => ({
-                          ...prev,
-                          Revision: e.target.value,
-                          revision: e.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Todas</option>
-                      {opcionesRevision.map((r) => (
-                        <option key={r} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                  const opciones =
+                    index === 0
+                      ? opcionesFiltro1
+                      : index === 1
+                      ? opcionesFiltro2
+                      : opcionesFiltro3;
 
-                {/* Campo código (opcional) */}
-                {tablaConfig.filtros.includes("Codigo") ||
-                tablaConfig.filtros.includes("codigo") ? (
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Código
-                    </label>
-                    <input
-                      type="text"
-                      className="block w-full border border-gray-300 rounded-xl p-2 text-xs bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none uppercase"
-                      value={filtros.Codigo ?? filtros.codigo ?? ""}
-                      onChange={(e) =>
-                        setFiltros((prev) => ({
-                          ...prev,
-                          Codigo: e.target.value.toUpperCase(),
-                          codigo: e.target.value.toUpperCase(),
-                        }))
-                      }
-                    />
-                    <p className="mt-1 text-[11px] text-gray-400">
-                      Opcional. Si se indica, la edición solo afectará a este
-                      código.
-                    </p>
-                  </div>
-                ) : null}
+                  return (
+                    <div key={filtroNombre}>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        {labelBase}
+                      </label>
+                      <select
+                        className="block w-full border border-gray-300 rounded-xl p-2 text-xs bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
+                        value={filtros[filtroNombre] ?? ""}
+                        onChange={(e) =>
+                          setFiltros((prev) => {
+                            const value = e.target.value;
+                            const next: Record<string, string> = {
+                              ...prev,
+                              [filtroNombre]: value,
+                            };
+                            // Limpiar filtros dependientes cuando cambia uno anterior
+                            for (let i = index + 1; i < filtrosConfig.length; i++) {
+                              delete next[filtrosConfig[i]];
+                            }
+                            return next;
+                          })
+                        }
+                      >
+                        <option value="">
+                          {esClase ? "Todas las clases" : "Todos"}
+                        </option>
+                        {opciones?.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

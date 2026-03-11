@@ -37,10 +37,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...prev,
       { id: now + Math.random(), message, variant },
     ]);
-    // Auto-remove después de unos segundos
+    // Auto-remove después de unos segundos (ligeramente más largo para facilitar la lectura)
     setTimeout(() => {
       setToasts((prev) => prev.slice(1));
-    }, 4000);
+    }, 7000);
   }, []);
 
   const showSuccess = useCallback((message: string) => addToast(message, "success"), [addToast]);
