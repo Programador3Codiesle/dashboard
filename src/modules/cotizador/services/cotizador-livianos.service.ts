@@ -18,7 +18,10 @@ export interface VehiculoCotizacionLivianos {
   km_estimado: number | null;
   n_carac: number;
   caract_10: string | null;
-   prepagado: string | null;
+  prepagado: string | null;
+  marca?: string | null;
+  marcaDescripcion?: string | null;
+  empresaMarcaId?: number | null;
 }
 
 export interface LivianosInitData {
@@ -127,15 +130,36 @@ export const cotizadorLivianosService = {
     return data;
   },
 
-  async getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionLivianos> {
+  async getVehiculoPorPlaca(placa: string, empresa?: string): Promise<VehiculoCotizacionLivianos> {
     const params = new URLSearchParams({ placa });
+    if (empresa != null && empresa !== "") {
+      params.set("empresa", empresa);
+    }
 
-    const response = await fetchWithAuth(`${API_URL}/cotizador/livianos/vehiculo?${params.toString()}`, {
-      method: "GET",
-    });
+    const response = await fetchWithAuth(
+      `${API_URL}/cotizador/livianos/vehiculo?${params.toString()}`,
+      {
+        method: "GET",
+      },
+    );
 
     if (!response.ok) {
-      const msg = await response.text();
+      let msg: string | undefined;
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          msg = data.message;
+        } else if (Array.isArray(data?.message) && data.message.length > 0) {
+          msg = String(data.message[0]);
+        }
+      } catch {
+        // Si no es JSON, intentamos como texto plano
+        try {
+          msg = await response.text();
+        } catch {
+          msg = undefined;
+        }
+      }
       throw new Error(msg || "No se pudo obtener la información del vehículo.");
     }
 

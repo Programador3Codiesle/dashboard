@@ -6,10 +6,12 @@ import {
   RevisionOption,
   VehiculoCotizacionLivianos,
 } from "../services/cotizador-livianos.service";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 export const COTIZADOR_LIVIANOS_QUERY_KEYS = {
   init: ["cotizador", "livianos", "init"] as const,
-  vehiculo: (placa: string) => ["cotizador", "livianos", "vehiculo", placa] as const,
+  vehiculo: (placa: string, empresaKey: string) =>
+    ["cotizador", "livianos", "vehiculo", placa, empresaKey] as const,
   revisiones: (clase: string) => ["cotizador", "livianos", "revisiones", clase] as const,
   detalle: (bodega: number, clase: string, revision: number) =>
     ["cotizador", "livianos", "detalle", bodega, clase, revision] as const,
@@ -36,6 +38,10 @@ export function useCotizadorLivianosInit() {
 }
 
 export function useVehiculoPorPlaca(placa: string | null) {
+  const { user } = useAuth();
+  const empresaId = user?.empresa;
+  const empresaKey = empresaId != null ? String(empresaId) : "sin-empresa";
+
   const {
     data,
     isLoading,
@@ -43,16 +49,31 @@ export function useVehiculoPorPlaca(placa: string | null) {
     refetch,
   } = useQuery<VehiculoCotizacionLivianos>({
     // react-query v5 no admite queryKey undefined; usamos una clave constante y enabled
-    queryKey: COTIZADOR_LIVIANOS_QUERY_KEYS.vehiculo(placa || ""),
-    queryFn: () => cotizadorLivianosService.getVehiculoPorPlaca(placa || ""),
+    queryKey: COTIZADOR_LIVIANOS_QUERY_KEYS.vehiculo(placa || "", empresaKey),
+    queryFn: () =>
+      cotizadorLivianosService.getVehiculoPorPlaca(
+        placa || "",
+        empresaId != null ? String(empresaId) : undefined,
+      ),
     enabled: !!placa,
     staleTime: 2 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
+
+  let errorMessage: string | null = null;
+  if (error) {
+    if (error instanceof Error && error.message) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = "No se pudo obtener la información del vehículo.";
+    }
+  }
 
   return {
     vehiculo: data,
     loading: isLoading,
-    error: error ? "No se pudo obtener la información del vehículo." : null,
+    error: errorMessage,
     refetch,
   };
 }

@@ -24,6 +24,7 @@ export interface CotizacionResumen {
 export interface ListarCotizacionesParams {
   dateStart: string;
   dateEnd: string;
+  empresa?: number | null;
 }
 
 export interface EnviarEmailCotizacionParams {
@@ -47,6 +48,9 @@ export const cotizadorInformesService = {
       dateStart: params.dateStart,
       dateEnd: params.dateEnd,
     });
+    if (params.empresa != null) {
+      search.set("empresa", String(params.empresa));
+    }
 
     const path =
       tipo === "livianos"

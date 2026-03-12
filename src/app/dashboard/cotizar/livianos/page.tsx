@@ -12,6 +12,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { cotizadorLivianosService } from "@/modules/cotizador/services/cotizador-livianos.service";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 export default function CotizarLivianosPage() {
   const [placaBusqueda, setPlacaBusqueda] = useState("");
@@ -44,6 +45,8 @@ export default function CotizarLivianosPage() {
   } | null>(null);
   const [adicionalModalLoading, setAdicionalModalLoading] = useState(false);
 
+  const { user } = useAuth();
+
   const { showSuccess, showError } = useToast();
 
   const { data: initData, loading: loadingInit, error: errorInit } = useCotizadorLivianosInit();
@@ -65,6 +68,35 @@ export default function CotizarLivianosPage() {
     kmClienteValido: kmClienteValido && tipoMantenimiento === "0",
     yearModel: (vehiculo as any)?.year ?? null,
   });
+
+  // Mostrar errores de búsqueda por placa como toast usando el sistema global
+  useEffect(() => {
+    if (errorVehiculo) {
+      showError(errorVehiculo);
+    }
+  }, [errorVehiculo, showError]);
+
+  // Cuando cambia la empresa seleccionada en el dashboard, reseteamos el submódulo
+  useEffect(() => {
+    // Reset de búsqueda y datos de cotización
+    setPlacaBusqueda("");
+    setPlacaConsultada(null);
+    setBodegaSeleccionada(null);
+    setRevisionSeleccionada(null);
+    setKilometrajeCliente("");
+    setTelefonoCliente("");
+    setEmailCliente("");
+    setObservaciones("");
+    setAgendarCita(false);
+    setTipoMantenimiento("");
+    setAdicionalSeleccionado("");
+    setRepuestosState([]);
+    setManoObraState([]);
+    setOpenAdicionalModal(false);
+    setAdicionalModalData(null);
+    setAdicionalRepuestosSeleccionados({});
+    setAdicionalManoSeleccionados({});
+  }, [user?.empresa]);
 
   // Cuando cambia el tipo de mantenimiento, reseteamos selección y tablas
   useEffect(() => {
