@@ -103,7 +103,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
           <span className="font-semibold">Fecha:</span>
           <span className="text-base font-semibold">{data.fecha_actual}</span>
           {data.dia_festivo === 1 && (
-            <span className="ml-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.7rem] font-medium">
+            <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[0.7rem] font-medium">
               Día festivo
             </span>
           )}
@@ -111,21 +111,21 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <div className="brand-card rounded-xl p-4 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">NPS Codiesel</p>
           <p className="text-2xl font-bold text-gray-900">
             {Math.round(data.nps_int ?? 0)}%{" "}
             <span className="text-sm font-normal text-gray-500">/ 81%</span>
           </p>
         </div>
-        <div className="brand-card rounded-xl p-4 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">NPS Colmotores (PAC)</p>
           <p className="text-2xl font-bold text-gray-900">
             {(data.cal_pac?.Calificacion ?? 0)}%{" "}
             <span className="text-sm font-normal text-gray-500">/ 81%</span>
           </p>
         </div>
-        <div className="brand-card rounded-xl p-4 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">Total Postventa</p>
           <p className="text-2xl font-bold text-gray-900">
             {new Intl.NumberFormat("es-CO", {
@@ -133,7 +133,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
             }).format(Math.round(data.to_posv ?? 0))}
           </p>
         </div>
-        <div className="brand-card rounded-xl p-4 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
           <p className="text-sm text-gray-600">Valor inventario</p>
           <p className="text-2xl font-bold text-gray-900">
             {new Intl.NumberFormat("es-CO", {
@@ -144,7 +144,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       </div>
 
       {grafSedes.length > 0 && (
-        <div className="brand-card rounded-xl p-6 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Total vendido POSVENTA
           </h3>
@@ -174,7 +174,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       )}
 
       {(sedesParaUi.length > 0 || hasPorcen || hasSedesDetalle) && (
-        <div className="brand-card rounded-xl p-6 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Desempeño mensual por sede
           </h3>
@@ -428,7 +428,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       )}
 
       {data.data_estado && data.data_estado.length > 0 && (
-        <div className="brand-card rounded-xl p-6 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Estado agente
           </h3>
@@ -441,7 +441,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
       )}
 
       {hasMto && (
-        <div className="brand-card rounded-xl p-6 shadow border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Solicitudes de mantenimiento
           </h3>

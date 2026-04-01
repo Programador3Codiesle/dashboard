@@ -4,8 +4,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export interface AusentismoInformeAPI {
   id_ausen: string;
+    nit_empleado?: string | null;
   gestionado_por: string;
   colaborador: string;
+    motivo?: string | null;
   sede: string;
   area: string;
   fecha_inicio: string;
@@ -18,8 +20,10 @@ export interface AusentismoInformeAPI {
 
 export interface AusentismoInforme {
   id: number;
+    documento: string;
   gestionadoPor: string;
   colaborador: string;
+    motivo: string;
   sede: string;
   area: string;
   fechaInicio: string;
@@ -38,6 +42,7 @@ export interface FiltrosAusentismo {
   empleado?: string;
   pagina?: number;
   limite?: number;
+  soloPendientes?: boolean;
 }
 
 const ESTADOS: Record<number, string> = {
@@ -49,8 +54,10 @@ const ESTADOS: Record<number, string> = {
 function mapItem(item: AusentismoInformeAPI): AusentismoInforme {
   return {
     id: Number(item.id_ausen),
+    documento: item.nit_empleado ? String(item.nit_empleado) : "N/A",
     gestionadoPor: item.gestionado_por || "N/A",
     colaborador: item.colaborador || "N/A",
+    motivo: item.motivo || "",
     sede: item.sede || "N/A",
     area: item.area || "N/A",
     fechaInicio: new Date(item.fecha_inicio).toISOString().split("T")[0],
@@ -72,6 +79,7 @@ export const informeAusentismoService = {
     if (filtros?.empleado?.trim()) params.append("empleado", filtros.empleado.trim());
     if (filtros?.pagina != null) params.append("pagina", String(filtros.pagina));
     if (filtros?.limite != null) params.append("limite", String(filtros.limite));
+    if (filtros?.soloPendientes) params.append("solo_pendientes", "1");
 
     const response = await fetchWithAuth(
       `${API_URL}/administracion/informe-ausentismo?${params.toString()}`,
