@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   tiempoEntrevistaConsultivaService,
@@ -8,6 +8,7 @@ import {
   TiempoEntrevistaConsultivaResumenRow,
 } from "@/modules/informes/postventa/services/tiempo-entrevista-consultiva.service";
 import { useToast } from "@/components/ui/use-toast";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 function getDefaultStartDate(): string {
   const now = new Date();
@@ -20,17 +21,22 @@ function getDefaultEndDate(): string {
 }
 
 export default function TiempoEntrevistaConsultivaPage() {
-  const { showError } = useToast();
+  const { showError, showInfo } = useToast();
   const [startDate, setStartDate] = useState<string>(getDefaultStartDate);
   const [endDate, setEndDate] = useState<string>(getDefaultEndDate);
+  const [startDateApplied, setStartDateApplied] =
+    useState<string>(getDefaultStartDate);
+  const [endDateApplied, setEndDateApplied] = useState<string>(getDefaultEndDate);
   const [bodegaDetalle, setBodegaDetalle] = useState<number | null>(null);
+  const [currentPageDetalle, setCurrentPageDetalle] = useState(1);
+  const PAGE_SIZE_DETALLE = 10;
 
-  const filtros = useMemo(
+  const filtrosAplicados = useMemo(
     () => ({
-      startDate,
-      endDate,
+      startDate: startDateApplied,
+      endDate: endDateApplied,
     }),
-    [startDate, endDate],
+    [startDateApplied, endDateApplied],
   );
 
   const {
@@ -39,9 +45,15 @@ export default function TiempoEntrevistaConsultivaPage() {
     isError: errorResumen,
     refetch: refetchResumen,
   } = useQuery<TiempoEntrevistaConsultivaResumenRow[], Error>({
-    queryKey: ["informes", "postventa", "tiempo-entrevista-consultiva", filtros],
-    queryFn: () => tiempoEntrevistaConsultivaService.obtenerResumen(filtros),
-    enabled: !!filtros.startDate && !!filtros.endDate,
+    queryKey: [
+      "informes",
+      "postventa",
+      "tiempo-entrevista-consultiva",
+      filtrosAplicados,
+    ],
+    queryFn: () =>
+      tiempoEntrevistaConsultivaService.obtenerResumen(filtrosAplicados),
+    enabled: !!filtrosAplicados.startDate && !!filtrosAplicados.endDate,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -56,15 +68,18 @@ export default function TiempoEntrevistaConsultivaPage() {
       "informes",
       "postventa",
       "tiempo-entrevista-consultiva-detalle",
-      filtros,
+      filtrosAplicados,
       bodegaDetalle,
     ],
     queryFn: () =>
       tiempoEntrevistaConsultivaService.obtenerDetalle(
         bodegaDetalle as number,
-        filtros,
+        filtrosAplicados,
       ),
-    enabled: !!bodegaDetalle && !!filtros.startDate && !!filtros.endDate,
+    enabled:
+      !!bodegaDetalle &&
+      !!filtrosAplicados.startDate &&
+      !!filtrosAplicados.endDate,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -74,22 +89,34 @@ export default function TiempoEntrevistaConsultivaPage() {
       showError("Debes seleccionar fecha inicial y final.");
       return;
     }
-    refetchResumen();
-    if (bodegaDetalle) {
-      refetchDetalle();
-    }
+    setStartDateApplied(startDate);
+    setEndDateApplied(endDate);
   };
 
   const verDetalleBodega = (bodega: number) => {
     setBodegaDetalle(bodega);
+    setCurrentPageDetalle(1);
     refetchDetalle();
   };
 
-  if (errorResumen || errorDetalle) {
-    showError(
-      "No se pudo cargar el informe de tiempos de entrevistas consultivas. Verifica las fechas e inténtalo nuevamente.",
-    );
-  }
+  useEffect(() => {
+    if (errorResumen || errorDetalle) {
+      showInfo(
+        "No hay resumen por bodegas",
+      );
+    }
+  }, [errorResumen, errorDetalle, showInfo]);
+
+  const detalleRows = detalle ?? [];
+  const totalItemsDetalle = detalleRows.length;
+  const totalPagesDetalle = Math.max(
+    1,
+    Math.ceil(totalItemsDetalle / PAGE_SIZE_DETALLE),
+  );
+  const paginatedDetalle = useMemo(() => {
+    const start = (currentPageDetalle - 1) * PAGE_SIZE_DETALLE;
+    return detalleRows.slice(start, start + PAGE_SIZE_DETALLE);
+  }, [detalleRows, currentPageDetalle]);
 
   return (
     <div className="space-y-6">
@@ -110,7 +137,7 @@ export default function TiempoEntrevistaConsultivaPage() {
             </label>
             <input
               type="date"
-              className="form-input rounded-lg border-gray-300 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              className="form-input rounded-lg border border-gray-300 px-3 py-2 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
@@ -121,7 +148,7 @@ export default function TiempoEntrevistaConsultivaPage() {
             </label>
             <input
               type="date"
-              className="form-input rounded-lg border-gray-300 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              className="form-input rounded-lg border border-gray-300 px-3 py-2 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
@@ -243,7 +270,7 @@ export default function TiempoEntrevistaConsultivaPage() {
           </h2>
           {bodegaDetalle === null && (
             <p className="text-sm text-gray-500">
-              Selecciona una bodega en el resumen para ver el detalle.
+              Selecciona una bodega en el resumen y luego presiona Generar para ver el detalle.
             </p>
           )}
           {bodegaDetalle !== null && loadingDetalle && (
@@ -291,7 +318,7 @@ export default function TiempoEntrevistaConsultivaPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {detalle.map((row) => (
+                    {paginatedDetalle.map((row) => (
                       <tr key={row.idCita}>
                         <td className="px-3 py-1.5 text-center">
                           {row.idCita}
@@ -327,6 +354,17 @@ export default function TiempoEntrevistaConsultivaPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          {bodegaDetalle !== null &&
+            !loadingDetalle &&
+            totalItemsDetalle > 0 && (
+              <div className="p-4 border-t border-gray-200 flex justify-center">
+                <Pagination
+                  currentPage={currentPageDetalle}
+                  totalPages={totalPagesDetalle}
+                  onChange={setCurrentPageDetalle}
+                />
               </div>
             )}
         </div>

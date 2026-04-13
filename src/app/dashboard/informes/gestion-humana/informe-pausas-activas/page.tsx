@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Activity } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { Pagination } from "@/components/shared/ui/Pagination";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import {
   informePausasActivaseService,
@@ -20,32 +21,42 @@ export default function InformePausasActivasPage() {
   const [fechaMes, setFechaMes] = useState("");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<PausaActiva[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!fechaDia && !fechaMes) {
-        setRows([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        const data = await informePausasActivaseService.listar({
-          sede: sede || undefined,
-          empleado: empleado.trim() || undefined,
-          fechaDia: fechaDia || undefined,
-          fechaMes: !fechaDia ? fechaMes || undefined : undefined,
-        });
-        setRows(data);
-      } catch (err) {
-        console.error(err);
-        showError("No se pudo cargar el informe de pausas activas.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const PAGE_SIZE = 10;
+  const showInitialLoader = loading && rows.length === 0;
+  const showUpdating = loading && rows.length > 0;
+  const totalItems = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
 
-    load();
-  }, [sede, empleado, fechaDia, fechaMes, showError]);
+  const handleBuscar = async () => {
+    const empleadoFiltro = empleado.trim();
+
+    if (!fechaDia && !fechaMes) {
+      showError("Seleccione una fecha (día o mes) para consultar.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await informePausasActivaseService.listar({
+        sede: sede || undefined,
+        empleado: empleadoFiltro || undefined,
+        fechaDia: fechaDia || undefined,
+        fechaMes: !fechaDia ? fechaMes || undefined : undefined,
+      });
+      setRows(data);
+      setCurrentPage(1);
+    } catch (err) {
+      console.error(err);
+      showError("No se pudo cargar el informe de pausas activas.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFechaDiaChange = (value: string) => {
     setFechaDia(value);
@@ -122,6 +133,17 @@ export default function InformePausasActivasPage() {
             />
           </div>
         </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBuscar}
+            disabled={loading || (!fechaDia && !fechaMes)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            <span>Buscar</span>
+          </button>
+        </div>
       </motion.div>
 
       <motion.div
@@ -134,11 +156,19 @@ export default function InformePausasActivasPage() {
             <Activity size={20} className="text-(--color-primary)" />
             <h2 className="text-base font-semibold text-gray-900">Resultados</h2>
           </div>
-          {(fechaDia || fechaMes) && (
-            <span className="text-xs text-gray-500">
-              {rows.length} registro{rows.length === 1 ? "" : "s"}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {showUpdating && (
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Loader2 size={14} className="animate-spin" />
+                Actualizando...
+              </div>
+            )}
+            {(fechaDia || fechaMes) && (
+              <span className="text-xs text-gray-500">
+                {rows.length} registro{rows.length === 1 ? "" : "s"}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -159,7 +189,7 @@ export default function InformePausasActivasPage() {
                     Seleccione una fecha (día o mes) para ver el informe.
                   </td>
                 </tr>
-              ) : loading ? (
+              ) : showInitialLoader ? (
                 <tr>
                   <td colSpan={5} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -175,7 +205,7 @@ export default function InformePausasActivasPage() {
                   </td>
                 </tr>
               ) : (
-                rows.map((row, idx) => (
+                paginatedData.map((row, idx) => (
                   <tr key={`${row.documento}-${idx}`} className="border-b border-gray-100 hover:bg-gray-50/60 text-sm">
                     <td className="px-4 py-2 whitespace-nowrap">{row.documento}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{row.nombre}</td>
@@ -188,6 +218,15 @@ export default function InformePausasActivasPage() {
             </tbody>
           </table>
         </div>
+        {!loading && totalItems > 0 && (
+          <div className="p-4 border-t border-gray-200 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
+          </div>
+        )}
       </motion.div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Car, ListChecks } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
@@ -10,6 +10,7 @@ import {
   HistorialMtto,
 } from "@/modules/informes/gestion-humana/services/informe-mtto-preventivo-vh.service";
 import Modal from "@/components/shared/ui/Modal";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 export default function MttoPreventivoVehiculosPropiosPage() {
   const { showError } = useToast();
@@ -20,6 +21,15 @@ export default function MttoPreventivoVehiculosPropiosPage() {
   const [historial, setHistorial] = useState<HistorialMtto[]>([]);
   const [placaHistorial, setPlacaHistorial] = useState<string | null>(null);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [historialPage, setHistorialPage] = useState(1);
+
+  const HISTORIAL_PAGE_SIZE = 8;
+  const historialTotalItems = historial.length;
+  const historialTotalPages = Math.max(1, Math.ceil(historialTotalItems / HISTORIAL_PAGE_SIZE));
+  const historialPaginado = useMemo(() => {
+    const start = (historialPage - 1) * HISTORIAL_PAGE_SIZE;
+    return historial.slice(start, start + HISTORIAL_PAGE_SIZE);
+  }, [historial, historialPage]);
 
   useEffect(() => {
     const load = async () => {
@@ -40,6 +50,7 @@ export default function MttoPreventivoVehiculosPropiosPage() {
   const abrirHistorial = async (placa: string) => {
     setPlacaHistorial(placa);
     setHistorial([]);
+    setHistorialPage(1);
     setHistorialOpen(true);
     setLoadingHistorial(true);
     try {
@@ -204,73 +215,105 @@ export default function MttoPreventivoVehiculosPropiosPage() {
           setHistorialOpen(false);
           setHistorial([]);
           setPlacaHistorial(null);
+          setHistorialPage(1);
         }}
         title={`Historial de mantenimiento${placaHistorial ? ` - ${placaHistorial}` : ""}`}
-        width="900px"
+        width="min(95vw, 1080px)"
       >
         <div className="space-y-4 p-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Detalle histórico de órdenes</p>
+              <p className="text-xs text-gray-500">
+                Revise las intervenciones registradas para la placa seleccionada.
+              </p>
+            </div>
+            {!loadingHistorial && historialTotalItems > 0 && (
+              <div className="text-xs text-gray-600">
+                {historialTotalItems} registro{historialTotalItems === 1 ? "" : "s"} en total
+              </div>
+            )}
+          </div>
+
           {loadingHistorial ? (
-            <div className="flex items-center justify-center gap-2 py-8 text-gray-500">
+            <div className="flex items-center justify-center gap-2 py-10 text-gray-500 bg-white border border-gray-100 rounded-xl">
               <Loader2 className="animate-spin" size={20} />
               <span>Cargando historial...</span>
             </div>
           ) : historial.length === 0 ? (
-            <div className="py-8 text-center text-gray-500 text-sm">
+            <div className="py-10 text-center text-gray-500 text-sm bg-white border border-gray-100 rounded-xl">
               No se encontraron registros de historial para esta placa.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200 text-xs">
-                  <tr>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      N° Orden
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Bodega
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Fecha Apertura
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Fecha Factura
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Tipo
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Número
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Operación
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Descripción
-                    </th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                      Explicación
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {historial.map((h, idx) => (
-                    <tr key={`${h.numero_orden}-${idx}`} className="border-b border-gray-100">
-                      <td className="px-3 py-2 whitespace-nowrap">{h.numero_orden}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.bodega}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.fecha_apertura}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.fecha_factura}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.tipo}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.numero}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.operacion}</td>
-                      <td className="px-3 py-2 whitespace-nowrap">{h.descripcion}</td>
-                      <td className="px-3 py-2 whitespace-pre-wrap max-w-xs">
-                        {h.explicacion_operacion}
-                      </td>
+            <>
+              <div className="overflow-x-auto border border-gray-200 rounded-xl">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200 text-xs">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        N° Orden
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Bodega
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Fecha Apertura
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Fecha Factura
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Tipo
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Número
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Operación
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Descripción
+                      </th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">
+                        Explicación
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {historialPaginado.map((h, idx) => (
+                      <tr key={`${h.numero_orden}-${idx}`} className="border-b border-gray-100 hover:bg-gray-50/60">
+                        <td className="px-3 py-2 whitespace-nowrap">{h.numero_orden}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.bodega}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.fecha_apertura}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.fecha_factura}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.tipo}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.numero}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.operacion}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{h.descripcion}</td>
+                        <td className="px-3 py-2 whitespace-pre-wrap max-w-xs">
+                          {h.explicacion_operacion}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {historialTotalItems > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+                  <span className="text-xs text-gray-500 text-center sm:text-left">
+                    Mostrando {historialPaginado.length} de {historialTotalItems} registros
+                  </span>
+                  <div className="flex justify-center sm:justify-end">
+                    <Pagination
+                      currentPage={historialPage}
+                      totalPages={historialTotalPages}
+                      onChange={setHistorialPage}
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </Modal>

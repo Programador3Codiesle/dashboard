@@ -97,25 +97,5 @@ export const informeControlVehicularService = {
 
     return mapItem(json.data as ControlVehicularAPI);
   },
-
-  async exportar(filtros: Omit<FiltrosControlVehicular, "page" | "limit">): Promise<Blob> {
-    const params = new URLSearchParams();
-    if (filtros.buscador) params.append("buscador", filtros.buscador);
-    if (filtros.fechaIni) params.append("fechaIni", filtros.fechaIni);
-    if (filtros.fechaFin) params.append("fechaFin", filtros.fechaFin);
-    if (filtros.porteria) params.append("porteria", filtros.porteria);
-
-    const response = await fetchWithAuth(
-      `${API_URL}/administracion/informe-control-vehicular/exportar?${params.toString()}`,
-      { method: "GET" }
-    );
-
-    if (!response.ok) {
-      throw new Error("Error al generar el reporte de control vehicular.");
-    }
-
-    const blob = await response.blob();
-    return blob;
-  },
 };
 

@@ -117,7 +117,7 @@ const HeaderSection = memo(function HeaderSection({
         type="button"
         onClick={onDownload}
         disabled={descargando || !filtroMes}
-        className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {descargando ? (
           <>

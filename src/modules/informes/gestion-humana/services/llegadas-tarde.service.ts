@@ -35,7 +35,7 @@ export const llegadasTardeService = {
     if (filtros.empleado) params.append('empleado', String(filtros.empleado));
 
     const { data } = await apiClient.get<LlegadaTarde[]>(
-      `/administracion/informe-llegadas-tarde?${params.toString()}`,
+      `/informes/informe-llegadas-tarde?${params.toString()}`,
     );
 
     return data;
@@ -50,7 +50,7 @@ export const llegadasTardeService = {
     params.append('fechaFin', fechaFin);
 
     const { data } = await apiClient.get<ResumenLlegadasTarde[]>(
-      `/administracion/informe-llegadas-tarde/resumen?${params.toString()}`,
+      `/informes/informe-llegadas-tarde/resumen?${params.toString()}`,
     );
 
     return data;

@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Truck } from "lucide-react";
+import * as XLSX from "xlsx";
+import { Loader2, Truck, X, CalendarClock, MapPin, FileText } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import Modal from "@/components/shared/ui/Modal";
+import { Pagination } from "@/components/shared/ui/Pagination";
 import {
   informeControlVehicularService,
   ControlVehicular,
@@ -19,6 +21,33 @@ const PORTERIAS = [
 ];
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 40, 50, 100];
+
+/** Mismo criterio que el export del backend: todos los registros que cumplan filtros. */
+const EXPORT_LIST_LIMIT = 1_000_000;
+
+const inputFilterClass =
+  "border border-gray-300 rounded-xl px-3 py-2 text-sm w-full focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white";
+
+function DetalleCampo({
+  etiqueta,
+  valor,
+  className = "",
+}: {
+  etiqueta: string;
+  valor: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-gray-100 bg-gradient-to-b from-gray-50/90 to-white px-3.5 py-2.5 shadow-sm ${className}`}
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">
+        {etiqueta}
+      </p>
+      <p className="text-sm font-medium text-gray-900 leading-snug break-words">{valor}</p>
+    </div>
+  );
+}
 
 export default function InformeControlVehicularPage() {
   const { showError, showInfo, showSuccess } = useToast();
@@ -38,18 +67,31 @@ export default function InformeControlVehicularPage() {
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalle, setDetalle] = useState<ControlVehicular | null>(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const cargar = useCallback(
-    async (pagina: number, opciones?: { silent?: boolean }) => {
-      const silent = opciones?.silent ?? false;
+  /** Tabla vacía + cargando: fila de carga. Con datos + cargando: mantener filas y spinner en encabezado. */
+  const showInitialLoader = loading && rows.length === 0;
+  const showUpdating = loading && rows.length > 0;
 
-      if (!silent) setLoading(true);
+  const cargar = useCallback(
+    async (
+      pagina: number,
+      opciones?: { silent?: boolean; limitOverride?: number },
+    ) => {
+      const silent = opciones?.silent ?? false;
+      const effectiveLimit = opciones?.limitOverride ?? limit;
+
+      if (!silent) {
+        setLoading(true);
+      } else if (rows.length === 0) {
+        setLoading(true);
+      }
       try {
         const res = await informeControlVehicularService.listar({
           page: pagina,
-          limit,
+          limit: effectiveLimit,
           buscador: buscador.trim() || undefined,
           fechaIni: fechaIni || undefined,
           fechaFin: fechaFin || undefined,
@@ -71,16 +113,25 @@ export default function InformeControlVehicularPage() {
         console.error(err);
         showError("No se pudo cargar el informe de ingreso y salida de vehículos.");
       } finally {
-        if (!silent) setLoading(false);
+        if (!silent) {
+          setLoading(false);
+        } else if (rows.length === 0) {
+          setLoading(false);
+        }
       }
     },
-    [limit, buscador, fechaIni, fechaFin, porteria, showError, showInfo, showSuccess],
+    [limit, buscador, fechaIni, fechaFin, porteria, rows.length, showError, showInfo, showSuccess],
   );
 
+  const cargarRef = useRef(cargar);
+  cargarRef.current = cargar;
+
+  // Solo al montar: si dependemos de `cargar`, cada cambio de filtro dispara otra petición
+  // y al pulsar "Aplicar filtro" se duplicaba la consulta.
   useEffect(() => {
-    // Carga inicial con filtros por defecto (sin fechas: aplica lógica de mes actual en backend)
-    cargar(1, { silent: true });
-  }, [cargar]);
+    void cargarRef.current(1, { silent: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial única
+  }, []);
 
   const handleAplicarFiltros = async () => {
     if (!fechaIni && !fechaFin && !porteria) {
@@ -110,34 +161,65 @@ export default function InformeControlVehicularPage() {
     await cargar(1);
   };
 
-  const handleCambiarPagina = async (nuevaPagina: number) => {
-    if (nuevaPagina < 1 || nuevaPagina > totalPages || nuevaPagina === page) return;
-    await cargar(nuevaPagina, { silent: true });
-  };
+  const handlePaginationChange = useCallback(
+    (nuevaPagina: number) => {
+      if (nuevaPagina < 1 || nuevaPagina > totalPages || nuevaPagina === page) return;
+      void cargar(nuevaPagina, { silent: true });
+    },
+    [cargar, page, totalPages],
+  );
 
   const handleCambiarLimite = async (nuevoLimite: number) => {
     setLimit(nuevoLimite);
-    await cargar(1);
+    await cargar(1, { limitOverride: nuevoLimite });
   };
 
   const handleExportar = async () => {
     try {
-      const blob = await informeControlVehicularService.exportar({
+      setExporting(true);
+      const res = await informeControlVehicularService.listar({
+        page: 1,
+        limit: EXPORT_LIST_LIMIT,
         buscador: buscador.trim() || undefined,
         fechaIni: fechaIni || undefined,
         fechaFin: fechaFin || undefined,
         porteria: porteria || undefined,
       });
 
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "informe_ingreso_y_salida_de_vehiculos.csv";
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (!res.items.length) {
+        showInfo("No hay registros para exportar con los filtros actuales.");
+        return;
+      }
+
+      const filas = res.items.map((r) => ({
+        Portería: r.porteria ?? "",
+        "Fecha salida": r.fecha_salida ?? "",
+        "Hora salida": r.hora_salida ?? "",
+        "Km salida": r.km_salida ?? "",
+        Placa: r.placa ?? "",
+        "Tipo vehículo": r.tipo_vehiculo ?? "",
+        Modelo: r.modelo ?? "",
+        Conductor: r.conductor ?? "",
+        Pasajeros: r.pasajeros ?? "",
+        "Autorizado por": r.persona_autorizo ?? "",
+        "Placa remolcado": r.placa_vh_remolcado ?? "",
+        Taller: r.taller ?? "",
+        "Fecha llegada": r.fecha_llegada ?? "",
+        "Hora llegada": r.hora_llegada ?? "",
+        "Km llegada": r.km_llegada ?? "",
+        Observación: r.observacion ?? "",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(filas);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Control vehicular");
+      XLSX.writeFile(workbook, "informe_ingreso_y_salida_de_vehiculos.xlsx");
+      showSuccess(`Se exportaron ${res.items.length} registro(s) a Excel.`);
     } catch (err) {
       console.error(err);
-      showError("No se pudo generar el reporte.");
+      showError("No se pudo generar el reporte Excel.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -160,58 +242,6 @@ export default function InformeControlVehicularPage() {
     }
   };
 
-  const renderPaginacion = () => {
-    if (totalPages <= 1) return null;
-
-    const rango = 2;
-    const inicio = Math.max(1, page - rango);
-    const fin = Math.min(totalPages, page + rango);
-
-    const botones = [];
-
-    botones.push(
-      <li key="prev" className={`page-item ${page === 1 ? "opacity-50 pointer-events-none" : ""}`}>
-        <button
-          className="page-link px-2 py-1 text-sm"
-          onClick={() => handleCambiarPagina(page - 1)}
-        >
-          «
-        </button>
-      </li>,
-    );
-
-    for (let i = inicio; i <= fin; i++) {
-      botones.push(
-        <li key={i} className={`page-item ${i === page ? "bg-(--color-primary) text-white rounded" : ""}`}>
-          <button
-            className={`page-link px-2 py-1 text-sm ${
-              i === page ? "border-0 bg-transparent text-white" : ""
-            }`}
-            onClick={() => handleCambiarPagina(i)}
-          >
-            {i}
-          </button>
-        </li>,
-      );
-    }
-
-    botones.push(
-      <li
-        key="next"
-        className={`page-item ${page === totalPages ? "opacity-50 pointer-events-none" : ""}`}
-      >
-        <button
-          className="page-link px-2 py-1 text-sm"
-          onClick={() => handleCambiarPagina(page + 1)}
-        >
-          »
-        </button>
-      </li>,
-    );
-
-    return <ul className="flex items-center gap-1">{botones}</ul>;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -225,32 +255,32 @@ export default function InformeControlVehicularPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div className="flex flex-col">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">Fecha inicio</label>
             <input
               type="date"
               value={fechaIni}
               onChange={(e) => setFechaIni(e.target.value)}
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
+              className={inputFilterClass}
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">Fecha fin</label>
             <input
               type="date"
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
+              className={inputFilterClass}
             />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">Portería</label>
             <select
               value={porteria}
               onChange={(e) => setPorteria(e.target.value)}
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white"
+              className={inputFilterClass}
             >
               {PORTERIAS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -259,7 +289,7 @@ export default function InformeControlVehicularPage() {
               ))}
             </select>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">
               Buscar (portería, placa, conductor)
             </label>
@@ -268,12 +298,12 @@ export default function InformeControlVehicularPage() {
               value={buscador}
               onChange={(e) => setBuscador(e.target.value)}
               placeholder="Buscar..."
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
+              className={inputFilterClass}
             />
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-between gap-3 items-center">
+        <div className="flex flex-wrap justify-between gap-3 items-center pt-1 border-t border-gray-100">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -294,9 +324,11 @@ export default function InformeControlVehicularPage() {
             <button
               type="button"
               onClick={handleExportar}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-sm font-medium bg-white hover:bg-emerald-50 transition-colors"
+              disabled={loading || exporting}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-sm font-medium bg-white hover:bg-emerald-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Generar reporte
+              {exporting && <Loader2 size={16} className="animate-spin" />}
+              <span>{exporting ? "Generando Excel…" : "Generar reporte"}</span>
             </button>
           </div>
 
@@ -324,18 +356,26 @@ export default function InformeControlVehicularPage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <Truck size={20} className="text-(--color-primary)" />
-            <h2 className="text-base font-semibold text-gray-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Truck size={20} className="text-(--color-primary) shrink-0" />
+            <h2 className="text-base font-semibold text-gray-900 truncate">
               Registros de ingreso y salida
             </h2>
           </div>
-          {total > 0 && (
-            <span className="text-xs text-gray-500">
-              Página {page} de {totalPages}
-            </span>
-          )}
+          <div className="flex items-center gap-3 shrink-0">
+            {showUpdating && (
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Loader2 size={14} className="animate-spin" />
+                Actualizando…
+              </div>
+            )}
+            {total > 0 && (
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                Página {page} de {totalPages}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -367,9 +407,6 @@ export default function InformeControlVehicularPage() {
                   Conductor
                 </th>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">
-                  Pasajeros
-                </th>
-                <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">
                   Autorizado por
                 </th>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">
@@ -393,9 +430,9 @@ export default function InformeControlVehicularPage() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {showInitialLoader ? (
                 <tr>
-                  <td colSpan={16} className="text-center py-10">
+                  <td colSpan={15} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2 text-gray-500">
                       <Loader2 className="animate-spin" size={20} />
                       <span>Cargando registros...</span>
@@ -404,7 +441,7 @@ export default function InformeControlVehicularPage() {
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="text-center py-10 text-gray-500">
+                  <td colSpan={15} className="text-center py-10 text-gray-500">
                     No hay registros para los filtros actuales.
                   </td>
                 </tr>
@@ -431,9 +468,6 @@ export default function InformeControlVehicularPage() {
                       <td className="px-4 py-2 whitespace-nowrap">{reg.modelo ?? "-"}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-lowercase">
                         {reg.conductor ?? "-"}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-lowercase">
-                        {reg.pasajeros ?? "-"}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-lowercase">
                         {reg.persona_autorizo ?? "-"}
@@ -469,11 +503,17 @@ export default function InformeControlVehicularPage() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
-            <div className="text-xs text-gray-500">
+          <div className="border-t border-gray-200">
+            <div className="px-6 py-2 text-xs text-gray-500 text-center">
               Mostrando {rows.length} de {total} registros
             </div>
-            <nav aria-label="Paginación">{renderPaginacion()}</nav>
+            <div className="pb-4 flex justify-center">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onChange={handlePaginationChange}
+              />
+            </div>
           </div>
         )}
       </motion.div>
@@ -484,109 +524,122 @@ export default function InformeControlVehicularPage() {
           setDetalleOpen(false);
           setDetalle(null);
         }}
-        title="Informe de vehículo"
-        width="600px"
+        width="min(92vw, 640px)"
       >
         {loadingDetalle ? (
-          <div className="flex items-center justify-center gap-2 py-6 text-gray-500">
-            <Loader2 className="animate-spin" size={20} />
-            <span>Cargando detalle...</span>
+          <div className="flex flex-col items-center justify-center gap-3 py-14 text-gray-500">
+            <Loader2 className="animate-spin text-(--color-primary)" size={28} />
+            <span className="text-sm font-medium">Cargando detalle del registro…</span>
           </div>
         ) : !detalle ? (
-          <div className="py-6 text-center text-gray-500 text-sm">
+          <div className="py-12 text-center text-gray-500 text-sm">
             No se pudo cargar el detalle del registro.
           </div>
         ) : (
-          <div className="space-y-4 text-sm">
-            <div>
-              <h6 className="font-semibold text-gray-800 mb-2">Información general</h6>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <span className="font-medium">Portería: </span>
-                  <span>{detalle.porteria ?? "-"}</span>
+          <div className="-m-5 -mt-2">
+            <div className="relative overflow-hidden rounded-t-lg bg-gradient-to-br from-(--color-primary) to-(--color-primary-dark) px-5 py-4 text-white shadow-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  setDetalleOpen(false);
+                  setDetalle(null);
+                }}
+                className="absolute right-3 top-3 rounded-lg p-1.5 text-white/90 hover:bg-white/15 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X size={18} />
+              </button>
+              <div className="flex items-start gap-3 pr-10">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+                  <Truck size={22} className="text-white" />
                 </div>
-                <div>
-                  <span className="font-medium">Placa: </span>
-                  <span>{detalle.placa ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Tipo vehículo: </span>
-                  <span>{detalle.tipo_vehiculo ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Modelo: </span>
-                  <span>{detalle.modelo ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Conductor: </span>
-                  <span className="text-lowercase">
-                    {detalle.conductor ?? "-"}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Taller: </span>
-                  <span>{detalle.taller ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Autorizado por: </span>
-                  <span className="text-lowercase">
-                    {detalle.persona_autorizo ?? "-"}
-                  </span>
-                </div>
-                <div>
-                  <span className="font-medium">Placa remolcado: </span>
-                  <span>{detalle.placa_vh_remolcado ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Pasajeros: </span>
-                  <span className="text-lowercase">
-                    {detalle.pasajeros ?? "-"}
-                  </span>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-white/80">
+                    Informe de vehículo
+                  </p>
+                  <h3 className="text-lg font-bold tracking-tight truncate">
+                    {detalle.placa ?? "Sin placa"}
+                  </h3>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-white/90 truncate">
+                    <MapPin size={14} className="shrink-0 opacity-80" />
+                    <span>{detalle.porteria ?? "—"}</span>
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-3">
-              <h6 className="font-semibold text-emerald-700 mb-2">Salida</h6>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div>
-                  <span className="font-medium">Fecha: </span>
-                  <span>{detalle.fecha_salida ?? "-"}</span>
+            <div className="space-y-5 px-5 pb-5 pt-4">
+              <section>
+                <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+                  <span className="h-px flex-1 bg-gray-200" />
+                  <span>Datos del vehículo y autorización</span>
+                  <span className="h-px flex-1 bg-gray-200" />
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <DetalleCampo etiqueta="Tipo de vehículo" valor={detalle.tipo_vehiculo ?? "—"} />
+                  <DetalleCampo etiqueta="Modelo" valor={detalle.modelo ?? "—"} />
+                  <DetalleCampo
+                    etiqueta="Conductor"
+                    valor={
+                      <span className="lowercase">{detalle.conductor ?? "—"}</span>
+                    }
+                  />
+                  <DetalleCampo etiqueta="Taller" valor={detalle.taller ?? "—"} />
+                  <DetalleCampo
+                    etiqueta="Autorizado por"
+                    valor={
+                      <span className="lowercase">{detalle.persona_autorizo ?? "—"}</span>
+                    }
+                  />
+                  <DetalleCampo
+                    etiqueta="Placa remolcado"
+                    valor={detalle.placa_vh_remolcado ?? "—"}
+                  />
+                  <DetalleCampo
+                    etiqueta="Pasajeros"
+                    className="sm:col-span-2"
+                    valor={
+                      <span className="lowercase">{detalle.pasajeros ?? "—"}</span>
+                    }
+                  />
                 </div>
-                <div>
-                  <span className="font-medium">Hora: </span>
-                  <span>{detalle.hora_salida ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Km: </span>
-                  <span>{detalle.km_salida ?? "-"}</span>
-                </div>
-              </div>
-            </div>
+              </section>
 
-            <div className="border-t border-gray-200 pt-3">
-              <h6 className="font-semibold text-red-700 mb-2">Ingreso</h6>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div>
-                  <span className="font-medium">Fecha: </span>
-                  <span>{detalle.fecha_llegada ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Hora: </span>
-                  <span>{detalle.hora_llegada ?? "-"}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Km: </span>
-                  <span>{detalle.km_llegada ?? "-"}</span>
-                </div>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <section className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-sm">
+                  <p className="mb-3 flex items-center gap-2 text-xs font-bold text-emerald-800">
+                    <CalendarClock size={16} className="text-emerald-600" />
+                    Salida
+                  </p>
+                  <div className="grid gap-2.5">
+                    <DetalleCampo etiqueta="Fecha" valor={detalle.fecha_salida ?? "—"} />
+                    <DetalleCampo etiqueta="Hora" valor={detalle.hora_salida ?? "—"} />
+                    <DetalleCampo etiqueta="Kilometraje" valor={detalle.km_salida ?? "—"} />
+                  </div>
+                </section>
 
-            <div className="border-t border-gray-200 pt-3">
-              <h6 className="font-semibold text-gray-800 mb-2">Observación</h6>
-              <p className="text-gray-700 text-sm text-pretty">
-                {detalle.observacion ?? "Sin observaciones."}
-              </p>
+                <section className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4 shadow-sm">
+                  <p className="mb-3 flex items-center gap-2 text-xs font-bold text-rose-900">
+                    <CalendarClock size={16} className="text-rose-600" />
+                    Ingreso
+                  </p>
+                  <div className="grid gap-2.5">
+                    <DetalleCampo etiqueta="Fecha" valor={detalle.fecha_llegada ?? "—"} />
+                    <DetalleCampo etiqueta="Hora" valor={detalle.hora_llegada ?? "—"} />
+                    <DetalleCampo etiqueta="Kilometraje" valor={detalle.km_llegada ?? "—"} />
+                  </div>
+                </section>
+              </div>
+
+              <section className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4">
+                <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-600">
+                  <FileText size={14} />
+                  Observación
+                </p>
+                <p className="text-sm leading-relaxed text-gray-800 text-pretty">
+                  {detalle.observacion?.trim() || "Sin observaciones registradas."}
+                </p>
+              </section>
             </div>
           </div>
         )}

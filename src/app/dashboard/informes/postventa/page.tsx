@@ -150,22 +150,6 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     icono: MessageCircle,
     color: "from-violet-500 to-violet-600",
   },
-  {
-    id: "control-vehicular",
-    nombre: "Informe Control Vehicular",
-    descripcion: "Control de vehículos asociado a procesos de postventa.",
-    ruta: "/dashboard/informes/postventa/control-vehicular",
-    icono: FileBarChart2,
-    color: "from-sky-500 to-sky-600",
-  },
-  {
-    id: "otros-informes-postventa",
-    nombre: "Otros Informes Postventa",
-    descripcion: "Acceso progresivo a los demás informes de postventa migrados desde el legacy.",
-    ruta: "/dashboard/informes/postventa/otros",
-    icono: ThumbsUp,
-    color: "from-emerald-500 to-emerald-600",
-  },
 ];
 
 export default function PostventaInformesPage() {

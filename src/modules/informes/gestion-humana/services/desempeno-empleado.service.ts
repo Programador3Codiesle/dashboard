@@ -29,7 +29,7 @@ export const desempenoEmpleadoService = {
     if (filtros.sede) params.append('sede', filtros.sede);
 
     const { data } = await apiClient.get<DesempenoEmpleado[]>(
-      `/administracion/informe-desempeno-empleado?${params.toString()}`,
+      `/informes/informe-desempeno-empleado?${params.toString()}`,
     );
 
     return data;

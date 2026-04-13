@@ -12,7 +12,7 @@ export interface TallaPersonal {
 export const tallasPersonalService = {
   async listar(): Promise<TallaPersonal[]> {
     const { data } = await apiClient.get<TallaPersonal[]>(
-      '/administracion/informe-tallas-personal',
+      '/informes/informe-tallas-personal',
     );
     return data;
   },

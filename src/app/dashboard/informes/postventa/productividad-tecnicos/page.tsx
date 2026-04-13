@@ -1,12 +1,29 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
+  ProductividadTecnicoRow,
   ProductividadTecnicosResponse,
   productividadTecnicosService,
 } from '@/modules/informes/postventa/services/productividad-tecnicos.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { Pagination } from '@/components/shared/ui/Pagination';
+
+const PAGE_SIZE = 15;
+
+const COLUMNAS_TABLA = [
+  { key: 'nit', label: 'NIT' },
+  { key: 'nombre', label: 'Nombre' },
+  { key: 'patio', label: 'Patio' },
+  { key: 'horasCliente', label: 'Horas cliente' },
+  { key: 'horasGarantia', label: 'Horas garantía' },
+  { key: 'horasServicio', label: 'Horas servicio' },
+  { key: 'horasInternas', label: 'Horas internas' },
+  { key: 'totalHoras', label: 'Total horas' },
+  { key: 'horasDisponibles', label: 'Horas disponibles' },
+  { key: 'productividad', label: 'Productividad' },
+] as const;
 
 const PATIOS_OPCIONES = [
   { value: 1, label: 'GIRÓN GASOLINA' },
@@ -31,8 +48,15 @@ export default function ProductividadTecnicosPage() {
   const [month, setMonth] = useState<number>(today.getMonth() + 1);
   const [patiosSeleccionados, setPatiosSeleccionados] = useState<number[]>([]);
   const [data, setData] = useState<ProductividadTecnicosResponse | null>(null);
+  const [pageActual, setPageActual] = useState(1);
+  const [pageConsolidado, setPageConsolidado] = useState(1);
 
   const { showError, showInfo } = useToast();
+
+  useEffect(() => {
+    setPageActual(1);
+    setPageConsolidado(1);
+  }, [data]);
 
   const { mutate, status } = useMutation<
     ProductividadTecnicosResponse,
@@ -75,8 +99,59 @@ export default function ProductividadTecnicosPage() {
     setPatiosSeleccionados([]);
   };
 
+  const filasActual = data?.actual;
+  const filasConsolidado = data?.consolidado;
+  const totalFilasActual = filasActual?.length ?? 0;
+  const totalFilasConsolidado = filasConsolidado?.length ?? 0;
+
+  const actualPaginated = useMemo(() => {
+    const rows = filasActual ?? [];
+    const start = (pageActual - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [filasActual, pageActual]);
+
+  const consolidadoPaginated = useMemo(() => {
+    const rows = filasConsolidado ?? [];
+    const start = (pageConsolidado - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [filasConsolidado, pageConsolidado]);
+
+  const totalPagesActual = Math.max(1, Math.ceil(totalFilasActual / PAGE_SIZE));
+  const totalPagesConsolidado = Math.max(
+    1,
+    Math.ceil(totalFilasConsolidado / PAGE_SIZE),
+  );
+
+  const renderFila = (row: ProductividadTecnicoRow, keyPrefix: string) => (
+    <tr
+      key={`${keyPrefix}-${row.nit}-${row.patio}`}
+      className={`${getRowBg(row.productividad)} border-t`}
+    >
+      <td className="px-2 py-1 text-center">{row.nit}</td>
+      <td className="px-2 py-1 text-center">{row.nombres}</td>
+      <td className="px-2 py-1 text-center">{row.patio}</td>
+      <td className="px-2 py-1 text-center">
+        {row.horasCliente.toFixed(2)}
+      </td>
+      <td className="px-2 py-1 text-center">
+        {row.horasGarantia.toFixed(2)}
+      </td>
+      <td className="px-2 py-1 text-center">
+        {row.horasServicio.toFixed(2)}
+      </td>
+      <td className="px-2 py-1 text-center">{row.horasInterno.toFixed(2)}</td>
+      <td className="px-2 py-1 text-center">{row.totalHoras.toFixed(2)}</td>
+      <td className="px-2 py-1 text-center">
+        {row.horasDisponibles.toFixed(2)}
+      </td>
+      <td className="px-2 py-1 text-center font-semibold">
+        {row.productividad.toFixed(2)}%
+      </td>
+    </tr>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold brand-text">
@@ -143,7 +218,7 @@ export default function ProductividadTecnicosPage() {
                       onClick={() => handleTogglePatio(p.value)}
                       className={`px-2 py-1 rounded-full text-xs border transition-colors ${
                         selected
-                          ? 'bg-[--color-primary] text-white border-[--color-primary]'
+                          ? 'brand-bg brand-bg-hover text-white brand-border'
                           : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
                       }`}
                     >
@@ -156,7 +231,7 @@ export default function ProductividadTecnicosPage() {
                 <button
                   type="button"
                   onClick={handleSeleccionarTodos}
-                  className="text-[--color-primary] hover:underline"
+                  className="brand-text brand-text-hover hover:underline"
                 >
                   Seleccionar todos
                 </button>
@@ -183,64 +258,32 @@ export default function ProductividadTecnicosPage() {
         </div>
       </form>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6">
-          <h2 className="text-sm font-semibold text-gray-800 mb-3 text-center">
+      <div className="flex flex-col gap-6 w-full max-w-full">
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 w-full">
+          <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Mes actual
           </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs border-collapse">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-[--color-primary] text-white text-center">
-                  <th className="px-2 py-2">NIT</th>
-                  <th className="px-2 py-2">NOMBRE</th>
-                  <th className="px-2 py-2">PATIO</th>
-                  <th className="px-2 py-2">H. CLIENTE</th>
-                  <th className="px-2 py-2">H. GARANTÍA</th>
-                  <th className="px-2 py-2">H. SERVICIO</th>
-                  <th className="px-2 py-2">H. INTERNAS</th>
-                  <th className="px-2 py-2">TOTAL H.</th>
-                  <th className="px-2 py-2">H. DISP.</th>
-                  <th className="px-2 py-2">PRODUCTIVIDAD</th>
+                <tr className="brand-bg text-white text-center">
+                  {COLUMNAS_TABLA.map((col) => (
+                    <th
+                      key={col.key}
+                      className="px-2 py-2 font-semibold whitespace-nowrap"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {data?.actual.map((row) => (
-                  <tr
-                    key={`a-${row.nit}-${row.patio}`}
-                    className={`${getRowBg(row.productividad)} border-t`}
-                  >
-                    <td className="px-2 py-1 text-center">{row.nit}</td>
-                    <td className="px-2 py-1 text-center">{row.nombres}</td>
-                    <td className="px-2 py-1 text-center">{row.patio}</td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasCliente.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasGarantia.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasServicio.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasInterno.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.totalHoras.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasDisponibles.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center font-semibold">
-                      {row.productividad.toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
-                {status !== 'pending' && (!data || !data.actual.length) && (
+                {actualPaginated.map((row) => renderFila(row, 'a'))}
+                {status !== 'pending' && totalFilasActual === 0 && (
                   <tr>
                     <td
                       className="px-3 py-3 text-center text-gray-400 text-xs"
-                      colSpan={10}
+                      colSpan={COLUMNAS_TABLA.length}
                     >
                       Sin datos para el mes actual.
                     </td>
@@ -249,65 +292,42 @@ export default function ProductividadTecnicosPage() {
               </tbody>
             </table>
           </div>
+          {status !== 'pending' && totalFilasActual > 0 && (
+            <div className="p-4 border-t border-gray-200 flex justify-center">
+              <Pagination
+                currentPage={pageActual}
+                totalPages={totalPagesActual}
+                onChange={setPageActual}
+              />
+            </div>
+          )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6">
-          <h2 className="text-sm font-semibold text-gray-800 mb-3 text-center">
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 w-full">
+          <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Consolidado
           </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs border-collapse">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-[--color-primary] text-white text-center">
-                  <th className="px-2 py-2">NIT</th>
-                  <th className="px-2 py-2">NOMBRE</th>
-                  <th className="px-2 py-2">PATIO</th>
-                  <th className="px-2 py-2">H. CLIENTE</th>
-                  <th className="px-2 py-2">H. GARANTÍA</th>
-                  <th className="px-2 py-2">H. SERVICIO</th>
-                  <th className="px-2 py-2">H. INTERNAS</th>
-                  <th className="px-2 py-2">TOTAL H.</th>
-                  <th className="px-2 py-2">H. DISP.</th>
-                  <th className="px-2 py-2">PRODUCTIVIDAD</th>
+                <tr className="brand-bg text-white text-center">
+                  {COLUMNAS_TABLA.map((col) => (
+                    <th
+                      key={col.key}
+                      className="px-2 py-2 font-semibold whitespace-nowrap"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {data?.consolidado.map((row) => (
-                  <tr
-                    key={`c-${row.nit}-${row.patio}`}
-                    className={`${getRowBg(row.productividad)} border-t`}
-                  >
-                    <td className="px-2 py-1 text-center">{row.nit}</td>
-                    <td className="px-2 py-1 text-center">{row.nombres}</td>
-                    <td className="px-2 py-1 text-center">{row.patio}</td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasCliente.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasGarantia.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasServicio.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasInterno.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.totalHoras.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center">
-                      {row.horasDisponibles.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1 text-center font-semibold">
-                      {row.productividad.toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
-                {status !== 'pending' && (!data || !data.consolidado.length) && (
+                {consolidadoPaginated.map((row) => renderFila(row, 'c'))}
+                {status !== 'pending' && totalFilasConsolidado === 0 && (
                   <tr>
                     <td
                       className="px-3 py-3 text-center text-gray-400 text-xs"
-                      colSpan={10}
+                      colSpan={COLUMNAS_TABLA.length}
                     >
                       Sin datos para el consolidado.
                     </td>
@@ -316,6 +336,15 @@ export default function ProductividadTecnicosPage() {
               </tbody>
             </table>
           </div>
+          {status !== 'pending' && totalFilasConsolidado > 0 && (
+            <div className="p-4 border-t border-gray-200 flex justify-center">
+              <Pagination
+                currentPage={pageConsolidado}
+                totalPages={totalPagesConsolidado}
+                onChange={setPageConsolidado}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, LogOut } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import * as XLSX from "xlsx";
+import { Pagination } from "@/components/shared/ui/Pagination";
 import {
   informeEntradasSalidasService,
   EntradaSalida,
@@ -19,6 +21,7 @@ const SEDES = [
 
 export default function EntradasSalidasPage() {
   const { showError, showInfo, showSuccess } = useToast();
+  const PAGE_SIZE = 10;
 
   const [sede, setSede] = useState("giron");
   const [fechaIni, setFechaIni] = useState("");
@@ -26,6 +29,24 @@ export default function EntradasSalidasPage() {
   const [empleado, setEmpleado] = useState("");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<EntradaSalida[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const showInitialLoader = loading && rows.length === 0;
+  const showUpdating = loading && rows.length > 0;
+  const totalItems = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
+
+  const formatDateOnly = (value?: string | null) => {
+    if (!value) return "";
+    const s = String(value).trim();
+    const iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (iso) return iso[1];
+    return s.slice(0, 10);
+  };
 
   const handleBuscar = async () => {
     if (!fechaIni || !fechaFin) {
@@ -43,6 +64,7 @@ export default function EntradasSalidasPage() {
       });
 
       setRows(data);
+      setCurrentPage(1);
 
       if (data.length === 0) {
         showInfo("No se encontraron registros para los filtros seleccionados.");
@@ -57,44 +79,25 @@ export default function EntradasSalidasPage() {
     }
   };
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (!rows.length) {
       showInfo("No hay datos para exportar.");
       return;
     }
 
-    const headers = [
-      "Documento",
-      "Nombre",
-      "Sede",
-      "Fecha",
-      "Hora",
-      "Acción",
-    ];
+    const excelRows = rows.map((r) => ({
+      Documento: r.documento,
+      Nombre: r.nombres,
+      Sede: r.sede,
+      Fecha: formatDateOnly(r.fecha),
+      Hora: r.hora,
+      Acción: r.accion,
+    }));
 
-    const lines = rows.map((r) =>
-      [
-        r.documento,
-        r.nombres,
-        r.sede,
-        r.fecha,
-        r.hora,
-        r.accion,
-      ]
-        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-        .join(";"),
-    );
-
-    const csvContent = [headers.join(";"), ...lines].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "informe-entradas-salidas.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
+    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Entradas-salidas");
+    XLSX.writeFile(workbook, "informe-entradas-salidas.xlsx");
   };
 
   return (
@@ -179,12 +182,12 @@ export default function EntradasSalidasPage() {
 
           <button
             type="button"
-            onClick={handleExportCSV}
+            onClick={handleExportExcel}
             disabled={!rows.length}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             <LogOut size={16} />
-            <span>Exportar a CSV</span>
+            <span>Exportar a Excel</span>
           </button>
 
           {rows.length > 0 && (
@@ -207,11 +210,19 @@ export default function EntradasSalidasPage() {
               Resultados
             </h2>
           </div>
-          {rows.length > 0 && (
-            <span className="text-xs text-gray-500">
-              {rows.length} registro{rows.length === 1 ? "" : "s"}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {showUpdating && (
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Loader2 size={14} className="animate-spin" />
+                Actualizando...
+              </div>
+            )}
+            {rows.length > 0 && (
+              <span className="text-xs text-gray-500">
+                {rows.length} registro{rows.length === 1 ? "" : "s"}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -239,7 +250,7 @@ export default function EntradasSalidasPage() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {showInitialLoader ? (
                 <tr>
                   <td colSpan={6} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -255,7 +266,7 @@ export default function EntradasSalidasPage() {
                   </td>
                 </tr>
               ) : (
-                rows.map((row) => (
+                paginatedData.map((row) => (
                   <tr
                     key={row.id}
                     className="border-b border-gray-100 hover:bg-gray-50/60"
@@ -270,7 +281,7 @@ export default function EntradasSalidasPage() {
                       {row.sede}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {row.fecha}
+                      {formatDateOnly(row.fecha)}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {row.hora}
@@ -284,6 +295,15 @@ export default function EntradasSalidasPage() {
             </tbody>
           </table>
         </div>
+        {!loading && totalItems > 0 && (
+          <div className="p-4 border-t border-gray-200 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
+          </div>
+        )}
       </motion.div>
     </div>
   );

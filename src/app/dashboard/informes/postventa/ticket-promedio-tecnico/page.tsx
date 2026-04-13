@@ -7,6 +7,7 @@ import {
   TicketPromedioTecnicoRow,
 } from "@/modules/informes/postventa/services/ticket-promedio-tecnico.service";
 import { useToast } from "@/components/ui/use-toast";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 const PATIOS = [
   { value: "all", label: "Todos" },
@@ -32,6 +33,8 @@ export default function TicketPromedioTecnicoPage() {
   const { showError } = useToast();
   const [yearMonth, setYearMonth] = useState<string>(getCurrentYearMonth);
   const [patio, setPatio] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filtros = useMemo(() => {
     const [yearStr, monthStr] = yearMonth.split("-");
@@ -59,6 +62,12 @@ export default function TicketPromedioTecnicoPage() {
   }
 
   const rows = data ?? [];
+  const totalItems = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
 
   return (
     <div className="space-y-6">
@@ -72,25 +81,25 @@ export default function TicketPromedioTecnicoPage() {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+          <div className="flex flex-col min-w-0 gap-1">
+            <label className="text-xs font-medium text-gray-600">
               Año / Mes
             </label>
             <input
               type="month"
-              className="form-input rounded-lg border-gray-300 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
               value={yearMonth}
               onChange={(e) => setYearMonth(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+          <div className="flex flex-col min-w-0 gap-1">
+            <label className="text-xs font-medium text-gray-600">
               Patio / Sede
             </label>
             <select
-              className="form-select rounded-lg border-gray-300 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white"
               value={patio}
               onChange={(e) => setPatio(e.target.value)}
             >
@@ -101,6 +110,12 @@ export default function TicketPromedioTecnicoPage() {
               ))}
             </select>
           </div>
+        </div>
+        <div className="border-t border-gray-100 pt-3">
+          <span className="text-xs text-gray-500">
+            {rows.length} registro{rows.length === 1 ? "" : "s"} encontrado
+            {rows.length === 1 ? "" : "s"}
+          </span>
         </div>
       </div>
 
@@ -158,7 +173,7 @@ export default function TicketPromedioTecnicoPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.map((row) => (
+                {paginatedRows.map((row) => (
                   <tr key={`${row.operario}-${row.anio}-${row.mes}-${row.sede}`}>
                     <td className="px-3 py-1.5 text-center">
                       {row.operario}
@@ -200,6 +215,15 @@ export default function TicketPromedioTecnicoPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {!isLoading && totalItems > 0 && (
+          <div className="p-4 border-t border-gray-200 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

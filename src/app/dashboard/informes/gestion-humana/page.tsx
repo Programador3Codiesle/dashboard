@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { CalendarRange, Clock, Activity, ClipboardList, LogIn, LogOut, Truck, ListChecks, ShoppingCart, Car, Bike } from "lucide-react";
+import { CalendarRange, Clock, Activity, ClipboardList, LogIn, LogOut, Truck, ListChecks, ShoppingCart, Car, Bike, Wrench, UserX } from "lucide-react";
 
 interface SubmoduloGestionHumana {
   id: string;
@@ -119,6 +119,14 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     color: "from-blue-500 to-blue-600",
   },
   {
+    id: "mtto-preventivo-vehiculos-propios",
+    nombre: "Mtto Preventivo Vehículos Propios",
+    descripcion: "Reporte de mantenimiento preventivo para vehículos propios.",
+    ruta: "/dashboard/informes/gestion-humana/mtto-preventivo-vehiculos-propios",
+    icono: Wrench,
+    color: "from-cyan-600 to-cyan-700",
+  },
+  {
     id: "entradas-salidas",
     nombre: "Entradas y salidas",
     descripcion: "Resumen de movimientos de entrada y salida por sede y fecha.",
@@ -151,13 +159,14 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     color: "from-emerald-500 to-emerald-600",
   },
   {
-    id: "informe-ausentismo-detallado",
-    nombre: "Informe Ausentismo Detallado",
-    descripcion: "Detalle de ausentismos por rangos de fechas, sede y área.",
-    ruta: "/dashboard/informes/gestion-humana/informe-ausentismo-detallado",
-    icono: ClipboardList,
+    id: "inasistencia",
+    nombre: "Inasistencias",
+    descripcion: "Consulta y seguimiento de inasistencias del personal.",
+    ruta: "/dashboard/informes/gestion-humana/inasistencia",
+    icono: UserX,
     color: "from-rose-500 to-rose-600",
   },
+  
 ];
 
 export default function GestionHumanaInformesPage() {

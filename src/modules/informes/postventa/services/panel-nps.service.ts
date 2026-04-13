@@ -10,7 +10,10 @@ export interface SedeSerieNps {
   puntos: PanelNpsPunto[];
 }
 
+export type PanelNpsTablaRowTipo = 'sede' | 'tecnico';
+
 export interface PanelNpsTablaRow {
+  tipo: PanelNpsTablaRowTipo;
   sede: string;
   enc0a6: number;
   enc7a8: number;
@@ -18,11 +21,27 @@ export interface PanelNpsTablaRow {
   to: number;
   nps: number;
   meta: number;
+  nitTecnico?: string;
+  nombreTecnico?: string;
+}
+
+export interface PanelNpsPuntoTecnico {
+  mes: number;
+  nps: number | null;
+}
+
+export interface TecnicoNpsPorSede {
+  sede: string;
+  nit: string;
+  nombre: string;
+  puntos: PanelNpsPuntoTecnico[];
 }
 
 export interface PanelNpsResponse {
+  mesesVentana: number[];
   series: SedeSerieNps[];
   tabla: PanelNpsTablaRow[];
+  tecnicosPorSede: TecnicoNpsPorSede[];
 }
 
 export interface PanelNpsDetalle {
@@ -83,4 +102,3 @@ export const panelNpsService = {
     return data;
   },
 };
-

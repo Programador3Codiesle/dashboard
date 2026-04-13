@@ -8,8 +8,10 @@ import { useToast } from '@/components/shared/ui/ToastContext';
 const SEDES_OPTIONS = ['Giron', 'Rosita', 'Bocono', 'Malecon', 'Barranca', 'Otra'];
 
 export default function DesempenoEmpleadoPage() {
-  const { showError } = useToast();
+  const { showError, showInfo } = useToast();
   const currentYear = new Date().getFullYear();
+  const inputClass =
+    'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
   const anios = useMemo(() => {
     const diff = Math.min(3, currentYear - 2024);
@@ -29,6 +31,11 @@ export default function DesempenoEmpleadoPage() {
         anio,
         sede: sede || undefined,
       });
+    },
+    onSuccess: (result) => {
+      if (result.length === 0) {
+        showInfo('No hay registros para los filtros seleccionados.');
+      }
     },
     onError: (error: any) => {
       const message =
@@ -98,43 +105,46 @@ export default function DesempenoEmpleadoPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 items-end">
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-1">Año</p>
-          <select
-            className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
-            value={anio}
-            onChange={(e) => setAnio(Number(e.target.value))}
-          >
-            <option value="">Seleccione un año</option>
-            {anios.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-col">
+            <label className="text-xs font-medium text-gray-600 mb-1">Año</label>
+            <select
+              className={inputClass}
+              value={anio}
+              onChange={(e) => setAnio(Number(e.target.value))}
+            >
+              <option value="">Seleccione un año</option>
+              {anios.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-medium text-gray-600 mb-1">Sede</label>
+            <select
+              className={inputClass}
+              value={sede}
+              onChange={(e) => setSede(e.target.value)}
+            >
+              <option value="">Todas</option>
+              {SEDES_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-1">Sede</p>
-          <select
-            className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
-            value={sede}
-            onChange={(e) => setSede(e.target.value)}
-          >
-            <option value="">Todas</option>
-            {SEDES_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+
         <div className="flex gap-2">
           <button
             type="button"
             onClick={handleFiltrar}
             disabled={mutation.isPending || !anio}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-(--color-primary) text-white text-sm font-medium shadow hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {mutation.isPending ? 'Consultando...' : 'Filtrar'}
           </button>

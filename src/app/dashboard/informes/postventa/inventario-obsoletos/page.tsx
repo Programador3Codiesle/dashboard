@@ -1,75 +1,62 @@
 'use client';
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   inventarioObsoletosService,
-  InventarioObsoletoRow,
+  InventarioObsoletoDetalleRow,
+  InventarioObsoletoResumenRow,
+  TipoInventarioObsoleto,
 } from "@/modules/informes/postventa/services/inventario-obsoletos.service";
 import { useToast } from "@/components/ui/use-toast";
+import Modal from "@/components/shared/ui/Modal";
+import { Pagination } from "@/components/shared/ui/Pagination";
+import * as XLSX from "xlsx";
+import { Loader2 } from "lucide-react";
 
-type CategoriaFiltro = 1 | 2; // 1: >=, 2: <=
-
-interface FilaFiltroState {
-  filtro: CategoriaFiltro | null;
-  rango: number | null;
-}
-
-interface RowExtendido extends InventarioObsoletoRow {
+interface RowExtendido extends InventarioObsoletoDetalleRow {
   descuento?: number | null;
   nuevoPvp?: number | null;
   nuevoMargen?: number | null;
 }
 
 export default function InventarioObsoletosPage() {
-  const { showError } = useToast();
-
-  const [filtros, setFiltros] = useState<Record<number, FilaFiltroState>>({
-    1: { filtro: null, rango: null },
-    2: { filtro: null, rango: null },
-    3: { filtro: null, rango: null },
-    4: { filtro: null, rango: null },
-  });
-
+  const { showError, showInfo } = useToast();
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedTipo, setSelectedTipo] = useState<TipoInventarioObsoleto | null>(
+    null,
+  );
+  const [selectedTitulo, setSelectedTitulo] = useState("");
   const [rows, setRows] = useState<RowExtendido[]>([]);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
-  const { isFetching } = useQuery<InventarioObsoletoRow[], Error>({
-    queryKey: ["informes", "postventa", "inventario-obsoletos"],
-    queryFn: async () => [],
-    enabled: false,
+  const { data: resumen = [], isLoading: loadingResumen } = useQuery<
+    InventarioObsoletoResumenRow[],
+    Error
+  >({
+    queryKey: ["informes", "postventa", "inventario-obsoletos", "resumen"],
+    queryFn: () => inventarioObsoletosService.obtenerResumen(),
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
-  const actualizarFiltro = (
-    opcion: number,
-    campo: "filtro" | "rango",
-    valor: string,
-  ) => {
-    setFiltros((prev) => ({
-      ...prev,
-      [opcion]: {
-        ...prev[opcion],
-        [campo]:
-          campo === "filtro"
-            ? (Number(valor) as CategoriaFiltro)
-            : valor === ""
-            ? null
-            : Number(valor),
-      },
-    }));
-  };
-
-  const ejecutarConsulta = async (opcion: number) => {
-    const { filtro, rango } = filtros[opcion];
-    if (!filtro || rango === null) {
-      showError("Debes seleccionar filtro y rango para esta categoría.");
+  const abrirDetalle = async (row: InventarioObsoletoResumenRow) => {
+    if (!row.habilitaDetalle) {
+      showInfo("Esta categoría no supera el umbral para ver detalle.");
       return;
     }
+
+    setSelectedTipo(row.tipo);
+    setSelectedTitulo(row.descripcionTipo);
+    setRows([]);
+    setCurrentPage(1);
+    setOpenModal(true);
+    setLoadingDetalle(true);
+
     try {
-      const data = await inventarioObsoletosService.obtener({
-        opcion,
-        categoria: filtro,
-        rango,
-      });
+      const data = await inventarioObsoletosService.obtenerDetalle(row.tipo);
       setRows(
         data.map((r) => ({
           ...r,
@@ -79,9 +66,9 @@ export default function InventarioObsoletosPage() {
         })),
       );
     } catch {
-      showError(
-        "No se pudo cargar el informe de inventario obsoletos. Verifica los filtros e inténtalo nuevamente.",
-      );
+      showError("No se pudo cargar el detalle de inventario obsoleto.");
+    } finally {
+      setLoadingDetalle(false);
     }
   };
 
@@ -93,9 +80,9 @@ export default function InventarioObsoletosPage() {
           if (descuento === null) {
             return { ...r, descuento: null, nuevoPvp: null, nuevoMargen: null };
           }
-          const nuevoPvp = r.pvp * (1 - descuento / 100);
+          const nuevoPvp = r.pvpAntesIva * (1 - descuento / 100);
           const nuevoMargen =
-            ((nuevoPvp - r.costoUnitario) / (nuevoPvp === 0 ? 1 : nuevoPvp)) *
+            ((nuevoPvp - r.costo) / (nuevoPvp === 0 ? 1 : nuevoPvp)) *
             100;
           return {
             ...r,
@@ -114,6 +101,42 @@ export default function InventarioObsoletosPage() {
     0,
   );
 
+  const totalObsoleto = resumen.reduce((acc, r) => acc + r.obsoleto, 0);
+  const totalGeneral = resumen.reduce((acc, r) => acc + r.total, 0);
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+
+  const exportarExcel = () => {
+    if (rows.length === 0) {
+      showInfo("No hay datos para exportar.");
+      return;
+    }
+    const excelRows = rows.map((r) => ({
+      Rank: r.rnk,
+      Codigo: r.codigo,
+      Descripcion: r.descripcion,
+      Linea: r.linea,
+      Bodega: r.bodega,
+      Cantidad: r.stock,
+      Costo: r.costo,
+      "Costo Total": r.costoTotal,
+      Meses: r.meses,
+      "Venta Antes IVA": r.pvpAntesIva,
+      Margen: r.margen,
+      Acumulado: r.acumulado,
+      Descuento: r.descuento ?? "",
+      "Nuevo PVP": r.nuevoPvp ?? "",
+      "Nuevo Margen": r.nuevoMargen ?? "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(excelRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Detalle");
+    XLSX.writeFile(wb, "informe-descuento-repuestos-obsoletos.xlsx");
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -121,8 +144,8 @@ export default function InventarioObsoletosPage() {
           Informe Inventario Obsoletos
         </h1>
         <p className="text-gray-500 mt-1">
-          Filtra repuestos obsoletos por meses y rango de costo, y simula
-          descuentos para ajustar PVP y margen.
+          Resumen del inventario obsoleto por categoría con detalle y simulación
+          de descuentos.
         </p>
       </div>
 
@@ -131,146 +154,164 @@ export default function InventarioObsoletosPage() {
           <table className="min-w-full text-xs md:text-sm border border-gray-100 rounded-lg">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-center font-semibold">
-                  Categoría (meses)
-                </th>
-                <th className="px-3 py-2 text-center font-semibold">Filtro</th>
-                <th className="px-3 py-2 text-center font-semibold">Rango</th>
-                <th className="px-3 py-2 text-center font-semibold"></th>
+                <th className="px-3 py-2 text-center font-semibold">Tipo</th>
+                <th className="px-3 py-2 text-center font-semibold">Obsoleto</th>
+                <th className="px-3 py-2 text-center font-semibold">Total</th>
+                <th className="px-3 py-2 text-center font-semibold">Porcentaje</th>
+                <th className="px-3 py-2 text-center font-semibold">Detalle</th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { opcion: 1, label: "0 - 12" },
-                { opcion: 2, label: "9 - 12" },
-                { opcion: 3, label: "12 - 24" },
-                { opcion: 4, label: "> 24" },
-              ].map(({ opcion, label }) => (
-                <tr key={opcion} className="border-t border-gray-100">
-                  <td className="px-3 py-2 text-center">{label}</td>
-                  <td className="px-3 py-2">
-                    <select
-                      className="form-select w-full rounded-md border-gray-300 text-xs md:text-sm focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary)"
-                      value={filtros[opcion].filtro ?? ""}
-                      onChange={(e) =>
-                        actualizarFiltro(opcion, "filtro", e.target.value)
-                      }
-                    >
-                      <option value="">SELECCIONE UNA OPCIÓN</option>
-                      <option value="1">MAYOR QUE {"(>)"}</option>
-                      <option value="2">MENOR QUE {"(<)"}</option>
-                    </select>
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      type="number"
-                      className="form-input w-full rounded-md border-gray-300 text-xs md:text-sm focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary)"
-                      value={filtros[opcion].rango ?? ""}
-                      onChange={(e) =>
-                        actualizarFiltro(opcion, "rango", e.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      type="button"
-                      disabled={isFetching}
-                      onClick={() => ejecutarConsulta(opcion)}
-                      className="inline-flex items-center rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
-                    >
-                      Ejecutar
-                    </button>
+              {loadingResumen ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-gray-500">
+                    Cargando resumen...
                   </td>
                 </tr>
-              ))}
+              ) : resumen.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-3 py-8 text-center text-gray-500">
+                    No hay datos de inventario obsoleto.
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {resumen.map((row) => (
+                    <tr key={row.tipo} className="border-t border-gray-100">
+                      <td className="px-3 py-2">{row.descripcionTipo}</td>
+                      <td className="px-3 py-2 text-right">
+                        {row.obsoleto.toLocaleString("es-CO", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {row.total.toLocaleString("es-CO", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {row.porcentaje.toFixed(2)}%
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <button
+                          type="button"
+                          disabled={!row.habilitaDetalle}
+                          onClick={() => abrirDetalle(row)}
+                          className="inline-flex items-center rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Detalle
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-100 border-t border-gray-200">
+                    <th className="px-3 py-2 text-left">Totales</th>
+                    <th className="px-3 py-2 text-right">
+                      {totalObsoleto.toLocaleString("es-CO", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </th>
+                    <th className="px-3 py-2 text-right">
+                      {totalGeneral.toLocaleString("es-CO", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </th>
+                    <th className="px-3 py-2"></th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm md:text-base font-semibold brand-text">
-            Detalle de repuestos obsoletos
-          </h2>
-          <p className="text-xs md:text-sm text-gray-500">
-            Nuevo PVP total simulado:{" "}
-            <span className="font-semibold">
-              {totalNuevoPvp.toLocaleString("es-CO")}
-            </span>
-          </p>
-        </div>
+      <Modal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        title={`Detalles del inventario - ${selectedTitulo}`}
+        width="min(96vw, 1400px)"
+      >
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs md:text-sm text-gray-500">
+              Nuevo PVP total simulado:{" "}
+              <span className="font-semibold">
+                {totalNuevoPvp.toLocaleString("es-CO", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </p>
+            <button
+              type="button"
+              onClick={exportarExcel}
+              className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+            >
+              Generar Excel
+            </button>
+          </div>
 
-        {rows.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No hay datos para los filtros seleccionados. Ejecuta alguna de las
-            categorías.
-          </p>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
+          {loadingDetalle ? (
+            <div className="py-8 text-sm text-gray-500 flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin" />
+              Cargando detalle...
+            </div>
+          ) : rows.length === 0 ? (
+            <p className="text-sm text-gray-500">No hay detalle para mostrar.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-gray-100 max-h-[65vh]">
+              <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    CÓDIGO
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    DESCRIPCIÓN
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    CANTIDAD
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    BODEGA
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    COSTO UNITARIO
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    COSTO PROMEDIO
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    VENTA ANTES DE IVA
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    MARGEN
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    MESES
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    DESCUENTO (%)
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    NUEVO PVP
-                  </th>
-                  <th className="px-2 py-2 text-center font-semibold">
-                    NUEVO MARGEN
-                  </th>
+                  <th className="px-2 py-2 text-center font-semibold">#</th>
+                  <th className="px-2 py-2 text-center font-semibold">CODIGO</th>
+                  <th className="px-2 py-2 text-center font-semibold">DESCRIPCION</th>
+                  <th className="px-2 py-2 text-center font-semibold">LINEA</th>
+                  <th className="px-2 py-2 text-center font-semibold">BODEGA</th>
+                  <th className="px-2 py-2 text-center font-semibold">COSTO</th>
+                  <th className="px-2 py-2 text-center font-semibold">CANTIDAD</th>
+                  <th className="px-2 py-2 text-center font-semibold">COSTO TOTAL</th>
+                  <th className="px-2 py-2 text-center font-semibold">MESES</th>
+                  <th className="px-2 py-2 text-center font-semibold">VENTA ANTES IVA</th>
+                  <th className="px-2 py-2 text-center font-semibold">MARGEN</th>
+                  <th className="px-2 py-2 text-center font-semibold">ACUMULADO</th>
+                  <th className="px-2 py-2 text-center font-semibold">DESCUENTO</th>
+                  <th className="px-2 py-2 text-center font-semibold">NUEVO PVP</th>
+                  <th className="px-2 py-2 text-center font-semibold">NUEVO MARGEN</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.map((row) => (
+                {paginatedRows.map((row) => (
                   <tr key={`${row.codigo}-${row.bodega}`}>
+                    <td className="px-2 py-1.5 text-center">{row.rnk}</td>
                     <td className="px-2 py-1.5 text-center">{row.codigo}</td>
                     <td className="px-2 py-1.5">{row.descripcion}</td>
+                    <td className="px-2 py-1.5 text-center">{row.linea}</td>
+                    <td className="px-2 py-1.5 text-center">{row.bodega}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      {row.costo.toFixed(2)}
+                    </td>
                     <td className="px-2 py-1.5 text-center">
                       {row.stock.toLocaleString("es-CO")}
                     </td>
-                    <td className="px-2 py-1.5 text-center">{row.bodega}</td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.costoUnitario.toFixed(2)}
+                      {row.costoTotal.toFixed(2)}
                     </td>
+                    <td className="px-2 py-1.5 text-center">{row.meses}</td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.costoPromedio.toFixed(2)}
-                    </td>
-                    <td className="px-2 py-1.5 text-right">
-                      {row.pvp.toFixed(2)}
+                      {row.pvpAntesIva.toFixed(2)}
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       {row.margen.toFixed(2)}%
                     </td>
-                    <td className="px-2 py-1.5 text-center">{row.meses}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      {row.acumulado.toFixed(2)}
+                    </td>
                     <td className="px-2 py-1.5 text-right">
                       <input
                         type="number"
@@ -297,7 +338,7 @@ export default function InventarioObsoletosPage() {
               <tfoot>
                 <tr className="bg-gray-50">
                   <th
-                    colSpan={10}
+                    colSpan={13}
                     className="px-2 py-2 text-right font-semibold"
                   >
                     Total nuevo PVP
@@ -309,9 +350,20 @@ export default function InventarioObsoletosPage() {
                 </tr>
               </tfoot>
             </table>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+
+          {!loadingDetalle && rows.length > 0 && (
+            <div className="pt-2">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

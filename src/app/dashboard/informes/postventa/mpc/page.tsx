@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mpcService, MpcRow } from '@/modules/informes/postventa/services/mpc.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { Pagination } from '@/components/shared/ui/Pagination';
+
+const PAGE_SIZE = 15;
 
 export default function MpcInformePage() {
   const queryClient = useQueryClient();
@@ -15,6 +18,7 @@ export default function MpcInformePage() {
   });
 
   const [updatingPlaca, setUpdatingPlaca] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const cambiarEstadoMutation = useMutation<
     void,
@@ -42,7 +46,31 @@ export default function MpcInformePage() {
     cambiarEstadoMutation.mutate({ placa: row.placa, estado: nuevoEstado });
   };
 
-  const rows = data ?? [];
+  const rows = useMemo(() => {
+    const allRows = data ?? [];
+    return [...allRows].sort((a, b) => {
+      const aTime = new Date(a.fechaRegistro).getTime();
+      const bTime = new Date(b.fechaRegistro).getTime();
+      return bTime - aTime;
+    });
+  }, [data]);
+
+  const totalRows = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
+
+  const formatFecha = (fecha: string) => {
+    const parsed = new Date(fecha);
+    if (Number.isNaN(parsed.getTime())) return fecha;
+    return parsed.toISOString().slice(0, 10);
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [rows.length]);
 
   return (
     <div className="space-y-6">
@@ -76,15 +104,18 @@ export default function MpcInformePage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => {
+            {paginatedRows.map((row, index) => {
               const saldo = row.saldoMpc;
               const isNA = saldo <= 0;
               const isChecked = row.estadoCasoEspecial === 1;
               const disabled = updatingPlaca === row.placa || isNA;
 
               return (
-                <tr key={row.placa} className="border-b last:border-b-0">
-                  <td className="px-2 py-1">{row.fechaRegistro}</td>
+                <tr
+                  key={`${row.placa}-${row.fechaRegistro}-${currentPage}-${index}`}
+                  className="border-b last:border-b-0"
+                >
+                  <td className="px-2 py-1">{formatFecha(row.fechaRegistro)}</td>
                   <td className="px-2 py-1">{row.placa}</td>
                   <td className="px-2 py-1">{row.desModelo}</td>
                   <td className="px-2 py-1">{row.planVendido}</td>
@@ -125,6 +156,15 @@ export default function MpcInformePage() {
           </tbody>
         </table>
       </div>
+      {!isLoading && totalRows > 0 && (
+        <div className="p-4 border-t border-gray-200 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onChange={setCurrentPage}
+          />
+        </div>
+      )}
     </div>
   );
 }

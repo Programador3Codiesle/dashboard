@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { DateRange } from 'react-day-picker';
 import { encuestaSatisfaccionService, EncuestaSatisfaccionResumen } from '@/modules/informes/postventa/services/encuesta-satisfaccion.service';
-import { DateRangePicker } from '@/shared/components/DateRangePicker';
 import { SelectSede } from '@/shared/components/selects/select-sede';
 import { useToast } from '@/components/shared/ui/ToastContext';
 
 type NivelSatisfaccion = 0 | 10 | 8 | 7 | 6;
+
+const inputClass =
+  'w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white';
+const labelClass = 'text-xs font-medium text-gray-600 mb-1';
 
 export default function EncuestaSatisfaccionPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -17,6 +20,7 @@ export default function EncuestaSatisfaccionPage() {
   const [cliente, setCliente] = useState<string>('');
   const [orden, setOrden] = useState<string>('');
   const [nivel, setNivel] = useState<NivelSatisfaccion>(0);
+  const searchInFlightRef = useRef(false);
 
   const { showError, showSuccess, showInfo } = useToast();
 
@@ -46,13 +50,18 @@ export default function EncuestaSatisfaccionPage() {
 
       return resultados;
     },
-    onSuccess: () => {
-      showSuccess('Informe de encuestas cargado correctamente.');
+    onSuccess: (resultados) => {
+      if (resultados.length > 0) {
+        showSuccess('Informe de encuestas cargado correctamente.');
+      }
     },
     onError: (error) => {
       if (error.message !== 'Rango de fechas requerido') {
         showError('No se pudo cargar el informe de encuestas.');
       }
+    },
+    onSettled: () => {
+      searchInFlightRef.current = false;
     },
   });
 
@@ -63,8 +72,12 @@ export default function EncuestaSatisfaccionPage() {
   };
 
   const handleBuscar = () => {
+    if (status === 'pending' || searchInFlightRef.current) return;
+    searchInFlightRef.current = true;
     mutate();
   };
+
+  const dateInputValue = (date?: Date) => (date ? date.toISOString().slice(0, 10) : '');
 
   return (
     <div className="space-y-6">
@@ -77,24 +90,50 @@ export default function EncuestaSatisfaccionPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Rango de fechas</p>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex flex-col">
+            <label className={labelClass}>Fecha inicial</label>
+            <input
+              type="date"
+              value={dateInputValue(dateRange?.from)}
+              onChange={(e) => {
+                const from = e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined;
+                setDateRange((prev) => ({ from, to: prev?.to }));
+              }}
+              className={inputClass}
+            />
           </div>
 
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Bodega</p>
-            <SelectSede value={bodega} onChange={setBodega} includeTodas />
+          <div className="flex flex-col">
+            <label className={labelClass}>Fecha final</label>
+            <input
+              type="date"
+              value={dateInputValue(dateRange?.to)}
+              onChange={(e) => {
+                const to = e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined;
+                setDateRange((prev) => ({ from: prev?.from, to }));
+              }}
+              className={inputClass}
+            />
           </div>
 
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Nivel de satisfacción (NPS)</p>
+          <div className="flex flex-col">
+            <label className={labelClass}>Bodega</label>
+            <SelectSede
+              value={bodega}
+              onChange={setBodega}
+              includeTodas
+              className={inputClass}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className={labelClass}>Nivel de satisfacción (NPS)</label>
             <select
               value={nivel}
               onChange={(e) => setNivel(Number(e.target.value) as NivelSatisfaccion)}
-              className="w-full rounded-md border-gray-300 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+              className={inputClass}
             >
               <option value={0}>Todos</option>
               <option value={10}>10</option>
@@ -106,45 +145,51 @@ export default function EncuestaSatisfaccionPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Cliente (NIT)</p>
+          <div className="flex flex-col">
+            <label className={labelClass}>Cliente (NIT)</label>
             <input
               value={cliente}
               onChange={(e) => setCliente(e.target.value)}
-              className="w-full rounded-md border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+              className={inputClass}
               placeholder="Opcional"
             />
           </div>
 
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Número de orden</p>
+          <div className="flex flex-col">
+            <label className={labelClass}>Número de orden</label>
             <input
               value={orden}
               onChange={(e) => setOrden(e.target.value)}
-              className="w-full rounded-md border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+              className={inputClass}
               placeholder="Opcional"
             />
           </div>
 
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Técnico / Asesor</p>
+          <div className="flex flex-col">
+            <label className={labelClass}>Técnico / Asesor</label>
             <input
               value={tecnico}
               onChange={(e) => setTecnico(e.target.value)}
-              className="w-full rounded-md border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+              className={inputClass}
               placeholder="Por ahora escribe el NIT (legacy usa combo dinámico)"
             />
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap gap-3 items-center justify-end">
           <button
+            type="button"
             onClick={handleBuscar}
             disabled={status === 'pending'}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-[--color-primary] text-white text-sm font-medium hover:opacity-90 disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {status === 'pending' ? 'Cargando...' : 'Buscar'}
           </button>
+          {(data?.length ?? 0) > 0 && (
+            <span className="text-xs text-gray-500">
+              {data?.length} registro{(data?.length ?? 0) === 1 ? '' : 's'} encontrados
+            </span>
+          )}
         </div>
       </div>
 

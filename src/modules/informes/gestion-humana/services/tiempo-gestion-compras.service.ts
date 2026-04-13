@@ -27,7 +27,7 @@ export const tiempoGestionComprasService = {
     if (filtros.estado) params.append('estado', filtros.estado);
 
     const { data } = await apiClient.get<TiempoGestionCompras[]>(
-      `/administracion/informe-tiempo-gestion-compras?${params.toString()}`,
+      `/informes/informe-tiempo-gestion-compras?${params.toString()}`,
     );
 
     return data;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   NpsTecnicoRow,
@@ -9,6 +9,7 @@ import {
   npsTecnicosService,
 } from '@/modules/informes/postventa/services/nps-tecnicos.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { Pagination } from '@/components/shared/ui/Pagination';
 
 function getRowColor(nps: number) {
   if (nps < 0) return 'bg-red-50';
@@ -45,13 +46,29 @@ const MESES_OPCIONES: { value: number; label: string }[] = [
   { value: 12, label: 'Diciembre' },
 ];
 
+const PAGE_SIZE = 15;
+
+const COLUMNAS_TABLA = [
+  'Tecnico',
+  'NPS',
+  'Cantidad de encuestas 0 a 6',
+  'Cantidad de encuestas 7 a 8',
+  'Cantidad de encuestas 9 a 10',
+  'Mes',
+] as const;
+
 export default function NpsTecnicosPage() {
   const [origen, setOrigen] = useState<OrigenNpsTecnicos>('nps_int');
   const [sede, setSede] = useState<SedeNpsTecnicos>('todas');
   const [mes, setMes] = useState<number>(0);
   const [rows, setRows] = useState<NpsTecnicoRow[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { showError, showInfo } = useToast();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [rows]);
 
   const { mutate, status } = useMutation<NpsTecnicoRow[], Error, void>({
     mutationFn: async () => {
@@ -75,6 +92,13 @@ export default function NpsTecnicosPage() {
     e.preventDefault();
     mutate();
   };
+
+  const totalRows = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
 
   return (
     <div className="space-y-6">
@@ -160,19 +184,21 @@ export default function NpsTecnicosPage() {
         <div className="overflow-x-auto">
           <table className="min-w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-[--color-primary] text-white text-center">
-                <th className="px-2 py-2 text-left">Técnico</th>
-                <th className="px-2 py-2">NPS</th>
-                <th className="px-2 py-2">0 - 6</th>
-                <th className="px-2 py-2">7 - 8</th>
-                <th className="px-2 py-2">9 - 10</th>
-                <th className="px-2 py-2">Mes</th>
+              <tr className="brand-bg text-white text-center">
+                {COLUMNAS_TABLA.map((col) => (
+                  <th
+                    key={col}
+                    className={`px-2 py-2 ${col === 'Tecnico' ? 'text-left' : ''}`}
+                  >
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {paginatedRows.map((row, index) => (
                 <tr
-                  key={`${row.tecnico}-${row.mesNumero ?? 0}-${row.origen}-${row.sede}`}
+                  key={`${row.tecnico}-${row.mesNumero ?? 0}-${row.origen}-${row.sede}-${currentPage}-${index}`}
                   className={`${getRowColor(row.nps)} border-t`}
                 >
                   <td className="px-2 py-1 text-left font-medium text-gray-800">
@@ -201,6 +227,15 @@ export default function NpsTecnicosPage() {
             </tbody>
           </table>
         </div>
+        {status !== 'pending' && totalRows > 0 && (
+          <div className="pt-4 border-t border-gray-200 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

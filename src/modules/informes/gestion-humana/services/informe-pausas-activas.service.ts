@@ -45,14 +45,19 @@ function mapItem(item: PausaActivaAPI): PausaActiva {
 export const informePausasActivaseService = {
   async listar(filtros: FiltrosPausasActivas): Promise<PausaActiva[]> {
     const params = new URLSearchParams();
-    if (filtros.empleado) params.append("empleado", filtros.empleado);
-    if (filtros.sede) params.append("sede", filtros.sede);
+    const empleado = filtros.empleado?.trim();
+    const sede = filtros.sede?.trim();
+
+    if (empleado) params.append("empleado", empleado);
+    if (sede) params.append("sede", sede);
     if (filtros.fechaDia) params.append("fechaDia", filtros.fechaDia);
     if (filtros.fechaMes) params.append("fechaMes", filtros.fechaMes);
+    // Evita cualquier respuesta cacheada cuando el usuario cambia filtros.
+    params.append("_ts", String(Date.now()));
 
     const response = await fetchWithAuth(
       `${API_URL}/administracion/informe-pausas-activas?${params.toString()}`,
-      { method: "GET" }
+      { method: "GET", cache: "no-store" }
     );
 
     if (!response.ok) {

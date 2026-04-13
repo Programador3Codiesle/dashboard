@@ -1,14 +1,23 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import * as XLSX from 'xlsx';
 import { tallasPersonalService } from '@/modules/informes/gestion-humana/services/tallas-personal.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { Pagination } from '@/components/shared/ui/Pagination';
+
+const PAGE_SIZE = 25;
 
 export default function TallasPersonalPage() {
   const { showError } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading } = useQuery({
     queryKey: ['informes', 'tallas-personal'],
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       try {
         return await tallasPersonalService.listar();
@@ -23,48 +32,33 @@ export default function TallasPersonalPage() {
   });
 
   const rows = data ?? [];
+  const totalItems = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
 
   const handleExportCsv = () => {
     if (!rows.length) return;
 
-    const headers = [
-      'Documento',
-      'Nombre',
-      'Genero',
-      'Talla Camisa',
-      'Talla Pantalón',
-      'Talla Botas',
-    ];
-
-    const csvRows = rows.map((r) => {
+    const excelRows = rows.map((r) => {
       const genero = r.genero === 0 ? 'Mujer' : 'Hombre';
       const botas = !r.talla_botas || r.talla_botas === 0 ? 'No aplica' : String(r.talla_botas);
-      return [
-        String(r.nit),
-        r.nombre,
-        genero,
-        r.talla_camisa ?? '',
-        r.talla_pantalon ?? '',
-        botas,
-      ];
+      return {
+        Documento: String(r.nit),
+        Nombre: r.nombre,
+        Genero: genero,
+        'Talla Camisa': r.talla_camisa ?? '',
+        'Talla Pantalón': r.talla_pantalon ?? '',
+        'Talla Botas': botas,
+      };
     });
 
-    const csvContent =
-      [headers, ...csvRows]
-        .map((cols) =>
-          cols
-            .map((c) => `"${String(c).replace(/"/g, '""')}"`)
-            .join(','),
-        )
-        .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'informe-tallas-personal.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'TallasPersonal');
+    XLSX.writeFile(workbook, 'informe-tallas-personal.xlsx');
   };
 
   return (
@@ -114,7 +108,7 @@ export default function TallasPersonalPage() {
                 </tr>
               )}
               {!isLoading &&
-                rows.map((r) => {
+                paginatedRows.map((r) => {
                   const genero = r.genero === 0 ? 'Mujer' : 'Hombre';
                   const botas =
                     !r.talla_botas || r.talla_botas === 0
@@ -134,6 +128,15 @@ export default function TallasPersonalPage() {
             </tbody>
           </table>
         </div>
+        {!isLoading && totalItems > 0 && (
+          <div className="p-4 border-t border-gray-200 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

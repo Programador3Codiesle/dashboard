@@ -1,8 +1,13 @@
 'use client';
 
 import { useQuery } from "@tanstack/react-query";
-import { kpiService } from "@/modules/informes/postventa/services/kpi.service";
-import { useState } from "react";
+import {
+  kpiService,
+  type KpiSedeMensual,
+  type KpiTecnicoDetallado,
+} from "@/modules/informes/postventa/services/kpi.service";
+import { useState, useMemo, useEffect } from "react";
+import { Pagination } from "@/components/shared/ui/Pagination";
 
 type SeccionKpi = "mantPrev" | "cargoCli" | "tecnicos";
 
@@ -21,22 +26,48 @@ const MESES = [
   "Diciembre",
 ];
 
+const PAGE_SIZE = 10;
+
 export default function KpiPage() {
   const [seccion, setSeccion] = useState<SeccionKpi>("mantPrev");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["informes", "postventa", "kpi"],
     queryFn: () => kpiService.obtenerResumen(),
   });
 
-  const renderTablaSedes = (
-    titulo: string,
-    rows: ReturnType<typeof kpiService.obtenerResumen> extends Promise<infer R>
-      ? R extends { mantenimientoPreventivo: infer A }
-        ? A
-        : never
-      : never,
-  ) => {
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [seccion]);
+
+  const mantCargoRows = useMemo((): KpiSedeMensual[] => {
+    if (!data) return [];
+    if (seccion === "mantPrev") return data.mantenimientoPreventivo;
+    if (seccion === "cargoCli") return data.cargoCliente;
+    return [];
+  }, [data, seccion]);
+
+  const tecnicosRowsFull = useMemo((): KpiTecnicoDetallado[] => {
+    if (!data || seccion !== "tecnicos") return [];
+    return data.tecnicos;
+  }, [data, seccion]);
+
+  const totalItems =
+    seccion === "tecnicos" ? tecnicosRowsFull.length : mantCargoRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+
+  const paginatedMantCargo = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return mantCargoRows.slice(start, start + PAGE_SIZE);
+  }, [mantCargoRows, currentPage]);
+
+  const paginatedTecnicos = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return tecnicosRowsFull.slice(start, start + PAGE_SIZE);
+  }, [tecnicosRowsFull, currentPage]);
+
+  const renderTablaSedes = (titulo: string, rows: KpiSedeMensual[]) => {
     if (!rows || rows.length === 0) {
       return (
         <p className="text-sm text-gray-500 mt-2">
@@ -64,8 +95,8 @@ export default function KpiPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {rows.map((row) => (
-                <tr key={row.sede} className="hover:bg-gray-50">
+              {rows.map((row, index) => (
+                <tr key={`${row.sede}-${index}`} className="hover:bg-gray-50">
                   <td className="px-4 py-2 font-medium text-gray-900">
                     {row.sede}
                   </td>
@@ -90,8 +121,8 @@ export default function KpiPage() {
     );
   };
 
-  const renderTablaTecnicos = () => {
-    if (!data || data.tecnicos.length === 0) {
+  const renderTablaTecnicos = (tecnicos: KpiTecnicoDetallado[]) => {
+    if (tecnicos.length === 0) {
       return (
         <p className="text-sm text-gray-500 mt-2">
           No hay información disponible para esta sección.
@@ -122,8 +153,11 @@ export default function KpiPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data.tecnicos.map((tec) => (
-                <tr key={tec.operario} className="align-top hover:bg-gray-50">
+              {tecnicos.map((tec, index) => (
+                <tr
+                  key={`${tec.operario}-${tec.tecnico}-${index}`}
+                  className="align-top hover:bg-gray-50"
+                >
                   <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap">
                     {tec.tecnico}
                   </td>
@@ -227,7 +261,9 @@ export default function KpiPage() {
         </div>
 
         {isLoading && (
-          <p className="text-sm text-gray-500">Cargando información...</p>
+          <div className="mt-2 flex min-h-[240px] items-center justify-center rounded-xl border border-gray-100 bg-white shadow-sm">
+            <p className="text-sm text-gray-500">Cargando información...</p>
+          </div>
         )}
         {isError && (
           <p className="text-sm text-red-500">
@@ -240,14 +276,24 @@ export default function KpiPage() {
             {seccion === "mantPrev" &&
               renderTablaSedes(
                 "Cantidad OT mantenimiento preventivo",
-                data.mantenimientoPreventivo,
+                paginatedMantCargo,
               )}
             {seccion === "cargoCli" &&
               renderTablaSedes(
                 "Cantidad OT cargo a cliente",
-                data.cargoCliente,
+                paginatedMantCargo,
               )}
-            {seccion === "tecnicos" && renderTablaTecnicos()}
+            {seccion === "tecnicos" &&
+              renderTablaTecnicos(paginatedTecnicos)}
+            {totalItems > 0 && (
+              <div className="pt-2 flex justify-center border-t border-gray-100">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

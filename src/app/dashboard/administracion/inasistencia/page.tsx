@@ -82,7 +82,7 @@ export default function InasistenciaPage() {
         return true;
       })
       .map((item) => ({ value: item.documento, label: item.nombre }));
-    return [{ value: "", label: "Todos" }, ...list];
+    return list;
   }, [inasistencias]);
 
   const handleDownload = async () => {
