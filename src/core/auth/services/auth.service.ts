@@ -7,6 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 export interface LoginCredentials {
   nit_usuario: number;
   password: string;
+  remember: boolean;
 }
 
 export interface LoginResponse {
@@ -15,6 +16,11 @@ export interface LoginResponse {
     nit_usuario: number;
     perfil_postventa: string;
     nombre_usuario: string;
+    nom_perfil?: string;
+    empresas_asignadas: number[];
+    menus_permitidos: number[];
+    submenus_permitidos: number[];
+    trimenus_permitidos: number[];
   };
 }
 
@@ -41,6 +47,7 @@ export const authService = {
       body: JSON.stringify({
         nit_usuario: credentials.nit_usuario,
         password: credentials.password,
+        remember: credentials.remember,
       }),
     });
 

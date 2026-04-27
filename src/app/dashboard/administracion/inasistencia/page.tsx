@@ -12,12 +12,21 @@ import { DateRangeFilter } from "@/components/administracion/filters/DateRangeFi
 import { SelectFilter } from "@/components/shared/ui/SelectFilter";
 import { InasistenciaTableRow } from "@/components/administracion/table/InasistenciaTableRow";
 
+const getToday = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function InasistenciaPage() {
   const { showError, showSuccess } = useToast();
+  const today = useMemo(() => getToday(), []);
   const [search, setSearch] = useState("");
   const [filtroEmpleado, setFiltroEmpleado] = useState("");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFinal, setFechaFinal] = useState("");
+  const [fechaInicio, setFechaInicio] = useState(today);
+  const [fechaFinal, setFechaFinal] = useState(today);
   const [inasistencias, setInasistencias] = useState<Inasistencia[]>([]);
   const [loading, setLoading] = useState(false);
   const [descargando, setDescargando] = useState(false);
@@ -148,7 +157,7 @@ export default function InasistenciaPage() {
             <button
               onClick={handleDownload}
               disabled={descargando || !fechaInicio || !fechaFinal}
-              className="w-full flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {descargando ? (
                 <>
@@ -181,7 +190,7 @@ export default function InasistenciaPage() {
       >
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="brand-bg border-b border-[var(--color-primary-dark)]">
+            <thead className="brand-bg border-b border-(--color-primary-dark)">
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-white">Documento</th>
                 <th className="text-left py-4 px-6 font-semibold text-white">Nombre</th>

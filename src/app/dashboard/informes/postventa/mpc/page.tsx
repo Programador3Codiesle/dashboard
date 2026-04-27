@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { mpcService, MpcRow } from '@/modules/informes/postventa/services/mpc.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 const PAGE_SIZE = 15;
 
@@ -90,16 +91,16 @@ export default function MpcInformePage() {
 
       <div className="bg-white rounded-xl shadow-sm border brand-border overflow-auto">
         <table className="min-w-full text-xs">
-          <thead className="bg-[--color-primary] text-white">
+          <thead className="brand-bg text-white">
             <tr>
-              <th className="px-2 py-2 text-left">Fecha registro</th>
+              <th className="px-2 py-2 text-left">Fecha</th>
               <th className="px-2 py-2 text-left">Placa</th>
               <th className="px-2 py-2 text-left">Modelo</th>
               <th className="px-2 py-2 text-left">Plan vendido</th>
-              <th className="px-2 py-2 text-right">Valor MPC</th>
-              <th className="px-2 py-2 text-right">Valor redimido</th>
+              <th className="px-2 py-2 text-right">Valor</th>
+              <th className="px-2 py-2 text-right">Redimido</th>
               <th className="px-2 py-2 text-right">Saldo</th>
-              <th className="px-2 py-2 text-left">Vendido por</th>
+              <th className="px-2 py-2 text-center">Vendido por</th>
               <th className="px-2 py-2 text-center">Caso especial</th>
             </tr>
           </thead>
@@ -120,15 +121,15 @@ export default function MpcInformePage() {
                   <td className="px-2 py-1">{row.desModelo}</td>
                   <td className="px-2 py-1">{row.planVendido}</td>
                   <td className="px-2 py-1 text-right">
-                    {row.valorMpc.toLocaleString('es-CO')}
+                    {formatCantidadCo(row.valorMpc)}
                   </td>
                   <td className="px-2 py-1 text-right">
-                    {row.valorRedimido.toLocaleString('es-CO')}
+                    {formatCantidadCo(row.valorRedimido)}
                   </td>
                   <td className="px-2 py-1 text-right">
-                    {saldo.toLocaleString('es-CO')}
+                    {formatCantidadCo(saldo)}
                   </td>
-                  <td className="px-2 py-1">{row.vendidoPor}</td>
+                  <td className="px-2 py-1 text-center">{row.vendidoPor}</td>
                   <td className="px-2 py-1 text-center">
                     {isNA ? (
                       <span className="text-[11px] text-gray-500">N/A</span>

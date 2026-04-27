@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, memo } from "react";
 import { motion } from "framer-motion";
-import { Download, Loader2 } from "lucide-react";
+import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { AREAS_SOLICITA } from "@/modules/administracion/constants";
@@ -18,12 +18,12 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
   tiempos,
   tiemposMostrados,
   loading,
-  filtroMes,
+  filtroMesAplicado,
 }: {
   tiempos: TiempoSuplementarioInforme[];
   tiemposMostrados: TiempoSuplementarioInforme[];
   loading: boolean;
-  filtroMes: string;
+  filtroMesAplicado: string;
 }) {
   return (
     <div className="overflow-x-auto relative">
@@ -36,7 +36,7 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
         </div>
       )}
       <table className="w-full">
-        <thead className="brand-bg border-b border-[var(--color-primary-dark)] text-sm">
+        <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
           <tr>
             <th className="text-left py-4 px-6 font-semibold text-white">Nombre del Empleado</th>
             <th className="text-left py-4 px-6 font-semibold text-white">Sede</th>
@@ -58,7 +58,7 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
                 </div>
               </td>
             </tr>
-          ) : !filtroMes ? (
+          ) : !filtroMesAplicado ? (
             <tr>
               <td colSpan={8} className="text-center py-10 text-gray-500">
                 Seleccione un mes para generar el informe
@@ -99,13 +99,7 @@ const PaginacionTiempos = memo(function PaginacionTiempos({
 });
 
 const HeaderSection = memo(function HeaderSection({
-  onDownload,
-  descargando,
-  filtroMes,
 }: {
-  onDownload: () => void;
-  descargando: boolean;
-  filtroMes: string;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -113,24 +107,6 @@ const HeaderSection = memo(function HeaderSection({
         <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Tiempo Suplementario</h1>
         <p className="text-gray-500 mt-1">Informe de tiempo suplementario multiempresa</p>
       </div>
-      <button
-        type="button"
-        onClick={onDownload}
-        disabled={descargando || !filtroMes}
-        className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {descargando ? (
-          <>
-            <Loader2 className="animate-spin" size={18} />
-            <span>Descargando...</span>
-          </>
-        ) : (
-          <>
-            <Download size={18} />
-            <span>Descargar Excel</span>
-          </>
-        )}
-      </button>
     </div>
   );
 });
@@ -146,6 +122,11 @@ const FiltersSection = memo(function FiltersSection({
   onFiltroSedeChange,
   onFiltroAreaChange,
   onFiltroEmpleadoChange,
+  onBuscar,
+  loading,
+  onDownload,
+  descargando,
+  totalRegistros,
 }: {
   filtroMes: string;
   filtroSede: string;
@@ -157,19 +138,24 @@ const FiltersSection = memo(function FiltersSection({
   onFiltroSedeChange: (v: string) => void;
   onFiltroAreaChange: (v: string) => void;
   onFiltroEmpleadoChange: (v: string) => void;
+  onBuscar: () => void;
+  loading: boolean;
+  onDownload: () => void;
+  descargando: boolean;
+  totalRegistros: number;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+      className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Seleccionar Mes</label>
           <input
             type="month"
-            className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white"
+            className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white"
             value={filtroMes}
             onChange={(e) => onFiltroMesChange(e.target.value)}
           />
@@ -196,6 +182,36 @@ const FiltersSection = memo(function FiltersSection({
           placeholder="Todos"
         />
       </div>
+      <div className="flex flex-wrap gap-3 items-center">
+        <button
+          type="button"
+          onClick={onBuscar}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
+        >
+          {loading && <Loader2 size={16} className="animate-spin" />}
+          <span>Buscar</span>
+        </button>
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={descargando || loading || totalRegistros === 0}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+            totalRegistros > 0
+              ? "bg-emerald-600 text-white hover:opacity-90"
+              : "border border-gray-300 text-gray-700 bg-white"
+          }`}
+        >
+          {descargando && <Loader2 size={16} className="animate-spin" />}
+          <FileSpreadsheet size={16} />
+          <span>Exportar a Excel</span>
+        </button>
+        {totalRegistros > 0 && (
+          <span className="text-xs text-gray-500">
+            {totalRegistros} registro{totalRegistros === 1 ? "" : "s"}
+          </span>
+        )}
+      </div>
     </motion.div>
   );
 });
@@ -219,17 +235,22 @@ export default function InformeTiempoSuplementarioPage() {
   const [filtroSede, setFiltroSede] = useState("");
   const [filtroArea, setFiltroArea] = useState("");
   const [filtroEmpleado, setFiltroEmpleado] = useState("");
+  const [appliedMes, setAppliedMes] = useState("");
+  const [appliedSede, setAppliedSede] = useState("");
+  const [appliedArea, setAppliedArea] = useState("");
+  const [appliedEmpleado, setAppliedEmpleado] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [empleadosOptions, setEmpleadosOptions] = useState<{ value: string; label: string }[]>([]);
   const [tiempos, setTiempos] = useState<TiempoSuplementarioInforme[]>([]);
   const [loading, setLoading] = useState(false);
   const [descargando, setDescargando] = useState(false);
 
   const cargarTiempos = useCallback(async () => {
-    if (!filtroMes) return;
+    if (!appliedMes) return;
 
     setLoading(true);
     try {
-      const [anio, mes] = filtroMes.split("-");
+      const [anio, mes] = appliedMes.split("-");
       const fechaDesde = `${anio}-${mes}-01`;
       const ultimoDia = new Date(Number(anio), Number(mes), 0).getDate();
       const fechaHasta = `${anio}-${mes}-${ultimoDia}`;
@@ -237,12 +258,12 @@ export default function InformeTiempoSuplementarioPage() {
       const datos = await informeTiempoSuplementarioService.listar({
         fechaDesde,
         fechaHasta,
-        sede: filtroSede || undefined,
-        area: filtroArea || undefined,
-        empleado: filtroEmpleado.trim() || undefined,
+        sede: appliedSede || undefined,
+        area: appliedArea || undefined,
+        empleado: appliedEmpleado.trim() || undefined,
       });
       setTiempos(datos);
-      if (!filtroEmpleado.trim()) {
+      if (!appliedEmpleado.trim()) {
         const nombres = [...new Set(datos.map((d) => d.nombreEmpleado).filter(Boolean))].sort();
         setEmpleadosOptions(nombres.map((n) => ({ value: n, label: n })));
       }
@@ -252,20 +273,32 @@ export default function InformeTiempoSuplementarioPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtroMes, filtroSede, filtroArea, filtroEmpleado, showError]);
+  }, [appliedMes, appliedSede, appliedArea, appliedEmpleado, showError]);
 
   useEffect(() => {
-    if (filtroMes) {
+    if (hasSearched) {
       cargarTiempos();
     } else {
       setTiempos([]);
       setEmpleadosOptions([]);
     }
-  }, [filtroMes, filtroSede, filtroArea, filtroEmpleado, cargarTiempos]);
+  }, [hasSearched, cargarTiempos]);
 
   useEffect(() => {
     if (!filtroMes) setFiltroEmpleado("");
   }, [filtroMes]);
+
+  const handleBuscar = useCallback(() => {
+    if (!filtroMes) {
+      showError("Seleccione un mes para generar el informe");
+      return;
+    }
+    setAppliedMes(filtroMes);
+    setAppliedSede(filtroSede);
+    setAppliedArea(filtroArea);
+    setAppliedEmpleado(filtroEmpleado);
+    setHasSearched(true);
+  }, [filtroMes, filtroSede, filtroArea, filtroEmpleado, showError]);
 
   const filtered = useMemo(() => {
     let result = tiempos;
@@ -288,13 +321,13 @@ export default function InformeTiempoSuplementarioPage() {
   );
 
   const handleDownload = useCallback(async () => {
-    if (!filtroMes) {
+    if (!appliedMes) {
       showError("Seleccione un mes para exportar");
       return;
     }
     setDescargando(true);
     try {
-      const [anio, mes] = filtroMes.split("-");
+      const [anio, mes] = appliedMes.split("-");
       const fechaDesde = `${anio}-${mes}-01`;
       const ultimoDia = new Date(Number(anio), Number(mes), 0).getDate();
       const fechaHasta = `${anio}-${mes}-${ultimoDia}`;
@@ -302,14 +335,14 @@ export default function InformeTiempoSuplementarioPage() {
       const blob = await informeTiempoSuplementarioService.exportarExcel({
         fechaDesde,
         fechaHasta,
-        sede: filtroSede || undefined,
-        area: filtroArea || undefined,
-        empleado: filtroEmpleado.trim() || undefined,
+        sede: appliedSede || undefined,
+        area: appliedArea || undefined,
+        empleado: appliedEmpleado.trim() || undefined,
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `informe-tiempo-suplementario-${filtroMes}.xlsx`;
+      a.download = `informe-tiempo-suplementario-${appliedMes}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -321,11 +354,11 @@ export default function InformeTiempoSuplementarioPage() {
     } finally {
       setDescargando(false);
     }
-  }, [filtroMes, filtroSede, filtroArea, filtroEmpleado, showError, showSuccess]);
+  }, [appliedMes, appliedSede, appliedArea, appliedEmpleado, showError, showSuccess]);
 
   return (
     <div className="space-y-6">
-      <HeaderSection onDownload={handleDownload} descargando={descargando} filtroMes={filtroMes} />
+      <HeaderSection />
 
       <FiltersSection
         filtroMes={filtroMes}
@@ -338,6 +371,11 @@ export default function InformeTiempoSuplementarioPage() {
         onFiltroSedeChange={setFiltroSede}
         onFiltroAreaChange={setFiltroArea}
         onFiltroEmpleadoChange={setFiltroEmpleado}
+        onBuscar={handleBuscar}
+        loading={loading}
+        onDownload={handleDownload}
+        descargando={descargando}
+        totalRegistros={filtered.length}
       />
 
       <SearchSection
@@ -354,7 +392,7 @@ export default function InformeTiempoSuplementarioPage() {
           tiempos={tiempos}
           tiemposMostrados={tiemposMostrados}
           loading={loading}
-          filtroMes={filtroMes}
+          filtroMesAplicado={appliedMes}
         />
         <PaginacionTiempos
           currentPage={currentPage}

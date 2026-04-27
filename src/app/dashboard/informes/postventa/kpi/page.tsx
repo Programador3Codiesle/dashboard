@@ -8,6 +8,7 @@ import {
 } from "@/modules/informes/postventa/services/kpi.service";
 import { useState, useMemo, useEffect } from "react";
 import { Pagination } from "@/components/shared/ui/Pagination";
+import { formatCantidadCo } from "@/modules/informes/postventa/format-cantidad-co";
 
 type SeccionKpi = "mantPrev" | "cargoCli" | "tecnicos";
 
@@ -100,18 +101,42 @@ export default function KpiPage() {
                   <td className="px-4 py-2 font-medium text-gray-900">
                     {row.sede}
                   </td>
-                  <td className="px-3 py-2 text-center">{row.enero}</td>
-                  <td className="px-3 py-2 text-center">{row.febrero}</td>
-                  <td className="px-3 py-2 text-center">{row.marzo}</td>
-                  <td className="px-3 py-2 text-center">{row.abril}</td>
-                  <td className="px-3 py-2 text-center">{row.mayo}</td>
-                  <td className="px-3 py-2 text-center">{row.junio}</td>
-                  <td className="px-3 py-2 text-center">{row.julio}</td>
-                  <td className="px-3 py-2 text-center">{row.agosto}</td>
-                  <td className="px-3 py-2 text-center">{row.septiembre}</td>
-                  <td className="px-3 py-2 text-center">{row.octubre}</td>
-                  <td className="px-3 py-2 text-center">{row.noviembre}</td>
-                  <td className="px-3 py-2 text-center">{row.diciembre}</td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.enero)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.febrero)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.marzo)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.abril)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.mayo)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.junio)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.julio)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.agosto)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.septiembre)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.octubre)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.noviembre)}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {formatCantidadCo(row.diciembre)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -174,14 +199,14 @@ export default function KpiPage() {
                               <th className="pr-1 font-semibold text-gray-700">
                                 OT
                               </th>
-                              <td className="text-right">{ot}</td>
+                              <td className="text-right">{formatCantidadCo(ot)}</td>
                             </tr>
                             <tr>
                               <th className="pr-1 font-semibold text-gray-700">
                                 REP
                               </th>
                               <td className="text-right">
-                                {rep.toLocaleString("es-CO")}
+                                {formatCantidadCo(rep)}
                               </td>
                             </tr>
                             <tr>
@@ -189,7 +214,7 @@ export default function KpiPage() {
                                 MO
                               </th>
                               <td className="text-right">
-                                {mo.toLocaleString("es-CO")}
+                                {formatCantidadCo(mo)}
                               </td>
                             </tr>
                           </tbody>

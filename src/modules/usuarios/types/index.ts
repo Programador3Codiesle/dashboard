@@ -17,6 +17,14 @@ export interface IUsuarioAPI {
     tieneEmpresa: boolean;
 }
 
+export interface IUsuariosPaginatedResponseAPI {
+    items: IUsuarioAPI[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 export interface IJefe {
     id: number;
     nombre: string;

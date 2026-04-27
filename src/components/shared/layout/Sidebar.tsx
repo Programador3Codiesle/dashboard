@@ -1,6 +1,6 @@
 'use client';
 
-import { ROUTES, EMPRESAS } from "@/utils/constants";
+import { ROUTES, EMPRESAS, MENU_ID_BY_ROUTE } from "@/utils/constants";
 import { IUser } from "@/types/global";
 import {
   X,
@@ -40,6 +40,10 @@ function SidebarComponent({
 }: SidebarProps) {
   const [isHovered, setIsHovered] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const empresasDisponibles = useMemo(() => {
+    const idsPermitidos = new Set(user?.empresas_asignadas || []);
+    return EMPRESAS.filter((empresa) => idsPermitidos.has(empresa.id));
+  }, [user?.empresas_asignadas]);
 
   const selectedEmpresa = user?.empresa != null ? EMPRESAS.find((e) => e.id === user.empresa) : null;
   const selectedCompanyName = selectedEmpresa?.nombre ?? "Seleccionar";
@@ -99,19 +103,31 @@ function SidebarComponent({
   };
 
   // Filtrar rutas según el perfil del usuario
-  // Solo usuarios con perfil "20" o "2" pueden ver la opción de Usuarios
+  // Filtrar rutas por menú permitido + rutas migradas
   const filteredRoutes = useMemo(() => {
-    const canViewUsuarios = user?.perfil_postventa === "20" || user?.perfil_postventa === "2";
-    
+    const hasMenuPermissions = Array.isArray(user?.menus_permitidos);
+    const menusPermitidos = new Set(user?.menus_permitidos || []);
+
     return ROUTES.filter(route => {
-      // Si es la ruta de usuarios, verificar permisos
-      if (route.path === "/dashboard/usuarios") {
-        return canViewUsuarios;
+      // Dashboard principal siempre visible
+      if (route.path === "/dashboard") {
+        return true;
       }
-      // Todas las demás rutas se muestran normalmente
-      return true;
+
+      // Compatibilidad con sesiones viejas sin menús cargados:
+      // mantener comportamiento anterior hasta nuevo login.
+      if (!hasMenuPermissions) {
+        return true;
+      }
+
+      const menuId = MENU_ID_BY_ROUTE[route.path];
+      if (!menuId) {
+        return false;
+      }
+
+      return menusPermitidos.has(menuId);
     });
-  }, [user?.perfil_postventa]);
+  }, [user?.menus_permitidos]);
 
   return (
     <>
@@ -160,7 +176,7 @@ function SidebarComponent({
                       exit={{ opacity: 0, y: -10 }}
                       className="absolute top-full left-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden z-50"
                     >
-                      {EMPRESAS.map((empresa) => (
+                      {empresasDisponibles.map((empresa) => (
                         <button
                           key={empresa.id}
                           onClick={() => {
@@ -173,6 +189,11 @@ function SidebarComponent({
                           {empresa.nombre}
                         </button>
                       ))}
+                      {empresasDisponibles.length === 0 && (
+                        <div className="px-4 py-3 text-xs text-gray-400">
+                          Sin empresas asignadas
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

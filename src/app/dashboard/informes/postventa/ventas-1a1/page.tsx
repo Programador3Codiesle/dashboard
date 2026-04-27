@@ -7,6 +7,10 @@ import {
   Ventas1a1Asesor,
   Ventas1a1Row,
 } from "@/modules/informes/postventa/services/ventas-1a1.service";
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 import { Pagination } from "@/components/shared/ui/Pagination";
 
@@ -208,16 +212,16 @@ export default function Ventas1a1Page() {
                     </td>
                     <td className="px-3 py-1.5 text-center">{row.asesor}</td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.ventaManoObra.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ventaManoObra)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.ventaRepuestos.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ventaRepuestos)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.costoRepuestos.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.costoRepuestos)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.utilidad.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.utilidad)}
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       {row.porcentajeConversion !== null ? (
@@ -229,7 +233,7 @@ export default function Ventas1a1Page() {
                               : undefined
                           }
                         >
-                          {row.porcentajeConversion.toFixed(2)}%
+                          {formatNumeroCo(row.porcentajeConversion, 2, 2)}%
                         </span>
                       ) : (
                         "-"

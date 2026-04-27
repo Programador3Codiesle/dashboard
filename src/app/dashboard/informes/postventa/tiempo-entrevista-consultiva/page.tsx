@@ -7,6 +7,10 @@ import {
   TiempoEntrevistaConsultivaDetalleRow,
   TiempoEntrevistaConsultivaResumenRow,
 } from "@/modules/informes/postventa/services/tiempo-entrevista-consultiva.service";
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 import { Pagination } from "@/components/shared/ui/Pagination";
 
@@ -222,29 +226,33 @@ export default function TiempoEntrevistaConsultivaPage() {
                         {row.bodega}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.registrosCitas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.registrosCitas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.citasMarcadas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.citasMarcadas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.citasNoMarcadas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.citasNoMarcadas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.citasCumplidas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.citasCumplidas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.citasNoCumplidas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.citasNoCumplidas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.noAsistieron.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.noAsistieron)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
-                        {row.otAbiertas.toLocaleString("es-CO")}
+                        {formatCantidadCo(row.otAbiertas)}
                       </td>
                       <td className="px-3 py-1.5 text-center">
                         {row.tiempoEntrevistaConsultiva !== null
-                          ? `${row.tiempoEntrevistaConsultiva.toFixed(2)}`
+                          ? formatNumeroCo(
+                              row.tiempoEntrevistaConsultiva,
+                              2,
+                              2,
+                            )
                           : "-"}
                       </td>
                       <td className="px-3 py-1.5 text-center">

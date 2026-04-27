@@ -8,6 +8,9 @@ export interface AusentismoDiaActualAPI {
   nombre: string;
   fecha: string;
   motivo: string;
+  horaInicio?: string | null;
+  horaFin?: string | null;
+  autorizacion?: number | null;
 }
 
 export interface AusentismoDiaActual {
@@ -16,6 +19,9 @@ export interface AusentismoDiaActual {
   nombre: string;
   fecha: string;
   motivo: string;
+  horaInicio: string;
+  horaFin: string;
+  estado: "Pendiente" | "Aprobado" | "Rechazado";
 }
 
 export const listaAusentismoService = {
@@ -35,6 +41,14 @@ export const listaAusentismoService = {
       nombre: item.nombre || "Sin nombre",
       fecha: new Date(item.fecha).toISOString().split("T")[0],
       motivo: item.motivo || "Sin motivo",
+      horaInicio: item.horaInicio || "-",
+      horaFin: item.horaFin || "-",
+      estado:
+        item.autorizacion === 1
+          ? "Aprobado"
+          : item.autorizacion === 2
+            ? "Rechazado"
+            : "Pendiente",
     }));
   },
 };

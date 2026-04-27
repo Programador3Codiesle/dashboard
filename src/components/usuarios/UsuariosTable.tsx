@@ -1,13 +1,11 @@
 "use client";
 
 import { useUsuarios } from "@/modules/usuarios/hooks/useUsuarios";
-import { useUsuariosFilter } from "@/modules/usuarios/hooks/useUsuariosFilter";
 import { useUsuarioActions } from "@/modules/usuarios/hooks/useUsuarioActions";
 import { useJefes, useJefesUsuario } from "@/modules/usuarios/hooks/useJefes";
 import { useSedes, useSedesUsuario } from "@/modules/usuarios/hooks/useSedes";
 import { usePerfiles, usePerfilUsuario } from "@/modules/usuarios/hooks/usePerfiles";
 import { useHorarioUsuario } from "@/modules/usuarios/hooks/useHorario";
-import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { useTooltip } from "@/components/shared/ui/hooks/useTooltip";
 import { useConfirmModal } from "@/components/shared/ui/hooks/useConfirmModal";
 import { useDropdown } from "@/components/shared/ui/hooks/useDropdown";
@@ -28,21 +26,141 @@ import { empresasDisponibles } from "@/modules/usuarios/constants";
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
 import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useDebouncedValue } from "@/components/shared/ui/hooks/useDebouncedValue";
 
 interface UsuariosTableProps {
     onRefetchReady?: (refetch: () => void) => void;
 }
 
+const PAGE_SIZE = 10;
+
+const SearchInput = memo(function SearchInput({
+    onDebouncedChange,
+}: {
+    onDebouncedChange: (value: string) => void;
+}) {
+    const [value, setValue] = useState("");
+    const debouncedValue = useDebouncedValue(value, 300);
+
+    useEffect(() => {
+        onDebouncedChange(debouncedValue);
+    }, [debouncedValue, onDebouncedChange]);
+
+    return (
+        <input
+            className="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none brand-focus-ring"
+            placeholder="Buscar usuario..."
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+        />
+    );
+});
+
+interface UsuarioRowProps {
+    usuario: IUsuario;
+    loadingEmpresa: boolean;
+    loadingEstado: boolean;
+    onShowMarcasTooltip: (event: React.MouseEvent, usuario: IUsuario) => void;
+    onHideTooltip: () => void;
+    onToggleEstado: (usuario: IUsuario) => void;
+    onResetPassword: (usuario: IUsuario) => void;
+    onOpenDropdown: (event: React.MouseEvent, usuario: IUsuario) => void;
+}
+
+const UsuarioRow = memo(function UsuarioRow({
+    usuario,
+    loadingEmpresa,
+    loadingEstado,
+    onShowMarcasTooltip,
+    onHideTooltip,
+    onToggleEstado,
+    onResetPassword,
+    onOpenDropdown,
+}: UsuarioRowProps) {
+    return (
+        <tr className="border-b hover:bg-gray-50">
+            <td className="px-4 py-3">{usuario.id || "Sin id"}</td>
+
+            <td className="px-4 py-3">{usuario.nombre || "Sin nombre"}</td>
+
+            <td className="px-4 py-3">{usuario.usuario || "Sin usuario"}</td>
+
+            <td className="px-4 py-3">
+                {loadingEmpresa ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-600 border border-blue-200">
+                        <Loader2 size={12} className="animate-spin" />
+                    </span>
+                ) : (
+                    <Badge
+                        text={usuario.totalMarca.toString()}
+                        color="bg-blue-200 text-blue-800 border-blue-200"
+                        onHover={(event) => onShowMarcasTooltip(event, usuario)}
+                        onLeave={onHideTooltip}
+                    />
+                )}
+            </td>
+
+            <td className="px-4 py-3">
+                {loadingEstado ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
+                        <Loader2 size={14} className="animate-spin" />
+                        Procesando...
+                    </span>
+                ) : usuario.estado === "Activo" ? (
+                    <span
+                        onClick={() => onToggleEstado(usuario)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm cursor-pointer hover:bg-green-200 hover:shadow-md transition-all duration-200"
+                    >
+                        <CheckCircle2 size={14} className="text-green-600" />
+                        Activo
+                    </span>
+                ) : (
+                    <span
+                        onClick={() => onToggleEstado(usuario)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200 shadow-sm cursor-pointer hover:bg-red-200 hover:shadow-md transition-all duration-200"
+                    >
+                        <XCircle size={14} className="text-red-600" />
+                        Inactivo
+                    </span>
+                )}
+            </td>
+            <td className="px-4 py-3">{usuario.perfil || "Sin perfil"}</td>
+
+            <td className="px-4 py-3">{usuario.sede || "Sin sede"}</td>
+
+            <td className="px-4 py-3">
+                <button
+                    onClick={() => onResetPassword(usuario)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full brand-bg-gradient text-white shadow-sm hover:shadow-md hover:opacity-90 transition-all text-xs font-semibold"
+                >
+                    <KeyRound size={16} />
+                </button>
+            </td>
+
+            <td className="px-4 py-3 flex justify-center">
+                <button
+                    onClick={(event) => onOpenDropdown(event, usuario)}
+                    className="cursor-pointer hover:bg-gray-200 p-1 rounded transition-colors"
+                >
+                    <GripVertical size={20} />
+                </button>
+            </td>
+        </tr>
+    );
+});
+
 // Componente memoizado para evitar re-renders innecesarios
 export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: UsuariosTableProps = {}) {
     const [mounted, setMounted] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
     /* ------------------ Fetch Usuarios ------------------ */
-    const { usuarios, isLoading, error, refetch: refetchUsuarios, setUsuarios } = useUsuarios();
+    const { usuarios, total, totalPages, isLoading, isFetching, error, refetch: refetchUsuarios, setUsuarios } = useUsuarios(currentPage, PAGE_SIZE, searchTerm);
 
     // Exponer refetchUsuarios al componente padre
     useEffect(() => {
@@ -53,18 +171,20 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
 
 
     /* ------------------ Filtro ------------------ */
-    const { search, setSearch, filtered } = useUsuariosFilter(usuarios);
+    const handleDebouncedSearchChange = useCallback((value: string) => {
+        setCurrentPage(1);
+        setSearchTerm(value);
+    }, []);
 
     /* ------------------ Paginación ------------------ */
-    const {
-        currentPage,
-        totalPages,
-        startIndex,
-        endIndex,
-        changePage,
-    } = usePagination(filtered.length, 5);
-
-    const usuariosMostrados = useMemo(() => filtered.slice(startIndex, endIndex), [filtered, startIndex, endIndex]);
+    const usuariosMostrados = usuarios;
+    const inicioRango = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+    const finRango = total === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, total);
+    const handleChangePage = useCallback((page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    }, [totalPages]);
 
     /* ------------------ Tooltip ------------------ */
     const { tooltip, showTooltip, hideTooltip } = useTooltip();
@@ -292,6 +412,25 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
         await resetPassword(usuario.id.toString(), usuario.nit);
     }, [resetPassword]);
 
+    const handleShowMarcasTooltip = useCallback((event: React.MouseEvent, usuario: IUsuario) => {
+        showTooltip(
+            event,
+            <div className="flex flex-col gap-1">
+                {usuario.totalMarca === 0 || usuario.marcas.length === 0 ? (
+                    <span>Sin empresa</span>
+                ) : (
+                    usuario.marcas.map((marca: string, index: number) => (
+                        <span key={`${marca}-${index}`}>{marca}</span>
+                    ))
+                )}
+            </div>
+        );
+    }, [showTooltip]);
+
+    const handleToggleEstadoFromRow = useCallback((usuario: IUsuario) => {
+        openModal(usuario, 'toggle-status');
+    }, [openModal]);
+
     // Opciones del dropdown
     const dropdownItems: DropdownItem[] = useMemo(() => [
         {
@@ -339,7 +478,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
     /* ------------------ Loading ------------------ */
     if (!mounted || isLoading) return (
         <div className="py-10 flex flex-col items-center justify-center gap-3">
-            <div className="animate-spin rounded-full h-9 w-9 border-2 border-[var(--color-primary)] border-t-transparent mx-auto" />
+            <div className="animate-spin rounded-full h-9 w-9 border-2 border-(--color-primary) border-t-transparent mx-auto" />
             <p className="text-sm text-gray-600 font-medium">Cargando usuarios...</p>
         </div>
     );
@@ -352,20 +491,26 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
         </div>
     );
 
-    /* ------------------ No hay usuarios ------------------ */
-    if (!isLoading && usuarios.length === 0) return <p className="text-center py-10 text-gray-500">No hay usuarios disponibles.</p>;
-
-
     return (
         <div className="p-6">
             {/* ----------- BUSCADOR ----------- */}
-            <div className="flex justify-between items-center mb-4">
-                <input
-                    className="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none brand-focus-ring"
-                    placeholder="Buscar usuario..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                <SearchInput onDebouncedChange={handleDebouncedSearchChange} />
+                <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
+                    <p>
+                        Mostrando <span className="font-semibold">{inicioRango}-{finRango}</span> de{" "}
+                        <span className="font-semibold">{total}</span> usuarios
+                    </p>
+                    <span className="inline-flex items-center rounded-full border brand-border px-2.5 py-0.5 text-xs font-semibold brand-text bg-white">
+                        {PAGE_SIZE} por página
+                    </span>
+                    {isFetching && !isLoading && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                            <Loader2 size={12} className="animate-spin" />
+                            Buscando...
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* ----------- TABLA ----------- */}
@@ -387,94 +532,25 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
 
                     <tbody className="text-center text-sm">
                         {usuariosMostrados.map((u: IUsuario) => (
-                            <tr key={u.id} className="border-b hover:bg-gray-50">
-                                <td className="px-4 py-3">{u.id || "Sin id"}</td>
-
-                                <td className="px-4 py-3">{u.nombre || "Sin nombre"}</td>
-
-                                <td className="px-4 py-3">{u.usuario || "Sin usuario"}</td>
-
-                                <td className="px-4 py-3">
-                                    {loadingEmpresaId === u.id ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-600 border border-blue-200">
-                                            <Loader2 size={12} className="animate-spin" />
-                                        </span>
-                                    ) : (
-                                        <Badge
-                                            text={u.totalMarca.toString()}
-                                            color="bg-blue-200 text-blue-800 border-blue-200"
-                                            onHover={(e) =>
-                                                showTooltip(
-                                                    e,
-                                                    <div className="flex flex-col gap-1">
-                                                        {u.totalMarca === 0 || u.marcas.length === 0 ? (
-                                                            <span>Sin empresa</span>
-                                                        ) : (
-                                                            u.marcas.map((m: string) => (
-                                                                <span key={m}>{m}</span>
-                                                            ))
-                                                        )}
-                                                    </div>
-                                                )
-                                            }
-                                            onLeave={hideTooltip}
-                                        />
-                                    )}
-                                </td>
-
-                                <td className="px-4 py-3">
-                                    {loadingEstadoId === u.id ? (
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                                            <Loader2 size={14} className="animate-spin" />
-                                            Procesando...
-                                        </span>
-                                    ) : u.estado === "Activo" ? (
-                                        <span
-                                            onClick={() => openModal(u, 'toggle-status')}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 shadow-sm cursor-pointer hover:bg-green-200 hover:shadow-md transition-all duration-200"
-                                        >
-                                            <CheckCircle2 size={14} className="text-green-600" />
-                                            Activo
-                                        </span>
-                                    ) : (
-                                        <span
-                                            onClick={() => openModal(u, 'toggle-status')}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200 shadow-sm cursor-pointer hover:bg-red-200 hover:shadow-md transition-all duration-200"
-                                        >
-                                            <XCircle size={14} className="text-red-600" />
-                                            Inactivo
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-4 py-3">{u.perfil || "Sin perfil"}</td>
-
-                                <td className="px-4 py-3">{u.sede || "Sin sede"}</td>
-
-                                <td className="px-4 py-3">
-                                    <button
-                                        onClick={() => handleResetPassword(u)}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full brand-bg-gradient text-white shadow-sm hover:shadow-md hover:opacity-90 transition-all text-xs font-semibold"
-                                    >
-                                        <KeyRound size={16} />
-                                        
-                                    </button>
-                                </td>
-
-                                <td className="px-4 py-3 flex justify-center">
-                                    <button
-                                        onClick={(e) => handleOpenDropdown(e, u)}
-                                        className="cursor-pointer hover:bg-gray-200 p-1 rounded transition-colors"
-                                    >
-                                        <GripVertical size={20} />
-                                    </button>
-                                </td>
-                            </tr>
+                            <UsuarioRow
+                                key={u.id}
+                                usuario={u}
+                                loadingEmpresa={loadingEmpresaId === u.id}
+                                loadingEstado={loadingEstadoId === u.id}
+                                onShowMarcasTooltip={handleShowMarcasTooltip}
+                                onHideTooltip={hideTooltip}
+                                onToggleEstado={handleToggleEstadoFromRow}
+                                onResetPassword={handleResetPassword}
+                                onOpenDropdown={handleOpenDropdown}
+                            />
                         ))}
 
                         {usuariosMostrados.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="py-6 text-center text-gray-500">
-                                    No hay usuarios que coincidan con la búsqueda.
+                                <td colSpan={9} className="py-6 text-center text-gray-500">
+                                    {searchTerm.trim()
+                                        ? "No hay usuarios que coincidan con la búsqueda."
+                                        : "No hay usuarios disponibles."}
                                 </td>
                             </tr>
                         )}
@@ -487,7 +563,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onChange={changePage}
+                    onChange={handleChangePage}
                 />
             </div>
 

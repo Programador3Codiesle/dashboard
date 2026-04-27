@@ -1,15 +1,10 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { IUsuario } from "../types";
-import { useDebouncedValue } from "@/components/shared/ui/hooks/useDebouncedValue";
 
-export function useUsuariosFilter(usuarios: IUsuario[]) {
-    const [search, setSearch] = useState("");
-    
-    // Debounce de 300ms para evitar filtrado en cada keystroke
-    const debouncedSearch = useDebouncedValue(search, 300);
+export function useUsuariosFilter(usuarios: IUsuario[], searchTerm: string) {
 
     const filtered = useMemo(() => {
-        const searchLower = debouncedSearch.toLowerCase().trim();
+        const searchLower = searchTerm.toLowerCase().trim();
         
         // Si no hay búsqueda, mostrar todos
         if (!searchLower) return usuarios;
@@ -39,11 +34,9 @@ export function useUsuariosFilter(usuarios: IUsuario[]) {
             
             return nombreMatch || cedulaMatch || marcasMatch || sedeMatch || estadoMatch || perfilMatch;
         });
-    }, [usuarios, debouncedSearch]);
+    }, [usuarios, searchTerm]);
 
     return {
-        search,
-        setSearch,
         filtered
     };
 }

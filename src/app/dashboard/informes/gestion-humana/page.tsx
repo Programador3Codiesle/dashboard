@@ -2,13 +2,20 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { CalendarRange, Clock, Activity, ClipboardList, LogIn, LogOut, Truck, ListChecks, ShoppingCart, Car, Bike, Wrench, UserX } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
+/**
+ * Permisos por `postv_trimenu` + `postv_trimenu_perfil` (id_trimenu).
+ * Catálogo: id_submenu 135 — Gestión Humana.
+ */
 interface SubmoduloGestionHumana {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
+  trimenuId: number;
   icono: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
 }
@@ -19,6 +26,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Informe Tiempo de Ausentismos",
     descripcion: "Consulta de tiempo de ausentismos por empleado y mes, con exportación a Excel.",
     ruta: "/dashboard/informes/gestion-humana/inf-ausentismos",
+    trimenuId: 4,
     icono: CalendarRange,
     color: "from-indigo-500 to-indigo-600",
   },
@@ -27,6 +35,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Checklist Carro",
     descripcion: "Informe detallado de checklist de vehículos por sede y fechas.",
     ruta: "/dashboard/informes/gestion-humana/checklist-carro",
+    trimenuId: 35,
     icono: Car,
     color: "from-sky-600 to-sky-700",
   },
@@ -35,6 +44,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Checklist Moto",
     descripcion: "Informe detallado de checklist de motos por sede y fechas.",
     ruta: "/dashboard/informes/gestion-humana/checklist-moto",
+    trimenuId: 36,
     icono: Bike,
     color: "from-teal-600 to-teal-700",
   },
@@ -43,6 +53,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Control Compras",
     descripcion: "Control de compras por número de orden con existencias por bodega.",
     ruta: "/dashboard/informes/gestion-humana/control-compras",
+    trimenuId: 34,
     icono: ShoppingCart,
     color: "from-amber-600 to-amber-700",
   },
@@ -51,6 +62,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Indicador Checklist",
     descripcion: "Número de registros por sede para los diferentes checklists de equipos.",
     ruta: "/dashboard/informes/gestion-humana/indicador-checklist",
+    trimenuId: 10,
     icono: ListChecks,
     color: "from-lime-500 to-lime-600",
   },
@@ -59,6 +71,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Indicador Checklist PESV",
     descripcion: "Número de registros de checklist PESV por placa y tipo de vehículo.",
     ruta: "/dashboard/informes/gestion-humana/indicador-checklist-pesv",
+    trimenuId: 37,
     icono: ListChecks,
     color: "from-lime-600 to-lime-700",
   },
@@ -67,6 +80,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Checklist Equipos",
     descripcion: "Detalle de los diferentes checklists de equipos por rango de fechas.",
     ruta: "/dashboard/informes/gestion-humana/checklists",
+    trimenuId: 38,
     icono: ListChecks,
     color: "from-lime-700 to-lime-800",
   },
@@ -75,6 +89,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Informe Órdenes de Salida",
     descripcion: "Consulta y gestión de observaciones de las órdenes de salida.",
     ruta: "/dashboard/informes/gestion-humana/ordenes-salida",
+    trimenuId: 44,
     icono: ClipboardList,
     color: "from-orange-500 to-orange-600",
   },
@@ -83,6 +98,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Tallas dotación",
     descripcion: "Informe de tallas de camisa, pantalón y botas del personal.",
     ruta: "/dashboard/informes/gestion-humana/tallas-personal",
+    trimenuId: 45,
     icono: ClipboardList,
     color: "from-purple-500 to-purple-600",
   },
@@ -91,6 +107,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Desempeño Empleado",
     descripcion: "Informe de desempeño de empleados por año y sede.",
     ruta: "/dashboard/informes/gestion-humana/desempeno-empleado",
+    trimenuId: 46,
     icono: ClipboardList,
     color: "from-yellow-500 to-yellow-600",
   },
@@ -99,6 +116,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Tiempo Gestión Compras",
     descripcion: "Informe de tiempos de gestión de compras por fecha y estado.",
     ruta: "/dashboard/informes/gestion-humana/tiempo-gestion-compras",
+    trimenuId: 48,
     icono: Clock,
     color: "from-sky-700 to-sky-800",
   },
@@ -107,6 +125,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Llegadas Tarde",
     descripcion: "Informe de llegadas tarde por sede, empleado y rango de fechas.",
     ruta: "/dashboard/informes/gestion-humana/llegadas-tarde",
+    trimenuId: 49,
     icono: Clock,
     color: "from-red-500 to-red-600",
   },
@@ -115,6 +134,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Informe Control Vehicular",
     descripcion: "Ingreso y salida de vehículos por portería, con detalle por registro.",
     ruta: "/dashboard/informes/gestion-humana/control-vehicular",
+    trimenuId: 54,
     icono: Truck,
     color: "from-blue-500 to-blue-600",
   },
@@ -123,6 +143,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Mtto Preventivo Vehículos Propios",
     descripcion: "Reporte de mantenimiento preventivo para vehículos propios.",
     ruta: "/dashboard/informes/gestion-humana/mtto-preventivo-vehiculos-propios",
+    trimenuId: 7,
     icono: Wrench,
     color: "from-cyan-600 to-cyan-700",
   },
@@ -131,6 +152,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Entradas y salidas",
     descripcion: "Resumen de movimientos de entrada y salida por sede y fecha.",
     ruta: "/dashboard/informes/gestion-humana/entradas-salidas",
+    trimenuId: 9,
     icono: LogOut,
     color: "from-slate-500 to-slate-600",
   },
@@ -139,6 +161,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Ingreso de empleados",
     descripcion: "Reporte detallado de horarios de llegada y salida por empleado.",
     ruta: "/dashboard/informes/gestion-humana/ingreso-empleados",
+    trimenuId: 8,
     icono: LogIn,
     color: "from-amber-500 to-amber-600",
   },
@@ -147,6 +170,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Informe Tiempo Suplementario",
     descripcion: "Listado y análisis de tiempo suplementario (horas extra) por empleado.",
     ruta: "/dashboard/informes/gestion-humana/informe-tiempo-suplementario",
+    trimenuId: 6,
     icono: Clock,
     color: "from-cyan-500 to-cyan-600",
   },
@@ -155,6 +179,7 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Informe Pausas Activas",
     descripcion: "Control de pausas activas por sede, empleado y fecha.",
     ruta: "/dashboard/informes/gestion-humana/informe-pausas-activas",
+    trimenuId: 5,
     icono: Activity,
     color: "from-emerald-500 to-emerald-600",
   },
@@ -163,14 +188,27 @@ const SUBMODULOS_GESTION_HUMANA: SubmoduloGestionHumana[] = [
     nombre: "Inasistencias",
     descripcion: "Consulta y seguimiento de inasistencias del personal.",
     ruta: "/dashboard/informes/gestion-humana/inasistencia",
+    trimenuId: 2,
     icono: UserX,
     color: "from-rose-500 to-rose-600",
   },
-  
 ];
 
 export default function GestionHumanaInformesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const submodulosFiltrados = useMemo(() => {
+    const hasTrimenus = Array.isArray(user?.trimenus_permitidos);
+    if (!hasTrimenus) {
+      return SUBMODULOS_GESTION_HUMANA;
+    }
+
+    const trimenusPermitidos = new Set(user?.trimenus_permitidos || []);
+    return SUBMODULOS_GESTION_HUMANA.filter((submodulo) =>
+      trimenusPermitidos.has(submodulo.trimenuId),
+    );
+  }, [user?.trimenus_permitidos]);
 
   return (
     <div className="space-y-6">
@@ -184,7 +222,7 @@ export default function GestionHumanaInformesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {SUBMODULOS_GESTION_HUMANA.map((submodulo, index) => (
+        {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
             initial={{ opacity: 0, y: 20 }}
@@ -216,4 +254,3 @@ export default function GestionHumanaInformesPage() {
     </div>
   );
 }
-

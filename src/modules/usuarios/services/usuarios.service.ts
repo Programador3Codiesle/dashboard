@@ -1,6 +1,7 @@
 import {
     IUsuario,
     IUsuarioAPI,
+    IUsuariosPaginatedResponseAPI,
     HorarioData,
     IJefe,
     IJefeGeneral,
@@ -15,16 +16,19 @@ import { fetchWithAuth } from "@/utils/api";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export const usuariosService = {
-    async getUsuarios(page: number = 1, limit: number = 1500): Promise<IUsuario[]> {
+    async getUsuarios(page: number = 1, limit: number = 10, search: string = ''): Promise<IUsuariosPaginatedResponseAPI & { items: IUsuario[] }> {
         const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        if (search.trim()) {
+            params.set('search', search.trim());
+        }
         const response = await fetchWithAuth(`${API_URL}/usuarios?${params}`, {
             method: 'GET',
         });
         if (!response.ok) throw new Error('Error al cargar usuarios');
-        const data: IUsuarioAPI[] = await response.json();
+        const data: IUsuariosPaginatedResponseAPI = await response.json();
         
         // Mapear la respuesta de la API al formato esperado por el componente
-        return data.map((usuario) => {
+        const items = data.items.map((usuario) => {
 
             const rawEstado = usuario.estado;
             const isActivo =
@@ -46,6 +50,11 @@ export const usuariosService = {
                 empresas: usuario.empresasArray || [],
             };
         });
+
+        return {
+            ...data,
+            items,
+        };
     },
 
     // ========== JEFES ==========

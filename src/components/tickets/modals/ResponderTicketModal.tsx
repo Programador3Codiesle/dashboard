@@ -3,7 +3,7 @@ import Modal from "@/components/shared/ui/Modal";
 import { useState, useEffect } from "react";
 import { useTicketsActions } from "@/modules/tickets/hooks/useTicketsActions";
 import { useTicketDetail } from "@/modules/tickets/hooks/useTicketDetail";
-import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2 } from "lucide-react";
+import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2, Building2, Phone } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
@@ -21,6 +21,8 @@ export default function ResponderTicketModal({
         tipoSoporte?: string;
         descripcion?: string;
         archivoUrl?: string | null;
+        sede?: string;
+        extension?: string;
         respuestasRaw?: string | null;
     } | null;
 }) {
@@ -91,6 +93,16 @@ export default function ResponderTicketModal({
                                 <Monitor size={14} className="text-gray-400" />
                                 <span className="font-bold text-gray-900">Anydesk:</span>
                                 <span className="text-gray-900">{displayData?.anydesk || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Building2 size={14} className="text-gray-400" />
+                                <span className="font-bold text-gray-900">Sede:</span>
+                                <span className="text-gray-900">{displayData?.sede || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Phone size={14} className="text-gray-400" />
+                                <span className="font-bold text-gray-900">Extensión:</span>
+                                <span className="text-gray-900">{displayData?.extension || "—"}</span>
                             </div>
                         </div>
                         <div className="pt-2 border-t border-gray-200 mt-2">

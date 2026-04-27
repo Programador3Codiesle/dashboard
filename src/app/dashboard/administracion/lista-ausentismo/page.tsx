@@ -54,7 +54,7 @@ export default function ListaAusentismoPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center"
         >
-          <AlertCircle className="text-gray-400 mx-auto mb-4" size={48} />
+          <AlertCircle className="brand-text mx-auto mb-4" size={48} />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay ausentismos registrados para hoy</h3>
           <p className="text-gray-600">No se encontraron ausentismos para la fecha actual</p>
         </motion.div>

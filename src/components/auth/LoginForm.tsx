@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
@@ -8,8 +8,10 @@ import { useRouter } from 'next/navigation';
 import { SelectorEmpresaModal } from './SelectorEmpresaModal';
 
 export const LoginForm = () => {
+  const REMEMBER_USER_KEY = 'remember_login_user';
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberSession, setRememberSession] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
@@ -17,13 +19,38 @@ export const LoginForm = () => {
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    const savedUser = localStorage.getItem(REMEMBER_USER_KEY);
+
+    if (savedUser) {
+      setUser(savedUser);
+      setRememberSession(true);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setIsLoading(true);
 
     try {
-      await login({ user, password });
+      const authenticatedUser = await login({ user, password, remember: rememberSession });
+
+      if (rememberSession) {
+        localStorage.setItem(REMEMBER_USER_KEY, user);
+      } else {
+        localStorage.removeItem(REMEMBER_USER_KEY);
+      }
+
+      const empresasAsignadas = authenticatedUser.empresas_asignadas || [];
+
+      if (empresasAsignadas.length === 1) {
+        const unicaEmpresa = empresasAsignadas[0];
+        updateUser({ empresa: unicaEmpresa });
+        router.push('/dashboard');
+        return;
+      }
+
       setShowEmpresaModal(true);
     } catch (error: any) {
       console.error('Error en login:', error);
@@ -139,6 +166,8 @@ export const LoginForm = () => {
           <label className="flex items-center">
             <input
               type="checkbox"
+              checked={rememberSession}
+              onChange={(e) => setRememberSession(e.target.checked)}
               className="w-4 h-4 bg-gray-100 border-gray-300 rounded focus:ring-[var(--color-primary)] accent-[var(--color-primary)]"
             />
             <span className="ml-2 text-sm text-gray-600">Recordar sesión</span>
@@ -147,7 +176,7 @@ export const LoginForm = () => {
             type="button"
             className="text-sm brand-text brand-text-hover font-medium"
           >
-            ¿Olvidaste tu contraseña?
+            {/*¿Olvidaste tu contraseña? */}
           </button>
         </div>
 
@@ -183,14 +212,20 @@ export const LoginForm = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
         className="text-center mt-6"
-      >
+      >  
+        {/* Footer
         <p className="text-sm text-gray-600">
           ¿No tienes una cuenta?{' '}
           <button className="brand-text brand-text-hover font-medium">
             Solicitar acceso
           </button>
         </p>
+         */}
       </motion.div>
     </motion.div>
+
+
+    
+    
   );
 };

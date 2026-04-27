@@ -9,6 +9,10 @@ import {
 } from '@/modules/informes/postventa/services/productividad-tecnicos.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from '@/modules/informes/postventa/format-cantidad-co';
 
 const PAGE_SIZE = 15;
 
@@ -40,6 +44,12 @@ const PATIOS_OPCIONES = [
 function getRowBg(productividad: number) {
   if (productividad >= 100) return 'bg-emerald-50';
   return 'bg-rose-50';
+}
+
+function formatHorasDisponibles(value: number) {
+  return Number.isInteger(value)
+    ? formatCantidadCo(value)
+    : formatNumeroCo(value, 2, 2);
 }
 
 export default function ProductividadTecnicosPage() {
@@ -131,21 +141,25 @@ export default function ProductividadTecnicosPage() {
       <td className="px-2 py-1 text-center">{row.nombres}</td>
       <td className="px-2 py-1 text-center">{row.patio}</td>
       <td className="px-2 py-1 text-center">
-        {row.horasCliente.toFixed(2)}
+        {formatNumeroCo(row.horasCliente, 2, 2)}
       </td>
       <td className="px-2 py-1 text-center">
-        {row.horasGarantia.toFixed(2)}
+        {formatNumeroCo(row.horasGarantia, 2, 2)}
       </td>
       <td className="px-2 py-1 text-center">
-        {row.horasServicio.toFixed(2)}
+        {formatNumeroCo(row.horasServicio, 2, 2)}
       </td>
-      <td className="px-2 py-1 text-center">{row.horasInterno.toFixed(2)}</td>
-      <td className="px-2 py-1 text-center">{row.totalHoras.toFixed(2)}</td>
       <td className="px-2 py-1 text-center">
-        {row.horasDisponibles.toFixed(2)}
+        {formatNumeroCo(row.horasInterno, 2, 2)}
+      </td>
+      <td className="px-2 py-1 text-center">
+        {formatNumeroCo(row.totalHoras, 2, 2)}
+      </td>
+      <td className="px-2 py-1 text-center">
+        {formatHorasDisponibles(row.horasDisponibles)}
       </td>
       <td className="px-2 py-1 text-center font-semibold">
-        {row.productividad.toFixed(2)}%
+        {formatNumeroCo(row.productividad, 2, 2)}%
       </td>
     </tr>
   );

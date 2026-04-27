@@ -8,9 +8,12 @@ import {
   InventarioObsoletoResumenRow,
   TipoInventarioObsoleto,
 } from "@/modules/informes/postventa/services/inventario-obsoletos.service";
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 import Modal from "@/components/shared/ui/Modal";
-import { Pagination } from "@/components/shared/ui/Pagination";
 import * as XLSX from "xlsx";
 import { Loader2 } from "lucide-react";
 
@@ -180,19 +183,13 @@ export default function InventarioObsoletosPage() {
                     <tr key={row.tipo} className="border-t border-gray-100">
                       <td className="px-3 py-2">{row.descripcionTipo}</td>
                       <td className="px-3 py-2 text-right">
-                        {row.obsoleto.toLocaleString("es-CO", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {formatCantidadCo(row.obsoleto)}
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {row.total.toLocaleString("es-CO", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {formatCantidadCo(row.total)}
                       </td>
                       <td className="px-3 py-2 text-center">
-                        {row.porcentaje.toFixed(2)}%
+                        {formatNumeroCo(row.porcentaje, 2, 2)}%
                       </td>
                       <td className="px-3 py-2 text-center">
                         <button
@@ -209,16 +206,10 @@ export default function InventarioObsoletosPage() {
                   <tr className="bg-gray-100 border-t border-gray-200">
                     <th className="px-3 py-2 text-left">Totales</th>
                     <th className="px-3 py-2 text-right">
-                      {totalObsoleto.toLocaleString("es-CO", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatCantidadCo(totalObsoleto)}
                     </th>
                     <th className="px-3 py-2 text-right">
-                      {totalGeneral.toLocaleString("es-CO", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatCantidadCo(totalGeneral)}
                     </th>
                     <th className="px-3 py-2"></th>
                     <th className="px-3 py-2"></th>
@@ -241,10 +232,7 @@ export default function InventarioObsoletosPage() {
             <p className="text-xs md:text-sm text-gray-500">
               Nuevo PVP total simulado:{" "}
               <span className="font-semibold">
-                {totalNuevoPvp.toLocaleString("es-CO", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {formatCantidadCo(totalNuevoPvp)}
               </span>
             </p>
             <button
@@ -294,23 +282,23 @@ export default function InventarioObsoletosPage() {
                     <td className="px-2 py-1.5 text-center">{row.linea}</td>
                     <td className="px-2 py-1.5 text-center">{row.bodega}</td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.costo.toFixed(2)}
+                      {formatCantidadCo(row.costo)}
                     </td>
                     <td className="px-2 py-1.5 text-center">
-                      {row.stock.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.stock)}
                     </td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.costoTotal.toFixed(2)}
+                      {formatCantidadCo(row.costoTotal)}
                     </td>
                     <td className="px-2 py-1.5 text-center">{row.meses}</td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.pvpAntesIva.toFixed(2)}
+                      {formatCantidadCo(row.pvpAntesIva)}
                     </td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.margen.toFixed(2)}%
+                      {formatNumeroCo(row.margen, 2, 2)}%
                     </td>
                     <td className="px-2 py-1.5 text-right">
-                      {row.acumulado.toFixed(2)}
+                      {formatCantidadCo(row.acumulado)}
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       <input
@@ -324,12 +312,12 @@ export default function InventarioObsoletosPage() {
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       {row.nuevoPvp !== null && row.nuevoPvp !== undefined
-                        ? row.nuevoPvp.toFixed(2)
+                        ? formatCantidadCo(row.nuevoPvp)
                         : ""}
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       {row.nuevoMargen !== null && row.nuevoMargen !== undefined
-                        ? `${row.nuevoMargen.toFixed(2)}%`
+                        ? `${formatNumeroCo(row.nuevoMargen, 2, 2)}%`
                         : ""}
                     </td>
                   </tr>
@@ -344,7 +332,7 @@ export default function InventarioObsoletosPage() {
                     Total nuevo PVP
                   </th>
                   <th className="px-2 py-2 text-right font-semibold">
-                    {totalNuevoPvp.toLocaleString("es-CO")}
+                    {formatCantidadCo(totalNuevoPvp)}
                   </th>
                   <th></th>
                 </tr>
@@ -354,12 +342,30 @@ export default function InventarioObsoletosPage() {
           )}
 
           {!loadingDetalle && rows.length > 0 && (
-            <div className="pt-2">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onChange={setCurrentPage}
-              />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
+              <div className="flex items-center justify-center sm:justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs text-gray-500 min-w-[78px] text-center">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
           )}
         </div>

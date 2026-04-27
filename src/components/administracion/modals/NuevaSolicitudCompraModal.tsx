@@ -47,7 +47,14 @@ const NuevaSolicitudCompraModalComponent = ({
       setCargandoUsuarios(true);
       usuariosService
         .getUsuarios()
-        .then(setUsuarios)
+        .then((response) => {
+          const usuariosList = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.items)
+              ? response.items
+              : [];
+          setUsuarios(usuariosList);
+        })
         .catch(() => setUsuarios([]))
         .finally(() => setCargandoUsuarios(false));
     }
@@ -78,10 +85,10 @@ const NuevaSolicitudCompraModalComponent = ({
   );
 
   const inputClass =
-    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
+    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white appearance-none pr-10";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const textareaClass =
-    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
+    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white";
 
   return (
     <Modal open={open} onClose={onClose} title="Nueva Solicitud de Compra" width="700px">
@@ -181,7 +188,7 @@ const NuevaSolicitudCompraModalComponent = ({
                   name="urgencia"
                   value={nivel}
                   defaultChecked={nivel === 2}
-                  className="w-5 h-5 brand-text focus:ring-[var(--color-primary)]"
+                  className="w-5 h-5 brand-text focus:ring-(--color-primary)"
                   required
                 />
                 <span className="text-sm font-medium">

@@ -22,6 +22,8 @@ type TicketActivoApi = {
   usuario_id: number;
   nombre_usuario: string;
   nombre_encargado: string | null;
+  sede?: string | null;
+  extension?: string | null;
 };
 
 type TicketFinalizadoApi = {
@@ -33,6 +35,8 @@ type TicketFinalizadoApi = {
   usuario_id: number;
   nombre_usuario: string;
   nombre_encargado: string | null;
+  sede?: string | null;
+  extension?: string | null;
 };
 
 type TicketMisTicketsApi = {
@@ -44,6 +48,8 @@ type TicketMisTicketsApi = {
   usuario_id: number;
   nombre_usuario: string;
   nombre_encargado: string | null;
+  sede?: string | null;
+  extension?: string | null;
 };
 
 type ApiMessageResponse<T = unknown> = {
@@ -68,6 +74,8 @@ function mapActivoFromApi(raw: TicketActivoApi): ITicket {
     encargado: raw.nombre_encargado,
     estado: mapEstadoFromApi(raw.estado),
     fechaCreacion: raw.fecha_creacion,
+    sede: raw.sede || "",
+    extension: raw.extension || "",
   };
 }
 
@@ -84,6 +92,8 @@ function mapFinalizadoFromApi(raw: TicketFinalizadoApi): ITicket {
     encargado: raw.nombre_encargado,
     estado: mapEstadoFromApi(raw.estado),
     fechaCreacion: raw.fecha_creacion,
+    sede: raw.sede || "",
+    extension: raw.extension || "",
   };
 }
 
@@ -100,6 +110,8 @@ function mapMisTicketsFromApi(raw: TicketMisTicketsApi): ITicket {
     encargado: raw.nombre_encargado,
     estado: mapEstadoFromApi(raw.estado),
     fechaCreacion: raw.fecha_creacion,
+    sede: raw.sede || "",
+    extension: raw.extension || "",
   };
 }
 
@@ -167,6 +179,8 @@ export const ticketsService = {
       anydesk: dto.anydesk || "",
       usuario_id: user.user, // NIT del usuario autenticado
       descripcion: dto.descripcion,
+      sede: dto.sede,
+      extension: dto.extension || "",
       estado: "activo",
       archivo_url: dto.archivoUrl || null,
       empresa: dto.empresa || [], // Array de números, por defecto vacío
@@ -203,6 +217,8 @@ export const ticketsService = {
       encargado: raw.nombre_encargado ?? null,
       estado: mapEstadoFromApi(raw.estado),
       fechaCreacion: raw.fecha_creacion,
+      sede: raw.sede || dto.sede,
+      extension: raw.extension || dto.extension || "",
     };
   },
 
@@ -266,6 +282,8 @@ export const ticketsService = {
     anydesk: string;
     archivoUrl: string | null;
     respuestas: string;
+    sede?: string;
+    extension?: string;
   }> {
     const resp = await fetchWithAuth(`${API_URL}/tickets/${id}`, {
       method: "GET",
@@ -288,6 +306,8 @@ export const ticketsService = {
       anydesk: data.anydesk || "",
       archivoUrl: data.archivo_url || null,
       respuestas: data.respuestas || "",
+      sede: data.sede || "",
+      extension: data.extension || "",
     };
   },
 };

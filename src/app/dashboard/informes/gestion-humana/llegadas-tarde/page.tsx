@@ -46,11 +46,17 @@ export default function LlegadasTardePage() {
   const [fechaFin, setFechaFin] = useState<string>(today);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: usuarios = [], isPending: empleadosCargando } = useQuery({
+  const { data: usuariosResponse, isPending: empleadosCargando } = useQuery({
     queryKey: ['informes', 'llegadas-tarde', 'empleados'],
     queryFn: () => usuariosService.getUsuarios(1, 1500),
     staleTime: 5 * 60 * 1000,
   });
+
+  const usuarios = useMemo(() => {
+    if (Array.isArray(usuariosResponse)) return usuariosResponse;
+    if (usuariosResponse && Array.isArray(usuariosResponse.items)) return usuariosResponse.items;
+    return [];
+  }, [usuariosResponse]);
 
   const empleados = useMemo(() => {
     const seen = new Set<number>();
@@ -78,12 +84,9 @@ export default function LlegadasTardePage() {
           `Debe seleccionar dos fechas. Ejemplo:\nDesde: ${today}\nHasta: ${today}`,
         );
       }
-      if (empleado == null) {
-        throw new Error('Debe seleccionar un empleado');
-      }
       return llegadasTardeService.listar({
         sede: sede || undefined,
-        empleado,
+        empleado: empleado ?? undefined,
         fechaInicio,
         fechaFin,
       });
@@ -151,10 +154,6 @@ export default function LlegadasTardePage() {
   const handleConsultar = () => {
     if (!fechaInicio || !fechaFin) {
       showError('Debe seleccionar fecha inicial y fecha final');
-      return;
-    }
-    if (empleado == null) {
-      showError('Debe seleccionar un empleado');
       return;
     }
     if (detalleMutation.isPending || consultaEnCursoRef.current) return;
@@ -261,8 +260,8 @@ export default function LlegadasTardePage() {
                 <option value="">No hay empleados</option>
               ) : (
                 <>
-                  <option value="" disabled>
-                    Seleccione una opción
+                  <option value="">
+                    Todos
                   </option>
                   {empleados.map((emp) => (
                     <option key={emp.value} value={emp.value}>
@@ -304,7 +303,6 @@ export default function LlegadasTardePage() {
               detalleMutation.isPending ||
               !fechaInicio ||
               !fechaFin ||
-              empleado == null ||
               empleados.length === 0
             }
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
@@ -394,8 +392,11 @@ export default function LlegadasTardePage() {
                     </td>
                   </tr>
                 )}
-              {paginatedData.map((row) => (
-                <tr key={`${row.empleado}-${row.fecha}`} className="border-t text-[11px]">
+              {paginatedData.map((row, index) => (
+                <tr
+                  key={`${row.empleado}-${row.fecha}-${row.llegada_am ?? 'na'}-${row.llegada_pm ?? 'np'}-${index}`}
+                  className="border-t text-[11px]"
+                >
                   <td className="px-2 py-1">{row.empleado}</td>
                   <td className="px-2 py-1">{row.nombres}</td>
                   <td className="px-2 py-1 text-center">{row.sede}</td>

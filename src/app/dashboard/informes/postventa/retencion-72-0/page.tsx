@@ -13,6 +13,10 @@ import {
   type Retencion720Row,
   retencion720Service,
 } from '@/modules/informes/postventa/services/retencion-72-0.service';
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from '@/modules/informes/postventa/format-cantidad-co';
 
 type Vista = 'general' | 'autos' | 'byc' | 'familia';
 type TipoVehiculosModal = '12m' | 'anio' | null;
@@ -443,7 +447,7 @@ export default function Retencion720Page() {
               {objetivosResultados.map((r) => (
                 <tr key={r.tramo} className="border-b">
                   <td className="py-1">{r.tramo}</td>
-                  <td className="py-1">{r.actual.toFixed(1)}%</td>
+                  <td className="py-1">{formatNumeroCo(r.actual, 1, 1)}%</td>
                   <td className="py-1">
                     <input
                       type="number"
@@ -459,8 +463,8 @@ export default function Retencion720Page() {
                       }
                     />
                   </td>
-                  <td className="py-1">{r.faltantePct.toFixed(1)}%</td>
-                  <td className="py-1">{r.entradasFaltantes}</td>
+                  <td className="py-1">{formatNumeroCo(r.faltantePct, 1, 1)}%</td>
+                  <td className="py-1">{formatCantidadCo(r.entradasFaltantes)}</td>
                 </tr>
               ))}
             </tbody>

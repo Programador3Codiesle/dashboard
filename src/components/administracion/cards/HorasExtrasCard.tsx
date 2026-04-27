@@ -17,14 +17,21 @@ export const HorasExtrasCard = React.memo(({
   horasExtras,
   index
 }: HorasExtrasCardProps) => {
+  const estadoClasses =
+    horasExtras.estado === "Aprobado"
+      ? "bg-green-100 text-green-700"
+      : horasExtras.estado === "Rechazado"
+        ? "bg-red-100 text-red-700"
+        : "bg-amber-100 text-amber-700";
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
           <TrendingUp className="text-teal-600" size={24} />
         </div>
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-          Aprobado
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${estadoClasses}`}>
+          {horasExtras.estado}
         </span>
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">{horasExtras.nombreEmpleado}</h3>

@@ -1,5 +1,9 @@
 import { memo } from 'react';
 import type { PanelNpsTablaRow } from '@/modules/informes/postventa/services/panel-nps.service';
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from '@/modules/informes/postventa/format-cantidad-co';
 
 export type PanelNpsTablaFilaProps = {
   row: PanelNpsTablaRow;
@@ -33,25 +37,27 @@ export const PanelNpsTablaFila = memo(function PanelNpsTablaFila({
       >
         {etiquetaFila(row)}
       </td>
-      <td className="px-1 py-1 bg-red-500 text-white text-center">{row.enc0a6}</td>
+      <td className="px-1 py-1 bg-red-500 text-white text-center">
+        {formatCantidadCo(row.enc0a6)}
+      </td>
       <td className="px-1 py-1 bg-yellow-300 text-black text-center">
-        {row.enc7a8}
+        {formatCantidadCo(row.enc7a8)}
       </td>
       <td className="px-1 py-1 bg-green-500 text-black text-center">
-        {row.enc9a10}
+        {formatCantidadCo(row.enc9a10)}
       </td>
       <td className="px-1 py-1 bg-cyan-300 text-black text-center">
-        {row.to.toFixed(0)}
+        {formatCantidadCo(row.to)}
       </td>
       <td
         className={`px-1 py-1 text-black text-center ${claseFondoNpsMeta(row)}`}
       >
-        {row.nps.toFixed(1)}%
+        {formatNumeroCo(row.nps, 1, 1)}%
       </td>
       <td
         className={`px-1 py-1 text-black text-center ${claseFondoNpsMeta(row)}`}
       >
-        {row.meta.toFixed(0)}%
+        {formatNumeroCo(row.meta, 0, 0)}%
       </td>
     </tr>
   );

@@ -2,13 +2,16 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { Users, Wrench } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 interface SubmoduloInformesRoot {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
+  submenuId?: number;
   icono: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
 }
@@ -19,6 +22,7 @@ const SUBMODULOS_INFORMES_ROOT: SubmoduloInformesRoot[] = [
     nombre: "Gestión Humana",
     descripcion: "Informes de ausentismos, tiempo suplementario, pausas activas y más.",
     ruta: "/dashboard/informes/gestion-humana",
+    submenuId: 135,
     icono: Users,
     color: "from-emerald-500 to-emerald-600",
   },
@@ -27,6 +31,7 @@ const SUBMODULOS_INFORMES_ROOT: SubmoduloInformesRoot[] = [
     nombre: "Postventa",
     descripcion: "Informes operativos y de satisfacción de clientes en postventa.",
     ruta: "/dashboard/informes/postventa",
+    submenuId: 137,
     icono: Wrench,
     color: "from-sky-500 to-sky-600",
   },
@@ -34,6 +39,22 @@ const SUBMODULOS_INFORMES_ROOT: SubmoduloInformesRoot[] = [
 
 export default function InformesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const submodulosFiltrados = useMemo(() => {
+    const hasSubmenuPermissions = Array.isArray(user?.submenus_permitidos);
+    if (!hasSubmenuPermissions) {
+      return SUBMODULOS_INFORMES_ROOT;
+    }
+
+    const submenusPermitidos = new Set(user?.submenus_permitidos || []);
+    return SUBMODULOS_INFORMES_ROOT.filter((submodulo) => {
+      if (typeof submodulo.submenuId !== "number") {
+        return false;
+      }
+
+      return submenusPermitidos.has(submodulo.submenuId);
+    });
+  }, [user?.submenus_permitidos]);
 
   return (
     <div className="space-y-6">
@@ -47,7 +68,7 @@ export default function InformesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {SUBMODULOS_INFORMES_ROOT.map((submodulo, index) => (
+        {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
             initial={{ opacity: 0, y: 20 }}

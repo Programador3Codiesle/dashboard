@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import {
   Calculator,
   Car,
@@ -21,12 +22,14 @@ import {
   AlertCircle,
   Receipt,
 } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 interface Submodulo {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
+  submenuId?: number;
   icono: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
 }
@@ -37,6 +40,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Ajustes Valores Contables",
     descripcion: "Gestión y ajuste de valores contables multiempresa",
     ruta: "/dashboard/administracion/ajustes-valores-contables",
+    submenuId: 178,
     icono: Calculator,
     color: "from-blue-500 to-blue-600",
   },
@@ -45,6 +49,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Control Ingreso y Salida de Vehículos",
     descripcion: "Registro y control de ingresos y salidas de vehículos",
     ruta: "/dashboard/administracion/control-vehiculos",
+    submenuId: 190,
     icono: Car,
     color: "from-green-500 to-green-600",
   },
@@ -53,6 +58,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Evaluación Desempeño Empleado",
     descripcion: "Evaluación de desempeño por jefe inmediato",
     ruta: "/dashboard/administracion/evaluacion-desempeno",
+    submenuId: 153,
     icono: UserCheck,
     color: "from-purple-500 to-purple-600",
   },
@@ -61,6 +67,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Formato Desempeño Empleado",
     descripcion: "Autoevaluación de desempeño por empleado",
     ruta: "/dashboard/administracion/formato-desempeno-empleado",
+    submenuId: 152,
     icono: FileText,
     color: "from-indigo-500 to-indigo-600",
   },  
@@ -69,6 +76,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Formato Orden de Salida",
     descripcion: "Consulta de órdenes de salida por placa",
     ruta: "/dashboard/administracion/formato-orden-salida",
+    submenuId: 154,
     icono: ClipboardList,
     color: "from-stone-500 to-stone-600",
   },
@@ -77,6 +85,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Formatos Nómina",
     descripcion: "Consulta, visualiza y descarga los formatos de nómina vigentes",
     ruta: "/dashboard/administracion/formatos-nomina",
+    submenuId: 184,
     icono: Receipt,
     color: "from-amber-500 to-amber-600",
   },
@@ -85,6 +94,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Gestión de Compras",
     descripcion: "Solicitudes y gestión de compras multiempresa",
     ruta: "/dashboard/administracion/gestion-compras",
+    submenuId: 79,
     icono: ShoppingCart,
     color: "from-orange-500 to-orange-600",
   },
@@ -93,6 +103,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Inasistencia",
     descripcion: "Informe de inasistencia de empleados",
     ruta: "/dashboard/administracion/inasistencia",
+    submenuId: 126,
     icono: UserX,
     color: "from-red-500 to-red-600",
   },
@@ -101,6 +112,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Informe Ausentismo",
     descripcion: "Informe detallado de ausentismo multiempresa",
     ruta: "/dashboard/administracion/informe-ausentismo",
+    submenuId: 45,
     icono: Calendar,
     color: "from-pink-500 to-pink-600",
   },
@@ -109,6 +121,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Informe de Sostenibilidad 2024",
     descripcion: "Visualización del informe de sostenibilidad",
     ruta: "/dashboard/administracion/informe-sostenibilidad",
+    submenuId: 189,
     icono: FileCheck,
     color: "from-emerald-500 to-emerald-600",
   },
@@ -117,6 +130,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Informe Tiempo Suplementario",
     descripcion: "Informe de tiempo suplementario multiempresa",
     ruta: "/dashboard/administracion/informe-tiempo-suplementario",
+    submenuId: 57,
     icono: Clock,
     color: "from-cyan-500 to-cyan-600",
   },
@@ -125,6 +139,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Lista Ausentismo",
     descripcion: "Ausentismos del día actual",
     ruta: "/dashboard/administracion/lista-ausentismo",
+    submenuId: 62,
     icono: CalendarDays,
     color: "from-rose-500 to-rose-600",
   },
@@ -133,6 +148,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Lista Horas Extras",
     descripcion: "Horas extras del día actual",
     ruta: "/dashboard/administracion/lista-horas-extras",
+    submenuId: 61,
     icono: TrendingUp,
     color: "from-teal-500 to-teal-600",
   },
@@ -141,6 +157,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Nuevo Ausentismo",
     descripcion: "Registro de nuevos ausentismos",
     ruta: "/dashboard/administracion/nuevo-ausentismo",
+    submenuId: 44,
     icono: AlertCircle,
     color: "from-violet-500 to-violet-600",
   },
@@ -149,6 +166,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Solicitud Tiempo Suplementario",
     descripcion: "Solicitud de tiempo suplementario",
     ruta: "/dashboard/administracion/solicitud-tiempo-suplementario",
+    submenuId: 56,
     icono: Users,
     color: "from-sky-500 to-sky-600",
   },
@@ -157,6 +175,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Tallas Dotación",
     descripcion: "Actualización de tallas para dotación",
     ruta: "/dashboard/administracion/tallas-dotacion",
+    submenuId: 155,
     icono: Shirt,
     color: "from-lime-500 to-lime-600",
   },
@@ -165,6 +184,7 @@ const SUBMODULOS: Submodulo[] = [
     nombre: "Reglamento Interno de Trabajo",
     descripcion: "Consulta del reglamento interno",
     ruta: "/dashboard/administracion/reglamento-interno",
+    submenuId: 172,
     icono: BookOpen,
     color: "from-slate-500 to-slate-600",
   },
@@ -173,6 +193,22 @@ const SUBMODULOS: Submodulo[] = [
 
 export default function AdministracionPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const submodulosFiltrados = useMemo(() => {
+    const hasSubmenuPermissions = Array.isArray(user?.submenus_permitidos);
+    if (!hasSubmenuPermissions) {
+      return SUBMODULOS;
+    }
+
+    const submenusPermitidos = new Set(user?.submenus_permitidos || []);
+    return SUBMODULOS.filter((submodulo) => {
+      if (typeof submodulo.submenuId !== "number") {
+        return false;
+      }
+
+      return submenusPermitidos.has(submodulo.submenuId);
+    });
+  }, [user?.submenus_permitidos]);
 
   return (
     <div className="space-y-6">
@@ -186,7 +222,7 @@ export default function AdministracionPage() {
 
       {/* Grid de Submódulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {SUBMODULOS.map((submodulo, index) => (
+        {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
             initial={{ opacity: 0, y: 20 }}

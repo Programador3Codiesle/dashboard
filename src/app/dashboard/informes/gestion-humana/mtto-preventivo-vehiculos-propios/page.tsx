@@ -10,7 +10,14 @@ import {
   HistorialMtto,
 } from "@/modules/informes/gestion-humana/services/informe-mtto-preventivo-vh.service";
 import Modal from "@/components/shared/ui/Modal";
-import { Pagination } from "@/components/shared/ui/Pagination";
+
+const RUTINA_PDF_BY_PLACA: Record<string, string> = {
+  WOM803: "RUTINA-N400.pdf",
+  XMB415: "RUTINA-NHR.pdf",
+  SVP019: "RUTINA-NQR.pdf",
+  TAV656: "RUTINA-FVR.pdf",
+  TTR469: "RUTINA-N300.pdf",
+};
 
 export default function MttoPreventivoVehiculosPropiosPage() {
   const { showError } = useToast();
@@ -66,10 +73,12 @@ export default function MttoPreventivoVehiculosPropiosPage() {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_PUBLIC_URL || ""; // para rutas de PDF si se necesita
 
-  const getRutinaUrl = (rutina: string | null) => {
-    if (!rutina) return null;
-    // Igual que legacy: public/mantenimiento/FILE.pdf
-    return `${baseUrl}/public/mantenimiento/${rutina}`;
+  const getRutinaUrl = (placa: string, rutina: string | null) => {
+    const rutinaByPlaca = RUTINA_PDF_BY_PLACA[String(placa).toUpperCase()];
+    const rutinaFile = rutinaByPlaca || rutina || "";
+    if (!rutinaFile) return null;
+    const relativePath = `/Informes/Gestion humana/Mtto preventivo/${rutinaFile}`;
+    return `${baseUrl}${encodeURI(relativePath)}`;
   };
 
   return (
@@ -136,7 +145,7 @@ export default function MttoPreventivoVehiculosPropiosPage() {
                 </tr>
               ) : (
                 data.map((vh) => {
-                  const rutinaUrl = getRutinaUrl(vh.rutina);
+                  const rutinaUrl = getRutinaUrl(vh.placa, vh.rutina);
                   return (
                     <tr
                       key={vh.placa}
@@ -304,12 +313,26 @@ export default function MttoPreventivoVehiculosPropiosPage() {
                   <span className="text-xs text-gray-500 text-center sm:text-left">
                     Mostrando {historialPaginado.length} de {historialTotalItems} registros
                   </span>
-                  <div className="flex justify-center sm:justify-end">
-                    <Pagination
-                      currentPage={historialPage}
-                      totalPages={historialTotalPages}
-                      onChange={setHistorialPage}
-                    />
+                  <div className="flex items-center justify-center sm:justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setHistorialPage((prev) => Math.max(1, prev - 1))}
+                      disabled={historialPage === 1}
+                      className="px-2.5 py-1 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <span className="text-xs text-gray-500 min-w-[78px] text-center">
+                      {historialPage} / {historialTotalPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setHistorialPage((prev) => Math.min(historialTotalPages, prev + 1))}
+                      disabled={historialPage === historialTotalPages}
+                      className="px-2.5 py-1 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Siguiente
+                    </button>
                   </div>
                 </div>
               )}

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useCallback } from 'react';
-import { Calendar } from 'lucide-react';
 
 interface DateFilterInputProps {
   label: string;
@@ -33,11 +32,10 @@ export const DateFilterInput = React.memo(({
         <input
           ref={inputRef}
           type="date"
-          className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white pr-10"
+          className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white"
           value={value}
           onChange={handleChange}
         />
-        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
       </div>
     </div>
   );

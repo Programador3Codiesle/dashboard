@@ -1,9 +1,11 @@
 // Utilidades para manejar cookies (equivalente a sesiones PHP)
 
-export function setCookie(name: string, value: string, days: number = 7) {
-  const expires = new Date();
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+export function setCookie(name: string, value: string, days?: number) {
+  const expires = typeof days === 'number'
+    ? `;expires=${new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString()}`
+    : '';
+
+  document.cookie = `${name}=${value}${expires};path=/;SameSite=Lax`;
 }
 
 export function getCookie(name: string): string | null {
@@ -33,11 +35,24 @@ export function getUser(): any | null {
   }
 }
 
-export function setUser(user: any) {
-  setCookie('user', JSON.stringify(user), 7); // 7 días
+export function setUser(user: any, remember: boolean = true) {
+  if (remember) {
+    setCookie('user', JSON.stringify(user), 7); // 7 días
+    setCookie('remember_session', '1', 7);
+    return;
+  }
+
+  // Cookie de sesión: se elimina al cerrar el navegador.
+  setCookie('user', JSON.stringify(user));
+  setCookie('remember_session', '0');
 }
 
 export function removeUser() {
   removeCookie('user');
+  removeCookie('remember_session');
+}
+
+export function getRememberSession(): boolean {
+  return getCookie('remember_session') === '1';
 }
 

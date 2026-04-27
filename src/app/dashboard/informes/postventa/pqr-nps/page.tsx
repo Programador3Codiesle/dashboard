@@ -791,6 +791,7 @@ const CrearPqrModal = memo(function CrearPqrModal({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const envioEnCursoRef = useRef(false);
+  const { showError } = useToast();
 
   useEffect(() => {
     if (!isSaving) envioEnCursoRef.current = false;
@@ -843,7 +844,7 @@ const CrearPqrModal = memo(function CrearPqrModal({
       return;
     }
     const fd = new FormData(form);
-    onSave({
+    const payload: CrearPqrPayload = {
       fuente: String(fd.get('fuente') ?? '').trim(),
       sede: String(fd.get('sede') ?? '').trim(),
       fecha: String(fd.get('fecha') ?? '').trim(),
@@ -855,7 +856,16 @@ const CrearPqrModal = memo(function CrearPqrModal({
       telefono: String(fd.get('telefono') ?? '').trim(),
       tecnico: String(fd.get('tecnico') ?? '').trim(),
       comentarios: String(fd.get('comentarios') ?? '').trim(),
-    });
+    };
+
+    const tieneCamposPendientes = Object.values(payload).some((value) => value === '');
+    if (tieneCamposPendientes) {
+      showError('Debe llenar todos los campos.');
+      envioEnCursoRef.current = false;
+      return;
+    }
+
+    onSave(payload);
   };
 
   const inputClass =

@@ -89,7 +89,7 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
           >
             <div>
               {/* Indicador de estado con línea decorativa */}
-              <div className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'brand-bg' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500'}`}></div>
+              <div className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'brand-bg' : 'bg-linear-to-r from-blue-500 via-indigo-500 to-blue-500'}`}></div>
               
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -136,12 +136,12 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
               </div>
             </div>
 
-            <div className={`flex items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-[var(--color-primary)]' : 'border-t border-blue-200'}`}>
+            <div className={`flex items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-(--color-primary)' : 'border-t border-blue-200'}`}>
               <button
                 onClick={() => handleReasignar(t)}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   isEnProceso 
-                    ? 'brand-text brand-bg-light hover:bg-[var(--color-primary)]/20 border border-[var(--color-primary)]' 
+                    ? 'brand-text brand-bg-light hover:bg-(--color-primary)/20 border border-(--color-primary)' 
                     : 'text-blue-700 bg-blue-100 hover:bg-blue-200 border border-blue-300'
                 }`}
               >
@@ -182,6 +182,8 @@ function TicketsCardsActivosComponent({ tickets, loading }: TicketsCardsActivosP
               tipoSoporte: selectedTicket.tipoSoporte,
               descripcion: selectedTicket.descripcion,
               archivoUrl: selectedTicket.archivoUrl ?? null,
+              sede: selectedTicket.sede,
+              extension: selectedTicket.extension,
             }
           : null}
       />

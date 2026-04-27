@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 import { badgeClassNpsNullable, nombreMes } from '../panel-nps-utils';
 
 export type PanelNpsMesCeldasProps = {
@@ -17,7 +18,8 @@ export const PanelNpsMesCeldas = memo(function PanelNpsMesCeldas({
     <div className="flex flex-wrap gap-2">
       {cells.map(({ mes, nps }, idx) => {
         const disabled = !allowClickWhenNull && nps === null;
-        const label = nps === null ? '—' : `${nps.toFixed(1)}%`;
+        const label =
+          nps === null ? '—' : `${formatNumeroCo(nps, 1, 1)}%`;
         const cls = badgeClassNpsNullable(nps);
         return (
           <button

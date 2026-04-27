@@ -1,5 +1,6 @@
 import { memo, useCallback } from 'react';
 import type { PacNpsEncuestaTecnico } from '@/modules/informes/postventa/services/pac-nps-interno-detallado.service';
+import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 const BODEGA_SIN_DRILL = 22;
 
@@ -82,8 +83,8 @@ export const PacNpsTecnicoRow = memo(function PacNpsTecnicoRow({
   return (
     <tr className="border-b border-gray-100 text-center text-sm">
       <td className="py-2 px-2">{tecnico}</td>
-      <td className="py-2 px-2">{ordenes}</td>
-      <td className="py-2 px-2">{encuestas}</td>
+      <td className="py-2 px-2">{formatCantidadCo(ordenes)}</td>
+      <td className="py-2 px-2">{formatCantidadCo(encuestas)}</td>
       <td className="py-2 px-2">
         <button
           type="button"

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
-import { setUser, getUser, removeUser, removeCookie } from "@/utils/cookies";
+import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
 
 const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000; // 4 horas
 const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "activo"
@@ -12,6 +12,26 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const [user, setUserState] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const lastActivity = useRef<number>(Date.now());
+    const normalizeEmpresaSelection = useCallback((currentUser: User): User => {
+        const empresasAsignadas = currentUser.empresas_asignadas || [];
+
+        if (empresasAsignadas.length === 0) {
+            return currentUser;
+        }
+
+        const empresaActual = currentUser.empresa;
+        const empresaValida =
+            typeof empresaActual === 'number' && empresasAsignadas.includes(empresaActual);
+
+        if (empresaValida) {
+            return currentUser;
+        }
+
+        return {
+            ...currentUser,
+            empresa: empresasAsignadas[0],
+        };
+    }, []);
 
     // Cargar usuario de cookies al iniciar y verificar sesión con el backend
     useEffect(() => {
@@ -24,7 +44,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                     const profile = await authService.getProfile();
                     if (profile) {
                         // Sesión válida, mantener el usuario
-                        setUserState(savedUser);
+                        const normalizedUser = normalizeEmpresaSelection(savedUser);
+                        setUser(normalizedUser, getRememberSession());
+                        setUserState(normalizedUser);
                     } else {
                         // Sesión expirada o inválida, limpiar
                         removeUser();
@@ -41,7 +63,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         };
 
         initializeAuth();
-    }, []);
+    }, [normalizeEmpresaSelection]);
 
     // Definir logout antes de los useEffect que lo usan
     const logout = useCallback(async () => {
@@ -148,7 +170,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         return () => clearTimeout(timeoutId);
     }, [user, logout]);
 
-    const login = async (credentials: { user: string; password: string }) => {
+    const login = async (credentials: { user: string; password: string; remember: boolean }): Promise<User> => {
         const nitUsuario = parseInt(credentials.user, 10);
 
         if (isNaN(nitUsuario)) {
@@ -159,6 +181,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             const response = await authService.login({
                 nit_usuario: nitUsuario,
                 password: credentials.password,
+                remember: credentials.remember,
             });
 
             // Crear objeto usuario (sin empresa; se elige en modal post-login)
@@ -167,12 +190,19 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 user: response.user.nit_usuario.toString(),
                 nit_usuario: response.user.nit_usuario,
                 perfil_postventa: response.user.perfil_postventa,
+                nom_perfil: response.user.nom_perfil,
                 nombre_usuario: response.user.nombre_usuario,
+                empresas_asignadas: response.user.empresas_asignadas || [],
+                menus_permitidos: response.user.menus_permitidos || [],
+                submenus_permitidos: response.user.submenus_permitidos || [],
+                trimenus_permitidos: response.user.trimenus_permitidos || [],
             };
 
-            setUser(userData);
-            setUserState(userData);
+            const normalizedUser = normalizeEmpresaSelection(userData);
+            setUser(normalizedUser, credentials.remember);
+            setUserState(normalizedUser);
             lastActivity.current = Date.now();
+            return normalizedUser;
         } catch (error: any) {
             throw error;
         }
@@ -181,11 +211,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const updateUser = useCallback((partial: Partial<User>) => {
         setUserState((prev) => {
             if (!prev) return prev;
-            const next = { ...prev, ...partial };
-            setUser(next);
+            const next = normalizeEmpresaSelection({ ...prev, ...partial });
+            setUser(next, getRememberSession());
             return next;
         });
-    }, []);
+    }, [normalizeEmpresaSelection]);
 
     const authValue = useMemo(() => ({
         user,

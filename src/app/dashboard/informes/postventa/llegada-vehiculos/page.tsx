@@ -3,6 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { informeEntradaVhService } from "@/modules/informes/postventa/services/entrada-vh.service";
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 
 function getCurrentYearMonth(): string {
@@ -38,7 +42,7 @@ export default function LlegadaVehiculosPage() {
     );
   }, [isError, showError]);
 
-  const toPercent = (value: number) => `${Math.round(value)}%`;
+  const toPercent = (value: number) => `${formatNumeroCo(value, 0, 0)}%`;
 
   const citasCumplidas = data
     ? [
@@ -124,8 +128,8 @@ export default function LlegadaVehiculosPage() {
                   {toPercent(data.porcentajeCitasCumplidas)}
                 </p>
                 <p className="mt-1 text-xs opacity-80">
-                  Citas asistidas: {data.citasAsistidas.toLocaleString("es-CO")} /{" "}
-                  agendadas: {data.citasAgendadas.toLocaleString("es-CO")}
+                  Citas asistidas: {formatCantidadCo(data.citasAsistidas)} /{" "}
+                  agendadas: {formatCantidadCo(data.citasAgendadas)}
                 </p>
               </div>
 
@@ -138,21 +142,21 @@ export default function LlegadaVehiculosPage() {
                     <span>Temprano</span>
                     <span>
                       {toPercent(data.porcentajeTemprano)} (
-                      {data.cantidadTemprano.toLocaleString("es-CO")})
+                      {formatCantidadCo(data.cantidadTemprano)})
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>A tiempo</span>
                     <span>
                       {toPercent(data.porcentajeAtiempo)} (
-                      {data.cantidadAtiempo.toLocaleString("es-CO")})
+                      {formatCantidadCo(data.cantidadAtiempo)})
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Llegó tarde</span>
                     <span>
                       {toPercent(data.porcentajeTarde)} (
-                      {data.cantidadTarde.toLocaleString("es-CO")})
+                      {formatCantidadCo(data.cantidadTarde)})
                     </span>
                   </div>
                 </div>
@@ -166,8 +170,8 @@ export default function LlegadaVehiculosPage() {
                   {toPercent(data.porcentajeVhAgendados)}
                 </p>
                 <p className="mt-1 text-xs opacity-80">
-                  VH sin cita: {data.vhSinCita.toLocaleString("es-CO")} / total
-                  ingresos: {data.totalIngresos.toLocaleString("es-CO")}
+                  VH sin cita: {formatCantidadCo(data.vhSinCita)} / total
+                  ingresos: {formatCantidadCo(data.totalIngresos)}
                 </p>
               </div>
             </div>
@@ -195,11 +199,13 @@ export default function LlegadaVehiculosPage() {
                             {it.label}
                           </span>
                           <span className="font-semibold text-gray-800">
-                            {it.value.toLocaleString("es-CO")}
+                            {formatCantidadCo(it.value)}
                           </span>
                         </div>
                       ))}
-                      <div className="pt-1 text-gray-500">Total: {card.total.toLocaleString("es-CO")}</div>
+                      <div className="pt-1 text-gray-500">
+                        Total: {formatCantidadCo(card.total)}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -214,25 +220,25 @@ export default function LlegadaVehiculosPage() {
                 <div className="flex justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                   <span className="text-gray-600">Citas agendadas</span>
                   <span className="font-medium">
-                    {data.citasAgendadas.toLocaleString("es-CO")}
+                    {formatCantidadCo(data.citasAgendadas)}
                   </span>
                 </div>
                 <div className="flex justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                   <span className="text-gray-600">Citas asistidas</span>
                   <span className="font-medium">
-                    {data.citasAsistidas.toLocaleString("es-CO")}
+                    {formatCantidadCo(data.citasAsistidas)}
                   </span>
                 </div>
                 <div className="flex justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                   <span className="text-gray-600">VH sin cita</span>
                   <span className="font-medium">
-                    {data.vhSinCita.toLocaleString("es-CO")}
+                    {formatCantidadCo(data.vhSinCita)}
                   </span>
                 </div>
                 <div className="flex justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                   <span className="text-gray-600">Total ingresos</span>
                   <span className="font-medium">
-                    {data.totalIngresos.toLocaleString("es-CO")}
+                    {formatCantidadCo(data.totalIngresos)}
                   </span>
                 </div>
               </div>

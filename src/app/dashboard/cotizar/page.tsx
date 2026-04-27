@@ -2,23 +2,24 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import {
   Car,
-  Truck,
   ClipboardList,
   FileBarChart,
-  Wrench,
   PlusCircle,
   Edit3,
   AlertTriangle,
   Layers,
 } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
 interface SubmoduloCotizar {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
+  submenuId?: number;
   icono: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
 }
@@ -29,6 +30,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Livianos",
     descripcion: "Cotizador de mantenimiento y repuestos para vehículos livianos.",
     ruta: "/dashboard/cotizar/livianos",
+    submenuId: 90,
     icono: Car,
     color: "from-blue-500 to-blue-600",
   },
@@ -47,6 +49,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Informe de cotizaciones",
     descripcion: "Consulta histórica y analítica de cotizaciones generadas.",
     ruta: "/dashboard/cotizar/informe-cotizaciones",
+    submenuId: 91,
     icono: FileBarChart,
     color: "from-indigo-500 to-indigo-600",
   },
@@ -55,6 +58,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Ejecución Cotizado vs Facturado",
     descripcion: "Comparativo entre lo cotizado y lo finalmente facturado.",
     ruta: "/dashboard/cotizar/ejecucion-cotizado-vs-facturado",
+    submenuId: 110,
     icono: Layers,
     color: "from-teal-500 to-teal-600",
   },
@@ -63,6 +67,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Repuestos no disponibles",
     descripcion: "Control y seguimiento de repuestos no disponibles al momento de cotizar.",
     ruta: "/dashboard/cotizar/repuestos-no-disponibles",
+    submenuId: 95,
     icono: AlertTriangle,
     color: "from-amber-500 to-amber-600",
   },
@@ -71,6 +76,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Control",
     descripcion: "Control detallado de repuestos y mano de obra asociados a las cotizaciones.",
     ruta: "/dashboard/cotizar/control",
+    submenuId: 101,
     icono: ClipboardList,
     color: "from-slate-500 to-slate-600",
   },
@@ -79,6 +85,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Adicionales Livianos",
     descripcion: "Configuración de adicionales de repuestos y mano de obra para livianos.",
     ruta: "/dashboard/cotizar/adicionales-livianos",
+    submenuId: 118,
     icono: PlusCircle,
     color: "from-purple-500 to-purple-600",
   },
@@ -97,6 +104,7 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
     nombre: "Editar repuesto / mano de obra",
     descripcion: "Edición masiva de configuraciones de repuestos y mano de obra.",
     ruta: "/dashboard/cotizar/editar-repuesto-mano-obra",
+    submenuId: 196,
     icono: Edit3,
     color: "from-rose-500 to-rose-600",
   },
@@ -104,6 +112,22 @@ const SUBMODULOS_COTIZAR: SubmoduloCotizar[] = [
 
 export default function CotizarPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const submodulosFiltrados = useMemo(() => {
+    const hasSubmenuPermissions = Array.isArray(user?.submenus_permitidos);
+    if (!hasSubmenuPermissions) {
+      return SUBMODULOS_COTIZAR;
+    }
+
+    const submenusPermitidos = new Set(user?.submenus_permitidos || []);
+    return SUBMODULOS_COTIZAR.filter((submodulo) => {
+      if (typeof submodulo.submenuId !== "number") {
+        return false;
+      }
+
+      return submenusPermitidos.has(submodulo.submenuId);
+    });
+  }, [user?.submenus_permitidos]);
 
   return (
     <div className="space-y-6">
@@ -119,7 +143,7 @@ export default function CotizarPage() {
 
       {/* Grid de Submódulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {SUBMODULOS_COTIZAR.map((submodulo, index) => (
+        {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
             initial={{ opacity: 0, y: 20 }}

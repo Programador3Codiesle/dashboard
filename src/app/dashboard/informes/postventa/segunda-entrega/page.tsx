@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { segundaEntregaService, SegundaEntregaDetalle, SegundaEntregaResumen } from '@/modules/informes/postventa/services/segunda-entrega.service';
+import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
 import { useToast } from '@/components/shared/ui/ToastContext';
 
 interface DataState {
@@ -179,8 +180,8 @@ export default function SegundaEntregaPage() {
                       <td className={tdBase}>{row.anio}</td>
                       <td className={tdBase}>{row.mes}</td>
                       <td className={tdBase}>{row.dia}</td>
-                      <td className={tdBase}>{row.entregas}</td>
-                      <td className={tdBase}>{row.agendas}</td>
+                      <td className={tdBase}>{formatCantidadCo(row.entregas)}</td>
+                      <td className={tdBase}>{formatCantidadCo(row.agendas)}</td>
                     </tr>
                   ))}
                   {!data?.resumen?.length && (

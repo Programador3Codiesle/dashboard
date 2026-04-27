@@ -3,11 +3,11 @@ import Modal from "@/components/shared/ui/Modal";
 import { useState } from "react";
 import { useTicketsActions } from "@/modules/tickets/hooks/useTicketsActions";
 import { CrearTicketDTO } from "@/modules/tickets/types";
-import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { Upload, X, ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
+import { sedesTicketsDisponibles } from "@/modules/tickets/constants";
 
 export default function NuevoTicketModal({
     open,
@@ -17,19 +17,20 @@ export default function NuevoTicketModal({
     onClose: () => void;
 }) {
     const { crearTicket } = useTicketsActions();
-    const { user } = useAuth();
     const { showError } = useToast();
     const [form, setForm] = useState<CrearTicketDTO>({
         tipoSoporte: "",
         anydesk: "",
-        descripcion: ""
+        descripcion: "",
+        sede: "",
+        extension: "",
     });
     const [archivo, setArchivo] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.tipoSoporte || !form.descripcion) return;
+        if (!form.tipoSoporte || !form.descripcion || !form.sede) return;
         setLoading(true);
 
         try {
@@ -64,7 +65,9 @@ export default function NuevoTicketModal({
             setForm({
                 tipoSoporte: "",
                 anydesk: "",
-                descripcion: ""
+                descripcion: "",
+                sede: "",
+                extension: "",
             });
             setArchivo(null);
             onClose();
@@ -114,6 +117,36 @@ export default function NuevoTicketModal({
                         value={form.anydesk}
                         onValueChange={(val) => setForm({ ...form, anydesk: val })}
                         placeholder="Ej: 123 456 789"
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelClass}>Sede <span className="text-red-500">*</span></label>
+                        <div className="relative mt-1">
+                            <select
+                                className={`${inputClass} appearance-none pr-10`}
+                                value={form.sede}
+                                onChange={(e) => setForm({ ...form, sede: e.target.value })}
+                                required
+                            >
+                                <option value="">Seleccione sede...</option>
+                                {sedesTicketsDisponibles.map((sede) => (
+                                    <option key={sede} value={sede}>{sede}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                        </div>
+                    </div>
+
+                    <OptimizedInput
+                        label="Extensión (opcional)"
+                        labelClassName={labelClass}
+                        className={`mt-1 ${inputClass}`}
+                        value={form.extension || ""}
+                        onValueChange={(val) => setForm({ ...form, extension: val })}
+                        placeholder="Ej: 1234"
+                        maxLength={20}
                     />
                 </div>
 

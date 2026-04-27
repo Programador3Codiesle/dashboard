@@ -14,10 +14,14 @@ export interface ITicket {
   encargado: string | null;
   estado: EstadoTicket;
   fechaCreacion: string; // ISO
+  sede?: string;
+  extension?: string;
 }
 
 export interface CrearTicketDTO {
   tipoSoporte: string;
   anydesk?: string;
   descripcion: string;
+  sede: string;
+  extension?: string;
 }

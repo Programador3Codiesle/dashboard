@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { desempenoEmpleadoService } from '@/modules/informes/gestion-humana/services/desempeno-empleado.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { Pagination } from '@/components/shared/ui/Pagination';
 
 const SEDES_OPTIONS = ['Giron', 'Rosita', 'Bocono', 'Malecon', 'Barranca', 'Otra'];
+const PAGE_SIZE = 10;
 
 export default function DesempenoEmpleadoPage() {
   const { showError, showInfo } = useToast();
@@ -24,16 +28,27 @@ export default function DesempenoEmpleadoPage() {
 
   const [anio, setAnio] = useState<number>(currentYear);
   const [sede, setSede] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [loadingExport, setLoadingExport] = useState(false);
+  const [rows, setRows] = useState<Awaited<ReturnType<typeof desempenoEmpleadoService.listar>>['items']>(
+    [],
+  );
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (page: number) => {
       return desempenoEmpleadoService.listar({
         anio,
         sede: sede || undefined,
+        pagina: page,
+        limite: PAGE_SIZE,
       });
     },
     onSuccess: (result) => {
-      if (result.length === 0) {
+      setTotalItems(result.total ?? 0);
+      setRows(result.items ?? []);
+      if ((result.total ?? 0) === 0) {
         showInfo('No hay registros para los filtros seleccionados.');
       }
     },
@@ -47,60 +62,94 @@ export default function DesempenoEmpleadoPage() {
   });
 
   const handleFiltrar = () => {
-    mutation.mutate();
+    setHasSearched(true);
+    setCurrentPage(1);
+    mutation.mutate(1);
   };
 
-  const data = mutation.data ?? [];
+  const changePage = (page: number) => {
+    setCurrentPage(page);
+    if (hasSearched) {
+      mutation.mutate(page);
+    }
+  };
 
-  const handleExportCsv = () => {
-    if (!data.length) return;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const data = rows;
+  const isPageLoading = mutation.isPending && data.length > 0;
 
-    const headers = [
-      'Nit Empleado',
-      'Empleado',
-      'Área',
-      'Cargo',
-      'Sede',
-      'Fecha',
-      'Calificado',
-      'Calificación Empleado',
-      'Calificación Jefe',
-      'Calificación Final',
-      'Necesidades de Entrenamiento',
-      'Compromisos',
-    ];
+  const handleExportCsv = async () => {
+    if (!hasSearched || totalItems === 0) {
+      showError('No hay datos para exportar.');
+      return;
+    }
 
-    const rows = data.map((r) => [
-      String(r.nitEmpleado),
-      r.empleado,
-      r.area,
-      r.cargo,
-      r.sede,
-      r.fecha,
-      r.calificado === 1 ? 'Sí' : 'No',
-      r.calificacionEmpleado.toFixed(2),
-      r.calificacionJefe.toFixed(2),
-      r.calificacionFinal.toFixed(2),
-      r.capacidadesEntrenamiento ?? '',
-      r.compromisos ?? '',
-    ]);
+    setLoadingExport(true);
+    try {
+      const resultado = await desempenoEmpleadoService.listar({
+        anio,
+        sede: sede || undefined,
+        pagina: 1,
+        limite: totalItems,
+      });
+      const exportItems = resultado.items ?? [];
 
-    const csvContent =
-      [headers, ...rows]
-        .map((cols) =>
-          cols
-            .map((c) => `"${String(c).replace(/"/g, '""')}"`)
-            .join(','),
-        )
-        .join('\n');
+      if (!exportItems.length) {
+        showError('No hay datos para exportar.');
+        return;
+      }
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'informe-desempeno-empleado.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+      const headers = [
+        'Nit Empleado',
+        'Empleado',
+        'Área',
+        'Cargo',
+        'Sede',
+        'Fecha',
+        'Calificado',
+        'Calificación Empleado',
+        'Calificación Jefe',
+        'Calificación Final',
+        'Necesidades de Entrenamiento',
+        'Compromisos',
+      ];
+
+      const rows = exportItems.map((r) => [
+        String(r.nitEmpleado),
+        r.empleado,
+        r.area,
+        r.cargo,
+        r.sede,
+        r.fecha,
+        r.calificado === 1 ? 'Sí' : 'No',
+        r.calificacionEmpleado.toFixed(2),
+        r.calificacionJefe.toFixed(2),
+        r.calificacionFinal.toFixed(2),
+        r.capacidadesEntrenamiento ?? '',
+        r.compromisos ?? '',
+      ]);
+
+      const csvContent =
+        [headers, ...rows]
+          .map((cols) =>
+            cols
+              .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+              .join(','),
+          )
+          .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'informe-desempeno-empleado.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showError('No se pudo exportar el informe.');
+    } finally {
+      setLoadingExport(false);
+    }
   };
 
   return (
@@ -151,15 +200,26 @@ export default function DesempenoEmpleadoPage() {
           <button
             type="button"
             onClick={handleExportCsv}
-            disabled={!data.length}
+            disabled={!hasSearched || totalItems === 0 || loadingExport}
             className="inline-flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium shadow hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Exportar a Excel
+            {loadingExport ? 'Exportando...' : 'Exportar a Excel'}
           </button>
         </div>
       </div>
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            {hasSearched ? `${totalItems} registro${totalItems === 1 ? '' : 's'}` : 'Sin búsqueda aplicada'}
+          </p>
+          {isPageLoading && (
+            <div className="inline-flex items-center gap-2 text-xs text-gray-500">
+              <Loader2 size={14} className="animate-spin" />
+              <span>Cargando página...</span>
+            </div>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-xs" id="tabladatos">
             <thead className="bg-(--color-primary) text-white">
@@ -183,7 +243,7 @@ export default function DesempenoEmpleadoPage() {
               {!mutation.isPending && !data.length && (
                 <tr>
                   <td colSpan={13} className="px-2 py-4 text-center text-gray-500">
-                    No hay datos para mostrar
+                    {hasSearched ? 'No hay datos para mostrar' : 'Use los filtros y presione Filtrar'}
                   </td>
                 </tr>
               )}
@@ -203,14 +263,12 @@ export default function DesempenoEmpleadoPage() {
                   <td className="px-2 py-1">{row.compromisos}</td>
                   <td className="px-2 py-1">
                     {row.calificado === 1 ? (
-                      <a
-                        href={`https://intranet.codiesel.co/postventa/FormatosDigitales/verEvaluacion?id=${row.id}`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <Link
+                        href={`/dashboard/informes/gestion-humana/desempeno-empleado/${row.id}`}
                         className="inline-flex items-center px-3 py-1 rounded-md bg-(--color-primary) text-white text-[11px] font-medium shadow hover:opacity-90"
                       >
                         Ver detallado
-                      </a>
+                      </Link>
                     ) : (
                       ''
                     )}
@@ -220,6 +278,11 @@ export default function DesempenoEmpleadoPage() {
             </tbody>
           </table>
         </div>
+        {hasSearched && totalPages > 1 && (
+          <div className="p-4 border-t border-gray-200">
+            <Pagination currentPage={currentPage} totalPages={totalPages} onChange={changePage} />
+          </div>
+        )}
       </div>
     </div>
   );

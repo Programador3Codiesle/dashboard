@@ -53,6 +53,10 @@ export default function EntradasSalidasPage() {
       showError("Debe seleccionar fecha inicial y fecha final.");
       return;
     }
+    if (fechaFin < fechaIni) {
+      showError("La fecha final no puede ser menor que la fecha inicial.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -267,9 +271,16 @@ export default function EntradasSalidasPage() {
                 </tr>
               ) : (
                 paginatedData.map((row) => (
+                  (() => {
+                    const accionNormalizada = String(row.accion || "").toLowerCase();
+                    const filaClass =
+                      accionNormalizada === "salida"
+                        ? "bg-rose-200/80 hover:bg-rose-300/90"
+                        : "";
+                    return (
                   <tr
                     key={row.id}
-                    className="border-b border-gray-100 hover:bg-gray-50/60"
+                    className={`border-b border-gray-100 ${filaClass}`}
                   >
                     <td className="px-4 py-2 whitespace-nowrap">
                       {row.documento}
@@ -290,6 +301,8 @@ export default function EntradasSalidasPage() {
                       {row.accion}
                     </td>
                   </tr>
+                    );
+                  })()
                 ))
               )}
             </tbody>

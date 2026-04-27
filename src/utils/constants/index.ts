@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2 } from "lucide-react";
+import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt } from "lucide-react";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -21,9 +21,19 @@ export const ROUTES = [
   { path: "/dashboard/usuarios", name: "Usuarios", icon: User },
   { path: "/dashboard/tickets", name: "Tickets", icon: Ticket },
   { path: "/dashboard/administracion", name: "Administración", icon: Settings },
+  { path: "/dashboard/nomina", name: "Nomina", icon: Receipt },
   { path: "/dashboard/cotizar", name: "Cotizar", icon: FileText },
   { path: "/dashboard/informes", name: "Informes", icon: FileBarChart2 },
 ];
+
+export const MENU_ID_BY_ROUTE: Record<string, number> = {
+  "/dashboard/usuarios": 1,
+  "/dashboard/tickets": 9,
+  "/dashboard/administracion": 11,
+  "/dashboard/nomina": 3,
+  "/dashboard/cotizar": 45,
+  "/dashboard/informes": 5,
+};
 
 // Colores para tarjetas del Dashboard (opcional)
 export const DASHBOARD_CARD_COLORS = {

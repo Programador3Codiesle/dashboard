@@ -16,6 +16,7 @@ import {
   PacNpsEncuestaDetalleBlock,
   PacNpsTecnicoRow,
 } from './pac-nps-detallado-memo';
+import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 function getDefaultMonth() {
   const now = new Date();
@@ -26,8 +27,8 @@ function getDefaultMonth() {
 
 function formatNps(value: unknown): string {
   const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(n)) return '0.00';
-  return n.toFixed(2);
+  if (!Number.isFinite(n)) return formatNumeroCo(0, 2, 2);
+  return formatNumeroCo(n, 2, 2);
 }
 
 function triggerBlobDownload(blob: Blob, filename: string) {

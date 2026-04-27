@@ -103,6 +103,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           onToggleSidebar={() => setShowSidebar(!showSidebar)} 
           onLogout={logout}
           userName={user?.nombre_usuario}
+          nomPerfil={user?.nom_perfil}
           empresaId={user?.empresa}
         />
         

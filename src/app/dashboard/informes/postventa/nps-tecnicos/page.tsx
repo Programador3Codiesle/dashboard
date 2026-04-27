@@ -10,6 +10,7 @@ import {
 } from '@/modules/informes/postventa/services/nps-tecnicos.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 function getRowColor(nps: number) {
   if (nps < 0) return 'bg-red-50';
@@ -205,7 +206,7 @@ export default function NpsTecnicosPage() {
                     {row.tecnico}
                   </td>
                   <td className="px-2 py-1 text-center font-semibold">
-                    {row.nps.toFixed(1)}%
+                    {formatNumeroCo(row.nps, 1, 1)}%
                   </td>
                   <td className="px-2 py-1 text-center">{row.enc0a6}</td>
                   <td className="px-2 py-1 text-center">{row.enc7a8}</td>

@@ -197,7 +197,7 @@ export default function ControlVehiculosPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <OptimizedInput
           placeholder="Buscar por placa, conductor o taller..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
           value={search}
           onValueChange={(val) => setSearch(val)}
         />
@@ -216,28 +216,28 @@ export default function ControlVehiculosPage() {
         )}
         {!loading && (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200 text-sm">
+            <div>
+              <table className="w-full table-fixed">
+                <thead className="bg-gray-50 border-b border-gray-200 text-xs">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Placa</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Empresa</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Fecha Salida</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Hora Salida</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">KM. Salida</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Tipo Vehículo</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Modelo</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Conductor</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Pasajeros</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Quien Autorizó</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Vehículo Remolcado</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Taller</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Fecha Ingreso</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Hora Ingreso</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">KM Ingreso</th>
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">Registrar Llegada</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Placa</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Empresa</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Fecha Salida</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Hora Salida</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">KM. Salida</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Tipo Vehículo</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Modelo</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Conductor</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Pasajeros</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Quien Autorizó</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Vehículo Remolcado</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Taller</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Fecha Ingreso</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Hora Ingreso</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">KM Ingreso</th>
+                    <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Registrar Llegada</th>
                     {puedeVerObservacion && (
-                      <th className="text-left py-4 px-6 font-semibold text-gray-700">Observación</th>
+                      <th className="text-left py-3 px-2 font-semibold text-gray-700 wrap-break-word">Observación</th>
                     )}
                   </tr>
                 </thead>
@@ -250,39 +250,39 @@ export default function ControlVehiculosPage() {
                     </tr>
                   ) : (
                     vehiculosMostrados.map((vehiculo) => (
-                      <tr key={vehiculo.id} className="border-b border-gray-100 hover:bg-gray-50 text-sm">
-                        <td className="py-4 px-6 font-semibold brand-text">{vehiculo.placa}</td>
-                        <td className="py-4 px-6 font-medium text-gray-900">{vehiculo.empresaNombre}</td>
-                        <td className="py-4 px-6">{vehiculo.fechaSalida}</td>
-                        <td className="py-4 px-6">{vehiculo.horaSalida}</td>
-                        <td className="py-4 px-6">{vehiculo.kmSalida.toLocaleString()}</td>
-                        <td className="py-4 px-6">{vehiculo.tipoVehiculo}</td>
-                        <td className="py-4 px-6">{vehiculo.modelo}</td>
-                        <td className="py-4 px-6">{vehiculo.conductor}</td>
-                        <td className="py-4 px-6 text-sm">{vehiculo.pasajeros || "-"}</td>
-                        <td className="py-4 px-6">{vehiculo.quienAutorizo}</td>
-                        <td className="py-4 px-6">
+                      <tr key={vehiculo.id} className="border-b border-gray-100 hover:bg-gray-50 text-xs align-top">
+                        <td className="py-3 px-2 font-semibold brand-text wrap-break-word">{vehiculo.placa}</td>
+                        <td className="py-3 px-2 font-medium text-gray-900 wrap-break-word">{vehiculo.empresaNombre}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.fechaSalida}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.horaSalida}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.kmSalida.toLocaleString()}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.tipoVehiculo}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.modelo}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.conductor}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.pasajeros || "-"}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.quienAutorizo}</td>
+                        <td className="py-3 px-2 wrap-break-word">
                           {vehiculo.vehiculoRemolcado ? (
                             <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Sí</span>
                           ) : (
                             <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">No</span>
                           )}
                         </td>
-                        <td className="py-4 px-6">{vehiculo.taller}</td>
-                        <td className="py-4 px-6">{vehiculo.fechaIngreso || "-"}</td>
-                        <td className="py-4 px-6">{vehiculo.horaIngreso || "-"}</td>
-                        <td className="py-4 px-6">{vehiculo.kmIngreso?.toLocaleString() || "-"}</td>
-                        <td className="py-4 px-6">
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.taller}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.fechaIngreso || "-"}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.horaIngreso || "-"}</td>
+                        <td className="py-3 px-2 wrap-break-word">{vehiculo.kmIngreso?.toLocaleString() || "-"}</td>
+                        <td className="py-3 px-2">
                           <button
                             onClick={() => handleRegistrarLlegada(vehiculo)}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold brand-bg brand-bg-hover text-white border border-[var(--color-primary-dark)] shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-semibold brand-bg brand-bg-hover text-white border border-(--color-primary-dark) shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
                           >
                             <CheckCircle2 size={14} className="text-white" />
-                            Registrar
+                            Reg.
                           </button>
                         </td>
                         {puedeVerObservacion && (
-                          <td className="py-4 px-6 text-sm">{vehiculo.observacion || "-"}</td>
+                          <td className="py-3 px-2 text-xs wrap-break-word">{vehiculo.observacion || "-"}</td>
                         )}
                       </tr>
                     ))

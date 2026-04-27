@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 export type Retencion72BarPoint = {
   label: string;
@@ -39,13 +40,13 @@ export const Retencion72BarChart = memo(function Retencion72BarChart({
           <div key={row.label} className="space-y-1">
             <div className="flex items-center justify-between text-xs text-gray-600">
               <span>{row.label}</span>
-              <span>{row.valor.toFixed(1)}%</span>
+              <span>{formatNumeroCo(row.valor, 1, 1)}%</span>
             </div>
             <div className="h-5 bg-gray-100 rounded overflow-hidden">
               <div
                 className="h-5 bg-(--color-primary)"
                 style={{ width: `${Math.min(100, (row.valor / max) * 100)}%` }}
-                title={`${labelPrincipal}: ${row.valor.toFixed(1)}%`}
+                title={`${labelPrincipal}: ${formatNumeroCo(row.valor, 1, 1)}%`}
               />
             </div>
             {row.comparacion != null && (
@@ -60,7 +61,7 @@ export const Retencion72BarChart = memo(function Retencion72BarChart({
                     style={{
                       width: `${Math.min(100, (row.comparacion / max) * 100)}%`,
                     }}
-                    title={`${labelComparacion}: ${row.comparacion.toFixed(1)}%`}
+                    title={`${labelComparacion}: ${formatNumeroCo(row.comparacion, 1, 1)}%`}
                   />
                 </div>
               </>

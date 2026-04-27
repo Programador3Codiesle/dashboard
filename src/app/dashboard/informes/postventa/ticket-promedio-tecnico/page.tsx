@@ -6,6 +6,7 @@ import {
   ticketPromedioTecnicoService,
   TicketPromedioTecnicoRow,
 } from "@/modules/informes/postventa/services/ticket-promedio-tecnico.service";
+import { formatCantidadCo } from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 import { Pagination } from "@/components/shared/ui/Pagination";
 
@@ -185,31 +186,31 @@ export default function TicketPromedioTecnicoPage() {
                     <td className="px-3 py-1.5 text-center">{row.anio}</td>
                     <td className="px-3 py-1.5 text-center">{row.mes}</td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.ventaRepuestos.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ventaRepuestos)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.ventaManoObra.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ventaManoObra)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.ventaTotal.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ventaTotal)}
                     </td>
                     <td className="px-3 py-1.5 text-center">
-                      {row.ordenesRepuestos.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ordenesRepuestos)}
                     </td>
                     <td className="px-3 py-1.5 text-center">
-                      {row.ordenesManoObra.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.ordenesManoObra)}
                     </td>
                     <td className="px-3 py-1.5 text-center">
-                      {row.totalOrdenes.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.totalOrdenes)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.promedioRepuestos.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.promedioRepuestos)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.promedioManoObra.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.promedioManoObra)}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      {row.promedioTotal.toLocaleString("es-CO")}
+                      {formatCantidadCo(row.promedioTotal)}
                     </td>
                   </tr>
                 ))}

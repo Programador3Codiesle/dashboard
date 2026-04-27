@@ -20,6 +20,13 @@ export const encargadosDisponibles = [
     { id: "1095944273", nombre: "Cristhian Alberto Sanchez Murillo" },
 ];
 
+export const sedesTicketsDisponibles = [
+    "Giron",
+    "Cucuta",
+    "Barrancabermeja",
+    "Bucaramanga"
+];
+
 export const COMPANY_STYLES: Record<string, string> = {
     Codiesel: "bg-blue-50 text-blue-700 border-blue-200 ring-blue-500/10",
     Dieselco: "bg-teal-50 text-teal-700 border-teal-200 ring-teal-500/10",

@@ -3,6 +3,10 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { pacService, PacResumen } from '@/modules/informes/postventa/services/pac.service';
+import {
+  formatCantidadCo,
+  formatNumeroCo,
+} from '@/modules/informes/postventa/format-cantidad-co';
 import { useToast } from '@/components/shared/ui/ToastContext';
 
 export default function PacPage() {
@@ -58,10 +62,10 @@ export default function PacPage() {
           </p>
           <div className="mt-2 flex items-baseline space-x-2">
             <span className="text-3xl font-bold text-gray-900">
-              {resumen.calificacionPac.toFixed(2)}%
+              {formatNumeroCo(resumen.calificacionPac, 2, 2)}%
             </span>
             <span className="text-xs text-gray-500">
-              / {resumen.npsCompany.toFixed(2)}% objetivo compañía
+              / {formatNumeroCo(resumen.npsCompany, 2, 2)}% objetivo compañía
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-3 mb-1">
@@ -82,9 +86,9 @@ export default function PacPage() {
             />
           </div>
           <div className="mt-2 flex justify-between text-[11px] text-gray-600">
-            <span>0-6: {resumen.enc06}</span>
-            <span>7-8: {resumen.enc78}</span>
-            <span>9-10: {resumen.enc910}</span>
+            <span>0-6: {formatCantidadCo(resumen.enc06)}</span>
+            <span>7-8: {formatCantidadCo(resumen.enc78)}</span>
+            <span>9-10: {formatCantidadCo(resumen.enc910)}</span>
           </div>
         </div>
 
@@ -97,31 +101,31 @@ export default function PacPage() {
             <div>
               <p className="text-gray-500">Ventas acumuladas (PAC) a hoy</p>
               <p className="text-lg font-semibold text-gray-900">
-                ${resumen.toDia.toLocaleString('es-CO')}
+                ${formatCantidadCo(resumen.toDia)}
               </p>
             </div>
             <div>
               <p className="text-gray-500">% cumplimiento mes</p>
               <p className="text-lg font-semibold text-gray-900">
-                {resumen.porcenMes.toFixed(2)}%
+                {formatNumeroCo(resumen.porcenMes, 2, 2)}%
               </p>
               <p className="text-[11px] text-gray-500">
-                Restante: {resumen.porcenMesRes.toFixed(2)}%
+                Restante: {formatNumeroCo(resumen.porcenMesRes, 2, 2)}%
               </p>
             </div>
             <div>
               <p className="text-gray-500">% cumplimiento a hoy</p>
               <p className="text-lg font-semibold text-gray-900">
-                {resumen.porcenHoy.toFixed(2)}%
+                {formatNumeroCo(resumen.porcenHoy, 2, 2)}%
               </p>
               <p className="text-[11px] text-gray-500">
-                Restante: {resumen.porcenHoyRes.toFixed(2)}%
+                Restante: {formatNumeroCo(resumen.porcenHoyRes, 2, 2)}%
               </p>
             </div>
             <div>
               <p className="text-gray-500">Presupuesto mes</p>
               <p className="text-lg font-semibold text-gray-900">
-                ${resumen.toMes.toLocaleString('es-CO')}
+                ${formatCantidadCo(resumen.toMes)}
               </p>
             </div>
           </div>
@@ -134,7 +138,7 @@ export default function PacPage() {
           Total inventario PAC
         </p>
         <p className="mt-2 text-2xl font-bold text-gray-900">
-          ${resumen.valTotalInventario.toLocaleString('es-CO')}
+          ${formatCantidadCo(resumen.valTotalInventario)}
         </p>
         <p className="text-xs text-gray-500 mt-1">
           Valor total del inventario de referencias considerado para el informe PAC.

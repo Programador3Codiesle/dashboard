@@ -60,7 +60,7 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, l
                 <div className="overflow-x-auto">
                     <table className="min-w-full">
                         <thead>
-                            <tr className="brand-bg-gradient border-b-2 border-[var(--color-primary-dark)] text-center">
+                            <tr className="brand-bg-gradient border-b-2 border-(--color-primary-dark) text-center">
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Ticket</th>
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Estado</th>
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Prioridad</th>
@@ -101,7 +101,7 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, l
                                             t.prioridad === 'alta' 
                                                 ? 'bg-red-100 text-red-700 border border-red-200' 
                                                 : t.prioridad === 'media' 
-                                                ? 'brand-badge border border-[var(--color-primary)]' 
+                                                ? 'brand-badge border border-(--color-primary)' 
                                                 : 'bg-blue-100 text-blue-700 border border-blue-200'
                                         }`}>
                                             {t.prioridad}
@@ -203,6 +203,8 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, l
                         tipoSoporte: selectedTicket.tipoSoporte,
                         descripcion: selectedTicket.descripcion,
                         archivoUrl: selectedTicket.archivoUrl ?? null,
+                        sede: selectedTicket.sede,
+                        extension: selectedTicket.extension,
                     }
                     : null}
             />

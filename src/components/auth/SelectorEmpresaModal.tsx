@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Portal } from '@/components/shared/ui/Portal';
 import { EMPRESAS } from '@/utils/constants';
 import { Building2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { useAuth } from '@/core/auth/hooks/useAuth';
 
 interface SelectorEmpresaModalProps {
   open: boolean;
@@ -12,6 +14,12 @@ interface SelectorEmpresaModalProps {
 }
 
 export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpresaModalProps) {
+  const { user } = useAuth();
+  const empresasDisponibles = useMemo(() => {
+    const idsPermitidos = new Set(user?.empresas_asignadas || []);
+    return EMPRESAS.filter((empresa) => idsPermitidos.has(empresa.id));
+  }, [user?.empresas_asignadas]);
+
   if (!open) return null;
 
   const handleSelect = (empresaId: number) => {
@@ -49,7 +57,7 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
               </div>
             </div>
             <div className="p-6 grid grid-cols-2 gap-4">
-              {EMPRESAS.map((empresa, index) => (
+              {empresasDisponibles.map((empresa, index) => (
                 <motion.button
                   key={empresa.id}
                   initial={{ opacity: 0, y: 12 }}
@@ -73,6 +81,11 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
                   <span className="font-semibold text-gray-900">{empresa.nombre}</span>
                 </motion.button>
               ))}
+              {empresasDisponibles.length === 0 && (
+                <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+                  No tienes empresas asignadas para ingresar. Por favor contacta a gestión de usuarios.
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>

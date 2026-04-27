@@ -10,6 +10,7 @@ export interface HorasExtrasDiaActualAPI {
   hora_ini: string;
   hora_fin: string;
   descripcion: string;
+  autorizacion?: number | null;
 }
 
 export interface HorasExtrasDiaActual {
@@ -20,6 +21,7 @@ export interface HorasExtrasDiaActual {
   horaInicio: string;
   horaFin: string;
   descripcion: string;
+  estado: "Pendiente" | "Aprobado" | "Rechazado";
 }
 
 export const listaHorasExtrasService = {
@@ -41,6 +43,12 @@ export const listaHorasExtrasService = {
       horaInicio: item.hora_ini || "",
       horaFin: item.hora_fin || "",
       descripcion: item.descripcion || "",
+      estado:
+        item.autorizacion === 1
+          ? "Aprobado"
+          : item.autorizacion === 2
+            ? "Rechazado"
+            : "Pendiente",
     }));
   },
 };

@@ -6,6 +6,7 @@ import { DateRange } from 'react-day-picker';
 import { encuestaSatisfaccionService, EncuestaSatisfaccionResumen } from '@/modules/informes/postventa/services/encuesta-satisfaccion.service';
 import { SelectSede } from '@/shared/components/selects/select-sede';
 import { useToast } from '@/components/shared/ui/ToastContext';
+import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 
 type NivelSatisfaccion = 0 | 10 | 8 | 7 | 6;
 
@@ -216,7 +217,7 @@ export default function EncuestaSatisfaccionPage() {
                       Satisfacción con el concesionario
                     </p>
                     <p className="text-2xl font-bold tracking-tight">
-                      {row.promP1.toFixed(2)}
+                      {formatNumeroCo(row.promP1, 2, 2)}
                     </p>
                   </div>
                   <div className={`rounded-lg p-3 text-center ${colorP2}`}>
@@ -224,7 +225,7 @@ export default function EncuestaSatisfaccionPage() {
                       Satisfacción con el trabajo realizado
                     </p>
                     <p className="text-2xl font-bold tracking-tight">
-                      {row.promP2.toFixed(2)}
+                      {formatNumeroCo(row.promP2, 2, 2)}
                     </p>
                   </div>
                 </div>

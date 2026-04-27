@@ -2,13 +2,22 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { SmilePlus, ThumbsUp, FileBarChart2, MessageCircle, Users } from "lucide-react";
+import { useMemo } from "react";
+import { SmilePlus, FileBarChart2, MessageCircle, Users } from "lucide-react";
+import { useAuth } from "@/core/auth/hooks/useAuth";
 
+/**
+ * Permisos por `postv_trimenu` + `postv_trimenu_perfil` (id_trimenu).
+ * Catálogo: id_submenu 137 — Postventa.
+ */
 interface SubmoduloPostventa {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
+  trimenuId: number;
+  /** Otros id_trimenu equivalentes en BD (ej. KPI vs Indicadores KPI) */
+  trimenuIdsAlternativos?: number[];
   icono: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
 }
@@ -19,6 +28,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Llegada de Vehículos",
     descripcion: "Informe de entrada de vehículos al taller y cumplimiento de citas.",
     ruta: "/dashboard/informes/postventa/llegada-vehiculos",
+    trimenuId: 26,
     icono: FileBarChart2,
     color: "from-sky-600 to-sky-700",
   },
@@ -27,6 +37,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Ventas 1 a 1",
     descripcion: "Informe de ventas 1 a 1 por asesor, utilidad y porcentaje de conversión.",
     ruta: "/dashboard/informes/postventa/ventas-1a1",
+    trimenuId: 27,
     icono: FileBarChart2,
     color: "from-indigo-600 to-indigo-700",
   },
@@ -35,6 +46,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Tiempo Entrevista Consultiva",
     descripcion: "Informe de tiempos de entrevistas consultivas por bodega y cita.",
     ruta: "/dashboard/informes/postventa/tiempo-entrevista-consultiva",
+    trimenuId: 28,
     icono: FileBarChart2,
     color: "from-pink-500 to-pink-600",
   },
@@ -43,6 +55,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Inventario Obsoletos",
     descripcion: "Informe de inventario obsoleto con filtros por meses y costo.",
     ruta: "/dashboard/informes/postventa/inventario-obsoletos",
+    trimenuId: 41,
     icono: FileBarChart2,
     color: "from-slate-600 to-slate-700",
   },
@@ -51,6 +64,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Ticket Promedio Técnico",
     descripcion: "Ticket promedio por técnico según ventas y órdenes por patio.",
     ruta: "/dashboard/informes/postventa/ticket-promedio-tecnico",
+    trimenuId: 25,
     icono: FileBarChart2,
     color: "from-fuchsia-500 to-fuchsia-600",
   },
@@ -59,6 +73,8 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "KPI",
     descripcion: "Indicadores clave de mantenimiento preventivo, cargo a cliente y facturación por técnico.",
     ruta: "/dashboard/informes/postventa/kpi",
+    trimenuId: 24,
+    trimenuIdsAlternativos: [39],
     icono: FileBarChart2,
     color: "from-purple-500 to-purple-600",
   },
@@ -67,6 +83,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Segunda Entrega",
     descripcion: "Informe de segundas entregas y agendas asociadas.",
     ruta: "/dashboard/informes/postventa/segunda-entrega",
+    trimenuId: 15,
     icono: FileBarChart2,
     color: "from-indigo-500 to-indigo-600",
   },
@@ -75,6 +92,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Retención 72-0",
     descripcion: "Informe de retención 72-0 para Flota y Retail.",
     ruta: "/dashboard/informes/postventa/retencion-72-0",
+    trimenuId: 23,
     icono: FileBarChart2,
     color: "from-red-500 to-rose-600",
   },
@@ -83,6 +101,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "NPS Interno",
     descripcion: "Informe NPS interno por técnico, sedes y meses.",
     ruta: "/dashboard/informes/postventa/nps-interno",
+    trimenuId: 22,
     icono: FileBarChart2,
     color: "from-teal-500 to-teal-600",
   },
@@ -91,6 +110,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Productividad Técnicos",
     descripcion: "Horas trabajadas y productividad por técnico (mes actual y consolidado).",
     ruta: "/dashboard/informes/postventa/productividad-tecnicos",
+    trimenuId: 21,
     icono: FileBarChart2,
     color: "from-lime-500 to-lime-600",
   },
@@ -99,6 +119,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "NPS Técnicos",
     descripcion: "Detalle de NPS por técnico según sede y origen.",
     ruta: "/dashboard/informes/postventa/nps-tecnicos",
+    trimenuId: 20,
     icono: Users,
     color: "from-emerald-500 to-emerald-600",
   },
@@ -107,6 +128,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Mantenimiento Prepagado",
     descripcion: "Informe de planes de mantenimiento prepagado (MPC).",
     ruta: "/dashboard/informes/postventa/mpc",
+    trimenuId: 16,
     icono: FileBarChart2,
     color: "from-emerald-500 to-emerald-600",
   },
@@ -115,6 +137,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Encuesta de Satisfacción",
     descripcion: "Informe detallado de encuestas de satisfacción de clientes.",
     ruta: "/dashboard/informes/postventa/encuesta-satisfaccion",
+    trimenuId: 13,
     icono: SmilePlus,
     color: "from-amber-500 to-amber-600",
   },
@@ -123,6 +146,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "PQR / NPS",
     descripcion: "Gestión y seguimiento de PQR relacionadas con encuestas NPS.",
     ruta: "/dashboard/informes/postventa/pqr-nps",
+    trimenuId: 14,
     icono: MessageCircle,
     color: "from-rose-500 to-rose-600",
   },
@@ -131,6 +155,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Órdenes vs Encuestas (PAC NPS)",
     descripcion: "Resumen por bodega de órdenes finalizadas vs encuestas realizadas.",
     ruta: "/dashboard/informes/postventa/pac-nps-interno-detallado",
+    trimenuId: 17,
     icono: FileBarChart2,
     color: "from-orange-500 to-orange-600",
   },
@@ -139,6 +164,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Panel Gestión NPS",
     descripcion: "Panel de indicadores NPS general y por sede.",
     ruta: "/dashboard/informes/postventa/panel-nps",
+    trimenuId: 19,
     icono: FileBarChart2,
     color: "from-cyan-500 to-cyan-600",
   },
@@ -147,6 +173,7 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
     nombre: "Encuestas Internas",
     descripcion: "Resultados y análisis de encuestas internas de postventa.",
     ruta: "/dashboard/informes/postventa/encuestas-internas",
+    trimenuId: 53,
     icono: MessageCircle,
     color: "from-violet-500 to-violet-600",
   },
@@ -154,6 +181,22 @@ const SUBMODULOS_POSTVENTA: SubmoduloPostventa[] = [
 
 export default function PostventaInformesPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const submodulosFiltrados = useMemo(() => {
+    const hasTrimenus = Array.isArray(user?.trimenus_permitidos);
+    if (!hasTrimenus) {
+      return SUBMODULOS_POSTVENTA;
+    }
+
+    const trimenusPermitidos = new Set(user?.trimenus_permitidos || []);
+    return SUBMODULOS_POSTVENTA.filter((submodulo) => {
+      if (trimenusPermitidos.has(submodulo.trimenuId)) return true;
+      return submodulo.trimenuIdsAlternativos?.some((id) =>
+        trimenusPermitidos.has(id),
+      );
+    });
+  }, [user?.trimenus_permitidos]);
 
   return (
     <div className="space-y-6">
@@ -167,7 +210,7 @@ export default function PostventaInformesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {SUBMODULOS_POSTVENTA.map((submodulo, index) => (
+        {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
             initial={{ opacity: 0, y: 20 }}
@@ -199,4 +242,3 @@ export default function PostventaInformesPage() {
     </div>
   );
 }
-
