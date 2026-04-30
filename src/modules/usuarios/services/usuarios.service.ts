@@ -13,10 +13,14 @@ import {
 } from "../types";
 import { fetchWithAuth } from "@/utils/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export const usuariosService = {
-    async getUsuarios(page: number = 1, limit: number = 10, search: string = ''): Promise<IUsuariosPaginatedResponseAPI & { items: IUsuario[] }> {
+    async getUsuarios(
+        page: number = 1,
+        limit: number = 10,
+        search: string = '',
+    ): Promise<Omit<IUsuariosPaginatedResponseAPI, 'items'> & { items: IUsuario[] }> {
         const params = new URLSearchParams({ page: String(page), limit: String(limit) });
         if (search.trim()) {
             params.set('search', search.trim());
@@ -35,6 +39,7 @@ export const usuariosService = {
                 rawEstado === 'ACTIVO' ||
                 rawEstado === '1' ||
                 rawEstado === 1 as any;
+            const estado: IUsuario['estado'] = isActivo ? 'Activo' : 'Inactivo';
 
             return {
                 id: parseInt(usuario.id, 10),
@@ -44,7 +49,7 @@ export const usuariosService = {
                 totalMarca: usuario.empresasNombresArray?.length || 0,
                 marcas: usuario.empresasNombresArray || [],
                 sede: usuario.sede || '',
-                estado: isActivo ? 'Activo' : 'Inactivo',
+                estado,
                 perfil: usuario.perfil,
                 nit: usuario.nit,
                 empresas: usuario.empresasArray || [],

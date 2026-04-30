@@ -1,6 +1,6 @@
 // Utilidades para hacer peticiones API con cookies HttpOnly
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 // Variable para evitar múltiples refreshes simultáneos
 let isRefreshing = false;

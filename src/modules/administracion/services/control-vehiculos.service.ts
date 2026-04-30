@@ -1,7 +1,7 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getUser } from "@/utils/cookies";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 // ========== Tipos de respuesta de la API ==========
 
