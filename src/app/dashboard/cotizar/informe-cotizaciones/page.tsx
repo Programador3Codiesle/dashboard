@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
+import { getApiBaseUrl } from "@/config/public-env";
 
 function getDefaultDates() {
   const today = new Date();
@@ -91,7 +92,7 @@ export default function InformeCotizacionesPage() {
   });
 
   const handleVerPdf = (c: { id_cotizacion: number; placa: string; origen: TipoCotizacion }) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+    const baseUrl = getApiBaseUrl();
     let url = `${baseUrl}/cotizador/informe-cotizaciones/pdf?origen=${c.origen}&idCotizacion=${c.id_cotizacion}&placa=${encodeURIComponent(
       c.placa,
     )}`;

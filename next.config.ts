@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
+  basePath: isProd ? "/postventa2" : "",
+  assetPrefix: isProd ? "/postventa2" : "",
+
   compress: true,
-  // Headers de seguridad y caché estática para assets
+
   async headers() {
     return [
       {
@@ -14,14 +19,9 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
-      {
-        source: "/:all*(svg|jpg|jpeg|png|gif|ico|webp|avif)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
     ];
   },
+
   experimental: {
     optimizePackageImports: ["framer-motion"],
   },

@@ -1,7 +1,8 @@
 import axios from "axios";
+import { getApiBaseUrl } from "@/config/public-env";
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "/api",
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
 });
 

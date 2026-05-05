@@ -10,6 +10,7 @@ import {
   HistorialMtto,
 } from "@/modules/informes/gestion-humana/services/informe-mtto-preventivo-vh.service";
 import Modal from "@/components/shared/ui/Modal";
+import { getApiPublicUrl } from "@/config/public-env";
 
 const RUTINA_PDF_BY_PLACA: Record<string, string> = {
   WOM803: "RUTINA-N400.pdf",
@@ -71,7 +72,7 @@ export default function MttoPreventivoVehiculosPropiosPage() {
     }
   };
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_PUBLIC_URL || ""; // para rutas de PDF si se necesita
+  const baseUrl = getApiPublicUrl();
 
   const getRutinaUrl = (placa: string, rutina: string | null) => {
     const rutinaByPlaca = RUTINA_PDF_BY_PLACA[String(placa).toUpperCase()];

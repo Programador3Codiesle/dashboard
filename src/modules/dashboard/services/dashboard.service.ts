@@ -1,7 +1,8 @@
 import { fetchWithAuth } from "@/utils/api";
 import type { DashboardData } from "../types";
+import { getApiBaseUrl } from "@/config/public-env";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = getApiBaseUrl();
 
 export const dashboardService = {
   async getDashboard(params?: {
