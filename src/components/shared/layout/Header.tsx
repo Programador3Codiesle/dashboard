@@ -94,7 +94,7 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 100 }}
     >
-      <div className="px-4 sm:px-6 py-3 sm:py-4 max-w-8xl mx-auto flex items-center justify-between gap-3">
+      <div className="w-full max-w-[1760px] mx-auto px-3 sm:px-4 md:px-6 xl:px-8 2xl:px-10 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -107,10 +107,10 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
 
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent truncate">
+              <h1 className="text-base sm:text-lg md:text-xl xl:text-2xl 2xl:text-3xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent truncate">
                 {currentTitle}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">Bienvenido de vuelta</p>
+              <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 truncate">Bienvenido de vuelta</p>
             </div>
             {empresa && (
               <span
@@ -140,7 +140,7 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
           )}
 
           {(formattedFullName || rolEtiqueta) && (
-            <div className="flex md:hidden flex-col items-end text-right max-w-40 sm:max-w-56">
+            <div className="flex md:hidden flex-col items-end text-right max-w-32 sm:max-w-56">
               {formattedShortName && (
                 <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
                   {formattedShortName}

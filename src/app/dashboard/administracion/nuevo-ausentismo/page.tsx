@@ -125,7 +125,7 @@ export default function NuevoAusentismoPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Nuevo Ausentismo</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Nuevo Ausentismo</h1>
         <p className="text-gray-500 mt-1">Registra nuevos ausentismos seleccionando una fecha del calendario</p>
       </div>
 
@@ -133,7 +133,7 @@ export default function NuevoAusentismoPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="flex items-center justify-between mb-6">
           <button

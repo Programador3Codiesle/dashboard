@@ -83,7 +83,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const needsEmpresa = isAuthenticated && user && user.empresa == null;
 
   return (
-    <div className="flex min-h-screen brand-dashboard-bg">
+    <div className="flex min-h-screen w-full overflow-x-hidden brand-dashboard-bg">
       <Sidebar 
         currentPath={pathname} 
         onNavigate={router.push} 
@@ -97,7 +97,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         updateUser={updateUser}
       />
       
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? '' : desktopMargin}`}>
+      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${isMobile ? '' : desktopMargin}`}>
         <Header 
           currentPath={pathname} 
           onToggleSidebar={() => setShowSidebar(!showSidebar)} 
@@ -107,8 +107,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           empresaId={user?.empresa}
         />
         
-        <main className="flex-1 p-6 border-l-2 border-[var(--color-primary)]/20 min-h-0">
-          {children}
+        <main className="flex-1 min-w-0 min-h-0 border-l-2 border-[var(--color-primary)]/20">
+          <div className="app-page-container py-3 sm:py-4 md:py-6 xl:py-8">
+            {children}
+          </div>
         </main>
       </div>
 

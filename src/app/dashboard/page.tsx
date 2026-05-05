@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="p-6 text-gray-500">
+      <div className="p-2 sm:p-3 md:p-4 text-gray-500">
         Inicia sesión para ver el dashboard.
       </div>
     );
@@ -75,7 +75,7 @@ export default function DashboardPage() {
 
   if (!allowed) {
     return (
-      <div className="p-6">
+      <div className="p-2 sm:p-3 md:p-4">
         <DashboardEmpty />
       </div>
     );
@@ -86,7 +86,7 @@ export default function DashboardPage() {
     withFilter = false,
     showLoading = false
   ) => (
-    <div className="p-6 space-y-4 relative">
+    <div className="space-y-3 sm:space-y-4 relative">
       {withFilter && (
         <div className="flex flex-wrap items-center gap-3 justify-between">
           <h1 className="text-lg font-semibold text-gray-900">

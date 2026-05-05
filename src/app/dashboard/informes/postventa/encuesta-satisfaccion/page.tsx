@@ -91,7 +91,7 @@ export default function EncuestaSatisfaccionPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="flex flex-col">
             <label className={labelClass}>Fecha inicial</label>

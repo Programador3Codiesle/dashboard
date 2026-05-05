@@ -31,12 +31,12 @@ export const SelectFilter = React.memo(({
   }, [onChange]);
 
   return (
-    <div className={className}>
+    <div className={`w-full min-w-0 ${className}`}>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <div className="relative mt-1">
         <select
           ref={selectRef}
-          className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10"
+          className="block w-full min-h-10 sm:min-h-11 border border-gray-300 rounded-xl px-3 py-2 sm:py-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm sm:text-base bg-white appearance-none pr-10"
           value={value}
           onChange={handleChange}
         >

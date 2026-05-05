@@ -27,8 +27,8 @@ const UsuariosPage: React.FC = () => {
     }, [crearUsuario]);
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Usuarios</h2>
+        <div className="app-section-card w-full min-w-0 max-w-none">
+            <h2 className="app-title-xl text-gray-800 mb-4 sm:mb-6">Usuarios</h2>
             <UsuariosToolbar
                 perfiles={perfiles}
                 onAgregarUsuario={handleAgregarUsuario}

@@ -129,7 +129,7 @@ export default function InformeTiempoAusentismosPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Tiempo de Ausentismos</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Informe Tiempo de Ausentismos</h1>
           <p className="text-gray-500 mt-1">
             Consulta los ausentismos por empleado y mes, similar al informe legacy.
           </p>
@@ -181,7 +181,7 @@ export default function InformeTiempoAusentismosPage() {
           )}
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>

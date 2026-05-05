@@ -322,7 +322,7 @@ export default function PqrNpsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 flex flex-col md:flex-row md:items-end gap-4 md:justify-between w-full max-w-5xl">
+      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 flex flex-col md:flex-row md:items-end gap-4 md:justify-between w-full max-w-5xl">
         <div>
           <p className="text-xs font-medium text-gray-500 mb-1">Estado del caso</p>
           <select
@@ -635,7 +635,7 @@ function GestionModal({
   if (modo === 'loading') {
     return (
       <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl w-full max-w-xl p-6 text-center text-sm text-gray-600">
+        <div className="bg-white rounded-xl w-full max-w-xl p-3 sm:p-4 md:p-6 text-center text-sm text-gray-600">
           Cargando datos del caso…
         </div>
       </div>

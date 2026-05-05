@@ -141,7 +141,7 @@ export default function NpsInternoPage() {
     <div className="space-y-6 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             NPS interno
           </h1>
           <p className="text-gray-500 mt-1">
@@ -150,7 +150,7 @@ export default function NpsInternoPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <h2 className="text-sm font-semibold text-gray-800">
           Detalle de encuestas
         </h2>

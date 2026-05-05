@@ -329,9 +329,9 @@ export default function Retencion720Page() {
         labelComparacion={comparacionQuery.data?.etiquetaComparacion ?? 'Comparación'}
       />
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6">
         <h2 className="text-sm font-semibold text-gray-800 mb-3">Resumen por tipo de vehículo(Total ventas)</h2>
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="min-w-full text-xs border-collapse">
             <thead>
               <tr className="bg-(--color-primary) text-white text-center">
@@ -432,7 +432,7 @@ export default function Retencion720Page() {
       </Modal>
 
       <Modal open={modalObjetivos} onClose={() => setModalObjetivos(false)} title="Verificar objetivos" width="760px">
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="min-w-full text-xs">
             <thead>
               <tr className="text-left border-b">

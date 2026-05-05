@@ -91,7 +91,7 @@ export default function AdicionalesPesadosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Adicionales Pesados
         </h1>
         <p className="text-gray-500 mt-1">

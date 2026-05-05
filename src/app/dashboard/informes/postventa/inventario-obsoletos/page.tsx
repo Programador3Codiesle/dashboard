@@ -143,7 +143,7 @@ export default function InventarioObsoletosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Informe Inventario Obsoletos
         </h1>
         <p className="text-gray-500 mt-1">
@@ -153,7 +153,7 @@ export default function InventarioObsoletosPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="min-w-full text-xs md:text-sm border border-gray-100 rounded-lg">
             <thead className="bg-gray-50">
               <tr>

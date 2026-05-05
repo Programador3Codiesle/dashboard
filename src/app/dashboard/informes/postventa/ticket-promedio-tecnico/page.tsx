@@ -73,7 +73,7 @@ export default function TicketPromedioTecnicoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Ticket Promedio Técnico
         </h1>
         <p className="text-gray-500 mt-1">
@@ -82,7 +82,7 @@ export default function TicketPromedioTecnicoPage() {
         </p>
       </div>
 
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col min-w-0 gap-1">
             <label className="text-xs font-medium text-gray-600">

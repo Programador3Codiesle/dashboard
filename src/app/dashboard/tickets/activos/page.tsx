@@ -8,7 +8,7 @@ export default function ActivosPage() {
     const { user } = useAuth();
     const { tickets, loading } = useTickets("activos");
 
-    if (user?.perfil_postventa !== "1" && user?.perfil_postventa !== "20") return <div className="p-6">No autorizado</div>;
+    if (user?.perfil_postventa !== "1" && user?.perfil_postventa !== "20") return <div className="p-3 sm:p-4 md:p-6">No autorizado</div>;
 
     return (
         <div>

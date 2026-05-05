@@ -174,7 +174,7 @@ export default function FormatoOrdenSalidaPage() {
     <div className="space-y-6">
       <div className="flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             Formato Orden de Salida
           </h1>
           <p className="text-gray-500 mt-1">
@@ -193,7 +193,7 @@ export default function FormatoOrdenSalidaPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         onSubmit={handleSubmit}
-        className="bg-white rounded-3xl shadow-lg border border-gray-100/80 p-6 md:p-8 space-y-8"
+        className="bg-white rounded-3xl shadow-lg border border-gray-100/80 p-3 sm:p-4 md:p-6 md:p-8 space-y-8"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>

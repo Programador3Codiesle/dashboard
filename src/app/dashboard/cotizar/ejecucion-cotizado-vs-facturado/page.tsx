@@ -81,7 +81,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Ejecución Cotizado vs Facturado
         </h1>
         <p className="text-gray-500 mt-1">
@@ -223,7 +223,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-3"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-3"
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
             {errorCotToFact}
           </div>
         )}
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
@@ -295,7 +295,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-3"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-3"
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -311,7 +311,7 @@ export default function EjecucionCotizadoVsFacturadoPage() {
             {errorFactToCot}
           </div>
         )}
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">

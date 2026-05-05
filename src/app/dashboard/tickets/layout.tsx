@@ -21,10 +21,10 @@ export default function TicketsLayout({ children }: { children: React.ReactNode 
     ];
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold brand-text tracking-tight">Tickets de Soporte</h1>
+                    <h1 className="app-title-xl brand-text">Tickets de Soporte</h1>
                     <p className="text-gray-500 mt-1">Gestiona y da seguimiento a tus solicitudes de soporte.</p>
                 </div>
                 <button
@@ -36,8 +36,8 @@ export default function TicketsLayout({ children }: { children: React.ReactNode 
                 </button>
             </div>
 
-            <div className="border-b border-gray-200">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <div className="border-b border-gray-200 overflow-x-auto">
+                <nav className="-mb-px flex min-w-max space-x-6 sm:space-x-8" aria-label="Tabs">
                     {tabs.filter(t => t.show).map((tab) => {
                         const isActive = pathname.startsWith(tab.href);
                         return (

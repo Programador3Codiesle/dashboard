@@ -135,7 +135,7 @@ export default function ComisionesTecnicosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Comisiones técnicos
         </h1>
         <p className="text-gray-500 mt-1">
@@ -143,7 +143,7 @@ export default function ComisionesTecnicosPage() {
         </p>
       </div>
 
-      <div className="w-full bg-white rounded-2xl border border-gray-100 p-6 shadow-lg space-y-4">
+      <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Mes</label>
@@ -280,7 +280,7 @@ export default function ComisionesTecnicosPage() {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-4 md:p-6">
               {detalleMutation.isPending && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">

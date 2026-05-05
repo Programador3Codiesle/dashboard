@@ -220,7 +220,7 @@ export default function LlegadasTardePage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             Informe Llegadas Tarde
           </h1>
           <p className="text-gray-500 mt-1">
@@ -229,7 +229,7 @@ export default function LlegadasTardePage() {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">Sede</label>
@@ -347,7 +347,7 @@ export default function LlegadasTardePage() {
             )}
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="min-w-full text-xs" id="tableInfLlegadasTarde">
             <thead className="bg-(--color-primary) text-white">
               <tr>

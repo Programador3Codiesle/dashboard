@@ -68,7 +68,7 @@ CompetenciaRow.displayName = "CompetenciaRow";
 // Secciones estáticas memoizadas
 const HeaderSeccion = React.memo(({ evaluacionExistente }: { evaluacionExistente: any }) => (
   <div>
-    <h1 className="text-3xl font-bold brand-text tracking-tight">Formato Desempeño Empleado</h1>
+    <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Formato Desempeño Empleado</h1>
     <p className="text-gray-500 mt-1">Autoevaluación de desempeño por empleado</p>
     {evaluacionExistente && (
       <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
@@ -119,7 +119,7 @@ const InfoGeneral = React.memo(({ formData, onFieldChange, sedes }: { formData: 
 InfoGeneral.displayName = "InfoGeneral";
 
 const EscalaEvaluacion = React.memo(() => (
-  <div className="bg-blue-50/50 border-2 border-blue-200 rounded-2xl p-6 shadow-sm">
+  <div className="bg-blue-50/50 border-2 border-blue-200 rounded-2xl p-3 sm:p-4 md:p-6 shadow-sm">
     <h3 className="font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
       Escala de Evaluación
@@ -351,11 +351,11 @@ export default function FormatoDesempenoEmpleadoPage() {
               </table>
             </div>
 
-            <div className="mt-6 p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-200 shadow-md">
+            <div className="mt-6 p-3 sm:p-4 md:p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-200 shadow-md">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-gray-900 text-lg">Promedio Auto Evaluación:</span>
                 <div className="flex items-center gap-3">
-                  <span className={`text-3xl font-extrabold ${getNivelDesempeño(promedios).color}`}>
+                  <span className={`text-2xl sm:text-3xl font-extrabold ${getNivelDesempeño(promedios).color}`}>
                     {promedios.toFixed(2)}
                   </span>
                 </div>

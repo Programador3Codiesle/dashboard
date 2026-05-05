@@ -211,17 +211,17 @@ export default function AdministracionPage() {
   }, [user?.submenus_permitidos]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">Administración</h1>
+          <h1 className="app-title-xl brand-text">Administración</h1>
           <p className="text-gray-500 mt-1">Gestiona todos los módulos administrativos de la empresa</p>
         </div>
       </div>
 
       {/* Grid de Submódulos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
         {submodulosFiltrados.map((submodulo, index) => (
           <motion.div
             key={submodulo.id}
@@ -229,7 +229,7 @@ export default function AdministracionPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => router.push(submodulo.ruta)}
-            className="bg-white brand-card-elevated rounded-2xl p-6 border brand-border-active cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group hover-lift"
+            className="bg-white brand-card-elevated rounded-2xl p-3 sm:p-4 md:p-6 border brand-border-active cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group hover-lift"
           >
             <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${submodulo.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
               <submodulo.icono size={28} className="text-white" />

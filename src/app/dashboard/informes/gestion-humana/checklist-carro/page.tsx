@@ -141,7 +141,7 @@ export default function ChecklistCarroPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             Informe Check List Carros
           </h1>
           <p className="text-gray-500 mt-1">
@@ -151,7 +151,7 @@ export default function ChecklistCarroPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">
@@ -231,7 +231,7 @@ export default function ChecklistCarroPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
         <table className="table-fixed w-full min-w-[6080px] text-xs">
           <thead className="brand-bg border-b border-(--color-primary-dark)">
             <tr>

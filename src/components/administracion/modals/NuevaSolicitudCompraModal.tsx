@@ -85,13 +85,13 @@ const NuevaSolicitudCompraModalComponent = ({
   );
 
   const inputClass =
-    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white appearance-none pr-10";
+    "block w-full min-h-10 sm:min-h-11 border border-gray-300 rounded-xl px-3 py-2 sm:py-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm sm:text-base bg-white appearance-none pr-10";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const textareaClass =
-    "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white";
+    "block w-full border border-gray-300 rounded-xl px-3 py-2 sm:py-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm sm:text-base bg-white";
 
   return (
-    <Modal open={open} onClose={onClose} title="Nueva Solicitud de Compra" width="700px">
+    <Modal open={open} onClose={onClose} title="Nueva Solicitud de Compra" width="700px" maxWidthClassName="max-w-[95vw] sm:max-w-[90vw] md:max-w-[860px]">
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 p-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -180,7 +180,7 @@ const NuevaSolicitudCompraModalComponent = ({
           <label className={labelClass}>
             Nivel de urgencia de la compra <span className="text-red-500">*</span>
           </label>
-          <div className="flex gap-6 mt-2">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-2">
             {([1, 2, 3] as const).map((nivel) => (
               <label key={nivel} className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -235,7 +235,7 @@ const NuevaSolicitudCompraModalComponent = ({
           <input type="date" name="fechaTentativa" className={inputClass.replace("appearance-none pr-10", "")} required />
         </div>
 
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={onClose}

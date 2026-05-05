@@ -33,7 +33,7 @@ export default function ListaHorasExtrasPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Lista Horas Extras</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Lista Horas Extras</h1>
         <p className="text-gray-500 mt-1">Horas extras del día actual</p>
       </div>
 

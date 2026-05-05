@@ -53,7 +53,7 @@ function SidebarComponent({
     // Mobile
     open: {
       x: 0,
-      width: '20rem',
+      width: '18rem',
       transition: {
         type: "spring" as "spring",
         damping: 25
@@ -69,7 +69,7 @@ function SidebarComponent({
     // Desktop (modificado para ser dinámico)
     expanded: {
       x: 0,
-      width: '20rem', // w-80 (320px)
+      width: '18rem',
       transition: {
         type: "spring" as "spring",
         damping: 25,
@@ -78,7 +78,7 @@ function SidebarComponent({
     },
     collapsed: {
       x: 0,
-      width: '5rem', // w-20 (80px)
+      width: '5rem',
       transition: {
         type: "spring" as "spring",
         damping: 25,
@@ -147,7 +147,7 @@ function SidebarComponent({
 
       <motion.aside
         // Ancho y clases base: La clase w-80 ya no es fija, se define por `motion.aside`
-        className="fixed inset-y-0 left-0 bg-linear-to-br from-gray-900 to-black border-r border-gray-800 text-white flex flex-col z-50 shadow-2xl overflow-hidden"
+        className="fixed inset-y-0 left-0 bg-linear-to-br from-gray-900 to-black border-r border-gray-800 text-white flex flex-col z-50 shadow-2xl overflow-hidden 2xl:w-88"
         variants={sidebarVariants}
         initial={isMobile ? "closed" : desktopAnimationState} // Inicializa con el estado correcto
         animate={isMobile ? (isVisible ? "open" : "closed") : desktopAnimationState} // Anima según mobile o desktop
@@ -213,7 +213,7 @@ function SidebarComponent({
         </div>
 
         {/* Navegación */}
-        <nav className="p-2 flex-1 overflow-y-auto">
+        <nav className="p-2 flex-1 overflow-y-auto overflow-x-hidden sidebar-scroll">
           {/* Ocultar texto de 'Navegación Principal' si está colapsado */}
           <p className={`text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-4 transition-all duration-300 ${isCollapsed ? 'opacity-0 h-0 p-0' : 'opacity-100 h-auto p-4'}`}>
             Navegación Principal
@@ -238,7 +238,7 @@ function SidebarComponent({
                   ${isCollapsed ? 'justify-center' : 'justify-between px-4'}
                 `}
               >
-                <div className="flex items-center">
+                <div className="flex items-center min-w-0">
                   {/* Icono (siempre visible) */}
                   <div className={`
                     p-2 rounded-lg mr-0 transition-colors shrink-0
@@ -251,7 +251,7 @@ function SidebarComponent({
                     <route.icon size={18} />
                   </div>
                   {/* Nombre de la ruta (ocultar si colapsado) */}
-                  <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+                  <span className={`font-medium whitespace-nowrap truncate overflow-hidden transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
                     {route.name}
                   </span>
                 </div>
@@ -281,7 +281,7 @@ function SidebarComponent({
         {/* Footer del Sidebar */}
         <div className={`p-6 border-t border-gray-800 bg-gray-900/30 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'}`}>
           {/* Info de usuario: se vuelve solo un avatar al colapsar */}
-          <div className={`flex items-center space-x-3 mb-4 p-3 rounded-xl transition-all duration-300 ${isCollapsed ? 'justify-center bg-transparent' : 'bg-gray-800/50'}`}>
+          <div className={`flex items-center space-x-3 mb-4 p-3 rounded-xl transition-all duration-300 ${isCollapsed ? 'justify-end pl-12 bg-transparent' : 'bg-gray-800/50'}`}>
             <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-sm">
                 {user?.nombre_usuario?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || 'U'}

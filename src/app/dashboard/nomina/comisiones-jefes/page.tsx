@@ -225,11 +225,11 @@ export default function ComisionesJefesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Comisiones jefes</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Comisiones jefes</h1>
         <p className="text-gray-500 mt-1">Migración completa del flujo legacy a Next.js + NestJS.</p>
       </div>
 
-      <div className="w-full bg-white rounded-2xl border border-gray-100 p-6 shadow-lg space-y-4">
+      <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Mes</label>
@@ -336,7 +336,7 @@ export default function ComisionesJefesPage() {
                 </button>
               </div>
             </div>
-            <div className="p-6 overflow-x-auto">
+            <div className="p-3 sm:p-4 md:p-6 overflow-x-auto">
               {detalleRows.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center">
                   <p className="text-sm font-medium text-gray-700">Sin detalle disponible</p>
@@ -394,7 +394,7 @@ export default function ComisionesJefesPage() {
                 <X size={18} />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-3 sm:p-4 md:p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-medium text-gray-600">Sede</label>

@@ -57,8 +57,8 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, l
     return (
         <>
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
+                <div className="app-table-scroll border-0 rounded-none">
+                    <table className="min-w-[980px] w-full">
                         <thead>
                             <tr className="brand-bg-gradient border-b-2 border-(--color-primary-dark) text-center">
                                 <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">Ticket</th>
@@ -170,7 +170,7 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({ tickets, l
                 
                 {/* Paginación */}
                 {totalPages > 1 && (
-                    <div className="mt-6 px-6 pb-6 bg-gray-50/50 border-t border-gray-200 pt-6">
+                    <div className="mt-4 sm:mt-6 px-3 sm:px-6 pb-3 sm:pb-6 bg-gray-50/50 border-t border-gray-200 pt-4 sm:pt-6">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}

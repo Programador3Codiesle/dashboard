@@ -234,7 +234,7 @@ export default function KpiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Informe KPI
         </h1>
         <p className="text-gray-500 mt-1">

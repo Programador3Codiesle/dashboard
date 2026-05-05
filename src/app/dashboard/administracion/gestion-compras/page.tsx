@@ -156,7 +156,7 @@ export default function GestionComprasPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">Gestión de Compras</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Gestión de Compras</h1>
           <p className="text-gray-500 mt-1">Gestiona las solicitudes de compra multiempresa</p>
         </div>
         <div className="flex gap-3">
@@ -199,7 +199,7 @@ export default function GestionComprasPage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full">
             <thead className="brand-bg border-b border-[var(--color-primary-dark)] text-sm">
               <tr>

@@ -104,7 +104,7 @@ const HeaderSection = memo(function HeaderSection({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Tiempo Suplementario</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Informe Tiempo Suplementario</h1>
         <p className="text-gray-500 mt-1">Informe de tiempo suplementario multiempresa</p>
       </div>
     </div>
@@ -148,7 +148,7 @@ const FiltersSection = memo(function FiltersSection({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
+      className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>

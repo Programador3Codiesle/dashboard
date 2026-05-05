@@ -180,7 +180,7 @@ export default function ProductividadTecnicosPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 space-y-4"
+        className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 space-y-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">
@@ -273,7 +273,7 @@ export default function ProductividadTecnicosPage() {
       </form>
 
       <div className="flex flex-col gap-6 w-full max-w-full">
-        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 w-full">
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 w-full">
           <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Mes actual
           </h2>
@@ -317,7 +317,7 @@ export default function ProductividadTecnicosPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 w-full">
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 w-full">
           <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Consolidado
           </h2>

@@ -8,13 +8,21 @@ interface ModalProps {
     title?: string;
     children: React.ReactNode;
     width?: string;
+    maxWidthClassName?: string;
 }
 
 /**
  * Componente Modal memoizado
  * Evita re-renders innecesarios cuando no está abierto
  */
-export default React.memo(function Modal({ open, onClose, title, children, width = "450px" }: ModalProps) {
+export default React.memo(function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  width = "450px",
+  maxWidthClassName = "max-w-[95vw] sm:max-w-[88vw] md:max-w-[760px] 2xl:max-w-[980px]"
+}: ModalProps) {
     const handleBackdropClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
@@ -30,28 +38,15 @@ export default React.memo(function Modal({ open, onClose, title, children, width
     return (
         <Portal>
             <div
-                style={{
-                    position: "fixed",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.4)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 9998
-                }}
+                className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-4"
                 onClick={onClose}
             >
                 <div
-                    style={{
-                        background: "#fff",
-                        borderRadius: "10px",
-                        padding: "20px",
-                        width,
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.15)"
-                    }}
+                    className={`w-full ${maxWidthClassName} bg-white rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[88vh] overflow-y-auto`}
+                    style={{ width }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {title && <h3 style={{ marginBottom: "15px" }}>{title}</h3>}
+                    {title && <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{title}</h3>}
                     {children}
                 </div>
             </div>

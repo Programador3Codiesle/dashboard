@@ -69,7 +69,7 @@ export default function RepuestosNoDisponiblesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Repuestos no disponibles
         </h1>
         <p className="text-gray-500 mt-1">
@@ -179,7 +179,7 @@ export default function RepuestosNoDisponiblesPage() {
             <span className="text-sm text-gray-500">Cargando...</span>
           )}
         </div>
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 text-gray-600 uppercase tracking-wider">
               <tr>

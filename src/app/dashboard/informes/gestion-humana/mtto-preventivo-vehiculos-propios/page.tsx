@@ -85,7 +85,7 @@ export default function MttoPreventivoVehiculosPropiosPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             Mtto Preventivo Vehículos Propios
           </h1>
           <p className="text-gray-500 mt-1">
@@ -110,7 +110,7 @@ export default function MttoPreventivoVehiculosPropiosPage() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>

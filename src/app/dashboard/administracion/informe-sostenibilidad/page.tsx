@@ -13,7 +13,7 @@ export default function InformeSostenibilidadPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Informe de Sostenibilidad 2024</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Informe de Sostenibilidad 2024</h1>
         <p className="text-gray-500 mt-1">Visualización del informe anual de sostenibilidad</p>
       </div>
 
@@ -21,7 +21,7 @@ export default function InformeSostenibilidadPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">

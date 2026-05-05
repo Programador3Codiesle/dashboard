@@ -51,6 +51,7 @@ html:not([data-empresa]) {
 /* ===== ESTILOS BASE ===== */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 /* APLICAR JAKARTA SANS A TODO EL BODY */
@@ -58,6 +59,7 @@ body {
   font-family: var(--font-jakarta);
   /* ← Cambiado de Inter a Jakarta */
   font-feature-settings: 'rlig' 1, 'calt' 1;
+  overflow-x: hidden;
 }
 
 * {
@@ -74,6 +76,47 @@ body {
 
 /* ===== COMPONENTES PERSONALIZADOS ===== */
 @layer components {
+  .app-page-container {
+    @apply w-full max-w-[1760px] mx-auto px-3 sm:px-4 md:px-6 xl:px-8 2xl:px-10;
+  }
+
+  .app-section-card {
+    @apply bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-200/70 p-3 sm:p-4 md:p-5 xl:p-6;
+  }
+
+  .app-title-xl {
+    @apply text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight;
+  }
+
+  .app-table-scroll {
+    @apply w-full overflow-auto max-h-[72vh] rounded-xl border border-gray-200;
+  }
+
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 #111827;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: #111827;
+    border-radius: 9999px;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 9999px;
+    border: 1px solid #111827;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+
   .glass-effect {
     @apply bg-white/10 backdrop-blur-md border border-white/20;
   }

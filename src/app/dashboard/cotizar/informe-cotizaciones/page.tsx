@@ -128,7 +128,7 @@ export default function InformeCotizacionesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
             Informe de cotizaciones
           </h1>
           <p className="text-gray-500 mt-1">
@@ -226,7 +226,7 @@ export default function InformeCotizacionesPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -243,7 +243,7 @@ export default function InformeCotizacionesPage() {
           </div>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">

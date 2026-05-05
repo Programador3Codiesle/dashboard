@@ -244,7 +244,7 @@ export default function PacNpsInternoDetalladoPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-6 space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1">Año y mes</p>
@@ -323,7 +323,7 @@ export default function PacNpsInternoDetalladoPage() {
       )}
 
       {consultaFecha && bodegaSel && (
-        <div className="bg-white rounded-xl border brand-border shadow-sm p-4 md:p-6 space-y-3">
+        <div className="bg-white rounded-xl border brand-border shadow-sm p-4 md:p-3 sm:p-4 md:p-6 space-y-3">
           <h2 className="text-lg font-semibold text-gray-900">
             Técnicos — {bodegaSel.descripcion}
           </h2>
@@ -362,7 +362,7 @@ export default function PacNpsInternoDetalladoPage() {
               </table>
             )}
             {!cargandoTecnicos && (tecnicos?.length ?? 0) === 0 && (
-              <p className="p-6 text-center text-gray-500 text-sm">No hay técnicos para esta bodega.</p>
+              <p className="p-3 sm:p-4 md:p-6 text-center text-gray-500 text-sm">No hay técnicos para esta bodega.</p>
             )}
           </div>
         </div>
@@ -403,7 +403,7 @@ export default function PacNpsInternoDetalladoPage() {
                 </button>
               </div>
             </div>
-            <div className="overflow-y-auto p-4 md:p-6">
+            <div className="overflow-y-auto p-4 md:p-3 sm:p-4 md:p-6">
               {cargandoEncuestas ? (
                 <div className="flex items-center justify-center py-16 text-gray-500 gap-2">
                   <Loader2 className="animate-spin" size={22} />

@@ -134,7 +134,7 @@ export default function CotizarPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">Cotizar</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Cotizar</h1>
           <p className="text-gray-500 mt-1">
             Gestiona todas las funcionalidades del cotizador (livianos, pesados, informes y configuración).
           </p>
@@ -150,7 +150,7 @@ export default function CotizarPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => router.push(submodulo.ruta)}
-            className="bg-white brand-card-elevated rounded-2xl p-6 border brand-border-active cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group hover-lift"
+            className="bg-white brand-card-elevated rounded-2xl p-3 sm:p-4 md:p-6 border brand-border-active cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group hover-lift"
           >
             <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${submodulo.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
               <submodulo.icono size={28} className="text-white" />

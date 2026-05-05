@@ -348,7 +348,7 @@ export default function AdicionalesLivianosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Adicionales Livianos
         </h1>
         <p className="text-gray-500 mt-1">

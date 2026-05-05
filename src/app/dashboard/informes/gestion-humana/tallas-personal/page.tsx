@@ -80,7 +80,7 @@ export default function TallasPersonalPage() {
       </div>
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="min-w-full text-xs" id="tabladatos">
             <thead className="bg-(--color-primary) text-white">
               <tr>

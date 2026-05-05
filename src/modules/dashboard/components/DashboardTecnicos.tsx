@@ -240,7 +240,7 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
       {data.ranking_presupuesto && data.ranking_presupuesto.length > 0 && (
         <div className="bg-white rounded-xl overflow-hidden shadow border border-gray-100">
           <h3 className="text-lg font-semibold p-4 border-b">Ranking mensual</h3>
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

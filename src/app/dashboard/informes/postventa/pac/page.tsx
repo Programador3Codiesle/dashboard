@@ -61,7 +61,7 @@ export default function PacPage() {
             NPS General
           </p>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-3xl font-bold text-gray-900">
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900">
               {formatNumeroCo(resumen.calificacionPac, 2, 2)}%
             </span>
             <span className="text-xs text-gray-500">

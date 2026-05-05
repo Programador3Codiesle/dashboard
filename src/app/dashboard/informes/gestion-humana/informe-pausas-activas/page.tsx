@@ -76,7 +76,7 @@ export default function InformePausasActivasPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold brand-text tracking-tight">Informe Pausas Activas</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Informe Pausas Activas</h1>
           <p className="text-gray-500 mt-1">
             Consulta las pausas activas (AM/PM) por colaborador, sede y fecha (día o mes).
           </p>
@@ -86,7 +86,7 @@ export default function InformePausasActivasPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -171,7 +171,7 @@ export default function InformePausasActivasPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>

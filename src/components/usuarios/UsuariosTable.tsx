@@ -492,7 +492,7 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
     );
 
     return (
-        <div className="p-6">
+        <div className="p-2 sm:p-3 md:p-4">
             {/* ----------- BUSCADOR ----------- */}
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
                 <SearchInput onDebouncedChange={handleDebouncedSearchChange} />
@@ -514,8 +514,8 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
             </div>
 
             {/* ----------- TABLA ----------- */}
-            <div className="overflow-x-auto border rounded-lg bg-white shadow-sm">
-                <table className="w-full ">
+            <div className="app-table-scroll bg-white shadow-sm">
+                <table className="w-full min-w-[780px] lg:min-w-[860px] xl:min-w-[920px]">
                     <thead className="brand-bg text-white text-center">
                         <tr>
                             <th className="px-4 py-2 text-center">ID</th>

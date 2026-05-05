@@ -81,11 +81,11 @@ export default function NuevoTicketModal({
         }
     };
 
-    const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
+    const inputClass = "block w-full min-h-10 sm:min-h-11 border border-gray-300 rounded-xl px-3 py-2 sm:py-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm sm:text-base bg-white";
     const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
     return (
-        <Modal open={open} onClose={onClose} title="Nuevo ticket" width="640px">
+        <Modal open={open} onClose={onClose} title="Nuevo ticket" width="640px" maxWidthClassName="max-w-[95vw] sm:max-w-[90vw] md:max-w-[780px]">
             <form onSubmit={submit} className="space-y-5 p-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -190,7 +190,7 @@ export default function NuevoTicketModal({
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                     <button
                         type="button"
                         className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"

@@ -336,7 +336,7 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
             <h3 className="text-lg font-semibold p-4 border-b">
               Detalle por bodega (todas las sedes)
             </h3>
-            <div className="overflow-x-auto">
+            <div className="app-table-scroll">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -430,7 +430,7 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
           <h3 className="text-lg font-semibold p-4 border-b">
             Detalle por bodega
           </h3>
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

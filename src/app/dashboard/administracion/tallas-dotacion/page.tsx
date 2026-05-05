@@ -94,13 +94,13 @@ export default function TallasDotacionPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Tallas Dotación</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Tallas Dotación</h1>
         <p className="text-gray-500 mt-1">Actualiza la información de tallas para tu dotación</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6">
         {/* Información del Empleado */}
-        <div className="bg-gradient-to-br from-[var(--color-primary-light)] to-white rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-br from-[var(--color-primary-light)] to-white rounded-xl p-3 sm:p-4 md:p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 brand-bg rounded-full flex items-center justify-center">
               <User className="text-white" size={32} />

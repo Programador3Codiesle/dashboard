@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 export default function LoginPage() {
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-[var(--color-primary-light)]/30 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-[var(--color-primary-light)]/30 flex items-center justify-center px-4 sm:px-6 lg:px-10 xl:px-14 py-6">
       {/* Fondo decorativo */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-primary-light)]/20 rounded-full blur-3xl"></div>
@@ -15,8 +15,8 @@ export default function LoginPage() {
       </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)] gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Lado izquierdo - Branding */}
           <div className="text-center lg:text-left">
             <motion.div
@@ -30,7 +30,7 @@ export default function LoginPage() {
                   <span className="text-white font-bold text-xl">C</span>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent">
                     Codiesel Postventa
                   </h1>
                   <p className="text-sm text-gray-600">Sistema Interno de Gestión</p>
@@ -45,22 +45,18 @@ export default function LoginPage() {
                 </span>
               </h2>
 
-              <p className="text-xl text-gray-600 max-w-lg">
+              <p className="text-xl text-gray-600 max-w-lg mx-auto lg:mx-0">
                 Accede a las herramientas diseñadas para asesoría de servicio, garantías,
                 citas, CRM técnico y gestión operativa del área postventa de Chevrolet.
               </p>
 
               {/* Estadísticas */}
-              <div className="flex flex-wrap gap-6 pt-4">
-                <div className="text-center">
+              <div className="w-full max-w-lg mx-auto lg:mx-0 grid grid-cols-2 gap-6 pt-4">
+                <div className="text-center lg:text-left">
                   <div className="text-2xl font-bold brand-text">+80</div>
                   <div className="text-sm text-gray-600">Colaboradores Postventa</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold brand-text">12.000+</div>
-                  <div className="text-sm text-gray-600">Servicios al mes</div>
-                </div>
-                <div className="text-center">
+                <div className="text-center lg:text-left">
                   <div className="text-2xl font-bold brand-text">100%</div>
                   <div className="text-sm text-gray-600">Soporte interno</div>
                 </div>
@@ -69,7 +65,7 @@ export default function LoginPage() {
           </div>
 
           {/* Lado derecho - Formulario */}
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex justify-center lg:justify-center xl:justify-end">
             <LoginForm />
           </div>
         </div>

@@ -156,7 +156,7 @@ export default function ComisionesLaminaPinturaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Comisiones lámina y pintura
         </h1>
         <p className="text-gray-500 mt-1">
@@ -165,7 +165,7 @@ export default function ComisionesLaminaPinturaPage() {
         </p>
       </div>
 
-      <div className="w-full bg-white rounded-2xl border border-gray-100 p-6 shadow-lg space-y-4">
+      <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Fecha inicial</label>
@@ -350,7 +350,7 @@ export default function ComisionesLaminaPinturaPage() {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-4 md:p-6">
               {detalleMutation.isPending && (
                 <p className="text-sm text-gray-500">Cargando detalle...</p>
               )}

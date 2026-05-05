@@ -235,7 +235,7 @@ export default function AjustesValoresContablesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">Ajustes Valores Contables</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Ajustes Valores Contables</h1>
         <p className="text-gray-500 mt-1">Gestión y ajuste de valores contables multiempresa</p>
       </div>
 
@@ -243,7 +243,7 @@ export default function AjustesValoresContablesPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -290,7 +290,7 @@ export default function AjustesValoresContablesPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
         >
           {documentosCerrados && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -303,7 +303,7 @@ export default function AjustesValoresContablesPage() {
             </div>
             <h2 className="text-xl font-semibold text-gray-900">Valores Actuales</h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="w-full">
               <thead>
                 <tr className="border-b-2 border-[var(--color-primary)]">
@@ -409,7 +409,7 @@ export default function AjustesValoresContablesPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">

@@ -45,13 +45,13 @@ export const SearchInput = React.memo(({
 
   return (
     <div className={`relative ${className}`}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
       <input
         ref={inputRef}
         type="text"
         placeholder={placeholder}
         onChange={handleChange}
-        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
+        className="w-full min-h-10 sm:min-h-11 pl-10 pr-4 py-2 sm:py-2.5 text-sm sm:text-base border border-gray-300 rounded-xl focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all"
       />
     </div>
   );

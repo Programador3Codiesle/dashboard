@@ -104,7 +104,7 @@ function TablaControl({
   bgHeader: string;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="app-table-scroll">
       <table className="w-full text-sm text-left border-collapse">
         <thead>
           <tr className={`${bgHeader} border-b border-gray-200`}>
@@ -212,7 +212,7 @@ export default function ControlCotizadorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Control repuestos
         </h1>
         <p className="text-gray-500 mt-1">

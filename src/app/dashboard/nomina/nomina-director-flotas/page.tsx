@@ -92,7 +92,7 @@ export default function NominaDirectorFlotasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Nómina director flotas
         </h1>
         <p className="text-gray-500 mt-1">
@@ -100,7 +100,7 @@ export default function NominaDirectorFlotasPage() {
         </p>
       </div>
 
-      <div className="w-full bg-white rounded-2xl border border-gray-100 p-6 shadow-lg space-y-4">
+      <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Mes</label>
@@ -147,7 +147,7 @@ export default function NominaDirectorFlotasPage() {
       </div>
 
       {generarMutation.isPending && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 md:p-6">
           <div className="space-y-2">
             <div className="h-8 animate-pulse rounded-lg bg-gray-100" />
             <div className="h-8 animate-pulse rounded-lg bg-gray-100" />

@@ -478,7 +478,7 @@ export default function CotizarLivianosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Cotizador Livianos
         </h1>
         <p className="text-gray-500 mt-1">
@@ -532,7 +532,7 @@ export default function CotizarLivianosPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4"
         >
           <h2 className="text-xl font-semibold text-gray-900">
             Datos del vehículo
@@ -810,7 +810,7 @@ export default function CotizarLivianosPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-6"
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h2 className="text-xl font-semibold text-gray-900">
@@ -843,7 +843,7 @@ export default function CotizarLivianosPage() {
           </div>
 
           {/* Repuestos */}
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-(--color-primary)">
@@ -899,7 +899,7 @@ export default function CotizarLivianosPage() {
           </div>
 
           {/* Mano de obra */}
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-(--color-primary)">
@@ -965,7 +965,7 @@ export default function CotizarLivianosPage() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-3 sm:p-4 md:p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Agregar adicionales</h3>
 
             {/* Caso 1: adicionales solo de mano de obra (Diagnóstico u otros que no tienen repuestos) */}
@@ -973,7 +973,7 @@ export default function CotizarLivianosPage() {
             adicionalModalData.manoObra?.length > 0 ? (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">MANO DE OBRA</p>
-                <div className="overflow-x-auto">
+                <div className="app-table-scroll">
                   <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
@@ -1034,7 +1034,7 @@ export default function CotizarLivianosPage() {
                 {adicionalModalData.repuestos?.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">Repuestos del adicional</p>
-                    <div className="overflow-x-auto">
+                    <div className="app-table-scroll">
                       <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-200 text-center">
@@ -1121,7 +1121,7 @@ export default function CotizarLivianosPage() {
                 {adicionalModalData.manoObra?.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">Mano de obra del adicional</p>
-                    <div className="overflow-x-auto">
+                    <div className="app-table-scroll">
                       <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-200 text-center">
@@ -1236,7 +1236,7 @@ export default function CotizarLivianosPage() {
       {/* Modal Posible Retorno */}
       {openPosibleRetorno && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-3 sm:p-4 md:p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Agregar Posible Retorno</h3>
             <div className="space-y-4">
               <div>

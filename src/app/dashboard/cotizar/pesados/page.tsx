@@ -141,7 +141,7 @@ export default function CotizarPesadosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Cotizador Pesados
         </h1>
         <p className="text-gray-500 mt-1">
@@ -183,7 +183,7 @@ export default function CotizarPesadosPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-4"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4"
         >
           <h2 className="text-xl font-semibold text-gray-900">
             Datos del vehículo
@@ -354,7 +354,7 @@ export default function CotizarPesadosPage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6"
+          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-6"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {(((mantenimiento as any).grupos ?? []) as any[]).map((g: any) => {

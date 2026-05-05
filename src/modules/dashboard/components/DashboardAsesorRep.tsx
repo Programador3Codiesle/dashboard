@@ -320,7 +320,7 @@ function DashboardAsesorRepInner({
           </div>
 
           {/* Tabla resumen compacta */}
-          <div className="overflow-x-auto">
+          <div className="app-table-scroll">
             <table className="w-full text-xs border border-gray-200 rounded-lg overflow-hidden">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">

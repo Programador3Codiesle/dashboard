@@ -83,7 +83,7 @@ CompetenciaRow.displayName = "CompetenciaRow";
 // Secciones estáticas memoizadas
 const HeaderSeccion = React.memo(() => (
   <div>
-    <h1 className="text-3xl font-bold brand-text tracking-tight">Evaluación de Desempeño</h1>
+    <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Evaluación de Desempeño</h1>
     <p className="text-gray-500 mt-1">Evaluación de desempeño por jefe inmediato</p>
   </div>
 ));
@@ -124,7 +124,7 @@ const InfoGeneral = React.memo(({ formData }: { formData: any }) => (
 InfoGeneral.displayName = "InfoGeneral";
 
 const EscalaEvaluacion = React.memo(() => (
-  <div className="bg-blue-50/50 border-2 border-blue-200 rounded-2xl p-6 shadow-sm">
+  <div className="bg-blue-50/50 border-2 border-blue-200 rounded-2xl p-3 sm:p-4 md:p-6 shadow-sm">
     <h3 className="font-bold text-gray-900 mb-4 text-lg flex items-center gap-2">
       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
       Escala de Evaluación
@@ -400,7 +400,7 @@ export default function EvaluacionDesempenoPage() {
     return (
       <div className="space-y-6">
         <HeaderSeccion />
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
               <Users className="text-blue-600" size={20} />
@@ -487,11 +487,11 @@ export default function EvaluacionDesempenoPage() {
                 </table>
               </div>
 
-              <div className="mt-6 p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-200 shadow-md">
+              <div className="mt-6 p-3 sm:p-4 md:p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-200 shadow-md">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-lg">Promedio Total:</span>
                   <div className="flex items-center gap-3">
-                    <span className={`text-3xl font-extrabold ${getNivelDesempeño(getPromedios.pTotal).color}`}>
+                    <span className={`text-2xl sm:text-3xl font-extrabold ${getNivelDesempeño(getPromedios.pTotal).color}`}>
                       {getPromedios.pTotal.toFixed(2)}
                     </span>
                   </div>

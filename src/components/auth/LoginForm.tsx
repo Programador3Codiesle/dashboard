@@ -73,7 +73,7 @@ export const LoginForm = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md"
+      className="w-full max-w-md lg:max-w-[430px]"
     >
       {/* Header del Login */}
       <div className="text-center mb-2">

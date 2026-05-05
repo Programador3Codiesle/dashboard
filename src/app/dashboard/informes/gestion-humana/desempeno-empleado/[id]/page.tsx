@@ -94,7 +94,7 @@ export default function DesempenoEmpleadoDetallePage() {
               {getInitials(detalle?.empleado ?? 'EM')}
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-bold brand-text tracking-tight truncate">
+              <h1 className="text-2xl md:text-2xl sm:text-3xl font-bold brand-text tracking-tight truncate">
                 {detalle?.empleado || 'Detalle de evaluacion de desempeno'}
               </h1>
               <p className="text-sm text-gray-500 truncate">
@@ -303,7 +303,7 @@ export default function DesempenoEmpleadoDetallePage() {
                 Comparativo por criterio entre autoevaluacion y evaluacion del jefe.
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <div className="app-table-scroll">
               <table className="min-w-full text-xs md:text-sm">
                 <thead className="bg-(--color-primary) text-white">
                   <tr>

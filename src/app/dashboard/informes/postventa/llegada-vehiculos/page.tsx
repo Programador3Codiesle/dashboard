@@ -82,7 +82,7 @@ export default function LlegadaVehiculosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold brand-text tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
           Informe entrada de vehículos Taller
         </h1>
         <p className="text-gray-500 mt-1">
@@ -124,7 +124,7 @@ export default function LlegadaVehiculosPage() {
                 <h2 className="text-sm font-medium opacity-80">
                   Porcentaje Citas Cumplidas
                 </h2>
-                <p className="mt-2 text-3xl font-bold">
+                <p className="mt-2 text-2xl sm:text-3xl font-bold">
                   {toPercent(data.porcentajeCitasCumplidas)}
                 </p>
                 <p className="mt-1 text-xs opacity-80">
@@ -166,7 +166,7 @@ export default function LlegadaVehiculosPage() {
                 <h2 className="text-sm font-medium opacity-80">
                   Porcentaje VH Agendados
                 </h2>
-                <p className="mt-2 text-3xl font-bold">
+                <p className="mt-2 text-2xl sm:text-3xl font-bold">
                   {toPercent(data.porcentajeVhAgendados)}
                 </p>
                 <p className="mt-1 text-xs opacity-80">
