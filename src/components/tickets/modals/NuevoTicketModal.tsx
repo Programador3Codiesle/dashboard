@@ -8,6 +8,7 @@ import { Upload, X, ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 import { sedesTicketsDisponibles } from "@/modules/tickets/constants";
+import { withNextBasePath } from "@/config/next-base-path";
 
 export default function NuevoTicketModal({
     open,
@@ -41,7 +42,7 @@ export default function NuevoTicketModal({
                 const formData = new FormData();
                 formData.append("file", archivo);
 
-                const resp = await fetch("/api/tickets/upload", {
+                const resp = await fetch(withNextBasePath("/api/tickets/upload"), {
                     method: "POST",
                     body: formData,
                 });

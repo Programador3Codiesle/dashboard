@@ -6,6 +6,7 @@ import { useTicketDetail } from "@/modules/tickets/hooks/useTicketDetail";
 import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2, Building2, Phone } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
+import { withNextBasePath } from "@/config/next-base-path";
 
 export default function ResponderTicketModal({
     open,
@@ -68,6 +69,10 @@ export default function ResponderTicketModal({
     const inputClass = "w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm";
 
     const displayData = ticketData || ticket;
+    const archivoHref =
+        displayData?.archivoUrl != null
+            ? withNextBasePath(displayData.archivoUrl)
+            : null;
 
     return (
         <Modal open={open} onClose={onClose} title={`Responder Ticket #${ticket?.id ?? ""}`} width="640px">
@@ -115,11 +120,11 @@ export default function ResponderTicketModal({
                             </div>
                         </div>
 
-                        {displayData?.archivoUrl && (
+                        {displayData?.archivoUrl && archivoHref && (
                             <div className="pt-2 border-t border-gray-200 mt-2">
                                 <p className="text-sm font-bold text-gray-900 mb-1">Archivo adjunto</p>
                                 <a
-                                    href={displayData.archivoUrl}
+                                    href={archivoHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white text-sm text-indigo-600 border border-indigo-100 hover:bg-indigo-50 transition-colors"

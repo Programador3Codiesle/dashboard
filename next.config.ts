@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
+import { NEXT_APP_BASE_PATH_PRODUCTION } from "./src/config/next-base-path";
 
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
-  basePath: isProd ? "/postventa2" : "",
-  assetPrefix: isProd ? "/postventa2" : "",
+  basePath: isProd ? NEXT_APP_BASE_PATH_PRODUCTION : "",
+  assetPrefix: isProd ? NEXT_APP_BASE_PATH_PRODUCTION : "",
 
   compress: true,
 
