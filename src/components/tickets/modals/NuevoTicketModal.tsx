@@ -8,7 +8,6 @@ import { Upload, X, ChevronDown } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 import { sedesTicketsDisponibles } from "@/modules/tickets/constants";
-import { withNextBasePath } from "@/config/next-base-path";
 import { ticketsService } from "@/modules/tickets/services/tickets.service";
 
 export default function NuevoTicketModal({
@@ -43,22 +42,7 @@ export default function NuevoTicketModal({
                 const formData = new FormData();
                 formData.append("file", archivo);
 
-                let json: { status?: boolean; message?: string; url?: string };
-                if (process.env.NODE_ENV === "production") {
-                    json = await ticketsService.uploadTicketFile(formData);
-                } else {
-                    const resp = await fetch(
-                        withNextBasePath("/api/tickets/upload"),
-                        {
-                            method: "POST",
-                            body: formData,
-                        },
-                    );
-                    if (!resp.ok) {
-                        throw new Error("No se pudo subir el archivo");
-                    }
-                    json = await resp.json();
-                }
+                const json = await ticketsService.uploadTicketFile(formData);
                 if (!json.status || !json.url) {
                     throw new Error(json.message || "No se pudo subir el archivo");
                 }

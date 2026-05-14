@@ -1,5 +1,3 @@
-import { getNextBasePath } from "./next-base-path";
-
 const DEV_API_DEFAULT = "http://localhost:4000";
 
 function normalizeBase(url: string): string {
@@ -28,10 +26,9 @@ export function getApiPublicUrl(): string {
 }
 
 /**
- * URL para abrir adjuntos de tickets (`/uploads/tickets/...` en BD).
- * - **Desarrollo**: archivos en `public` del Next → mismo origen del navegador + `basePath`.
- * - **Producción**: archivos en `public` del Nest → URL del API (`getApiPublicUrl`).
- * Corrige enlaces viejos en dev que apuntaban por error a `localhost:4000/uploads/...`.
+ * URL absoluta para adjuntos de tickets (`/uploads/tickets/...` en BD).
+ * Los archivos viven en el `public` del **Nest** (dev y prod); usa `getApiPublicUrl`.
+ * Si el valor guardado era una URL absoluta solo con pathname `/uploads/...`, se reescribe al API.
  */
 export function resolveTicketPublicFileUrl(
   storedPath: string | null | undefined,
@@ -56,10 +53,6 @@ export function resolveTicketPublicFileUrl(
   if (!path.startsWith("/uploads/")) {
     if (/^https?:\/\//i.test(s)) return s;
     return `${getApiPublicUrl()}${path}${suffix}`;
-  }
-
-  if (process.env.NODE_ENV !== "production" && typeof window !== "undefined") {
-    return `${window.location.origin}${getNextBasePath()}${path}${suffix}`;
   }
 
   const base = getApiPublicUrl();
