@@ -80,9 +80,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             // Limpiar el estado del usuario
             setUserState(null);
 
-            // Redirigir al login
+            // Redirigir al login según el entorno
             if (typeof window !== 'undefined') {
-                window.location.href = '/login';
+                const loginUrl = process.env.NODE_ENV === "production"
+                    ? "https://intranet.codiesel.co/postventa2/login/"
+                    : "/login";
+                window.location.href = loginUrl;
             }
         }
     }, []);
