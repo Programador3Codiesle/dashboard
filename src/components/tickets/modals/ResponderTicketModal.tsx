@@ -6,7 +6,7 @@ import { useTicketDetail } from "@/modules/tickets/hooks/useTicketDetail";
 import { User, Monitor, HelpCircle, FileText, MessageCircle, Loader2, Building2, Phone } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
-import { withNextBasePath } from "@/config/next-base-path";
+import { resolveTicketPublicFileUrl } from "@/config/public-env";
 
 export default function ResponderTicketModal({
     open,
@@ -71,7 +71,7 @@ export default function ResponderTicketModal({
     const displayData = ticketData || ticket;
     const archivoHref =
         displayData?.archivoUrl != null
-            ? withNextBasePath(displayData.archivoUrl)
+            ? resolveTicketPublicFileUrl(displayData.archivoUrl)
             : null;
 
     return (

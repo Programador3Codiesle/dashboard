@@ -167,8 +167,36 @@ export const ticketsService = {
     return data.map(mapMisTicketsFromApi);
   },
 
-  // En esta versión asumimos que el archivo ya fue subido y tenemos una URL.
-  // El flujo de subida real se implementará en una ruta de API de Next.
+  // El archivo se sube al API (Nest); el proxy /api no enruta al route de Next.
+  async uploadTicketFile(formData: FormData): Promise<{
+    status: boolean;
+    message?: string;
+    url?: string;
+  }> {
+    const resp = await fetchWithAuth(`${API_URL}/tickets/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const json = (await resp.json()) as {
+      status?: boolean;
+      message?: string;
+      url?: string;
+    };
+
+    if (!resp.ok) {
+      throw new Error(
+        json.message || `No se pudo subir el archivo (${resp.status})`,
+      );
+    }
+
+    return {
+      status: !!json.status,
+      message: json.message,
+      url: json.url,
+    };
+  },
+
   async crearTicket(dto: CrearTicketDTO & { archivoUrl?: string | null; empresa?: number[]; prioridad?: string }): Promise<ITicket> {
     const user = getUser();
     if (!user || !user.user) {
