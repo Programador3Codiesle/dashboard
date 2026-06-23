@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useDashboard } from "@/modules/dashboard/hooks/useDashboard";
 import { isDashboardAllowedPerfil } from "@/modules/dashboard/constants";
@@ -45,9 +45,15 @@ export default function DashboardPage() {
     []
   );
 
+  const empresaDashboard =
+    typeof user?.empresa === "number" && Number.isFinite(user.empresa)
+      ? user.empresa
+      : undefined;
+
   const { data, isLoading, isFetching, error } = useDashboard(user?.id, {
     enabled: allowed,
     idsede: selectedIdsede,
+    empresa: empresaDashboard,
     mes: (() => {
       if (!selectedMonth) return undefined;
       const [anoStr, mesStr] = selectedMonth.split("-");
@@ -61,6 +67,29 @@ export default function DashboardPage() {
       return Number.isFinite(val) && val > 0 ? val : undefined;
     })(),
   });
+
+  /** Evita mostrar datos del dashboard de otra empresa mientras llega la nueva respuesta (keepPreviousData). */
+  const [empresaSwitchLoading, setEmpresaSwitchLoading] = useState(false);
+  const empresaEffectSkipMount = useRef(true);
+
+  useEffect(() => {
+    if (empresaEffectSkipMount.current) {
+      empresaEffectSkipMount.current = false;
+      return;
+    }
+    setEmpresaSwitchLoading(true);
+  }, [empresaDashboard]);
+
+  useEffect(() => {
+    if (!isFetching && empresaSwitchLoading) {
+      setEmpresaSwitchLoading(false);
+    }
+  }, [isFetching, empresaSwitchLoading]);
+
+  useEffect(() => {
+    setSelectedIdsede(undefined);
+  }, [empresaDashboard]);
+
   const onSedeChange = useCallback((idsede: number) => {
     setSelectedIdsede(idsede);
   }, []);
@@ -131,12 +160,17 @@ export default function DashboardPage() {
     );
   }
 
-  if (isLoading || !data) {
+  const showMainDashboardLoading =
+    isLoading || !data || (empresaSwitchLoading && isFetching);
+
+  if (showMainDashboardLoading) {
     return wrap(
       <div className="flex flex-col items-center justify-center py-16 gap-3">
         <div className="w-10 h-10 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-gray-600 font-medium">
-          Cargando información del dashboard...
+          {empresaSwitchLoading && isFetching
+            ? "Cargando dashboard para la empresa seleccionada..."
+            : "Cargando información del dashboard..."}
         </p>
       </div>,
       false

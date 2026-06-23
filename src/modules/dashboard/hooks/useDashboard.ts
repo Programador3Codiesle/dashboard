@@ -9,6 +9,8 @@ export interface UseDashboardOptions {
   idsede?: number;
   mes?: number;
   ano?: number;
+  /** id_empresa (sidebar): filtra bodegas vía bodegas_empresa en el backend */
+  empresa?: number;
 }
 
 export function useDashboard(
@@ -19,6 +21,7 @@ export function useDashboard(
   const idsede = options?.idsede;
   const mes = options?.mes;
   const ano = options?.ano;
+  const empresa = options?.empresa;
   const {
     data,
     isLoading,
@@ -26,8 +29,9 @@ export function useDashboard(
     error,
     refetch,
   } = useQuery<DashboardData>({
-    queryKey: [...DASHBOARD_QUERY_KEY, userId, idsede, mes, ano],
-    queryFn: () => dashboardService.getDashboard({ idsede, mes, ano }),
+    queryKey: [...DASHBOARD_QUERY_KEY, userId, idsede, mes, ano, empresa],
+    queryFn: () =>
+      dashboardService.getDashboard({ idsede, mes, ano, empresa }),
     enabled,
     staleTime: 2 * 60 * 1000,
     placeholderData: keepPreviousData,

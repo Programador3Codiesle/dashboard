@@ -151,6 +151,30 @@ export default function LlegadasTardePage() {
     return s.slice(0, 10);
   };
 
+  const formatTimeOnly = (value?: string | null, fallback = '') => {
+    if (value == null || value === '') return fallback;
+
+    const s = String(value).trim();
+    if (!s || s === '0') return fallback || '0';
+
+    const iso = s.match(/T(\d{2}:\d{2})(?::\d{2})?(?:\.\d+)?Z?$/i);
+    if (iso) return iso[1];
+
+    const plain = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (plain) {
+      return `${plain[1].padStart(2, '0')}:${plain[2]}`;
+    }
+
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) {
+      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const mm = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    return s;
+  };
+
   const handleConsultar = () => {
     if (!fechaInicio || !fechaFin) {
       showError('Debe seleccionar fecha inicial y fecha final');
@@ -175,10 +199,10 @@ export default function LlegadasTardePage() {
       Nombre: r.nombres,
       Sede: r.sede,
       Fecha: formatDateOnly(r.fecha),
-      'Hora entrada AM': r.llegada_am ?? 'NO REGISTRA ENTRADA',
-      'Hora entrada PM': r.llegada_pm ?? 'NO REGISTRA ENTRADA',
-      'Hora inicio ausentismo': r.inicio_ausentismo ?? '0',
-      'Hora final ausentismo': r.fin_ausentismo ?? '0',
+      'Hora entrada AM': formatTimeOnly(r.llegada_am, 'NO REGISTRA ENTRADA'),
+      'Hora entrada PM': formatTimeOnly(r.llegada_pm, 'NO REGISTRA ENTRADA'),
+      'Hora inicio ausentismo': formatTimeOnly(r.inicio_ausentismo, '0'),
+      'Hora final ausentismo': formatTimeOnly(r.fin_ausentismo, '0'),
       'Diferencia AM': r.dif_entrada_am ?? 0,
       'Diferencia PM': r.dif_entrada_pm ?? 0,
     }));
@@ -402,16 +426,16 @@ export default function LlegadasTardePage() {
                   <td className="px-2 py-1 text-center">{row.sede}</td>
                   <td className="px-2 py-1 text-center">{formatDateOnly(row.fecha)}</td>
                   <td className="px-2 py-1 text-center">
-                    {row.llegada_am ?? 'NO REGISTRA ENTRADA'}
+                    {formatTimeOnly(row.llegada_am, 'NO REGISTRA ENTRADA')}
                   </td>
                   <td className="px-2 py-1 text-center">
-                    {row.llegada_pm ?? 'NO REGISTRA ENTRADA'}
+                    {formatTimeOnly(row.llegada_pm, 'NO REGISTRA ENTRADA')}
                   </td>
                   <td className="px-2 py-1 text-center">
-                    {row.inicio_ausentismo ?? '0'}
+                    {formatTimeOnly(row.inicio_ausentismo, '0')}
                   </td>
                   <td className="px-2 py-1 text-center">
-                    {row.fin_ausentismo ?? '0'}
+                    {formatTimeOnly(row.fin_ausentismo, '0')}
                   </td>
                   <td className="px-2 py-1 text-center">
                     {row.dif_entrada_am ?? 0}

@@ -9,6 +9,7 @@ export const dashboardService = {
     idsede?: number;
     mes?: number;
     ano?: number;
+    empresa?: number;
   }): Promise<DashboardData> {
     const search = new URLSearchParams();
     if (params?.idsede != null) {
@@ -19,6 +20,9 @@ export const dashboardService = {
     }
     if (params?.ano != null) {
       search.set("ano", String(params.ano));
+    }
+    if (params?.empresa != null && Number.isFinite(params.empresa)) {
+      search.set("empresa", String(params.empresa));
     }
     const query = search.toString();
     const url = query ? `${API_URL}/dashboard?${query}` : `${API_URL}/dashboard`;
