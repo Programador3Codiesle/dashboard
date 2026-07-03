@@ -9,6 +9,7 @@ interface ModalProps {
     children: React.ReactNode;
     width?: string;
     maxWidthClassName?: string;
+    contentClassName?: string;
 }
 
 /**
@@ -21,7 +22,8 @@ export default React.memo(function Modal({
   title,
   children,
   width = "450px",
-  maxWidthClassName = "max-w-[95vw] sm:max-w-[88vw] md:max-w-[760px] 2xl:max-w-[980px]"
+  maxWidthClassName = "max-w-[95vw] sm:max-w-[88vw] md:max-w-[760px] 2xl:max-w-[980px]",
+  contentClassName = "",
 }: ModalProps) {
     const handleBackdropClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -42,11 +44,18 @@ export default React.memo(function Modal({
                 onClick={onClose}
             >
                 <div
-                    className={`w-full ${maxWidthClassName} bg-white rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[88vh] overflow-y-auto`}
-                    style={{ width }}
+                    className={`w-full ${maxWidthClassName} rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[88vh] overflow-y-auto ${contentClassName}`}
+                    style={{ width, backgroundColor: "#ffffff" }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {title && <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{title}</h3>}
+                    {title && (
+                      <h3
+                        className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900"
+                        style={{ backgroundColor: "#ffffff" }}
+                      >
+                        {title}
+                      </h3>
+                    )}
                     {children}
                 </div>
             </div>
@@ -58,6 +67,8 @@ export default React.memo(function Modal({
     prevProps.open === nextProps.open &&
     prevProps.title === nextProps.title &&
     prevProps.width === nextProps.width &&
+    prevProps.contentClassName === nextProps.contentClassName &&
+    prevProps.maxWidthClassName === nextProps.maxWidthClassName &&
     prevProps.onClose === nextProps.onClose &&
     prevProps.children === nextProps.children
   );
