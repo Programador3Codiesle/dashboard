@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { FileText, Loader2 } from "lucide-react";
 import { AusentismoInforme, informeAusentismoService } from "@/modules/administracion/services/informe-ausentismo.service";
@@ -43,11 +44,7 @@ export default function InformeTiempoAusentismosPage() {
   const [month, setMonth] = useState("");
   const [empleado, setEmpleado] = useState("");
   const [debouncedEmpleado, setDebouncedEmpleado] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<AusentismoInforme[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const requestIdRef = useRef(0);
   const isEmpleadoDebouncing = empleado.trim() !== debouncedEmpleado;
 
   useEffect(() => {
@@ -58,54 +55,42 @@ export default function InformeTiempoAusentismosPage() {
     return () => clearTimeout(timeoutId);
   }, [empleado]);
 
+  const range = useMemo(() => getMonthRange(month), [month]);
+  const { data: queryData, isFetching: loading, isError } = useQuery<{
+    items: AusentismoInforme[];
+    total: number;
+  }>({
+    queryKey: [
+      "informes",
+      "gestion-humana",
+      "inf-ausentismos",
+      month,
+      debouncedEmpleado,
+      currentPage,
+    ],
+    queryFn: () =>
+      informeAusentismoService.listar({
+        fechaDesde: range!.desde,
+        fechaHasta: range!.hasta,
+        empleado: debouncedEmpleado || undefined,
+        pagina: currentPage,
+        limite: PAGE_SIZE,
+        soloPendientes: true,
+      }),
+    enabled: !!range && !isEmpleadoDebouncing,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
+
   useEffect(() => {
-    const fetchData = async () => {
-      const range = getMonthRange(month);
-      if (!range) {
-        setRows([]);
-        return;
-      }
-
-      const requestId = ++requestIdRef.current;
-      setLoading(true);
-      try {
-        const result = await informeAusentismoService.listar({
-          fechaDesde: range.desde,
-          fechaHasta: range.hasta,
-          empleado: debouncedEmpleado || undefined,
-          pagina: currentPage,
-          limite: PAGE_SIZE,
-          // Este informe corresponde a "Ausentismo sin respuesta" en el legacy
-          soloPendientes: true,
-        });
-        // Evita "saltos" si el usuario cambia de página/filters rápido.
-        if (requestId === requestIdRef.current) {
-          setRows(result.items);
-          setTotalItems(result.total);
-        }
-      } catch (err) {
-        console.error(err);
-        showError("No se pudo cargar el informe de tiempo de ausentismos.");
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (month && !isEmpleadoDebouncing) {
-      fetchData();
-    } else {
-      if (!month) {
-        setRows([]);
-        setTotalItems(0);
-      }
-    }
-  }, [month, debouncedEmpleado, currentPage, showError, isEmpleadoDebouncing]);
+    if (!isError) return;
+    showError("No se pudo cargar el informe de tiempo de ausentismos.");
+  }, [isError, showError]);
 
   const hasMonth = !!month;
 
-  const data = useMemo(() => rows, [rows]);
+  const data = useMemo(() => queryData?.items ?? [], [queryData?.items]);
+  const totalItems = queryData?.total ?? 0;
   const showInitialLoader = loading && data.length === 0;
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalItems / PAGE_SIZE)),
@@ -113,9 +98,6 @@ export default function InformeTiempoAusentismosPage() {
   );
 
   const handleMonthChange = (value: string) => {
-    // Para cambios de filtros, limpiamos para que el cliente vea "Cargando" en vez de datos viejos.
-    setRows([]);
-    setTotalItems(0);
     setMonth(value);
     setCurrentPage(1);
   };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   ventas1a1Service,
   Ventas1a1Asesor,
@@ -23,7 +23,10 @@ export default function Ventas1a1Page() {
   const [year, setYear] = useState<number>(getCurrentYear);
   const [asesor, setAsesor] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rows, setRows] = useState<Ventas1a1Row[]>([]);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    year: number;
+    asesor: string | null;
+  } | null>(null);
   const PAGE_SIZE = 10;
 
   const {
@@ -36,17 +39,19 @@ export default function Ventas1a1Page() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const informeMutation = useMutation({
-    mutationFn: (payload: { year: number; asesor: string | null }) =>
-      ventas1a1Service.obtenerInforme(payload.year, payload.asesor),
-    onSuccess: (data) => {
-      setRows(data);
-    },
-    onError: () => {
-      showError(
-        "No se pudo cargar el informe de Ventas 1 a 1. Verifica los filtros e inténtalo nuevamente.",
-      );
-    },
+  const {
+    data: rows = [],
+    isFetching: informeLoading,
+    isError: informeError,
+  } = useQuery<Ventas1a1Row[]>({
+    queryKey: ["informes", "postventa", "ventas-1a1", "informe", filtrosAplicados],
+    queryFn: () =>
+      ventas1a1Service.obtenerInforme(
+        filtrosAplicados!.year,
+        filtrosAplicados!.asesor,
+      ),
+    enabled: filtrosAplicados != null,
+    staleTime: 60 * 1000,
   });
 
   useEffect(() => {
@@ -64,7 +69,8 @@ export default function Ventas1a1Page() {
       );
       return;
     }
-    informeMutation.mutate({
+    setCurrentPage(1);
+    setFiltrosAplicados({
       year,
       asesor: asesor || null,
     });
@@ -73,7 +79,7 @@ export default function Ventas1a1Page() {
   const limpiar = () => {
     setYear(getCurrentYear());
     setAsesor("");
-    setRows([]);
+    setFiltrosAplicados(null);
     setCurrentPage(1);
   };
 
@@ -87,8 +93,11 @@ export default function Ventas1a1Page() {
     "border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full";
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [rows.length]);
+    if (!informeError) return;
+    showError(
+      "No se pudo cargar el informe de Ventas 1 a 1. Verifica los filtros e inténtalo nuevamente.",
+    );
+  }, [informeError, showError]);
 
   return (
     <div className="space-y-6">
@@ -160,17 +169,17 @@ export default function Ventas1a1Page() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-        {informeMutation.isPending && (
+        {informeLoading && (
           <p className="text-sm text-gray-500">Cargando información...</p>
         )}
 
-        {!informeMutation.isPending && rows.length === 0 && (
+        {!informeLoading && rows.length === 0 && (
           <p className="text-sm text-gray-500">
             No hay información para los filtros seleccionados.
           </p>
         )}
 
-        {!informeMutation.isPending && rows.length > 0 && (
+        {!informeLoading && rows.length > 0 && (
           <div className="overflow-x-auto rounded-xl border border-gray-100">
             <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
@@ -245,7 +254,7 @@ export default function Ventas1a1Page() {
             </table>
           </div>
         )}
-        {!informeMutation.isPending && totalItems > 0 && (
+        {!informeLoading && totalItems > 0 && (
           <div className="p-4 border-t border-gray-200 flex justify-center">
             <Pagination
               currentPage={currentPage}

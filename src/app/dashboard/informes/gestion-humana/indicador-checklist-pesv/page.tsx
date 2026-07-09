@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { checklistPesvService, TipoChecklistPesv } from '@/modules/informes/gestion-humana/services/checklist-pesv.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
@@ -11,40 +11,28 @@ const PAGE_SIZE = 10;
 
 export default function IndicadorChecklistPesvPage() {
   const { showError, showInfo } = useToast();
-  const consultaEnCursoRef = useRef(false);
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [tipo, setTipo] = useState<TipoChecklistPesv>('carro');
   const [placa, setPlaca] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    tipo: TipoChecklistPesv;
+    placa?: string;
+    fechaIni: string;
+    fechaFin: string;
+  } | null>(null);
 
-  const mutation = useMutation({
+  const {
+    data = [],
+    isFetching,
+    isError,
+    isFetched,
+  } = useQuery({
+    queryKey: ['informes', 'gestion-humana', 'indicador-checklist-pesv', filtrosAplicados],
+    queryFn: () => checklistPesvService.listar(filtrosAplicados!),
+    enabled: filtrosAplicados != null,
     retry: false,
-    mutationFn: async () => {
-      if (!fechaIni || !fechaFin) {
-        throw new Error('Debe seleccionar fecha inicial y fecha final');
-      }
-      return checklistPesvService.listar({
-        tipo,
-        placa: placa.trim() || undefined,
-        fechaIni,
-        fechaFin,
-      });
-    },
-    onSuccess: (result) => {
-      if (result.length === 0) {
-        showInfo(
-          'Con los filtros seleccionados no se encontraron registros.',
-        );
-      }
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error consultando indicador Checklist PESV';
-      showError(message);
-    },
   });
 
   const handleGenerar = () => {
@@ -52,36 +40,38 @@ export default function IndicadorChecklistPesvPage() {
       showError('Por favor ingrese fecha inicial y fecha final.');
       return;
     }
-    if (mutation.isPending || consultaEnCursoRef.current) return;
+    if (isFetching) return;
     setCurrentPage(1);
-    consultaEnCursoRef.current = true;
-    mutation.mutate(undefined, {
-      onSettled: () => {
-        consultaEnCursoRef.current = false;
-      },
+    setFiltrosAplicados({
+      tipo,
+      placa: placa.trim() || undefined,
+      fechaIni,
+      fechaFin,
     });
   };
 
-  const data = mutation.data ?? [];
-  const consultaSinResultados =
-    mutation.isSuccess &&
-    Array.isArray(mutation.data) &&
-    mutation.data.length === 0;
+  useEffect(() => {
+    if (!isError) return;
+    showError('Error consultando indicador Checklist PESV');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (!isFetched || isFetching || filtrosAplicados == null) return;
+    if (data.length === 0) {
+      showInfo('Con los filtros seleccionados no se encontraron registros.');
+    }
+  }, [isFetched, isFetching, filtrosAplicados, data.length, showInfo]);
+
+  const consultaSinResultados = isFetched && data.length === 0;
 
   const totalItems = data.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-
-  useEffect(() => {
-    if (mutation.isPending || totalItems === 0) return;
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, mutation.isPending, totalItems, totalPages]);
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
   const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
     return data.slice(start, start + PAGE_SIZE);
-  }, [data, currentPage]);
+  }, [data, safeCurrentPage]);
 
   const fieldClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
@@ -154,17 +144,17 @@ export default function IndicadorChecklistPesvPage() {
           <button
             type="button"
             onClick={handleGenerar}
-            disabled={mutation.isPending || !hasDates}
+            disabled={isFetching || !hasDates}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            {mutation.isPending && <Loader2 size={16} className="animate-spin" />}
-            <span>{mutation.isPending ? 'Consultando...' : 'Generar'}</span>
+            {isFetching && <Loader2 size={16} className="animate-spin" />}
+            <span>{isFetching ? 'Consultando...' : 'Generar'}</span>
           </button>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        {!mutation.isPending && totalItems > 0 && (
+        {!isFetching && totalItems > 0 && (
           <div className="flex flex-wrap items-center justify-end gap-3 px-4 py-3 border-b border-gray-100">
             <span className="text-xs text-gray-500">
               {totalItems} placa{totalItems === 1 ? '' : 's'}
@@ -184,7 +174,7 @@ export default function IndicadorChecklistPesvPage() {
               </tr>
             </thead>
             <tbody>
-              {mutation.isPending && (
+              {isFetching && (
                 <tr>
                   <td colSpan={2} className="text-center py-10">
                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -194,21 +184,21 @@ export default function IndicadorChecklistPesvPage() {
                   </td>
                 </tr>
               )}
-              {!mutation.isPending && data.length === 0 && consultaSinResultados && (
+              {!isFetching && data.length === 0 && consultaSinResultados && (
                 <tr>
                   <td colSpan={2} className="text-center py-10 text-gray-500">
                     No se encontraron registros con los filtros seleccionados.
                   </td>
                 </tr>
               )}
-              {!mutation.isPending && data.length === 0 && !consultaSinResultados && (
+              {!isFetching && data.length === 0 && !consultaSinResultados && (
                 <tr>
                   <td colSpan={2} className="text-center py-10 text-gray-500">
                     No hay datos para mostrar. Ingrese fechas y pulse Generar.
                   </td>
                 </tr>
               )}
-              {!mutation.isPending &&
+              {!isFetching &&
                 paginatedRows.map((row) => (
                   <tr
                     key={row.placa}
@@ -225,10 +215,10 @@ export default function IndicadorChecklistPesvPage() {
             </tbody>
           </table>
         </div>
-        {!mutation.isPending && totalItems > 0 && (
+        {!isFetching && totalItems > 0 && (
           <div className="p-4 border-t border-gray-200 flex justify-center">
             <Pagination
-              currentPage={currentPage}
+              currentPage={safeCurrentPage}
               totalPages={totalPages}
               onChange={setCurrentPage}
             />

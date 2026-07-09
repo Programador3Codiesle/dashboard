@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import * as XLSX from "xlsx";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Truck, X, CalendarClock, MapPin, FileText } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import Modal from "@/components/shared/ui/Modal";
@@ -59,79 +59,77 @@ export default function InformeControlVehicularPage() {
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-
-  const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<ControlVehicular[]>([]);
-  const [total, setTotal] = useState(0);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    page: number;
+    limit: number;
+    buscador?: string;
+    fechaIni?: string;
+    fechaFin?: string;
+    porteria?: string;
+    notificar: "silent" | "verbose";
+  }>({
+    page: 1,
+    limit: 10,
+    buscador: undefined,
+    fechaIni: undefined,
+    fechaFin: undefined,
+    porteria: undefined,
+    notificar: "silent",
+  });
 
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalle, setDetalle] = useState<ControlVehicular | null>(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  const {
+    data,
+    isFetching: loading,
+    isError,
+  } = useQuery({
+    queryKey: ["informes", "gestion-humana", "control-vehicular", filtrosAplicados],
+    queryFn: () =>
+      informeControlVehicularService.listar({
+        page: filtrosAplicados.page,
+        limit: filtrosAplicados.limit,
+        buscador: filtrosAplicados.buscador,
+        fechaIni: filtrosAplicados.fechaIni,
+        fechaFin: filtrosAplicados.fechaFin,
+        porteria: filtrosAplicados.porteria,
+      }),
+    placeholderData: (prev) => prev,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
+  const rows = data?.items ?? [];
+  const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   /** Tabla vacía + cargando: fila de carga. Con datos + cargando: mantener filas y spinner en encabezado. */
   const showInitialLoader = loading && rows.length === 0;
   const showUpdating = loading && rows.length > 0;
 
-  const cargar = useCallback(
-    async (
-      pagina: number,
-      opciones?: { silent?: boolean; limitOverride?: number },
-    ) => {
-      const silent = opciones?.silent ?? false;
-      const effectiveLimit = opciones?.limitOverride ?? limit;
-
-      if (!silent) {
-        setLoading(true);
-      } else if (rows.length === 0) {
-        setLoading(true);
-      }
-      try {
-        const res = await informeControlVehicularService.listar({
-          page: pagina,
-          limit: effectiveLimit,
-          buscador: buscador.trim() || undefined,
-          fechaIni: fechaIni || undefined,
-          fechaFin: fechaFin || undefined,
-          porteria: porteria || undefined,
-        });
-
-        setRows(res.items);
-        setTotal(res.total);
-        setPage(res.page);
-
-        if (!silent) {
-          if (res.total === 0) {
-            showInfo("No se encontraron registros para los filtros seleccionados.");
-          } else {
-            showSuccess(`Se cargaron ${res.items.length} registros (de ${res.total}).`);
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        showError("No se pudo cargar el informe de ingreso y salida de vehículos.");
-      } finally {
-        if (!silent) {
-          setLoading(false);
-        } else if (rows.length === 0) {
-          setLoading(false);
-        }
-      }
-    },
-    [limit, buscador, fechaIni, fechaFin, porteria, rows.length, showError, showInfo, showSuccess],
-  );
-
-  const cargarRef = useRef(cargar);
-  cargarRef.current = cargar;
-
-  // Solo al montar: si dependemos de `cargar`, cada cambio de filtro dispara otra petición
-  // y al pulsar "Aplicar filtro" se duplicaba la consulta.
+  const lastToastKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    void cargarRef.current(1, { silent: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial única
-  }, []);
+    if (!isError) return;
+    showError("No se pudo cargar el informe de ingreso y salida de vehículos.");
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (loading || !data || filtrosAplicados.notificar !== "verbose") return;
+    const toastKey = `${filtrosAplicados.page}-${filtrosAplicados.limit}-${total}-${rows.length}`;
+    if (lastToastKeyRef.current === toastKey) return;
+    lastToastKeyRef.current = toastKey;
+    if (total === 0) {
+      showInfo("No se encontraron registros para los filtros seleccionados.");
+    } else {
+      showSuccess(`Se cargaron ${rows.length} registros (de ${total}).`);
+    }
+  }, [loading, data, filtrosAplicados, total, rows.length, showInfo, showSuccess]);
+
+  useEffect(() => {
+    setPage(data?.page ?? filtrosAplicados.page);
+  }, [data?.page, filtrosAplicados.page]);
 
   const handleAplicarFiltros = async () => {
     if (!fechaIni && !fechaFin && !porteria) {
@@ -144,7 +142,15 @@ export default function InformeControlVehicularPage() {
       return;
     }
 
-    await cargar(1);
+    setFiltrosAplicados({
+      page: 1,
+      limit,
+      buscador: buscador.trim() || undefined,
+      fechaIni: fechaIni || undefined,
+      fechaFin: fechaFin || undefined,
+      porteria: porteria || undefined,
+      notificar: "verbose",
+    });
   };
 
   const handleLimpiarFiltros = async () => {
@@ -158,25 +164,45 @@ export default function InformeControlVehicularPage() {
     setPorteria("");
     setBuscador("");
     setLimit(10);
-    await cargar(1);
+    setPage(1);
+    setFiltrosAplicados({
+      page: 1,
+      limit: 10,
+      buscador: undefined,
+      fechaIni: undefined,
+      fechaFin: undefined,
+      porteria: undefined,
+      notificar: "verbose",
+    });
   };
 
   const handlePaginationChange = useCallback(
     (nuevaPagina: number) => {
       if (nuevaPagina < 1 || nuevaPagina > totalPages || nuevaPagina === page) return;
-      void cargar(nuevaPagina, { silent: true });
+      setFiltrosAplicados((prev) => ({
+        ...prev,
+        page: nuevaPagina,
+        notificar: "silent",
+      }));
     },
-    [cargar, page, totalPages],
+    [page, totalPages],
   );
 
-  const handleCambiarLimite = async (nuevoLimite: number) => {
+  const handleCambiarLimite = (nuevoLimite: number) => {
     setLimit(nuevoLimite);
-    await cargar(1, { limitOverride: nuevoLimite });
+    setPage(1);
+    setFiltrosAplicados((prev) => ({
+      ...prev,
+      page: 1,
+      limit: nuevoLimite,
+      notificar: "verbose",
+    }));
   };
 
   const handleExportar = async () => {
     try {
       setExporting(true);
+      const XLSX = await import("xlsx");
       const res = await informeControlVehicularService.listar({
         page: 1,
         limit: EXPORT_LIST_LIMIT,

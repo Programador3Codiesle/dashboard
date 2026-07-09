@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
 import { tallasPersonalService } from '@/modules/informes/gestion-humana/services/tallas-personal.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -39,8 +38,9 @@ export default function TallasPersonalPage() {
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, currentPage]);
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     if (!rows.length) return;
+    const XLSX = await import('xlsx');
 
     const excelRows = rows.map((r) => {
       const genero = r.genero === 0 ? 'Mujer' : 'Hombre';

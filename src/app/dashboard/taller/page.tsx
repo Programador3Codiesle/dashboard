@@ -9,15 +9,24 @@ import {
   ClipboardCheck,
   FileBarChart2,
   Headphones,
+  RotateCcw,
   Settings,
+  TrendingUp,
+  Wallet,
   Wrench,
 } from "lucide-react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import {
+  CODIESEL_EMPRESA_ID,
   ENTRADA_VEHICULO_SUBMENU_ID,
   ESTADO_TALLER_SUBMENU_ID,
   INFORME_OT_ABIERTAS_SUBMENU_ID,
+  INFORME_POSIBLES_RETORNOS_SUBMENU_ID,
   MPVI_SUBMENU_IDS,
+  POSIBLES_RETORNOS_SUBMENU_ID,
+  PRESUPUESTO_SUBMENU_ID,
+  PYG_ASESORES_REPUESTOS_SUBMENU_ID,
+  PYG_TECNICOS_SUBMENU_ID,
 } from "@/utils/constants";
 
 interface Submodulo {
@@ -26,6 +35,8 @@ interface Submodulo {
   descripcion: string;
   ruta: string;
   submenuId?: number;
+  /** Si se define, el submódulo solo se muestra para esa empresa */
+  empresaId?: number;
   icono: React.ComponentType<{ size?: number; className?: string }>;
 }
 
@@ -45,6 +56,49 @@ const SUBMODULOS: Submodulo[] = [
     ruta: "/dashboard/taller/informe-ordenes-abiertas",
     submenuId: INFORME_OT_ABIERTAS_SUBMENU_ID,
     icono: FileBarChart2,
+  },
+  {
+    id: "informe-posibles-retornos",
+    nombre: "Informe posibles retornos",
+    descripcion: "Gráfico comparativo de entradas, retornos y posibles retornos",
+    ruta: "/dashboard/taller/informe-posibles-retornos",
+    submenuId: INFORME_POSIBLES_RETORNOS_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
+    icono: RotateCcw,
+  },
+  {
+    id: "posibles-retornos",
+    nombre: "Posibles retornos",
+    descripcion: "Gestión y seguimiento de posibles retornos en taller",
+    ruta: "/dashboard/taller/posibles-retornos",
+    submenuId: POSIBLES_RETORNOS_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
+    icono: RotateCcw,
+  },
+  {
+    id: "pyg-asesores-repuestos",
+    nombre: "P&G Asesores de Repuestos",
+    descripcion: "Informe de utilidades por asesor con comparación anual",
+    ruta: "/dashboard/taller/pyg-asesores-repuestos",
+    submenuId: PYG_ASESORES_REPUESTOS_SUBMENU_ID,
+    icono: TrendingUp,
+  },
+  {
+    id: "pyg-tecnicos",
+    nombre: "P&G Técnicos",
+    descripcion: "Informe de utilidades por técnico con comparación anual",
+    ruta: "/dashboard/taller/pyg-tecnicos",
+    submenuId: PYG_TECNICOS_SUBMENU_ID,
+    icono: TrendingUp,
+  },
+  {
+    id: "presupuesto",
+    nombre: "Presupuesto",
+    descripcion: "Consulta y edición de presupuesto mensual por sede y categoría",
+    ruta: "/dashboard/taller/presupuesto",
+    submenuId: PRESUPUESTO_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
+    icono: Wallet,
   },
   {
     id: "entrada-vehiculo",
@@ -103,9 +157,15 @@ export default function TallerPage() {
       if (typeof submodulo.submenuId !== "number") {
         return false;
       }
+      if (
+        submodulo.empresaId != null &&
+        user?.empresa !== submodulo.empresaId
+      ) {
+        return false;
+      }
       return submenusPermitidos.has(submodulo.submenuId);
     });
-  }, [user?.submenus_permitidos]);
+  }, [user?.submenus_permitidos, user?.empresa]);
 
   return (
     <div className="space-y-4 sm:space-y-6">

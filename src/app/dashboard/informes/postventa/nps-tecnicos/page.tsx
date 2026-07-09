@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   NpsTecnicoRow,
   OrigenNpsTecnicos,
@@ -62,44 +62,55 @@ export default function NpsTecnicosPage() {
   const [origen, setOrigen] = useState<OrigenNpsTecnicos>('nps_int');
   const [sede, setSede] = useState<SedeNpsTecnicos>('todas');
   const [mes, setMes] = useState<number>(0);
-  const [rows, setRows] = useState<NpsTecnicoRow[]>([]);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    origen: OrigenNpsTecnicos;
+    sede: SedeNpsTecnicos;
+    mes: number;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { showError, showInfo } = useToast();
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [rows]);
-
-  const { mutate, status } = useMutation<NpsTecnicoRow[], Error, void>({
-    mutationFn: async () => {
-      const data = await npsTecnicosService.listar({
-        origen,
-        sede,
-        mes,
-      });
-      setRows(data);
-      if (!data.length) {
-        showInfo('No hay datos para los filtros seleccionados.');
-      }
-      return data;
-    },
-    onError: () => {
-      showError('No se pudo cargar el informe NPS por técnicos.');
-    },
+  const {
+    data: rows = [],
+    isFetching,
+    isError,
+  } = useQuery<NpsTecnicoRow[]>({
+    queryKey: ['informes', 'postventa', 'nps-tecnicos', filtrosAplicados],
+    queryFn: () =>
+      npsTecnicosService.listar({
+        origen: filtrosAplicados!.origen,
+        sede: filtrosAplicados!.sede,
+        mes: filtrosAplicados!.mes,
+      }),
+    enabled: filtrosAplicados != null,
   });
+
+  useEffect(() => {
+    if (!isError) return;
+    showError('No se pudo cargar el informe NPS por técnicos.');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (filtrosAplicados == null || isFetching) return;
+    if (rows.length === 0) {
+      showInfo('No hay datos para los filtros seleccionados.');
+    }
+  }, [filtrosAplicados, isFetching, rows.length, showInfo]);
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate();
+    setCurrentPage(1);
+    setFiltrosAplicados({ origen, sede, mes });
   };
 
   const totalRows = rows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, currentPage]);
+  }, [rows, safeCurrentPage]);
 
   return (
     <div className="space-y-6">
@@ -170,10 +181,10 @@ export default function NpsTecnicosPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={status === 'pending'}
+            disabled={isFetching}
             className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
           >
-            {status === 'pending' ? 'Buscando...' : 'Buscar'}
+            {isFetching ? 'Buscando...' : 'Buscar'}
           </button>
         </div>
       </form>
@@ -214,7 +225,7 @@ export default function NpsTecnicosPage() {
                   <td className="px-2 py-1 text-center">{row.mesNombre}</td>
                 </tr>
               ))}
-              {status !== 'pending' && rows.length === 0 && (
+              {!isFetching && rows.length === 0 && (
                 <tr>
                   <td
                     className="px-3 py-3 text-center text-gray-400 text-xs"
@@ -228,10 +239,10 @@ export default function NpsTecnicosPage() {
             </tbody>
           </table>
         </div>
-        {status !== 'pending' && totalRows > 0 && (
+        {!isFetching && totalRows > 0 && (
           <div className="pt-4 border-t border-gray-200 flex justify-center">
             <Pagination
-              currentPage={currentPage}
+              currentPage={safeCurrentPage}
               totalPages={totalPages}
               onChange={setCurrentPage}
             />

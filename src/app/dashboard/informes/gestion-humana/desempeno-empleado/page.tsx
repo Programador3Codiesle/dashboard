@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { desempenoEmpleadoService } from '@/modules/informes/gestion-humana/services/desempeno-empleado.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
@@ -29,57 +29,68 @@ export default function DesempenoEmpleadoPage() {
   const [anio, setAnio] = useState<number>(currentYear);
   const [sede, setSede] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    anio: number;
+    sede?: string;
+  } | null>(null);
   const [loadingExport, setLoadingExport] = useState(false);
-  const [rows, setRows] = useState<Awaited<ReturnType<typeof desempenoEmpleadoService.listar>>['items']>(
-    [],
-  );
 
-  const mutation = useMutation({
-    mutationFn: async (page: number) => {
-      return desempenoEmpleadoService.listar({
-        anio,
-        sede: sede || undefined,
-        pagina: page,
+  const {
+    data,
+    isFetching,
+    isError,
+  } = useQuery({
+    queryKey: [
+      'informes',
+      'gestion-humana',
+      'desempeno-empleado',
+      filtrosAplicados,
+      currentPage,
+    ],
+    queryFn: () =>
+      desempenoEmpleadoService.listar({
+        anio: filtrosAplicados!.anio,
+        sede: filtrosAplicados!.sede,
+        pagina: currentPage,
         limite: PAGE_SIZE,
-      });
-    },
-    onSuccess: (result) => {
-      setTotalItems(result.total ?? 0);
-      setRows(result.items ?? []);
-      if ((result.total ?? 0) === 0) {
-        showInfo('No hay registros para los filtros seleccionados.');
-      }
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error consultando informe de desempeño de empleados';
-      showError(message);
-    },
+      }),
+    enabled: filtrosAplicados != null,
+    retry: false,
+    staleTime: 60 * 1000,
   });
 
   const handleFiltrar = () => {
-    setHasSearched(true);
     setCurrentPage(1);
-    mutation.mutate(1);
+    setFiltrosAplicados({
+      anio,
+      sede: sede || undefined,
+    });
   };
 
   const changePage = (page: number) => {
     setCurrentPage(page);
-    if (hasSearched) {
-      mutation.mutate(page);
-    }
   };
 
+  const rows = data?.items ?? [];
+  const totalItems = data?.total ?? 0;
+  const hasSearched = filtrosAplicados != null;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const data = rows;
-  const isPageLoading = mutation.isPending && data.length > 0;
+  const isPageLoading = isFetching && rows.length > 0;
+
+  useEffect(() => {
+    if (!isError) return;
+    showError('Error consultando informe de desempeño de empleados');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (!hasSearched || isFetching) return;
+    if (totalItems === 0) {
+      showInfo('No hay registros para los filtros seleccionados.');
+    }
+  }, [hasSearched, isFetching, totalItems, showInfo]);
 
   const handleExportCsv = async () => {
-    if (!hasSearched || totalItems === 0) {
+    if (!hasSearched || totalItems === 0 || !filtrosAplicados) {
       showError('No hay datos para exportar.');
       return;
     }
@@ -87,8 +98,8 @@ export default function DesempenoEmpleadoPage() {
     setLoadingExport(true);
     try {
       const resultado = await desempenoEmpleadoService.listar({
-        anio,
-        sede: sede || undefined,
+        anio: filtrosAplicados.anio,
+        sede: filtrosAplicados.sede,
         pagina: 1,
         limite: totalItems,
       });
@@ -192,10 +203,10 @@ export default function DesempenoEmpleadoPage() {
           <button
             type="button"
             onClick={handleFiltrar}
-            disabled={mutation.isPending || !anio}
+            disabled={isFetching || !anio}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            {mutation.isPending ? 'Consultando...' : 'Filtrar'}
+            {isFetching ? 'Consultando...' : 'Filtrar'}
           </button>
           <button
             type="button"
@@ -240,14 +251,14 @@ export default function DesempenoEmpleadoPage() {
               </tr>
             </thead>
             <tbody>
-              {!mutation.isPending && !data.length && (
+              {!isFetching && !rows.length && (
                 <tr>
                   <td colSpan={13} className="px-2 py-4 text-center text-gray-500">
                     {hasSearched ? 'No hay datos para mostrar' : 'Use los filtros y presione Filtrar'}
                   </td>
                 </tr>
               )}
-              {data.map((row) => (
+              {rows.map((row) => (
                 <tr key={row.id} className="border-t text-[11px]">
                   <td className="px-2 py-1">{row.nitEmpleado}</td>
                   <td className="px-2 py-1">{row.empleado}</td>

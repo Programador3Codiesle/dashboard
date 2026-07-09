@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Search, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import {
   ComisionLaminaPintura,
@@ -102,11 +101,12 @@ export default function ComisionesLaminaPinturaPage() {
     detalleMutation.mutate({ desde, hasta, nit: row.operario });
   };
 
-  const onExportExcel = () => {
+  const onExportExcel = async () => {
     if (rows.length === 0) {
       showError('No hay información para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(
       rows.map((r) => ({
         Cedula: r.operario,
@@ -137,11 +137,12 @@ export default function ComisionesLaminaPinturaPage() {
     XLSX.writeFile(wb, `nomina-lamina-pintura-${desde}-a-${hasta}.xlsx`);
   };
 
-  const onExportDetalle = () => {
+  const onExportDetalle = async () => {
     if (detalleRows.length === 0) {
       showError('No hay detalle para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(detalleRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Detalle LYP');

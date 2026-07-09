@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useState, useMemo, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState, useMemo, useRef } from "react";
 
 type ToastVariant = "success" | "error" | "info";
 
@@ -21,6 +21,16 @@ const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const lastToastRef = useRef<{ key: string; ts: number } | null>(null);
+  const timeoutIdsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const id of timeoutIdsRef.current) {
+        clearTimeout(id);
+      }
+      timeoutIdsRef.current = [];
+    };
+  }, []);
 
   const addToast = useCallback((message: string, variant: ToastVariant) => {
     const key = `${variant}:${message}`;
@@ -38,9 +48,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       { id: now + Math.random(), message, variant },
     ]);
     // Auto-remove después de unos segundos (ligeramente más largo para facilitar la lectura)
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setToasts((prev) => prev.slice(1));
     }, 7000);
+    timeoutIdsRef.current.push(timeoutId);
   }, []);
 
   const showSuccess = useCallback((message: string) => addToast(message, "success"), [addToast]);

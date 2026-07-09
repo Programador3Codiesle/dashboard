@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { FileSpreadsheet, Search } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import {
   NominaDirectorFlotasDetalle,
@@ -53,11 +52,12 @@ export default function NominaDirectorFlotasPage() {
     generarMutation.mutate(mes);
   };
 
-  const onExportarPrincipal = () => {
+  const onExportarPrincipal = async () => {
     if (principalRows.length === 0) {
       showError('No hay datos de placas nuevas para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(
       principalRows.map((row) => ({
         '#': row.item,
@@ -72,11 +72,12 @@ export default function NominaDirectorFlotasPage() {
     XLSX.writeFile(wb, `nomina-director-flotas-placas-${mes || 'sin-mes'}.xlsx`);
   };
 
-  const onExportarDetalle = () => {
+  const onExportarDetalle = async () => {
     if (detalleRows.length === 0) {
       showError('No hay datos de actualización flota para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(
       detalleRows.map((row) => ({
         '#': row.item,

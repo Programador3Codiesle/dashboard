@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { segundaEntregaService, SegundaEntregaDetalle, SegundaEntregaResumen } from '@/modules/informes/postventa/services/segunda-entrega.service';
 import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
@@ -36,40 +36,46 @@ const inputDateClass =
 export default function SegundaEntregaPage() {
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [data, setData] = useState<DataState | null>(null);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    fi: string;
+    ff: string;
+  } | null>(null);
   const [rangoConsultado, setRangoConsultado] = useState<{
     desde: string;
     hasta: string;
   } | null>(null);
   const { showInfo, showError } = useToast();
 
-  const { mutate, isPending } = useMutation<DataState, Error, void>({
-    mutationFn: async () => {
-      if (!fechaIni || !fechaFin) {
-        showInfo('Debes seleccionar fecha inicial y fecha final.');
-        throw new Error('fechas-requeridas');
-      }
-
-      const fi = fechaIni;
-      const ff = fechaFin;
-
-      const resp = await segundaEntregaService.listar(fi, ff);
-      if (resp.resumen.length === 0 && resp.detalle.length === 0) {
-        showInfo('No hay datos para el rango de fechas seleccionado.');
-      }
-      setRangoConsultado({ desde: fi, hasta: ff });
-      setData(resp);
-      return resp;
-    },
-    onError: (error) => {
-      if (error.message !== 'fechas-requeridas') {
-        showError('No se pudo cargar el informe de Segunda Entrega.');
-      }
-    },
+  const {
+    data,
+    isFetching: isPending,
+    isError,
+  } = useQuery<DataState>({
+    queryKey: ['informes', 'postventa', 'segunda-entrega', filtrosAplicados],
+    queryFn: () => segundaEntregaService.listar(filtrosAplicados!.fi, filtrosAplicados!.ff),
+    enabled: filtrosAplicados != null,
+    staleTime: 60 * 1000,
   });
 
+  useEffect(() => {
+    if (!isError) return;
+    showError('No se pudo cargar el informe de Segunda Entrega.');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (!data || isPending) return;
+    if (data.resumen.length === 0 && data.detalle.length === 0) {
+      showInfo('No hay datos para el rango de fechas seleccionado.');
+    }
+  }, [data, isPending, showInfo]);
+
   const handleBuscar = () => {
-    mutate();
+    if (!fechaIni || !fechaFin) {
+      showInfo('Debes seleccionar fecha inicial y fecha final.');
+      return;
+    }
+    setRangoConsultado({ desde: fechaIni, hasta: fechaFin });
+    setFiltrosAplicados({ fi: fechaIni, ff: fechaFin });
   };
 
   return (

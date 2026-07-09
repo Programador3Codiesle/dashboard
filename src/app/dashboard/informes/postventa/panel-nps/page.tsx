@@ -22,9 +22,12 @@ function inferirMesesVentana(series: SedeSerieNps[] | undefined): number[] {
 
 export default function PanelNpsPage() {
   const { showError, showInfo } = useToast();
-  const [detalleOpen, setDetalleOpen] = useState(false);
-  const [detalle, setDetalle] = useState<PanelNpsDetalle | null>(null);
-  const [detalleLoading, setDetalleLoading] = useState(false);
+  const [detalleRequest, setDetalleRequest] = useState<
+    | { tipo: 'general'; mes: number }
+    | { tipo: 'sede'; sede: string; mes: number }
+    | { tipo: 'tecnico'; nit: string; sede: string; mes: number }
+    | null
+  >(null);
 
   const {
     data,
@@ -69,73 +72,79 @@ export default function PanelNpsPage() {
     }));
   }, [data?.tabla]);
 
+  const {
+    data: detalle = null,
+    isFetching: detalleLoading,
+    isError: detalleError,
+    isFetched: detalleFetched,
+  } = useQuery<PanelNpsDetalle | null>({
+    queryKey: ['informes', 'postventa', 'panel-nps', 'detalle', detalleRequest],
+    queryFn: () => {
+      if (!detalleRequest) return Promise.resolve(null);
+      if (detalleRequest.tipo === 'general') {
+        return panelNpsService.obtenerDetalleGeneral({ mes: detalleRequest.mes });
+      }
+      if (detalleRequest.tipo === 'sede') {
+        return panelNpsService.obtenerDetalleSede({
+          sede: detalleRequest.sede,
+          mes: detalleRequest.mes,
+        });
+      }
+      return panelNpsService.obtenerDetalleTecnico({
+        nit: detalleRequest.nit,
+        sede: detalleRequest.sede,
+        mes: detalleRequest.mes,
+      });
+    },
+    enabled: detalleRequest != null,
+  });
+
+  useEffect(() => {
+    if (!detalleRequest || detalleLoading || !detalleFetched || detalleError) return;
+    if (detalle !== null) return;
+    if (detalleRequest.tipo === 'general') {
+      showInfo('No hay detalle para el mes seleccionado.');
+    } else if (detalleRequest.tipo === 'sede') {
+      showInfo('No hay detalle para la sede y mes seleccionados.');
+    } else {
+      showInfo('No hay detalle para el técnico y mes seleccionados.');
+    }
+  }, [detalleRequest, detalleLoading, detalleFetched, detalleError, detalle, showInfo]);
+
+  useEffect(() => {
+    if (!detalleError || !detalleRequest) return;
+    if (detalleRequest.tipo === 'general') {
+      showError('No se pudo cargar el detalle general.');
+    } else if (detalleRequest.tipo === 'sede') {
+      showError('No se pudo cargar el detalle por sede.');
+    } else {
+      showError('No se pudo cargar el detalle por técnico.');
+    }
+  }, [detalleError, detalleRequest, showError]);
+
   const cerrarDetalle = useCallback(() => {
-    setDetalleOpen(false);
-    setDetalle(null);
-    setDetalleLoading(false);
+    setDetalleRequest(null);
   }, []);
 
   const abrirDetalleGeneral = useCallback(
-    async (mes: number) => {
-      setDetalleOpen(true);
-      setDetalleLoading(true);
-      setDetalle(null);
-      try {
-        const resp = await panelNpsService.obtenerDetalleGeneral({ mes });
-        if (!resp) {
-          showInfo('No hay detalle para el mes seleccionado.');
-        }
-        setDetalle(resp);
-      } catch {
-        showError('No se pudo cargar el detalle general.');
-        setDetalle(null);
-      } finally {
-        setDetalleLoading(false);
-      }
+    (mes: number) => {
+      setDetalleRequest({ tipo: 'general', mes });
     },
-    [showError, showInfo],
+    [],
   );
 
   const abrirDetalleSede = useCallback(
-    async (sede: string, mes: number) => {
-      setDetalleOpen(true);
-      setDetalleLoading(true);
-      setDetalle(null);
-      try {
-        const resp = await panelNpsService.obtenerDetalleSede({ sede, mes });
-        if (!resp) {
-          showInfo('No hay detalle para la sede y mes seleccionados.');
-        }
-        setDetalle(resp);
-      } catch {
-        showError('No se pudo cargar el detalle por sede.');
-        setDetalle(null);
-      } finally {
-        setDetalleLoading(false);
-      }
+    (sede: string, mes: number) => {
+      setDetalleRequest({ tipo: 'sede', sede, mes });
     },
-    [showError, showInfo],
+    [],
   );
 
   const abrirDetalleTecnico = useCallback(
-    async (p: { nit: string; mes: number; sede: string }) => {
-      setDetalleOpen(true);
-      setDetalleLoading(true);
-      setDetalle(null);
-      try {
-        const resp = await panelNpsService.obtenerDetalleTecnico(p);
-        if (!resp) {
-          showInfo('No hay detalle para el técnico y mes seleccionados.');
-        }
-        setDetalle(resp);
-      } catch {
-        showError('No se pudo cargar el detalle por técnico.');
-        setDetalle(null);
-      } finally {
-        setDetalleLoading(false);
-      }
+    (p: { nit: string; mes: number; sede: string }) => {
+      setDetalleRequest({ tipo: 'tecnico', ...p });
     },
-    [showError, showInfo],
+    [],
   );
 
   const mesMasRecienteGeneral = useMemo(() => {
@@ -198,7 +207,7 @@ export default function PanelNpsPage() {
       </div>
 
       <PanelNpsDetalleModal
-        open={detalleOpen}
+        open={detalleRequest != null}
         detalle={detalle}
         isLoading={detalleLoading}
         onClose={cerrarDetalle}

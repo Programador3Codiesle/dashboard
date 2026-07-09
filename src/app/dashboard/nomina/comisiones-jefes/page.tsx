@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Search, Settings, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import {
   ComisionJefe,
@@ -181,11 +180,12 @@ export default function ComisionesJefesPage() {
     });
   };
 
-  const onExportarExcel = () => {
+  const onExportarExcel = async () => {
     if (rows.length === 0) {
       showError('No hay información para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(
       rows.map((row) => ({
         Cedula: row.nit,
@@ -208,11 +208,12 @@ export default function ComisionesJefesPage() {
     XLSX.writeFile(wb, `comisiones-jefes-${mes || 'sin-mes'}.xlsx`);
   };
 
-  const onExportarDetalle = () => {
+  const onExportarDetalle = async () => {
     if (detalleRows.length === 0) {
       showError('No hay detalle para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(detalleRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'DetalleJefes');

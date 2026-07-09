@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DateRange } from 'react-day-picker';
 import { encuestaSatisfaccionService, EncuestaSatisfaccionResumen } from '@/modules/informes/postventa/services/encuesta-satisfaccion.service';
 import { SelectSede } from '@/shared/components/selects/select-sede';
@@ -21,50 +21,42 @@ export default function EncuestaSatisfaccionPage() {
   const [cliente, setCliente] = useState<string>('');
   const [orden, setOrden] = useState<string>('');
   const [nivel, setNivel] = useState<NivelSatisfaccion>(0);
-  const searchInFlightRef = useRef(false);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    fi: string;
+    ff: string;
+    bode: string;
+    tec: string;
+    cli?: string;
+    ot?: string;
+    ns: NivelSatisfaccion;
+  } | null>(null);
 
   const { showError, showSuccess, showInfo } = useToast();
 
-  const { mutate, data, status } = useMutation<EncuestaSatisfaccionResumen[], Error, void>({
-    mutationFn: async () => {
-      if (!dateRange?.from || !dateRange?.to) {
-        showInfo('Selecciona un rango de fechas.');
-        throw new Error('Rango de fechas requerido');
-      }
-
-      const fi = dateRange.from.toISOString().slice(0, 10);
-      const ff = dateRange.to.toISOString().slice(0, 10);
-
-      const resultados = await encuestaSatisfaccionService.listar({
-        fi,
-        ff,
-        bode: bodega,
-        tec: tecnico,
-        cli: cliente || undefined,
-        ot: orden || undefined,
-        ns: nivel || 0,
-      });
-
-      if (resultados.length === 0) {
-        showInfo('No hay datos para los filtros seleccionados.');
-      }
-
-      return resultados;
-    },
-    onSuccess: (resultados) => {
-      if (resultados.length > 0) {
-        showSuccess('Informe de encuestas cargado correctamente.');
-      }
-    },
-    onError: (error) => {
-      if (error.message !== 'Rango de fechas requerido') {
-        showError('No se pudo cargar el informe de encuestas.');
-      }
-    },
-    onSettled: () => {
-      searchInFlightRef.current = false;
-    },
+  const {
+    data,
+    isFetching,
+    isError,
+  } = useQuery<EncuestaSatisfaccionResumen[]>({
+    queryKey: ['informes', 'postventa', 'encuesta-satisfaccion', filtrosAplicados],
+    queryFn: () => encuestaSatisfaccionService.listar(filtrosAplicados!),
+    enabled: filtrosAplicados != null,
+    staleTime: 60 * 1000,
   });
+
+  useEffect(() => {
+    if (!isError) return;
+    showError('No se pudo cargar el informe de encuestas.');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (filtrosAplicados == null || isFetching || !data) return;
+    if (data.length === 0) {
+      showInfo('No hay datos para los filtros seleccionados.');
+    } else {
+      showSuccess('Informe de encuestas cargado correctamente.');
+    }
+  }, [filtrosAplicados, isFetching, data, showInfo, showSuccess]);
 
   const getColorClase = (valor: number) => {
     if (valor > 8 && valor <= 10) return 'bg-emerald-500 text-white';
@@ -73,9 +65,22 @@ export default function EncuestaSatisfaccionPage() {
   };
 
   const handleBuscar = () => {
-    if (status === 'pending' || searchInFlightRef.current) return;
-    searchInFlightRef.current = true;
-    mutate();
+    if (isFetching) return;
+    if (!dateRange?.from || !dateRange?.to) {
+      showInfo('Selecciona un rango de fechas.');
+      return;
+    }
+    const fi = dateRange.from.toISOString().slice(0, 10);
+    const ff = dateRange.to.toISOString().slice(0, 10);
+    setFiltrosAplicados({
+      fi,
+      ff,
+      bode: bodega,
+      tec: tecnico,
+      cli: cliente || undefined,
+      ot: orden || undefined,
+      ns: nivel || 0,
+    });
   };
 
   const dateInputValue = (date?: Date) => (date ? date.toISOString().slice(0, 10) : '');
@@ -181,10 +186,10 @@ export default function EncuestaSatisfaccionPage() {
           <button
             type="button"
             onClick={handleBuscar}
-            disabled={status === 'pending'}
+            disabled={isFetching}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            {status === 'pending' ? 'Cargando...' : 'Buscar'}
+            {isFetching ? 'Cargando...' : 'Buscar'}
           </button>
           {(data?.length ?? 0) > 0 && (
             <span className="text-xs text-gray-500">

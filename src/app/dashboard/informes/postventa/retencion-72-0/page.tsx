@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
 import { Loader2 } from 'lucide-react';
 import Modal from '@/components/shared/ui/Modal';
 import { useToast } from '@/components/shared/ui/ToastContext';
@@ -20,6 +19,7 @@ import {
 
 type Vista = 'general' | 'autos' | 'byc' | 'familia';
 type TipoVehiculosModal = '12m' | 'anio' | null;
+const VEHICULOS_PAGE_SIZE = 100;
 
 const TRAMOS = [
   { label: '12-0', p: 'p0_12', e: 'e0_12' },
@@ -99,6 +99,7 @@ export default function Retencion720Page() {
   const [modalFamilia, setModalFamilia] = useState(false);
   const [modalObjetivos, setModalObjetivos] = useState(false);
   const [modalVehiculos, setModalVehiculos] = useState<TipoVehiculosModal>(null);
+  const [vehiculosPage, setVehiculosPage] = useState(1);
   const [tipoFamilia, setTipoFamilia] = useState<'autos' | 'byc'>('autos');
   const [segmentoFamilia, setSegmentoFamilia] = useState('');
   const [familiasSeleccionadas, setFamiliasSeleccionadas] = useState<string[]>([]);
@@ -201,6 +202,12 @@ export default function Retencion720Page() {
     }
   }, [resumenQuery.isError, showError]);
 
+  useEffect(() => {
+    if (modalVehiculos != null) {
+      setVehiculosPage(1);
+    }
+  }, [modalVehiculos]);
+
   const rows = useMemo(() => {
     if (vista === 'general') return (resumenQuery.data ?? []).map(normalize);
     if (vista === 'autos') return (filtroAutosQuery.data ?? []).map(normalize);
@@ -255,7 +262,7 @@ export default function Retencion720Page() {
     (vista === 'byc' && filtroByCQuery.isPending) ||
     (vista === 'familia' && filtroFamiliaQuery.isPending);
 
-  const exportarVehiculos = () => {
+  const exportarVehiculos = async () => {
     const items =
       modalVehiculos === '12m'
         ? vehiculos12Query.data?.items ?? []
@@ -264,6 +271,7 @@ export default function Retencion720Page() {
       showInfo('No hay datos para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(items);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Vehiculos');
@@ -275,6 +283,25 @@ export default function Retencion720Page() {
     );
     showSuccess('Archivo Excel generado correctamente.');
   };
+
+  const vehiculosItems =
+    modalVehiculos === '12m'
+      ? vehiculos12Query.data?.items ?? []
+      : modalVehiculos === 'anio'
+        ? vehiculosAnioQuery.data?.items ?? []
+        : [];
+  const vehiculosTotal = vehiculosItems.length;
+  const vehiculosTotalPages = Math.max(
+    1,
+    Math.ceil(vehiculosTotal / VEHICULOS_PAGE_SIZE),
+  );
+  const vehiculosSafePage = Math.min(
+    Math.max(1, vehiculosPage),
+    vehiculosTotalPages,
+  );
+  const vehiculosStart = (vehiculosSafePage - 1) * VEHICULOS_PAGE_SIZE;
+  const vehiculosEnd = Math.min(vehiculosStart + VEHICULOS_PAGE_SIZE, vehiculosTotal);
+  const vehiculosPageItems = vehiculosItems.slice(vehiculosStart, vehiculosEnd);
 
   return (
     <div className="space-y-6">
@@ -479,10 +506,43 @@ export default function Retencion720Page() {
         width="900px"
       >
         <div className="space-y-3">
-          <div className="flex justify-end">
-            <button className="px-3 py-2 rounded border text-sm" onClick={exportarVehiculos}>
-              Exportar Excel
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="text-xs text-gray-600">
+              {vehiculosTotal > 0 ? (
+                <>
+                  Mostrando <span className="font-medium">{vehiculosStart + 1}</span>-
+                  <span className="font-medium">{vehiculosEnd}</span> de{' '}
+                  <span className="font-medium">{vehiculosTotal}</span>
+                </>
+              ) : (
+                <>Sin registros para mostrar</>
+              )}
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <button
+                className="px-3 py-2 rounded border text-sm disabled:opacity-50"
+                disabled={vehiculosSafePage <= 1}
+                onClick={() => setVehiculosPage((p) => Math.max(1, p - 1))}
+              >
+                Anterior
+              </button>
+              <div className="text-xs text-gray-600">
+                Página <span className="font-medium">{vehiculosSafePage}</span> /{' '}
+                <span className="font-medium">{vehiculosTotalPages}</span>
+              </div>
+              <button
+                className="px-3 py-2 rounded border text-sm disabled:opacity-50"
+                disabled={vehiculosSafePage >= vehiculosTotalPages}
+                onClick={() =>
+                  setVehiculosPage((p) => Math.min(vehiculosTotalPages, p + 1))
+                }
+              >
+                Siguiente
+              </button>
+              <button className="px-3 py-2 rounded border text-sm" onClick={exportarVehiculos}>
+                Exportar Excel
+              </button>
+            </div>
           </div>
           <div className="max-h-[420px] overflow-auto border rounded">
             <table className="min-w-full text-xs">
@@ -497,10 +557,7 @@ export default function Retencion720Page() {
                 </tr>
               </thead>
               <tbody>
-                {(modalVehiculos === '12m'
-                  ? vehiculos12Query.data?.items
-                  : vehiculosAnioQuery.data?.items
-                )?.map((v) => (
+                {vehiculosPageItems.map((v) => (
                   <tr key={`${v.placa}-${v.codigo}`} className="border-t">
                     <td className="px-2 py-1">{v.placa ?? '-'}</td>
                     <td className="px-2 py-1">{v.serie ?? '-'}</td>

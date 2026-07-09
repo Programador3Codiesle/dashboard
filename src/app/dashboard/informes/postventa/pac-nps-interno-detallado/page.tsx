@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import {
   pacNpsInternoDetalladoService,
   type PacNpsEncuestaTecnico,
@@ -43,11 +42,12 @@ function triggerBlobDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function exportarResumenYDetalleBodegaXlsx(
+async function exportarResumenYDetalleBodegaXlsx(
   bodegas: PacNpsInternoBodega[],
   tecnicos: PacNpsTecnicoBodega[] | undefined,
   tituloDetalleBodega: string | null,
 ) {
+  const XLSX = await import('xlsx');
   const wb = XLSX.utils.book_new();
   const headers = bodegas.map((b) => b.descripcion);
   const rowVals = bodegas.map(
@@ -169,7 +169,7 @@ export default function PacNpsInternoDetalladoPage() {
       showInfo('Primero ejecute una búsqueda con datos.');
       return;
     }
-    exportarResumenYDetalleBodegaXlsx(
+    void exportarResumenYDetalleBodegaXlsx(
       resumen.bodegas,
       tecnicos,
       bodegaSel?.descripcion ?? null,

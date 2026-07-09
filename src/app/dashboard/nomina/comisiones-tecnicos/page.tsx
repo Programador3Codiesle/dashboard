@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Search, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import {
   ComisionTecnico,
@@ -77,11 +76,12 @@ export default function ComisionesTecnicosPage() {
     });
   };
 
-  const onExportExcel = () => {
+  const onExportExcel = async () => {
     if (rows.length === 0) {
       showError('No hay información para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(
       rows.map((r) => ({
         Cedula: r.nit,
@@ -106,11 +106,12 @@ export default function ComisionesTecnicosPage() {
     XLSX.writeFile(wb, `nomina-tecnicos-${mes || 'sin-mes'}.xlsx`);
   };
 
-  const onExportDetalle = () => {
+  const onExportDetalle = async () => {
     if (detalleRows.length === 0) {
       showError('No hay detalle para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const ws = XLSX.utils.json_to_sheet(detalleRows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'DetalleTecnicos');

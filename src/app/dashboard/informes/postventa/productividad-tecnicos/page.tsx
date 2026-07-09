@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   ProductividadTecnicoRow,
   ProductividadTecnicosResponse,
@@ -57,42 +57,53 @@ export default function ProductividadTecnicosPage() {
   const [year, setYear] = useState<number>(today.getFullYear());
   const [month, setMonth] = useState<number>(today.getMonth() + 1);
   const [patiosSeleccionados, setPatiosSeleccionados] = useState<number[]>([]);
-  const [data, setData] = useState<ProductividadTecnicosResponse | null>(null);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    year: number;
+    month: number;
+    patios: number[];
+  } | null>(null);
   const [pageActual, setPageActual] = useState(1);
   const [pageConsolidado, setPageConsolidado] = useState(1);
 
   const { showError, showInfo } = useToast();
 
-  useEffect(() => {
-    setPageActual(1);
-    setPageConsolidado(1);
-  }, [data]);
-
-  const { mutate, status } = useMutation<
-    ProductividadTecnicosResponse,
-    Error,
-    void
-  >({
-    mutationFn: async () => {
-      const resp = await productividadTecnicosService.obtener({
-        year,
-        month,
-        patios: patiosSeleccionados,
-      });
-      setData(resp);
-      if (!resp.actual.length && !resp.consolidado.length) {
-        showInfo('No hay datos para los filtros seleccionados.');
-      }
-      return resp;
-    },
-    onError: () => {
-      showError('No se pudo cargar el informe de productividad de técnicos.');
-    },
+  const {
+    data,
+    isFetching,
+    isError,
+  } = useQuery<ProductividadTecnicosResponse>({
+    queryKey: ['informes', 'postventa', 'productividad-tecnicos', filtrosAplicados],
+    queryFn: () =>
+      productividadTecnicosService.obtener({
+        year: filtrosAplicados!.year,
+        month: filtrosAplicados!.month,
+        patios: filtrosAplicados!.patios,
+      }),
+    enabled: filtrosAplicados != null,
+    staleTime: 60 * 1000,
   });
+
+  useEffect(() => {
+    if (!isError) return;
+    showError('No se pudo cargar el informe de productividad de técnicos.');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (filtrosAplicados == null || isFetching || !data) return;
+    if (!data.actual.length && !data.consolidado.length) {
+      showInfo('No hay datos para los filtros seleccionados.');
+    }
+  }, [filtrosAplicados, isFetching, data, showInfo]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate();
+    setPageActual(1);
+    setPageConsolidado(1);
+    setFiltrosAplicados({
+      year,
+      month,
+      patios: patiosSeleccionados,
+    });
   };
 
   const handleTogglePatio = (value: number) => {
@@ -113,18 +124,26 @@ export default function ProductividadTecnicosPage() {
   const filasConsolidado = data?.consolidado;
   const totalFilasActual = filasActual?.length ?? 0;
   const totalFilasConsolidado = filasConsolidado?.length ?? 0;
+  const safePageActual = Math.min(
+    Math.max(1, pageActual),
+    Math.max(1, Math.ceil(totalFilasActual / PAGE_SIZE)),
+  );
+  const safePageConsolidado = Math.min(
+    Math.max(1, pageConsolidado),
+    Math.max(1, Math.ceil(totalFilasConsolidado / PAGE_SIZE)),
+  );
 
   const actualPaginated = useMemo(() => {
     const rows = filasActual ?? [];
-    const start = (pageActual - 1) * PAGE_SIZE;
+    const start = (safePageActual - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
-  }, [filasActual, pageActual]);
+  }, [filasActual, safePageActual]);
 
   const consolidadoPaginated = useMemo(() => {
     const rows = filasConsolidado ?? [];
-    const start = (pageConsolidado - 1) * PAGE_SIZE;
+    const start = (safePageConsolidado - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
-  }, [filasConsolidado, pageConsolidado]);
+  }, [filasConsolidado, safePageConsolidado]);
 
   const totalPagesActual = Math.max(1, Math.ceil(totalFilasActual / PAGE_SIZE));
   const totalPagesConsolidado = Math.max(
@@ -264,10 +283,10 @@ export default function ProductividadTecnicosPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={status === 'pending'}
+            disabled={isFetching}
             className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
           >
-            {status === 'pending' ? 'Generando...' : 'Generar'}
+            {isFetching ? 'Generando...' : 'Generar'}
           </button>
         </div>
       </form>
@@ -293,7 +312,7 @@ export default function ProductividadTecnicosPage() {
               </thead>
               <tbody>
                 {actualPaginated.map((row) => renderFila(row, 'a'))}
-                {status !== 'pending' && totalFilasActual === 0 && (
+                {!isFetching && totalFilasActual === 0 && (
                   <tr>
                     <td
                       className="px-3 py-3 text-center text-gray-400 text-xs"
@@ -306,10 +325,10 @@ export default function ProductividadTecnicosPage() {
               </tbody>
             </table>
           </div>
-          {status !== 'pending' && totalFilasActual > 0 && (
+          {!isFetching && totalFilasActual > 0 && (
             <div className="p-4 border-t border-gray-200 flex justify-center">
               <Pagination
-                currentPage={pageActual}
+                currentPage={safePageActual}
                 totalPages={totalPagesActual}
                 onChange={setPageActual}
               />
@@ -337,7 +356,7 @@ export default function ProductividadTecnicosPage() {
               </thead>
               <tbody>
                 {consolidadoPaginated.map((row) => renderFila(row, 'c'))}
-                {status !== 'pending' && totalFilasConsolidado === 0 && (
+                {!isFetching && totalFilasConsolidado === 0 && (
                   <tr>
                     <td
                       className="px-3 py-3 text-center text-gray-400 text-xs"
@@ -350,10 +369,10 @@ export default function ProductividadTecnicosPage() {
               </tbody>
             </table>
           </div>
-          {status !== 'pending' && totalFilasConsolidado > 0 && (
+          {!isFetching && totalFilasConsolidado > 0 && (
             <div className="p-4 border-t border-gray-200 flex justify-center">
               <Pagination
-                currentPage={pageConsolidado}
+                currentPage={safePageConsolidado}
                 totalPages={totalPagesConsolidado}
                 onChange={setPageConsolidado}
               />

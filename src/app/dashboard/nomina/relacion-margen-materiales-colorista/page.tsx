@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { FileSpreadsheet, Search } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import {
   RelacionMargenMaterialColoristaRow,
@@ -45,11 +44,12 @@ export default function RelacionMargenMaterialesColoristaPage() {
     cargarMutation.mutate({ mes, sede });
   };
 
-  const onExportar = () => {
+  const onExportar = async () => {
     if (rows.length === 0) {
       showError('El informe se encuentra vacío.');
       return;
     }
+    const XLSX = await import('xlsx');
 
     const data = rows.map((row) => ({
       Año: row.ano,

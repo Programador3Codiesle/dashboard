@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Loader2, Car, ListChecks } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
@@ -22,8 +23,6 @@ const RUTINA_PDF_BY_PLACA: Record<string, string> = {
 
 export default function MttoPreventivoVehiculosPropiosPage() {
   const { showError } = useToast();
-  const [data, setData] = useState<InformeMttoPreventivo[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const [historialOpen, setHistorialOpen] = useState(false);
   const [historial, setHistorial] = useState<HistorialMtto[]>([]);
@@ -39,21 +38,20 @@ export default function MttoPreventivoVehiculosPropiosPage() {
     return historial.slice(start, start + HISTORIAL_PAGE_SIZE);
   }, [historial, historialPage]);
 
+  const {
+    data = [],
+    isFetching: loading,
+    isError,
+  } = useQuery<InformeMttoPreventivo[]>({
+    queryKey: ["informes", "gestion-humana", "mtto-preventivo-vehiculos-propios"],
+    queryFn: () => informeMttoPreventivoVhService.listar(),
+    staleTime: 60 * 1000,
+  });
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await informeMttoPreventivoVhService.listar();
-        setData(res);
-      } catch (err) {
-        console.error(err);
-        showError("No se pudo cargar el informe de mantenimiento preventivo.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [showError]);
+    if (!isError) return;
+    showError("No se pudo cargar el informe de mantenimiento preventivo.");
+  }, [isError, showError]);
 
   const abrirHistorial = async (placa: string) => {
     setPlacaHistorial(placa);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
@@ -11,7 +12,9 @@ const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "act
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUserState] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const lastActivity = useRef<number>(Date.now());
+    const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const normalizeEmpresaSelection = useCallback((currentUser: User): User => {
         const empresasAsignadas = currentUser.empresas_asignadas || [];
 
@@ -73,9 +76,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
         } finally {
+            if (refreshTimeoutRef.current) {
+                clearTimeout(refreshTimeoutRef.current);
+                refreshTimeoutRef.current = null;
+            }
+
             // Borrar todas las cookies relacionadas con la sesión (lado cliente)
             removeUser();
             removeCookie('refresh_token');
+
+            queryClient.clear();
 
             // Limpiar el estado del usuario
             setUserState(null);
@@ -88,7 +98,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 window.location.href = loginUrl;
             }
         }
-    }, []);
+    }, [queryClient]);
 
     // Registrar actividad del usuario (mouse, teclado, clics, scroll, focus)
     useEffect(() => {
@@ -136,12 +146,23 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     useEffect(() => {
         if (!user) return;
 
-        const scheduleRefresh = () => {
+        let mounted = true;
+
+        const scheduleNext = () => {
+            if (!mounted) return;
+
             const minTime = 13.5 * 60 * 1000;
             const maxTime = 14 * 60 * 1000;
             const randomDelay = Math.random() * (maxTime - minTime) + minTime;
 
-            const refreshTimeout = setTimeout(async () => {
+            if (refreshTimeoutRef.current) {
+                clearTimeout(refreshTimeoutRef.current);
+                refreshTimeoutRef.current = null;
+            }
+
+            refreshTimeoutRef.current = setTimeout(async () => {
+                if (!mounted) return;
+
                 const inactiveTime = Date.now() - lastActivity.current;
 
                 if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
@@ -150,27 +171,32 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                         if (!success) {
                             console.error("Refresh preventivo falló, cerrando sesión");
                             logout();
-                        } else {
-                            console.log("Token refrescado preventivamente");
-                            scheduleRefresh();
+                            return;
                         }
+                        scheduleNext();
                     } catch (error) {
                         console.error("Error en refresh preventivo:", error);
                         if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
                             logout();
+                            return;
                         }
+                        scheduleNext();
                     }
                 } else {
-                    scheduleRefresh();
+                    scheduleNext();
                 }
             }, randomDelay);
-
-            return refreshTimeout;
         };
 
-        const timeoutId = scheduleRefresh();
+        scheduleNext();
 
-        return () => clearTimeout(timeoutId);
+        return () => {
+            mounted = false;
+            if (refreshTimeoutRef.current) {
+                clearTimeout(refreshTimeoutRef.current);
+                refreshTimeoutRef.current = null;
+            }
+        };
     }, [user, logout]);
 
     const login = async (credentials: { user: string; password: string; remember: boolean }): Promise<User> => {

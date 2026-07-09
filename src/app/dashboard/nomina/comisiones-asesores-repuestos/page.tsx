@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/core/auth/hooks/useAuth';
 import {
@@ -133,11 +132,12 @@ export default function ComisionesAsesoresRepuestosPage() {
     setRows([]);
   };
 
-  const onExportExcel = () => {
+  const onExportExcel = async () => {
     if (rows.length === 0) {
       showError('No hay datos para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
 
     const excelRows = rows.map((r) => ({
       Sede: r.sede,
@@ -177,11 +177,12 @@ export default function ComisionesAsesoresRepuestosPage() {
     });
   };
 
-  const onExportDetalleExcel = () => {
+  const onExportDetalleExcel = async () => {
     if (detalleRows.length === 0) {
       showError('No hay detalle para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
 
     const excelRows = detalleRows.map((item) => ({
       Asesor: item.nombre,

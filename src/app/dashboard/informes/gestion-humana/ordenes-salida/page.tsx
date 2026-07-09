@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { ordenesSalidaService, OrdenSalida } from '@/modules/informes/gestion-humana/services/ordenes-salida.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -15,10 +14,14 @@ const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
 export default function OrdenesSalidaPage() {
   const { user } = useAuth();
   const { showError, showSuccess, showInfo } = useToast();
-  const consultaEnCursoRef = useRef(false);
   const cargaInicialRef = useRef(false);
+  const queryClient = useQueryClient();
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    fechaIni?: string;
+    fechaFin?: string;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [observaciones, setObservaciones] = useState<Record<number, string>>({});
   const idUsuario = user?.id ? Number(user.id) : null;
@@ -27,30 +30,17 @@ export default function OrdenesSalidaPage() {
   const inputClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
-  const listarMutation = useMutation({
+  const {
+    data = [],
+    isFetching: listando,
+    isError: errorListado,
+    isFetched,
+  } = useQuery<OrdenSalida[]>({
+    queryKey: ['informes', 'gestion-humana', 'ordenes-salida', filtrosAplicados],
+    queryFn: () => ordenesSalidaService.listar(filtrosAplicados ?? {}),
+    enabled: esModoObservacion || filtrosAplicados != null,
     retry: false,
-    mutationFn: async () => {
-      if (mostrarFiltros && (!fechaIni || !fechaFin)) {
-        throw new Error('Debe seleccionar fecha inicial y fecha final');
-      }
-      const data = await ordenesSalidaService.listar({
-        fechaIni: fechaIni || undefined,
-        fechaFin: fechaFin || undefined,
-      });
-      return data;
-    },
-    onSuccess: (result) => {
-      if (result.length === 0) {
-        showInfo('No hay registros para el rango de fechas seleccionado.');
-      }
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error consultando informe de órdenes de salida';
-      showError(message);
-    },
+    staleTime: 60 * 1000,
   });
 
   const guardarObsMutation = useMutation({
@@ -59,14 +49,13 @@ export default function OrdenesSalidaPage() {
     },
     onSuccess: async () => {
       showSuccess('Observación guardada correctamente.');
-      // Refrescar datos
-      await listarMutation.mutateAsync();
+      await queryClient.invalidateQueries({
+        queryKey: ['informes', 'gestion-humana', 'ordenes-salida'],
+      });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error guardando observación';
+        error instanceof Error ? error.message : 'Error guardando observación';
       showError(message);
     },
   });
@@ -76,41 +65,44 @@ export default function OrdenesSalidaPage() {
       showError('Debe seleccionar fecha inicial y fecha final');
       return;
     }
-    if (listarMutation.isPending || consultaEnCursoRef.current) return;
+    if (listando) return;
     setCurrentPage(1);
-    consultaEnCursoRef.current = true;
-    listarMutation.mutate(undefined, {
-      onSettled: () => {
-        consultaEnCursoRef.current = false;
-      },
+    setFiltrosAplicados({
+      fechaIni: fechaIni || undefined,
+      fechaFin: fechaFin || undefined,
     });
   };
 
   useEffect(() => {
     if (!esModoObservacion || cargaInicialRef.current) return;
-    if (listarMutation.isPending || consultaEnCursoRef.current) return;
     cargaInicialRef.current = true;
-    consultaEnCursoRef.current = true;
-    listarMutation.mutate(undefined, {
-      onSettled: () => {
-        consultaEnCursoRef.current = false;
-      },
+    setFiltrosAplicados({
+      fechaIni: undefined,
+      fechaFin: undefined,
     });
-  }, [esModoObservacion, listarMutation]);
+  }, [esModoObservacion]);
 
-  const data: OrdenSalida[] = listarMutation.data ?? [];
-  const consultaSinResultados =
-    listarMutation.isSuccess &&
-    Array.isArray(listarMutation.data) &&
-    listarMutation.data.length === 0;
+  useEffect(() => {
+    if (!errorListado) return;
+    showError('Error consultando informe de órdenes de salida');
+  }, [errorListado, showError]);
+
+  useEffect(() => {
+    if (!isFetched || listando) return;
+    if (data.length === 0) {
+      showInfo('No hay registros para el rango de fechas seleccionado.');
+    }
+  }, [isFetched, listando, data.length, showInfo]);
+
+  const consultaSinResultados = isFetched && data.length === 0;
   const totalItems = data.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return data.slice(start, start + PAGE_SIZE);
   }, [data, currentPage]);
-  const showInitialLoader = listarMutation.isPending && data.length === 0;
-  const showUpdating = listarMutation.isPending && data.length > 0;
+  const showInitialLoader = listando && data.length === 0;
+  const showUpdating = listando && data.length > 0;
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -134,8 +126,9 @@ export default function OrdenesSalidaPage() {
 
   const formatDateOnly = (value?: string | null) => (value ? value.slice(0, 10) : '');
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     if (!data.length) return;
+    const XLSX = await import('xlsx');
     const rows = data.map((r) => ({
       'Área': r.area ?? '',
       'Sede': r.sede ?? '',
@@ -200,11 +193,11 @@ export default function OrdenesSalidaPage() {
             <button
               type="button"
               onClick={handleFiltrar}
-              disabled={listarMutation.isPending || !fechaIni || !fechaFin}
+              disabled={listando || !fechaIni || !fechaFin}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              {listarMutation.isPending && <Loader2 size={16} className="animate-spin" />}
-              <span>{listarMutation.isPending ? 'Consultando...' : 'Filtrar'}</span>
+              {listando && <Loader2 size={16} className="animate-spin" />}
+              <span>{listando ? 'Consultando...' : 'Filtrar'}</span>
             </button>
             <button
               type="button"
@@ -222,7 +215,7 @@ export default function OrdenesSalidaPage() {
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3">
           <span className="text-sm font-semibold text-gray-800">Resultados</span>
           <div className="flex items-center gap-3">
-            {!listarMutation.isPending && totalItems > 0 && (
+            {!listando && totalItems > 0 && (
               <span className="text-xs text-gray-500">
                 {totalItems} registro{totalItems === 1 ? '' : 's'}
               </span>
@@ -266,7 +259,7 @@ export default function OrdenesSalidaPage() {
                   </td>
                 </tr>
               )}
-              {!listarMutation.isPending && data.length === 0 && consultaSinResultados && (
+              {!listando && data.length === 0 && consultaSinResultados && (
                 <tr>
                   <td
                     colSpan={esModoObservacion ? 9 : 11}
@@ -276,7 +269,7 @@ export default function OrdenesSalidaPage() {
                   </td>
                 </tr>
               )}
-              {!listarMutation.isPending && data.length === 0 && !consultaSinResultados && (
+              {!listando && data.length === 0 && !consultaSinResultados && (
                 <tr>
                   <td
                     colSpan={esModoObservacion ? 9 : 11}
@@ -336,7 +329,7 @@ export default function OrdenesSalidaPage() {
             </tbody>
           </table>
         </div>
-        {!listarMutation.isPending && totalItems > 0 && (
+        {!listando && totalItems > 0 && (
           <div className="p-4 border-t border-gray-200 flex justify-center">
             <Pagination
               currentPage={currentPage}

@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Eye, FileSpreadsheet, Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import {
   NpsInternoEncuestaDetalle,
   npsInternoService,
@@ -48,34 +48,45 @@ const labelClass = 'text-xs font-medium text-gray-600 mb-1';
 export default function NpsInternoPage() {
   const [sedeDetalle, setSedeDetalle] = useState('todas');
   const [mesDetalle, setMesDetalle] = useState('0');
-  const [encuestas, setEncuestas] = useState<NpsInternoEncuestaDetalle[]>([]);
+  const [filtroAplicado, setFiltroAplicado] = useState<{ sede: string; mes: number } | null>(
+    null,
+  );
   const [encPage, setEncPage] = useState(1);
-  const [loadingEncuestas, setLoadingEncuestas] = useState(true);
-  const [loadingEncuestasFiltro, setLoadingEncuestasFiltro] = useState(false);
   const [verbalizacion, setVerbalizacion] = useState<string | null>(null);
 
   const { showError, showInfo } = useToast();
-
-  const cargarEncuestasInicial = useCallback(async () => {
-    setLoadingEncuestas(true);
-    try {
-      const rows = await npsInternoService.listarEncuestas();
-      setEncuestas(rows);
-      setEncPage(1);
-      if (!rows.length) {
-        showInfo('No hay encuestas NPS para mostrar.');
-      }
-    } catch {
-      showError('No se pudo cargar el listado de encuestas.');
-      setEncuestas([]);
-    } finally {
-      setLoadingEncuestas(false);
-    }
-  }, [showError, showInfo]);
+  const {
+    data: encuestas = [],
+    isLoading: loadingEncuestas,
+    isFetching: fetchingEncuestas,
+    isError: encuestasError,
+  } = useQuery<NpsInternoEncuestaDetalle[]>({
+    queryKey: ['informes', 'postventa', 'nps-interno', 'encuestas', filtroAplicado],
+    queryFn: () =>
+      filtroAplicado == null
+        ? npsInternoService.listarEncuestas()
+        : npsInternoService.listarEncuestas(filtroAplicado),
+    staleTime: 60 * 1000,
+  });
 
   useEffect(() => {
-    void cargarEncuestasInicial();
-  }, [cargarEncuestasInicial]);
+    if (!encuestasError) return;
+    if (filtroAplicado == null) {
+      showError('No se pudo cargar el listado de encuestas.');
+    } else {
+      showError('No se pudo aplicar el filtro de encuestas.');
+    }
+  }, [encuestasError, filtroAplicado, showError]);
+
+  useEffect(() => {
+    if (loadingEncuestas || fetchingEncuestas) return;
+    if (encuestas.length > 0) return;
+    if (filtroAplicado == null) {
+      showInfo('No hay encuestas NPS para mostrar.');
+    } else {
+      showInfo('No hay resultados para la sede y mes seleccionados.');
+    }
+  }, [loadingEncuestas, fetchingEncuestas, encuestas.length, filtroAplicado, showInfo]);
 
   useEffect(() => {
     if (verbalizacion === null) return;
@@ -86,27 +97,16 @@ export default function NpsInternoPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [verbalizacion]);
 
-  const handleBuscarEncuestas = async () => {
-    setLoadingEncuestasFiltro(true);
-    try {
-      const mes = Number(mesDetalle);
-      const rows = await npsInternoService.listarEncuestas({
-        sede: sedeDetalle,
-        mes: Number.isNaN(mes) ? 0 : mes,
-      });
-      setEncuestas(rows);
-      setEncPage(1);
-      if (!rows.length) {
-        showInfo('No hay resultados para la sede y mes seleccionados.');
-      }
-    } catch {
-      showError('No se pudo aplicar el filtro de encuestas.');
-    } finally {
-      setLoadingEncuestasFiltro(false);
-    }
+  const handleBuscarEncuestas = () => {
+    const mes = Number(mesDetalle);
+    setEncPage(1);
+    setFiltroAplicado({
+      sede: sedeDetalle,
+      mes: Number.isNaN(mes) ? 0 : mes,
+    });
   };
 
-  const encSurveysLoading = loadingEncuestas || loadingEncuestasFiltro;
+  const encSurveysLoading = loadingEncuestas || fetchingEncuestas;
 
   const encTotal = encuestas.length;
   const encTotalPages = Math.max(1, Math.ceil(encTotal / ENC_PAGE_SIZE));
@@ -115,11 +115,12 @@ export default function NpsInternoPage() {
     return encuestas.slice(start, start + ENC_PAGE_SIZE);
   }, [encuestas, encPage]);
 
-  const handleExportEncuestasExcel = () => {
+  const handleExportEncuestasExcel = async () => {
     if (!encuestas.length) {
       showInfo('No hay datos para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const excelRows = encuestas.map((r) => ({
       Documento: r.nit,
       Técnico: r.nombres,
@@ -187,11 +188,11 @@ export default function NpsInternoPage() {
         <div className="flex flex-wrap gap-3 items-center">
           <button
             type="button"
-            onClick={() => void handleBuscarEncuestas()}
+            onClick={handleBuscarEncuestas}
             disabled={encSurveysLoading}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
           >
-            {loadingEncuestasFiltro && (
+            {fetchingEncuestas && (
               <Loader2 size={16} className="animate-spin" />
             )}
             <span>Buscar</span>
@@ -199,7 +200,7 @@ export default function NpsInternoPage() {
           <button
             type="button"
             onClick={handleExportEncuestasExcel}
-            disabled={!encuestas.length || loadingEncuestasFiltro}
+            disabled={!encuestas.length || fetchingEncuestas}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
               encuestas.length
                 ? 'bg-emerald-600 text-white hover:opacity-90'

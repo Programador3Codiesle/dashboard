@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import {
   encuestasInternasService,
@@ -25,10 +25,24 @@ export default function EncuestasInternasPage() {
   const { showError } = useToast();
   const [fechaInicio, setFechaInicio] = useState<string>(getDefaultStartDate);
   const [fechaFin, setFechaFin] = useState<string>(getDefaultEndDate);
-
-  const [rows, setRows] = useState<EncuestaInternaRow[]>([]);
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    fechaInicio: string;
+    fechaFin: string;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const solicitudEnCurso = useRef(false);
+
+  const {
+    data: rows = [],
+    isFetching: isPending,
+    isError,
+  } = useQuery<EncuestaInternaRow[]>({
+    queryKey: ["informes", "postventa", "encuestas-internas", filtrosAplicados],
+    queryFn: () => encuestasInternasService.obtener(filtrosAplicados!),
+    enabled: filtrosAplicados != null,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
 
   const totalItems = rows.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
@@ -37,16 +51,7 @@ export default function EncuestasInternasPage() {
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, currentPage]);
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: () =>
-      encuestasInternasService.obtener({
-        fechaInicio,
-        fechaFin,
-      }),
-    retry: false,
-  });
-
-  const onGenerar = async () => {
+  const onGenerar = () => {
     if (!fechaInicio || !fechaFin) {
       showError("Debes seleccionar un rango de fechas.");
       return;
@@ -60,17 +65,29 @@ export default function EncuestasInternasPage() {
     }
     solicitudEnCurso.current = true;
     try {
-      const data = await mutateAsync();
-      setRows(data);
       setCurrentPage(1);
-    } catch {
-      showError(
-        "No se pudo cargar el informe de encuestas internas. Verifica el rango de fechas e inténtalo nuevamente.",
-      );
+      setFiltrosAplicados({
+        fechaInicio,
+        fechaFin,
+      });
     } finally {
       solicitudEnCurso.current = false;
     }
   };
+
+  useEffect(() => {
+    if (!isError) return;
+    showError(
+      "No se pudo cargar el informe de encuestas internas. Verifica el rango de fechas e inténtalo nuevamente.",
+    );
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (filtrosAplicados == null || isPending) return;
+    if (rows.length === 0) {
+      showError("No hay información para el rango de fechas seleccionado.");
+    }
+  }, [filtrosAplicados, isPending, rows.length, showError]);
 
   return (
     <div className="space-y-6">

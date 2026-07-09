@@ -4,7 +4,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, MessageSquareText, X } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import {
   pqrNpsService,
   EstadoPqr,
@@ -287,11 +286,12 @@ export default function PqrNpsPage() {
     }
   }, [error, showError]);
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
     if (itemsFiltrados.length === 0) {
       showInfo('No hay registros para exportar.');
       return;
     }
+    const XLSX = await import('xlsx');
     const rows = itemsFiltrados.map((r) => ({
       Fuente: r.fuente,
       'Id encuesta': r.id,

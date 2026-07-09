@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { tiempoGestionComprasService } from '@/modules/informes/gestion-humana/services/tiempo-gestion-compras.service';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/shared/ui/ToastContext';
@@ -14,41 +13,30 @@ const PAGE_SIZE = 10;
 
 export default function TiempoGestionComprasPage() {
   const { showError, showInfo } = useToast();
-  const consultaEnCursoRef = useRef(false);
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [estado, setEstado] = useState('');
+  const [filtrosAplicados, setFiltrosAplicados] = useState<{
+    fechaIni?: string;
+    fechaFin?: string;
+    estado?: string;
+  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const inputClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
-  const mutation = useMutation({
+  const {
+    data = [],
+    isFetching,
+    isError,
+  } = useQuery({
+    queryKey: ['informes', 'gestion-humana', 'tiempo-gestion-compras', filtrosAplicados],
+    queryFn: () => tiempoGestionComprasService.listar(filtrosAplicados ?? {}),
+    enabled: filtrosAplicados != null,
     retry: false,
-    mutationFn: async () => {
-      if ((fechaIni && !fechaFin) || (!fechaIni && fechaFin)) {
-        throw new Error('Por favor ingrese ambas fechas');
-      }
-      return tiempoGestionComprasService.listar({
-        fechaIni: fechaIni || undefined,
-        fechaFin: fechaFin || undefined,
-        estado: estado || undefined,
-      });
-    },
-    onSuccess: (result) => {
-      if (result.length === 0) {
-        showInfo('No hay registros para los filtros seleccionados.');
-      }
-    },
-    onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        'Error consultando informe de tiempo gestión compras';
-      showError(message);
-    },
+    staleTime: 60 * 1000,
   });
 
-  const data = mutation.data ?? [];
   const totalItems = data.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const paginatedData = useMemo(() => {
@@ -69,18 +57,30 @@ export default function TiempoGestionComprasPage() {
       showError('Por favor ingrese ambas fechas');
       return;
     }
-    if (mutation.isPending || consultaEnCursoRef.current) return;
+    if (isFetching) return;
     setCurrentPage(1);
-    consultaEnCursoRef.current = true;
-    mutation.mutate(undefined, {
-      onSettled: () => {
-        consultaEnCursoRef.current = false;
-      },
+    setFiltrosAplicados({
+      fechaIni: fechaIni || undefined,
+      fechaFin: fechaFin || undefined,
+      estado: estado || undefined,
     });
   };
 
-  const handleExportCsv = () => {
+  useEffect(() => {
+    if (!isError) return;
+    showError('Error consultando informe de tiempo gestión compras');
+  }, [isError, showError]);
+
+  useEffect(() => {
+    if (filtrosAplicados == null || isFetching) return;
+    if (data.length === 0) {
+      showInfo('No hay registros para los filtros seleccionados.');
+    }
+  }, [filtrosAplicados, isFetching, data.length, showInfo]);
+
+  const handleExportCsv = async () => {
     if (!data.length) return;
+    const XLSX = await import('xlsx');
 
     const rows = data.map((r) => ({
       'Solicitado Por': r.solicitado_por,
@@ -139,11 +139,11 @@ export default function TiempoGestionComprasPage() {
           <button
             type="button"
             onClick={handleFiltrar}
-            disabled={mutation.isPending}
+            disabled={isFetching}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
-            {mutation.isPending && <Loader2 size={16} className="animate-spin" />}
-            <span>{mutation.isPending ? 'Consultando...' : 'Filtrar'}</span>
+            {isFetching && <Loader2 size={16} className="animate-spin" />}
+            <span>{isFetching ? 'Consultando...' : 'Filtrar'}</span>
           </button>
           <button
             type="button"
@@ -173,7 +173,7 @@ export default function TiempoGestionComprasPage() {
               </tr>
             </thead>
             <tbody>
-              {!mutation.isPending && !data.length && (
+              {!isFetching && !data.length && (
                 <tr>
                   <td colSpan={9} className="px-2 py-4 text-center text-gray-500">
                     No hay datos para mostrar
@@ -196,7 +196,7 @@ export default function TiempoGestionComprasPage() {
             </tbody>
           </table>
         </div>
-        {!mutation.isPending && totalItems > 0 && (
+        {!isFetching && totalItems > 0 && (
           <div className="p-4 border-t border-gray-200 flex justify-center">
             <Pagination
               currentPage={currentPage}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Loader2, Car } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
@@ -45,11 +46,7 @@ export default function ChecklistCarroPage() {
   const [appliedFechaIni, setAppliedFechaIni] = useState("");
   const [appliedFechaFin, setAppliedFechaFin] = useState("");
   const [appliedSede, setAppliedSede] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<ChecklistCarro[]>([]);
-  const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const requestIdRef = useRef(0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalId, setModalId] = useState<number | null>(null);
@@ -60,7 +57,34 @@ export default function ChecklistCarroPage() {
   const hasAppliedSearch =
     !!(appliedFechaIni || appliedFechaFin || appliedSede);
 
-  const data = useMemo(() => rows, [rows]);
+  const { data: queryData, isFetching: loading, isError } = useQuery<{
+    items: ChecklistCarro[];
+    total: number;
+  }>({
+    queryKey: [
+      "informes",
+      "gestion-humana",
+      "checklist-carro",
+      appliedFechaIni,
+      appliedFechaFin,
+      appliedSede,
+      currentPage,
+    ],
+    queryFn: () =>
+      checklistCarroService.listar({
+        fechaIni: appliedFechaIni || undefined,
+        fechaFin: appliedFechaFin || undefined,
+        sede: appliedSede || undefined,
+        pagina: currentPage,
+        limite: PAGE_SIZE,
+      }),
+    enabled: hasAppliedSearch,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
+
+  const data = useMemo(() => queryData?.items ?? [], [queryData?.items]);
+  const totalItems = queryData?.total ?? 0;
   const showInitialLoader = loading && data.length === 0;
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalItems / PAGE_SIZE)),
@@ -68,47 +92,16 @@ export default function ChecklistCarroPage() {
   );
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!hasAppliedSearch) {
-        requestIdRef.current += 1;
-        setRows([]);
-        setTotalItems(0);
-        setLoading(false);
-        return;
-      }
+    if (!hasAppliedSearch || loading) return;
+    if (data.length === 0) {
+      showInfo("No hay datos para mostrar con los filtros seleccionados.");
+    }
+  }, [hasAppliedSearch, loading, data.length, showInfo]);
 
-      const requestId = ++requestIdRef.current;
-      setLoading(true);
-      try {
-        const result = await checklistCarroService.listar({
-          fechaIni: appliedFechaIni || undefined,
-          fechaFin: appliedFechaFin || undefined,
-          sede: appliedSede || undefined,
-          pagina: currentPage,
-          limite: PAGE_SIZE,
-        });
-
-        if (requestId === requestIdRef.current) {
-          setRows(result.items);
-          setTotalItems(result.total);
-          if (result.items.length === 0) {
-            showInfo("No hay datos para mostrar con los filtros seleccionados.");
-          }
-        }
-      } catch (err) {
-        console.error(err);
-        if (requestId === requestIdRef.current) {
-          showError("No se pudo cargar el informe de checklist carros.");
-        }
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-  }, [appliedFechaIni, appliedFechaFin, appliedSede, currentPage, hasAppliedSearch, showError, showInfo]);
+  useEffect(() => {
+    if (!isError) return;
+    showError("No se pudo cargar el informe de checklist carros.");
+  }, [isError, showError]);
 
   const handleFiltrar = () => {
     if (!fechaIni && !fechaFin && !sede) {
