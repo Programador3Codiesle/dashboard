@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { IPerfil } from '../types';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 
 // Query keys para perfiles
 export const PERFILES_QUERY_KEYS = {
@@ -20,7 +21,7 @@ export const usePerfiles = (options?: { enabled?: boolean }) => {
   } = useQuery({
     queryKey: PERFILES_QUERY_KEYS.all,
     queryFn: () => usuariosService.getPerfiles(),
-    staleTime: 15 * 60 * 1000, // 15 minutos
+    ...catalogQueryOptions,
     enabled: options?.enabled ?? true,
   });
 

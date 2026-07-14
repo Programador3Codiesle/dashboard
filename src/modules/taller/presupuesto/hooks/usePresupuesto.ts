@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { presupuestoService } from "../services/presupuesto.service";
+import { catalogQueryOptions } from "@/core/query/catalog-query-options";
 import type {
   ActualizarPresupuestoParams,
   ConsultarPresupuestoParams,
@@ -11,7 +12,7 @@ export function useCatalogosPresupuesto() {
   return useQuery({
     queryKey: CATALOGOS_KEY,
     queryFn: () => presupuestoService.obtenerCatalogos(),
-    staleTime: 5 * 60 * 1000,
+    ...catalogQueryOptions,
   });
 }
 

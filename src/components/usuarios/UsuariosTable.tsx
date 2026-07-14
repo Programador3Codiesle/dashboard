@@ -16,12 +16,14 @@ import { Tooltip } from "@/components/shared/ui/Tooltip";
 import ConfirmModal from "@/components/shared/ui/ConfirmModal";
 import { DropdownMenu, DropdownItem } from "@/components/shared/ui/DropdownMenu";
 
-import EditUsuarioModal from "./modals/EditUsuarioModal";
-import AgregarSedesModal from "./modals/AgregarSedesModal";
-import AsignarJefeModal from "./modals/AsignarJefeModal";
-import HorarioModal from "./modals/HorarioModal";
-import AgregarEmpresaModal from "./modals/AgregarEmpresaModal";
+import dynamic from "next/dynamic";
 import { empresasDisponibles } from "@/modules/usuarios/constants";
+
+const EditUsuarioModal = dynamic(() => import("./modals/EditUsuarioModal"), { ssr: false });
+const AgregarSedesModal = dynamic(() => import("./modals/AgregarSedesModal"), { ssr: false });
+const AsignarJefeModal = dynamic(() => import("./modals/AsignarJefeModal"), { ssr: false });
+const HorarioModal = dynamic(() => import("./modals/HorarioModal"), { ssr: false });
+const AgregarEmpresaModal = dynamic(() => import("./modals/AgregarEmpresaModal"), { ssr: false });
 
 import { IUsuario, HorarioData } from "@/modules/usuarios/types";
 import { GripVertical, Edit, MapPin, UserCheck, Clock, Building2, KeyRound, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
@@ -208,12 +210,9 @@ export const UsuariosTable = memo(function UsuariosTable({ onRefetchReady }: Usu
     const [loadingEmpresaId, setLoadingEmpresaId] = useState<number | null>(null);
     
     /* ------------------ Hooks para datos ------------------ */
-    // Hooks globales (siempre cargados)
-    const { jefes: todosLosJefes } = useJefes();
-    const { sedes: todasLasSedes } = useSedes();
-    const { perfiles: todosLosPerfiles } = usePerfiles();
-    
-    // Hooks de datos de usuario - solo fetch cuando el modal correspondiente está abierto (lazy loading)
+    const { jefes: todosLosJefes } = useJefes({ enabled: jefeModalOpen });
+    const { sedes: todasLasSedes } = useSedes({ enabled: sedesModalOpen });
+    const { perfiles: todosLosPerfiles } = usePerfiles({ enabled: editModalOpen });
     const { jefes: jefesDelUsuario, refetch: refetchJefes } = useJefesUsuario(selectedUsuario?.idEmpleado, jefeModalOpen);
     const { sedes: sedesDelUsuario, refetch: refetchSedes } = useSedesUsuario(selectedUsuario?.id?.toString(), sedesModalOpen);
     const { perfil: perfilDelUsuario, refetch: refetchPerfil } = usePerfilUsuario(selectedUsuario?.nit, editModalOpen);

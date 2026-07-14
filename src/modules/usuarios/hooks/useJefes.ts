@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { IJefe } from '../types';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 
 // Query keys para jefes
 export const JEFES_QUERY_KEYS = {
@@ -21,7 +22,8 @@ export const useJefes = (options?: { enabled?: boolean }) => {
   } = useQuery({
     queryKey: JEFES_QUERY_KEYS.all,
     queryFn: () => usuariosService.getJefes(),
-    staleTime: 10 * 60 * 1000, // 10 minutos
+    ...catalogQueryOptions,
+    staleTime: 10 * 60 * 1000,
     enabled: options?.enabled ?? true,
   });
 

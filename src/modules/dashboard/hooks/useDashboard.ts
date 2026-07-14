@@ -1,6 +1,7 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { dashboardService } from "../services/dashboard.service";
 import type { DashboardData } from "../types";
+import { transactionalQueryOptions } from "@/core/query/catalog-query-options";
 
 export const DASHBOARD_QUERY_KEY = ["dashboard"] as const;
 
@@ -34,6 +35,7 @@ export function useDashboard(
       dashboardService.getDashboard({ idsede, mes, ano, empresa }),
     enabled,
     staleTime: 2 * 60 * 1000,
+    ...transactionalQueryOptions,
     placeholderData: keepPreviousData,
   });
 

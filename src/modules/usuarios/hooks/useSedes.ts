@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
 import { ISede } from '../types';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 
 // Query keys para sedes
 export const SEDES_QUERY_KEYS = {
@@ -20,7 +21,7 @@ export const useSedes = (options?: { enabled?: boolean }) => {
   } = useQuery({
     queryKey: SEDES_QUERY_KEYS.all,
     queryFn: () => usuariosService.getSedes(),
-    staleTime: 15 * 60 * 1000, // 15 minutos
+    ...catalogQueryOptions,
     enabled: options?.enabled ?? true,
   });
 

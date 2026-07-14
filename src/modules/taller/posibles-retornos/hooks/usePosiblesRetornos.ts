@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { posiblesRetornosService } from "../services/posibles-retornos.service";
+import { catalogQueryOptions } from "@/core/query/catalog-query-options";
 import type {
   GuardarDefinicionParams,
   ListarParams,
@@ -12,7 +13,7 @@ export function useCatalogosPosiblesRetornos() {
   return useQuery({
     queryKey: CATALOGOS_KEY,
     queryFn: () => posiblesRetornosService.obtenerCatalogos(),
-    staleTime: 5 * 60 * 1000,
+    ...catalogQueryOptions,
   });
 }
 

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { informePosiblesRetornosService } from "../services/informe-posibles-retornos.service";
 import type { GetGraficoParams } from "../types";
+import { catalogQueryOptions } from "@/core/query/catalog-query-options";
 
 export const INFORME_POSIBLES_RETORNOS_QUERY_KEYS = {
   catalogos: ["taller", "informe-posibles-retornos", "catalogos"] as const,
@@ -12,8 +13,7 @@ export function useInformePosiblesRetornosCatalogos(enabled = true) {
   const { data, isLoading, error } = useQuery({
     queryKey: INFORME_POSIBLES_RETORNOS_QUERY_KEYS.catalogos,
     queryFn: () => informePosiblesRetornosService.obtenerCatalogos(),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    ...catalogQueryOptions,
     enabled,
   });
 
@@ -32,6 +32,7 @@ export function useInformePosiblesRetornosGrafico(
     queryKey: INFORME_POSIBLES_RETORNOS_QUERY_KEYS.grafico(params),
     queryFn: () => informePosiblesRetornosService.obtenerGrafico(params),
     staleTime: 0,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     enabled,
   });

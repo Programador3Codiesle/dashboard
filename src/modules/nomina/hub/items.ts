@@ -1,0 +1,66 @@
+import {
+  BriefcaseBusiness,
+  Paintbrush,
+  Palette,
+  UserCog,
+  Users,
+  Wrench,
+} from 'lucide-react';
+import type { HubItem } from '@/components/shared/hub/types';
+
+export const NOMINA_HUB_ITEMS: HubItem[] = [
+  {
+    id: 'comisiones-asesores-repuestos',
+    nombre: 'Comisiones asesores repuestos',
+    descripcion: 'Gestiona y consulta las comisiones del equipo asesor de repuestos.',
+    ruta: '/dashboard/nomina/comisiones-asesores-repuestos',
+    submenuId: 32,
+    icono: UserCog,
+    color: 'from-blue-500 to-blue-600',
+  },
+  {
+    id: 'comisiones-jefes',
+    nombre: 'Comisiones jefes',
+    descripcion: 'Consulta de comisiones asignadas a jefaturas por periodo.',
+    ruta: '/dashboard/nomina/comisiones-jefes',
+    submenuId: 78,
+    icono: Users,
+    color: 'from-violet-500 to-violet-600',
+  },
+  {
+    id: 'comisiones-lamina-pintura',
+    nombre: 'Comisiones lamina y pintura',
+    descripcion: 'Seguimiento de comisiones del area de lamina y pintura.',
+    ruta: '/dashboard/nomina/comisiones-lamina-pintura',
+    submenuId: 42,
+    icono: Paintbrush,
+    color: 'from-rose-500 to-rose-600',
+  },
+  {
+    id: 'comisiones-tecnicos',
+    nombre: 'Comisiones tecnicos',
+    descripcion: 'Control de comisiones para tecnicos por desempeno y productividad.',
+    ruta: '/dashboard/nomina/comisiones-tecnicos',
+    submenuId: 77,
+    icono: Wrench,
+    color: 'from-amber-500 to-amber-600',
+  },
+  {
+    id: 'nomina-director-flotas',
+    nombre: 'Nomina director flotas',
+    descripcion: 'Gestion de novedades y calculos del esquema para director de flotas.',
+    ruta: '/dashboard/nomina/nomina-director-flotas',
+    submenuId: 122,
+    icono: BriefcaseBusiness,
+    color: 'from-cyan-500 to-cyan-600',
+  },
+  {
+    id: 'relacion-margen-materiales-colorista',
+    nombre: 'Relacion margen materiales - Colorista',
+    descripcion: 'Analisis de margen de materiales asociado a la gestion del colorista.',
+    ruta: '/dashboard/nomina/relacion-margen-materiales-colorista',
+    submenuId: 185,
+    icono: Palette,
+    color: 'from-fuchsia-500 to-fuchsia-600',
+  },
+];

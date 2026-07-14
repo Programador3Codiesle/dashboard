@@ -1,23 +1,28 @@
 'use client';
 
 import React, { memo, useCallback, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { ReceiptText } from 'lucide-react';
 import { Button } from '@/components/shared/atoms/Button';
-import AgregarUsuarioModal from '@/components/usuarios/modals/AgregarUsuarioModal';
-import AgregarJefeModal from '@/components/usuarios/modals/AgregarJefeModal';
-import { IPerfil } from '@/modules/usuarios/types';
+import { usePerfiles } from '@/modules/usuarios/hooks/usePerfiles';
+
+const AgregarUsuarioModal = dynamic(() => import('@/components/usuarios/modals/AgregarUsuarioModal'), {
+  ssr: false,
+});
+const AgregarJefeModal = dynamic(() => import('@/components/usuarios/modals/AgregarJefeModal'), {
+  ssr: false,
+});
 
 interface UsuariosToolbarProps {
-  perfiles: IPerfil[];
   onAgregarUsuario: (nit: string, perfilId: string) => Promise<boolean>;
 }
 
 export const UsuariosToolbar = memo(function UsuariosToolbar({
-  perfiles,
   onAgregarUsuario,
 }: UsuariosToolbarProps) {
   const [modalAgregarUsuario, setModalAgregarUsuario] = useState(false);
   const [modalAgregarJefe, setModalAgregarJefe] = useState(false);
+  const { perfiles } = usePerfiles({ enabled: modalAgregarUsuario });
 
   const handleOpenAgregarUsuario = useCallback(() => {
     setModalAgregarUsuario(true);

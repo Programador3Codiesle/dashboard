@@ -3,13 +3,12 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/core/auth/hooks/useAuth";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { SelectorEmpresaModal } from "@/components/auth/SelectorEmpresaModal";
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout, updateUser, isAuthenticated, loading } = useAuth();
-  const pathname = usePathname();
   const router = useRouter();
   const [showSidebar, setShowSidebar] = useState(false); // Controla el overlay/visibilidad en mobile
   const [isMobile, setIsMobile] = useState(false);
@@ -33,13 +32,6 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Cerrar sidebar al cambiar ruta en mobile
-  useEffect(() => {
-    if (isMobile) {
-      setShowSidebar(false);
-    }
-  }, [pathname, isMobile]);
-
   // Redirigir al login solo cuando la verificación de sesión haya terminado y no esté autenticado
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -50,6 +42,18 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const handleEmpresaSelect = useCallback((empresaId: number) => {
     updateUser({ empresa: empresaId });
   }, [updateUser]);
+
+  const handleCloseSidebar = useCallback(() => {
+    setShowSidebar(false);
+  }, []);
+
+  const handleToggleCollapse = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
+
+  const handleToggleSidebar = useCallback(() => {
+    setShowSidebar((prev) => !prev);
+  }, []);
 
   // Mostrar loading mientras se verifica la sesión (evita redirección prematura al recargar)
   if (loading) {
@@ -85,13 +89,11 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden brand-dashboard-bg">
       <Sidebar 
-        currentPath={pathname} 
-        onNavigate={router.push} 
         user={user} 
         isVisible={showSidebar} 
-        onClose={() => setShowSidebar(false)} 
+        onClose={handleCloseSidebar} 
         isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        onToggleCollapse={handleToggleCollapse}
         onLogout={logout}
         isMobile={isMobile}
         updateUser={updateUser}
@@ -99,8 +101,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
       
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${isMobile ? '' : desktopMargin}`}>
         <Header 
-          currentPath={pathname} 
-          onToggleSidebar={() => setShowSidebar(!showSidebar)} 
+          onToggleSidebar={handleToggleSidebar} 
           onLogout={logout}
           userName={user?.nombre_usuario}
           nomPerfil={user?.nom_perfil}

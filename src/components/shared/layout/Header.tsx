@@ -1,16 +1,15 @@
 'use client';
 
 import { Menu, LogOut, User, Settings } from "lucide-react";
-import { ROUTES, EMPRESAS } from "@/utils/constants";
-import React, { useMemo, useState, memo, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { EMPRESAS } from "@/utils/constants";
+import React, { useState, memo, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { HeaderPageTitle } from "./HeaderPageTitle";
 
 interface HeaderProps {
-  currentPath: string;
   onToggleSidebar: () => void;
   onLogout: () => void;
   userName?: string;
-  /** Nombre del perfil (postv_perfiles.nom_perfil), viene del login */
   nomPerfil?: string;
   empresaId?: number;
 }
@@ -41,7 +40,6 @@ function formatNombre(nombreCompleto: string): string {
   return [...nombres, ...apellidos].join(' ');
 }
 
-/** Vista corta tipo "Cristhian Sanchez" a partir del nombre ya formateado para pantalla */
 function nombreCompacto(nombreFormateado: string): string {
   const w = nombreFormateado.trim().split(/\s+/).filter(Boolean);
   if (w.length <= 2) return nombreFormateado.trim();
@@ -49,30 +47,13 @@ function nombreCompacto(nombreFormateado: string): string {
   return `${w[0]} ${w[2]}`;
 }
 
-function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nomPerfil, empresaId }: HeaderProps) {
+function HeaderComponent({ onToggleSidebar, onLogout, userName, nomPerfil, empresaId }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
   const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
 
-  const currentTitle = useMemo(() => {
-
-    const exactMatch = ROUTES.find(r => r.path === currentPath);
-    if (exactMatch) return exactMatch.name;
-
-    const sortedRoutes = [...ROUTES].sort((a, b) => b.path.length - a.path.length);
-    const matchingRoute = sortedRoutes.find(r => {
-      if (r.path === "/dashboard") {
-        return currentPath === "/dashboard";
-      }
-      return currentPath.startsWith(r.path + "/") || currentPath === r.path;
-    });
-
-    return matchingRoute?.name || "Dashboard";
-  }, [currentPath]);
-
   const formattedFullName = userName ? formatNombre(userName) : '';
   const formattedShortName = formattedFullName ? nombreCompacto(formattedFullName) : '';
-
   const rolEtiqueta = nomPerfil?.trim() || '';
 
   useEffect(() => {
@@ -88,33 +69,25 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
   }, [showProfile]);
 
   return (
-    <motion.header
-      className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-30 shadow-sm"
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 100 }}
-    >
-      <div className="w-full max-w-[1760px] mx-auto px-3 sm:px-4 md:px-6 xl:px-8 2xl:px-10 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
-        <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="lg:hidden shrink-0 p-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+    <header className="sticky top-0 z-30 border-b border-gray-200/60 bg-white/80 shadow-sm backdrop-blur-xl">
+      <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:px-6 xl:px-8 2xl:px-10">
+        <div className="flex min-w-0 flex-1 items-center space-x-3 sm:space-x-4">
+          <button
+            type="button"
+            className="shrink-0 rounded-xl bg-gray-100 p-2 transition-colors hover:scale-105 hover:bg-gray-200 active:scale-95 lg:hidden"
             onClick={onToggleSidebar}
           >
             <Menu size={20} />
-          </motion.button>
+          </button>
 
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg md:text-xl xl:text-2xl 2xl:text-3xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent truncate">
-                {currentTitle}
-              </h1>
-              <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 truncate">Bienvenido de vuelta</p>
+              <HeaderPageTitle />
+              <p className="truncate text-[11px] text-gray-500 sm:text-xs md:text-sm">Bienvenido de vuelta</p>
             </div>
             {empresa && (
               <span
-                className="hidden sm:inline-flex shrink-0 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-white shadow-sm"
+                className="hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm sm:inline-flex sm:px-3 sm:text-xs"
                 style={{ backgroundColor: empresa.color }}
               >
                 {empresa.nombre}
@@ -123,11 +96,11 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {(formattedFullName || rolEtiqueta) && (
-            <div className="hidden md:flex flex-col items-end text-right max-w-[min(20rem,42vw)]">
+            <div className="hidden max-w-[min(20rem,42vw)] flex-col items-end text-right md:flex">
               {formattedFullName && (
-                <p className="text-base font-semibold text-gray-900 leading-snug truncate w-full">
+                <p className="w-full truncate text-base font-semibold leading-snug text-gray-900">
                   {formattedFullName}
                 </p>
               )}
@@ -140,9 +113,9 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
           )}
 
           {(formattedFullName || rolEtiqueta) && (
-            <div className="flex md:hidden flex-col items-end text-right max-w-32 sm:max-w-56">
+            <div className="flex max-w-32 flex-col items-end text-right sm:max-w-56 md:hidden">
               {formattedShortName && (
-                <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
+                <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
                   {formattedShortName}
                 </p>
               )}
@@ -154,39 +127,37 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
             </div>
           )}
 
-          <motion.div className="relative shrink-0" ref={profileWrapRef}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          <div className="relative shrink-0" ref={profileWrapRef}>
+            <button
               type="button"
               aria-expanded={showProfile}
               aria-haspopup="true"
-              className="flex items-center justify-center p-2 sm:p-2.5 brand-bg-gradient text-white rounded-xl hover:opacity-90 transition-opacity shadow-md shadow-black/10"
+              className="flex items-center justify-center rounded-xl brand-bg-gradient p-2 text-white shadow-md shadow-black/10 transition-opacity hover:scale-105 hover:opacity-90 active:scale-95 sm:p-2.5"
               onClick={() => setShowProfile(!showProfile)}
             >
               <User size={18} />
-            </motion.button>
+            </button>
 
             <AnimatePresence>
               {showProfile && (
                 <motion.div
-                  className="absolute right-0 top-12 w-52 bg-white rounded-xl shadow-2xl border border-gray-200/80 py-2 z-50"
+                  className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-gray-200/80 bg-white py-2 shadow-2xl"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <button type="button" className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-50 text-left">
+                  <button type="button" className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-gray-50">
                     <User size={16} className="mr-2 shrink-0" />
                     Mi Perfil
                   </button>
-                  <button type="button" className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-50 text-left">
+                  <button type="button" className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-gray-50">
                     <Settings size={16} className="mr-2 shrink-0" />
                     Configuración
                   </button>
-                  <div className="border-t border-gray-100 my-1" />
+                  <div className="my-1 border-t border-gray-100" />
                   <button
                     type="button"
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                    className="flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                     onClick={() => {
                       setShowProfile(false);
                       onLogout();
@@ -198,11 +169,11 @@ function HeaderComponent({ currentPath, onToggleSidebar, onLogout, userName, nom
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
+          </div>
         </div>
       </div>
       {empresa && <div className="h-0.5 w-full brand-bg" />}
-    </motion.header>
+    </header>
   );
 }
 

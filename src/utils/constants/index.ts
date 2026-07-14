@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone } from "lucide-react";
+import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck } from "lucide-react";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -27,6 +27,7 @@ export const ROUTES = [
   { path: "/dashboard/taller", name: "Taller", icon: Wrench },
   { path: "/dashboard/repuestos", name: "Repuestos", icon: Package },
   { path: "/dashboard/contact-center", name: "Contact Center", icon: Phone },
+  { path: "/dashboard/checklist", name: "Checklist", icon: ClipboardCheck },
 ];
 
 export const MENU_ID_BY_ROUTE: Record<string, number> = {
@@ -39,6 +40,7 @@ export const MENU_ID_BY_ROUTE: Record<string, number> = {
   "/dashboard/taller": 4,
   "/dashboard/repuestos": 47,
   "/dashboard/contact-center": 10,
+  "/dashboard/checklist": 48,
 };
 
 /** IDs de submenú MPVI (tabla menús legacy, id_menu padre = 4 Taller) */
@@ -114,6 +116,20 @@ export const AGENDAMIENTO_LEADS_SUBMENU_ID = 157;
 
 /** Submenú Bases de datos (Contact Center, id_menu = 10) */
 export const INFORME_BASE_DATOS_CC_SUBMENU_ID = 188;
+
+/** Menú Checklist (id_menu = 48) */
+export const CHECKLIST_MENU_ID = 48 as const;
+
+/** Submenús Checklist (id_menu = 48) */
+export const CHECKLIST_MOTOCICLETAS_SUBMENU_ID = 140;
+export const CHECKLIST_VEHICULO_SUBMENU_ID = 141;
+export const CHECKLIST_ALINEADORES_SUBMENU_ID = 145;
+export const CHECKLIST_ELEVADORES_SUBMENU_ID = 146;
+export const CHECKLIST_HIDRAULICOS_SUBMENU_ID = 147;
+export const CHECKLIST_TRABAJO_CALIENTE_SUBMENU_ID = 148;
+export const CHECKLIST_PORTICO_SUBMENU_ID = 149;
+export const CHECKLIST_TIJERA_SUBMENU_ID = 150;
+export const CHECKLIST_CABINA_PINTURA_SUBMENU_ID = 158;
 
 // Colores para tarjetas del Dashboard (opcional)
 export const DASHBOARD_CARD_COLORS = {

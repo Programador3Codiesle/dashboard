@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { IUsuario } from '@/modules/usuarios/types';
 import { usuariosService } from '../services/usuarios.service';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 
 // Query key para usuarios
 export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
@@ -28,8 +29,9 @@ export const useUsuarios = (
   } = useQuery({
     queryKey,
     queryFn: () => usuariosService.getUsuarios(page, limit, search),
-    staleTime: 30 * 1000, // 30 segundos - más reactivo para cambios frecuentes
-    gcTime: 5 * 60 * 1000, // Mantener en caché por 5 minutos (garbage collection)
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    ...transactionalQueryOptions,
     placeholderData: (previousData) => previousData,
   });
 
