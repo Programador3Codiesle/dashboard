@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck, Car, BarChart3, ClipboardList, ShieldCheck } from "lucide-react";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -28,6 +28,10 @@ export const ROUTES = [
   { path: "/dashboard/repuestos", name: "Repuestos", icon: Package },
   { path: "/dashboard/contact-center", name: "Contact Center", icon: Phone },
   { path: "/dashboard/checklist", name: "Checklist", icon: ClipboardCheck },
+  { path: "/dashboard/ordenes-tot", name: "Órdenes & TOT", icon: Car },
+  { path: "/dashboard/indicadores", name: "Indicadores", icon: BarChart3 },
+  { path: "/dashboard/encuestas", name: "Encuestas", icon: ClipboardList },
+  { path: "/dashboard/auditoria", name: "Auditoría", icon: ShieldCheck },
 ];
 
 export const MENU_ID_BY_ROUTE: Record<string, number> = {
@@ -41,6 +45,10 @@ export const MENU_ID_BY_ROUTE: Record<string, number> = {
   "/dashboard/repuestos": 47,
   "/dashboard/contact-center": 10,
   "/dashboard/checklist": 48,
+  "/dashboard/ordenes-tot": 6,
+  "/dashboard/indicadores": 2,
+  "/dashboard/encuestas": 7,
+  "/dashboard/auditoria": 49,
 };
 
 /** IDs de submenú MPVI (tabla menús legacy, id_menu padre = 4 Taller) */
@@ -130,6 +138,45 @@ export const CHECKLIST_TRABAJO_CALIENTE_SUBMENU_ID = 148;
 export const CHECKLIST_PORTICO_SUBMENU_ID = 149;
 export const CHECKLIST_TIJERA_SUBMENU_ID = 150;
 export const CHECKLIST_CABINA_PINTURA_SUBMENU_ID = 158;
+
+/** Menú Órdenes & TOT Taller (id_menu = 6) — solo Codiesel */
+export const ORDENES_TOT_MENU_ID = 6 as const;
+
+/** Submenús Órdenes & TOT (id_menu = 6) */
+export const DAR_SALIDA_VEHICULOS_SUBMENU_ID = 11;
+export const BUSCAR_ORDENES_SUBMENU_ID = 12;
+export const DAR_SALIDA_TOT_SUBMENU_ID = 16;
+export const INGRESO_REPUESTOS_SUBMENU_ID = 17;
+
+/** Menú Indicadores (id_menu = 2) — solo Codiesel / Chevrolet */
+export const INDICADORES_MENU_ID = 2 as const;
+
+/** Submenú Presupuesto POSVENTA (Indicadores, id_menu = 2) */
+export const PRESUPUESTO_POSVENTA_SUBMENU_ID = 2;
+
+/** Menú Encuestas (id_menu = 7) — solo Codiesel */
+export const ENCUESTAS_MENU_ID = 7 as const;
+
+/** Submenús Encuestas (id_menu = 7) */
+export const SATISFACCION_SUBMENU_ID = 21;
+export const NPS_COLMOTORES_SUBMENU_ID = 23;
+export const NPS_TECNICOS_INGRESO_SUBMENU_ID = 26;
+export const SATISFACCION_QR_SUBMENU_ID = 120;
+
+/** Menú Auditoría (id_menu = 49) — solo Codiesel */
+export const AUDITORIA_MENU_ID = 49 as const;
+
+/** Submenús Auditoría (id_menu = 49) */
+export const RANKING_NPS_TECNICOS_SUBMENU_ID = 159;
+export const CONTROL_ORDENES_DIARIAS_SUBMENU_ID = 160;
+export const RETORNOS_POR_SEDE_SUBMENU_ID = 161;
+export const PQR_AUDITORIA_SUBMENU_ID = 162;
+export const NPS_FABRICA_SUBMENU_ID = 164;
+export const ORDENES_MTTO_PREVENTIVO_SUBMENU_ID = 167;
+export const FACTURACION_TALLER_SUBMENU_ID = 169;
+export const FACTURACION_TECNICO_SUBMENU_ID = 170;
+export const ORDENES_TECNICOS_SUBMENU_ID = 171;
+export const ENTREGAS_AUDITORIA_SUBMENU_ID = 194;
 
 // Colores para tarjetas del Dashboard (opcional)
 export const DASHBOARD_CARD_COLORS = {
