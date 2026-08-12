@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck, Car, BarChart3, ClipboardList, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck, Car, BarChart3, ClipboardList, ShieldCheck, HardHat } from "lucide-react";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -32,6 +32,7 @@ export const ROUTES = [
   { path: "/dashboard/indicadores", name: "Indicadores", icon: BarChart3 },
   { path: "/dashboard/encuestas", name: "Encuestas", icon: ClipboardList },
   { path: "/dashboard/auditoria", name: "Auditoría", icon: ShieldCheck },
+  { path: "/dashboard/mantenimiento", name: "Mantenimiento", icon: HardHat },
 ];
 
 export const MENU_ID_BY_ROUTE: Record<string, number> = {
@@ -49,6 +50,7 @@ export const MENU_ID_BY_ROUTE: Record<string, number> = {
   "/dashboard/indicadores": 2,
   "/dashboard/encuestas": 7,
   "/dashboard/auditoria": 49,
+  "/dashboard/mantenimiento": 41,
 };
 
 /** IDs de submenú MPVI (tabla menús legacy, id_menu padre = 4 Taller) */
@@ -177,6 +179,16 @@ export const FACTURACION_TALLER_SUBMENU_ID = 169;
 export const FACTURACION_TECNICO_SUBMENU_ID = 170;
 export const ORDENES_TECNICOS_SUBMENU_ID = 171;
 export const ENTREGAS_AUDITORIA_SUBMENU_ID = 194;
+
+/** Menú Mantenimiento (id_menu = 41) — solo Codiesel */
+export const MANTENIMIENTO_MENU_ID = 41 as const;
+
+/** Submenús Mantenimiento (id_menu = 41) */
+export const EQUIPOS_MANTENIMIENTO_SUBMENU_ID = 53;
+export const MTTO_CORRECTIVO_SUBMENU_ID = 80;
+export const MTTO_PREVENTIVO_SUBMENU_ID = 82;
+export const INFORME_CORRECTIVO_SUBMENU_ID = 96;
+export const INFORME_PREVENTIVO_SUBMENU_ID = 97;
 
 // Colores para tarjetas del Dashboard (opcional)
 export const DASHBOARD_CARD_COLORS = {
