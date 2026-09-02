@@ -6,6 +6,12 @@ import { Loader2 } from 'lucide-react';
 import { checklistsService, ChecklistEquipoRow, TipoChecklistEquipo } from '@/modules/informes/gestion-humana/services/checklists.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
+import { INFORMES_COPY, INFORMES_GH_TRIMENU } from '@/modules/informes/constants';
+import { InformesQueryError } from '@/modules/informes/shared/components/InformesQueryError';
+import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
+import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
+import { getErrorMessage } from '@/modules/informes/shared/utils/parse-api-error';
 
 const NOMBRES_CHECKLIST: Record<TipoChecklistEquipo, string> = {
   0: 'CheckList Trabajo en Caliente',
@@ -526,6 +532,10 @@ function renderFila(op: TipoChecklistEquipo, row: ChecklistEquipoRow) {
 }
 
 export function ChecklistsInformeView() {
+  const { blocked } = useInformesPageGuard({
+    trimenuId: INFORMES_GH_TRIMENU.checklists,
+    redirectTo: '/dashboard/informes/gestion-humana',
+  });
   const { showError, showInfo } = useToast();
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
@@ -544,9 +554,12 @@ export function ChecklistsInformeView() {
     data = [],
     isFetching,
     isError,
+    error,
     isFetched,
   } = useQuery<ChecklistEquipoRow[]>({
-    queryKey: ['informes', 'gestion-humana', 'checklists', filtrosAplicados],
+    queryKey: informesKeys.gh.checklists(
+      filtrosAplicados ? JSON.stringify(filtrosAplicados) : '',
+    ),
     queryFn: () => checklistsService.listar(filtrosAplicados!),
     enabled: filtrosAplicados != null,
     retry: false,
@@ -569,11 +582,6 @@ export function ChecklistsInformeView() {
   };
 
   useEffect(() => {
-    if (!isError) return;
-    showError('Error consultando informe de CheckLists');
-  }, [isError, showError]);
-
-  useEffect(() => {
     if (!isFetched || isFetching || filtrosAplicados == null) return;
     if (data.length === 0) {
       showInfo(
@@ -592,18 +600,20 @@ export function ChecklistsInformeView() {
   }, [data, safeCurrentPage]);
   const columnas = CABECERAS[appliedOp];
 
+  if (blocked) return null;
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-            Informe Checklists
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Consulte los resultados por tipo de checklist en el rango de fechas seleccionado.
-          </p>
-        </div>
-      </div>
+    <InformesPageFrame
+      title={INFORMES_COPY.checklists.title}
+      description={INFORMES_COPY.checklists.description}
+      backHref="/dashboard/informes/gestion-humana"
+      backLabel={INFORMES_COPY.backGh}
+    >
+      {isError ? (
+        <InformesQueryError
+          message={getErrorMessage(error, INFORMES_COPY.checklists.loadError)}
+        />
+      ) : null}
 
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -716,7 +726,7 @@ export function ChecklistsInformeView() {
           </div>
         )}
       </div>
-    </div>
+    </InformesPageFrame>
   );
 }
 

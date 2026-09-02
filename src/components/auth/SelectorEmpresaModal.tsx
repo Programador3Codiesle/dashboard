@@ -6,6 +6,7 @@ import { EMPRESAS } from '@/utils/constants';
 import { Building2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
+import { EmpresaIcon } from '@/components/shared/brand/EmpresaIcon';
 
 interface SelectorEmpresaModalProps {
   open: boolean;
@@ -72,12 +73,12 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
                     backgroundColor: `${empresa.color}08`,
                   }}
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-white font-bold text-lg shadow-md"
-                    style={{ backgroundColor: empresa.color }}
-                  >
-                    {empresa.nombre.charAt(0)}
-                  </div>
+                  <EmpresaIcon
+                    empresaId={empresa.id}
+                    size={56}
+                    framed
+                    className="mb-3 h-14 w-14"
+                  />
                   <span className="font-semibold text-gray-900">{empresa.nombre}</span>
                 </motion.button>
               ))}

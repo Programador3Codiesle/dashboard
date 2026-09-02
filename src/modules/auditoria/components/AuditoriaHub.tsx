@@ -2,16 +2,18 @@
 
 import { SubmodulosHub } from '@/components/shared/hub/SubmodulosHub';
 import { CODIESEL_EMPRESA_ID } from '@/utils/constants';
-import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
+import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
 import { AUDITORIA_HUB_ITEMS } from '@/modules/auditoria/hub/items';
+import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
 
 export function AuditoriaHub() {
-  useAuditoriaPageGuard();
+  const { blocked } = useAuditoriaPageGuard();
+  if (blocked) return null;
 
   return (
     <SubmodulosHub
-      title="Auditoría"
-      description="Control de órdenes, facturación, NPS fábrica, PQR y entregas"
+      title={AUDITORIA_COPY.hub.title}
+      description={AUDITORIA_COPY.hub.description}
       items={AUDITORIA_HUB_ITEMS}
       variant="border"
       titleClassName="app-title-xl brand-text"

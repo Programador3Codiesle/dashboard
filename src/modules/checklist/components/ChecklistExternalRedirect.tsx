@@ -2,23 +2,21 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  CHECKLIST_COPY,
+  CHECKLIST_EXTERNAL_URLS,
+  type ChecklistExternalTipo,
+} from '@/modules/checklist/constants';
 
-const URLS: Record<string, string> = {
-  motocicletas: 'https://intranet.codiesel.co/ventas/CheckMoto',
-  vehiculo: 'https://intranet.codiesel.co/ventas/CheckCarro',
-};
-
-export function ChecklistExternalRedirect({ tipo }: { tipo: keyof typeof URLS }) {
+export function ChecklistExternalRedirect({ tipo }: { tipo: ChecklistExternalTipo }) {
   const router = useRouter();
 
   useEffect(() => {
-    window.open(URLS[tipo], '_blank', 'noopener,noreferrer');
+    window.open(CHECKLIST_EXTERNAL_URLS[tipo], '_blank', 'noopener,noreferrer');
     router.replace('/dashboard/checklist');
   }, [tipo, router]);
 
   return (
-    <p className="py-8 text-center text-sm text-gray-500">
-      Abriendo el sistema de ventas en una nueva pestaña...
-    </p>
+    <p className="py-8 text-center text-sm text-gray-500">{CHECKLIST_COPY.redirectVentas}</p>
   );
 }

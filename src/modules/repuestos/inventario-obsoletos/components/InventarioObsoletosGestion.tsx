@@ -14,8 +14,13 @@ import {
 } from '@/modules/informes/postventa/format-cantidad-co';
 import { useToast } from '@/components/ui/use-toast';
 import Modal from '@/components/shared/ui/Modal';
+import { Pagination } from '@/components/shared/ui/Pagination';
 import * as XLSX from 'xlsx';
 import { Loader2 } from 'lucide-react';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { INVENTARIO_OBSOLETOS_SUBMENU_ID } from '@/utils/constants';
 
 interface RowExtendido extends InventarioObsoletoDetalleRow {
   descuento?: number | null;
@@ -23,15 +28,35 @@ interface RowExtendido extends InventarioObsoletoDetalleRow {
   nuevoMargen?: number | null;
 }
 
+const PAGE_SIZE = 10;
+
+function claveFila(row: { codigo: string; bodega: number }) {
+  return `${row.codigo}-${row.bodega}`;
+}
+
+function aplicarDescuento(
+  row: InventarioObsoletoDetalleRow,
+  descuento: number | null,
+): RowExtendido {
+  if (descuento == null) {
+    return { ...row, descuento: null, nuevoPvp: null, nuevoMargen: null };
+  }
+  const nuevoPvp = row.pvpAntesIva * (1 - descuento / 100);
+  const nuevoMargen =
+    ((nuevoPvp - row.costo) / (nuevoPvp === 0 ? 1 : nuevoPvp)) * 100;
+  return { ...row, descuento, nuevoPvp, nuevoMargen };
+}
+
 export function InventarioObsoletosGestion() {
-  const { showError, showInfo } = useToast();
+  const { blocked } = useRepuestosPageGuard(INVENTARIO_OBSOLETOS_SUBMENU_ID);
+  const { showInfo } = useToast();
   const [openModal, setOpenModal] = useState(false);
-  const [selectedTipo, setSelectedTipo] = useState<TipoInventarioObsoleto | null>(null);
+  const [selectedTipo, setSelectedTipo] = useState<TipoInventarioObsoleto | null>(
+    null,
+  );
   const [selectedTitulo, setSelectedTitulo] = useState('');
-  const [rows, setRows] = useState<RowExtendido[]>([]);
-  const [loadingDetalle, setLoadingDetalle] = useState(false);
+  const [descuentos, setDescuentos] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   const { data: resumen = [], isLoading: loadingResumen } = useQuery<
     InventarioObsoletoResumenRow[],
@@ -43,50 +68,55 @@ export function InventarioObsoletosGestion() {
     refetchOnWindowFocus: false,
   });
 
-  const abrirDetalle = async (row: InventarioObsoletoResumenRow) => {
+  const {
+    data: detalle = [],
+    isLoading: loadingDetalle,
+    isError: errorDetalle,
+  } = useQuery({
+    queryKey: [
+      'informes',
+      'postventa',
+      'inventario-obsoletos',
+      'detalle',
+      selectedTipo,
+    ],
+    queryFn: () => inventarioObsoletosService.obtenerDetalle(selectedTipo!),
+    enabled: openModal && selectedTipo != null,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const rows = useMemo(
+    () =>
+      detalle.map((r) =>
+        aplicarDescuento(r, descuentos[claveFila(r)] ?? null),
+      ),
+    [detalle, descuentos],
+  );
+
+  const abrirDetalle = (row: InventarioObsoletoResumenRow) => {
     if (!row.habilitaDetalle) {
       showInfo('Esta categoría no supera el umbral para ver detalle.');
       return;
     }
     setSelectedTipo(row.tipo);
     setSelectedTitulo(row.descripcionTipo);
-    setRows([]);
+    setDescuentos({});
     setCurrentPage(1);
     setOpenModal(true);
-    setLoadingDetalle(true);
-    try {
-      const data = await inventarioObsoletosService.obtenerDetalle(row.tipo);
-      setRows(
-        data.map((r) => ({
-          ...r,
-          descuento: null,
-          nuevoPvp: null,
-          nuevoMargen: null,
-        })),
-      );
-    } catch {
-      showError('No se pudo cargar el detalle de inventario obsoleto.');
-    } finally {
-      setLoadingDetalle(false);
-    }
   };
 
   const onChangeDescuento = (row: RowExtendido, value: string) => {
-    const descuento = value === '' ? null : Number(value);
-    setRows((prev) =>
-      prev.map((r) => {
-        if (r.codigo === row.codigo && r.bodega === row.bodega) {
-          if (descuento === null) {
-            return { ...r, descuento: null, nuevoPvp: null, nuevoMargen: null };
-          }
-          const nuevoPvp = r.pvpAntesIva * (1 - descuento / 100);
-          const nuevoMargen =
-            ((nuevoPvp - r.costo) / (nuevoPvp === 0 ? 1 : nuevoPvp)) * 100;
-          return { ...r, descuento, nuevoPvp, nuevoMargen };
-        }
-        return r;
-      }),
-    );
+    const key = claveFila(row);
+    setDescuentos((prev) => {
+      const next = { ...prev };
+      if (value === '') {
+        delete next[key];
+      } else {
+        next[key] = Number(value);
+      }
+      return next;
+    });
   };
 
   const totalNuevoPvp = rows.reduce(
@@ -95,11 +125,12 @@ export function InventarioObsoletosGestion() {
   );
   const totalObsoleto = resumen.reduce((acc, r) => acc + r.obsoleto, 0);
   const totalGeneral = resumen.reduce((acc, r) => acc + r.total, 0);
-  const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, currentPage]);
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const paginaSegura = Math.min(currentPage, totalPages);
+  const paginatedRows = useMemo(() => {
+    const start = (paginaSegura - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, paginaSegura]);
 
   const exportarExcel = () => {
     if (rows.length === 0) {
@@ -129,7 +160,13 @@ export function InventarioObsoletosGestion() {
     XLSX.writeFile(wb, 'informe-descuento-repuestos-obsoletos.xlsx');
   };
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.inventarioObsoletos.title}
+      description={REPUESTOS_COPY.inventarioObsoletos.description}
+    >
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
       <div className="app-table-scroll">
         <table className="min-w-full text-xs md:text-sm border border-gray-100 rounded-lg">
@@ -170,7 +207,7 @@ export function InventarioObsoletosGestion() {
                         type="button"
                         disabled={!row.habilitaDetalle}
                         onClick={() => abrirDetalle(row)}
-                        className="inline-flex items-center rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center rounded-md brand-bg px-3 py-1.5 text-xs font-semibold text-white shadow-sm brand-bg-hover disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Detalle
                       </button>
@@ -215,9 +252,14 @@ export function InventarioObsoletosGestion() {
               <Loader2 size={16} className="animate-spin" />
               Cargando detalle...
             </div>
+          ) : errorDetalle ? (
+            <p className="py-8 text-sm text-center text-red-600">
+              No se pudo cargar el detalle de inventario obsoleto.
+            </p>
           ) : rows.length === 0 ? (
             <p className="text-sm text-gray-500">No hay detalle para mostrar.</p>
           ) : (
+            <>
             <div className="overflow-x-auto rounded-xl border border-gray-100 max-h-[65vh]">
               <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
                 <thead className="bg-gray-50">
@@ -228,8 +270,10 @@ export function InventarioObsoletosGestion() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {paginatedRows.map((row) => (
-                    <tr key={`${row.codigo}-${row.bodega}`}>
+                  {paginatedRows.map((row, i) => {
+                    const rowIndex = (paginaSegura - 1) * PAGE_SIZE + i;
+                    return (
+                    <tr key={`${row.rnk}-${claveFila(row)}-${rowIndex}`}>
                       <td className="px-2 py-1.5 text-center">{row.rnk}</td>
                       <td className="px-2 py-1.5 text-center">{row.codigo}</td>
                       <td className="px-2 py-1.5">{row.descripcion}</td>
@@ -259,13 +303,26 @@ export function InventarioObsoletosGestion() {
                         {row.nuevoMargen != null ? `${formatNumeroCo(row.nuevoMargen, 2, 2)}%` : ''}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+              <p className="text-sm text-gray-600">
+                {`Mostrando ${(paginaSegura - 1) * PAGE_SIZE + 1}-${Math.min(paginaSegura * PAGE_SIZE, rows.length)} de ${rows.length} registros`}
+              </p>
+              <Pagination
+                currentPage={paginaSegura}
+                totalPages={totalPages}
+                onChange={setCurrentPage}
+              />
+            </div>
+            </>
           )}
         </div>
       </Modal>
     </div>
+    </RepuestosPageFrame>
   );
 }

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { usuariosService } from '../services/usuarios.service';
-import { IJefe } from '../types';
 import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 
 // Query keys para jefes

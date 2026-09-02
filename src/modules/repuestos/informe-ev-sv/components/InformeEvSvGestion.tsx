@@ -2,10 +2,16 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
 import {
-  btnPrimaryClass,
-  inputClass,
-} from '@/modules/repuestos/shared/constants/ui';
+  FILTROS_EV_VACIOS,
+  FiltrosEvBar,
+  type BodegaEvOption,
+  toEvListarPayload,
+} from '@/modules/repuestos/shared/components/FiltrosEvBar';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { INFORME_EV_SV_SUBMENU_ID } from '@/utils/constants';
 import { informeEvSvService } from '../services/informe-ev-sv.service';
 
 const colorMap = {
@@ -16,45 +22,39 @@ const colorMap = {
 };
 
 export function InformeEvSvGestion() {
-  const [filtros, setFiltros] = useState({
-    nOrden: '',
-    placa: '',
-    bodega: '',
-    fechaRegistro: '',
-  });
-  const [buscar, setBuscar] = useState(false);
+  const { blocked } = useRepuestosPageGuard(INFORME_EV_SV_SUBMENU_ID);
+  const [filtros, setFiltros] = useState(FILTROS_EV_VACIOS);
+  const [filtrosAplicados, setFiltrosAplicados] = useState(FILTROS_EV_VACIOS);
+  const [consulta, setConsulta] = useState(0);
 
-  const { data: bodegas = [] } = useQuery({
+  const { data: bodegas = [] } = useQuery<BodegaEvOption[]>({
     queryKey: ['repuestos', 'informe-ev-sv', 'bodegas'],
     queryFn: () => informeEvSvService.listarBodegas(),
   });
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ['repuestos', 'informe-ev-sv', filtros, buscar],
-    queryFn: () =>
-      informeEvSvService.listar({
-        nOrden: filtros.nOrden ? Number(filtros.nOrden) : undefined,
-        placa: filtros.placa || undefined,
-        bodega: filtros.bodega ? Number(filtros.bodega) : undefined,
-        fechaRegistro: filtros.fechaRegistro || undefined,
-      }),
-    enabled: buscar,
+    queryKey: ['repuestos', 'informe-ev-sv', filtrosAplicados, consulta],
+    queryFn: () => informeEvSvService.listar(toEvListarPayload(filtrosAplicados)),
+    enabled: consulta > 0,
   });
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.informeEvSv.title}
+      description={REPUESTOS_COPY.informeEvSv.description}
+    >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-3">
-        <input type="number" placeholder="N° Orden" className={inputClass} value={filtros.nOrden} onChange={(e) => setFiltros((f) => ({ ...f, nOrden: e.target.value }))} />
-        <input placeholder="Placa" className={inputClass} value={filtros.placa} onChange={(e) => setFiltros((f) => ({ ...f, placa: e.target.value.toUpperCase() }))} />
-        <select className={inputClass} value={filtros.bodega} onChange={(e) => setFiltros((f) => ({ ...f, bodega: e.target.value }))}>
-          <option value="">Bodega</option>
-          {bodegas.map((b: { bodega: number; descripcion: string }) => (
-            <option key={b.bodega} value={b.bodega}>{b.descripcion}</option>
-          ))}
-        </select>
-        <input type="date" className={inputClass} value={filtros.fechaRegistro} onChange={(e) => setFiltros((f) => ({ ...f, fechaRegistro: e.target.value }))} />
-        <button type="button" className={btnPrimaryClass} onClick={() => setBuscar(true)}>Buscar</button>
-      </div>
+      <FiltrosEvBar
+        filtros={filtros}
+        onChange={setFiltros}
+        bodegas={bodegas}
+        onBuscar={() => {
+          setFiltrosAplicados(filtros);
+          setConsulta((n) => n + 1);
+        }}
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto max-h-[70vh]">
         <table className="min-w-full text-xs md:text-sm text-center">
@@ -114,5 +114,6 @@ export function InformeEvSvGestion() {
         </table>
       </div>
     </div>
+    </RepuestosPageFrame>
   );
 }

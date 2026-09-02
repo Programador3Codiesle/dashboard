@@ -1,14 +1,8 @@
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/encuestas/shared/utils/parse-api-error';
 
 const BASE = `${getApiBaseUrl()}/encuestas`;
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  const message = (json as { message?: string | string[] }).message;
-  const text = Array.isArray(message) ? message.join(', ') : message;
-  throw new Error(text || fallback);
-}
 
 export type SatisfaccionItem = {
   nit_real: string;
@@ -35,15 +29,36 @@ export type SatisfaccionDetalle = {
   } | null;
 };
 
+export type SatisfaccionListadoPage = {
+  items: SatisfaccionItem[];
+  total: number;
+};
+
 export type TecnicoNps = {
   nit: string;
   nombre: string;
   patio: string | null;
 };
 
+export type NpsTecnicoSaveResult = {
+  ok: boolean;
+  updated?: boolean;
+  skipped?: boolean;
+};
+
 export const encuestasService = {
-  async listarSatisfaccion(): Promise<SatisfaccionItem[]> {
-    const resp = await fetchWithAuth(`${BASE}/satisfaccion`);
+  async listarSatisfaccion(params: {
+    q?: string;
+    page: number;
+    pageSize: number;
+  }): Promise<SatisfaccionListadoPage> {
+    const qs = new URLSearchParams({
+      page: String(params.page),
+      pageSize: String(params.pageSize),
+    });
+    const q = params.q?.trim();
+    if (q) qs.set('q', q);
+    const resp = await fetchWithAuth(`${BASE}/satisfaccion?${qs.toString()}`);
     if (!resp.ok) await parseError(resp, 'Error al cargar encuestas');
     return resp.json();
   },
@@ -87,7 +102,7 @@ export const encuestasService = {
     placa: string;
     tipificacion: string;
     tipo_cal: '0a6' | '7a8' | '9a10';
-  }) {
+  }): Promise<NpsTecnicoSaveResult> {
     const resp = await fetchWithAuth(`${BASE}/nps-colmotores/tecnico`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -97,7 +112,9 @@ export const encuestasService = {
     return resp.json();
   },
 
-  async uploadNpsTecnicos(file: File): Promise<{ insertados: number; omitidos: number }> {
+  async uploadNpsTecnicos(
+    file: File,
+  ): Promise<{ insertados: number; omitidos: number }> {
     const form = new FormData();
     form.append('fileContacts', file);
     const resp = await fetchWithAuth(`${BASE}/nps-tecnicos/upload`, {

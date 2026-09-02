@@ -3,7 +3,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { ccQueryOptions } from '@/modules/contact-center/shared/constants/query-options';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
+import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { DISTRIBUCION_CC_SUBMENU_ID } from '@/utils/constants';
 import {
   CeldaDistribucion,
   distribucionService,
@@ -30,20 +36,23 @@ function patchMatrizCelda(
 }
 
 export function DistribucionGestion() {
+  const { user, blocked } = useContactCenterPageGuard(DISTRIBUCION_CC_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
   const [togglePending, setTogglePending] = useState<string | null>(null);
 
-  const { data: matriz, isLoading } = useQuery({
+  const { data: matriz, isLoading, isError, error } = useQuery({
     queryKey: ['contact-center', 'distribucion', 'matriz'],
     queryFn: () => distribucionService.obtenerMatriz(),
-    ...ccQueryOptions,
+    enabled: !!user && !blocked,
+    ...transactionalQueryOptions,
   });
 
   const { data: totales = [] } = useQuery({
     queryKey: ['contact-center', 'distribucion', 'totales'],
     queryFn: () => distribucionService.obtenerTotales(),
-    ...ccQueryOptions,
+    enabled: !!user && !blocked,
+    ...transactionalQueryOptions,
   });
 
   const celdasMap = useMemo(() => {
@@ -80,7 +89,7 @@ export function DistribucionGestion() {
       );
       invalidateTotales();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error al actualizar asignación')),
     onSettled: () => setTogglePending(null),
   });
 
@@ -100,7 +109,7 @@ export function DistribucionGestion() {
       );
       invalidateTotales();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error al actualizar distribución')),
   });
 
   const handleSavePorcentaje = useCallback(
@@ -110,13 +119,20 @@ export function DistribucionGestion() {
     [updateDist],
   );
 
-  if (isLoading) {
-    return <p className="text-gray-500 text-sm">Cargando matriz...</p>;
-  }
-
-  if (!matriz) return null;
+  if (blocked) return null;
 
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.distribucion.title}
+      description={CONTACT_CENTER_COPY.distribucion.description}
+    >
+    {isLoading ? (
+      <p className="text-gray-500 text-sm">Cargando matriz...</p>
+    ) : isError || !matriz ? (
+      <CcQueryError
+        message={getErrorMessage(error, 'Error al cargar la matriz de distribución')}
+      />
+    ) : (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm text-sm text-gray-600">
         Distribución para mes <strong>{matriz.mes}</strong> / año <strong>{matriz.anio}</strong>
@@ -190,6 +206,7 @@ export function DistribucionGestion() {
                     return (
                       <td key={b.bodega} className="px-2 py-1 text-center">
                         <DistribucionPorcentajeInput
+                          key={`${celda?.asignado ? 1 : 0}-${celda?.distribucion ?? ''}`}
                           agente={a.nitReal}
                           bodega={b.bodega}
                           asignado={celda?.asignado ?? false}
@@ -233,5 +250,7 @@ export function DistribucionGestion() {
         </div>
       </div>
     </div>
+    )}
+    </ContactCenterPageFrame>
   );
 }

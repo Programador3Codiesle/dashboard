@@ -1,14 +1,5 @@
-// src/app/dashboard/tickets/finalizados/page.tsx
-'use client';
-import { useTickets } from "@/modules/tickets/hooks/useTickets";
-import TicketsTableFinalizados from "@/components/tickets/TicketsTableFinalizados";
+import { TicketsFinalizadosGestion } from '@/modules/tickets/components/TicketsFinalizadosGestion';
 
 export default function FinalizadosPage() {
-    const { tickets, loading } = useTickets("finalizados");
-
-    return (
-        <div>
-            <TicketsTableFinalizados tickets={tickets} loading={loading} />
-        </div>
-    );
+  return <TicketsFinalizadosGestion />;
 }

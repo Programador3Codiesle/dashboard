@@ -4,13 +4,18 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { ccQueryOptions } from '@/modules/contact-center/shared/constants/query-options';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   btnSuccessClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { AuditoriaUploadModal } from './AuditoriaUploadModal';
 import {
@@ -19,6 +24,7 @@ import {
 } from '../services/auditoria-contact.service';
 
 export function AuditoriaIndexGestion() {
+  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [nitAgente, setNitAgente] = useState('');
   const [idAuditoria, setIdAuditoria] = useState<number | null>(null);
@@ -32,7 +38,8 @@ export function AuditoriaIndexGestion() {
   const { data: agentes = [] } = useQuery({
     queryKey: ['contact-center', 'auditoria', 'agentes'],
     queryFn: () => auditoriaContactService.listarAgentes(),
-    ...ccQueryOptions,
+    enabled: !!user && !blocked,
+    ...catalogQueryOptions,
   });
 
   const crear = useMutation({
@@ -47,7 +54,7 @@ export function AuditoriaIndexGestion() {
       setFormulario(form);
       showSuccess('Auditoría iniciada');
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const respuesta = useMutation({
@@ -59,7 +66,7 @@ export function AuditoriaIndexGestion() {
         opt: payload.opt,
       });
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const finalizar = useMutation({
@@ -92,7 +99,7 @@ export function AuditoriaIndexGestion() {
         showError('No se pudo finalizar la auditoría');
       }
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const handleRespuesta = useCallback(
@@ -114,13 +121,20 @@ export function AuditoriaIndexGestion() {
     [respuesta],
   );
 
+  if (blocked) return null;
+
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.auditoria.title}
+      description={CONTACT_CENTER_COPY.auditoria.description}
+    >
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
-            <label className="text-sm font-medium text-gray-700">Seleccione el agente</label>
+            <label htmlFor="cc-auditoria-agente" className="text-sm font-medium text-gray-700">Seleccione el agente</label>
             <select
+              id="cc-auditoria-agente"
               className={inputClass}
               value={nitAgente}
               onChange={(e) => setNitAgente(e.target.value)}
@@ -147,20 +161,23 @@ export function AuditoriaIndexGestion() {
             >
               Auditar
             </button>
-            <Link href="/dashboard/contact-center/auditoria/configuracion">
-              <button type="button" className={btnSecondaryClass}>
-                Configuración
-              </button>
+            <Link
+              href="/dashboard/contact-center/auditoria/configuracion"
+              className={btnSecondaryClass}
+            >
+              Configuración
             </Link>
-            <Link href="/dashboard/contact-center/auditoria/listado">
-              <button type="button" className={btnSecondaryClass}>
-                Listado
-              </button>
+            <Link
+              href="/dashboard/contact-center/auditoria/listado"
+              className={btnSecondaryClass}
+            >
+              Listado
             </Link>
-            <Link href="/dashboard/contact-center/auditoria/informe-detalle">
-              <button type="button" className={btnSecondaryClass}>
-                Informe detalle
-              </button>
+            <Link
+              href="/dashboard/contact-center/auditoria/informe-detalle"
+              className={btnSecondaryClass}
+            >
+              Informe detalle
             </Link>
           </div>
         </div>
@@ -212,5 +229,6 @@ export function AuditoriaIndexGestion() {
         />
       )}
     </div>
+    </ContactCenterPageFrame>
   );
 }

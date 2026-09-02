@@ -7,6 +7,7 @@ import {
   btnPrimaryClass,
   btnSecondaryClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
 import { auditoriaContactService } from '../services/auditoria-contact.service';
 
 type Props = {
@@ -58,7 +59,7 @@ export function AuditoriaUploadModal({
       onUploaded?.();
       handleClose();
     } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al subir archivos');
+      showError(getErrorMessage(e, 'Error al subir archivos'));
     } finally {
       setSubiendo(false);
     }

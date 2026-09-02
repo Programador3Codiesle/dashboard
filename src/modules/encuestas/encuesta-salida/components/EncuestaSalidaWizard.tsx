@@ -2,11 +2,15 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
+import { encuestasKeys } from '@/modules/encuestas/shared/constants/query-keys';
 import {
   encuestaQrService,
-  type PreguntaQr,
   type VehiculoQr,
 } from '@/modules/encuestas/shared/services/encuesta-qr.service';
+import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
 
 type Step =
   | 'placa'
@@ -37,14 +41,20 @@ export function EncuestaSalidaWizard() {
   const [userPhone, setUserPhone] = useState('');
   const [userMode, setUserMode] = useState<'insert' | 'update'>('insert');
 
-  const [preguntas, setPreguntas] = useState<PreguntaQr[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
+  const preguntasQuery = useQuery({
+    queryKey: encuestasKeys.preguntasQr,
+    queryFn: () => encuestaQrService.listarPreguntas(),
+    ...transactionalQueryOptions,
+  });
+  const preguntas = preguntasQuery.data ?? [];
+
   useEffect(() => {
-    encuestaQrService
-      .listarPreguntas()
-      .then(setPreguntas)
-      .catch(() => setError('No se pudieron cargar las preguntas'));
+    const el = document.documentElement;
+    if (!el.getAttribute('data-empresa')) {
+      el.setAttribute('data-empresa', '1');
+    }
   }, []);
 
   async function buscarPlaca() {
@@ -240,13 +250,14 @@ export function EncuestaSalidaWizard() {
   return (
     <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 px-4 py-8">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-amber-700">CODIESEL S.A.</h1>
+        <h1 className="text-2xl font-bold brand-text">CODIESEL S.A.</h1>
         <p className="text-sm text-slate-600">Generar orden de salida / Encuesta de satisfacción</p>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
+      {(error || preguntasQuery.isError) && (
+        <div className="mb-4 rounded-md border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] px-3 py-2 text-sm text-[var(--color-danger)]">
+          {error ||
+            getErrorMessage(preguntasQuery.error, ENCUESTAS_COPY.qr.loadError)}
         </div>
       )}
 
@@ -267,7 +278,7 @@ export function EncuestaSalidaWizard() {
             <button
               type="button"
               onClick={buscarPlaca}
-              className="rounded bg-amber-500 px-4 py-2 font-medium text-white"
+              className="rounded brand-bg px-4 py-2 font-medium text-white brand-bg-hover"
             >
               Buscar
             </button>
@@ -277,7 +288,7 @@ export function EncuestaSalidaWizard() {
 
       {step === 'confirmVh' && vh && (
         <Card title="INFORMACIÓN DEL VEHÍCULO">
-          <div className="mb-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm">
+          <div className="mb-4 rounded border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] p-3 text-sm">
             <p>
               <strong>Placa:</strong> {vh.placa}
             </p>
@@ -309,7 +320,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={continuarDoc}
-            className="mt-3 rounded bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+            className="mt-3 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
           >
             Continuar
           </button>
@@ -348,14 +359,14 @@ export function EncuestaSalidaWizard() {
             <button
               type="button"
               onClick={actualizarPropietario}
-              className="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+              className="rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
             >
               Actualizar / Continuar
             </button>
             <button
               type="button"
               onClick={() => setStep('askSurvey')}
-              className="rounded bg-amber-600 px-4 py-2 text-sm font-medium text-white"
+              className="rounded bg-[var(--color-warning)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Continuar sin cambios
             </button>
@@ -395,7 +406,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={registrarUsuario}
-            className="mt-3 rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
+            className="mt-3 rounded brand-success px-4 py-2 text-sm font-medium text-white brand-success-hover"
           >
             {userMode === 'insert' ? 'Registrar' : 'Actualizar'}
           </button>
@@ -408,7 +419,7 @@ export function EncuestaSalidaWizard() {
             <button
               type="button"
               onClick={() => setStep('encuesta')}
-              className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
+              className="rounded brand-success px-4 py-2 text-sm font-medium text-white brand-success-hover"
             >
               Sí
             </button>
@@ -432,15 +443,27 @@ export function EncuestaSalidaWizard() {
             {preguntas.map((p) => (
               <div
                 key={p.id}
-                className="rounded border border-sky-200 p-3 text-sm"
+                className="rounded border border-[color-mix(in_srgb,var(--color-info)_35%,white)] p-3 text-sm"
               >
                 <p className="mb-2 font-medium">{p.pregunta}:</p>
                 {p.tipo === '1-10' && p.id === 1 && (
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { v: '6', label: '0-6', cls: 'border-red-400 text-red-700' },
-                      { v: '8', label: '7-8', cls: 'border-amber-400 text-amber-700' },
-                      { v: '10', label: '9-10', cls: 'border-emerald-400 text-emerald-700' },
+                      {
+                        v: '6',
+                        label: '0-6',
+                        cls: 'border-[var(--color-danger)] text-[var(--color-danger)]',
+                      },
+                      {
+                        v: '8',
+                        label: '7-8',
+                        cls: 'border-[var(--color-warning)] text-[var(--color-warning)]',
+                      },
+                      {
+                        v: '10',
+                        label: '9-10',
+                        cls: 'border-[var(--color-success)] text-[var(--color-success)]',
+                      },
                     ].map((opt) => (
                       <button
                         key={opt.v}
@@ -467,7 +490,7 @@ export function EncuestaSalidaWizard() {
                         type="button"
                         className={`rounded border px-4 py-2 ${
                           answers[`pregunta${p.id}`] === opt
-                            ? 'bg-sky-600 text-white'
+                            ? 'bg-[var(--color-info)] text-white'
                             : 'bg-white'
                         }`}
                         onClick={() =>
@@ -499,7 +522,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={enviarEncuesta}
-            className="mt-4 rounded bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+            className="mt-4 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
           >
             Enviar Respuestas
           </button>
@@ -508,11 +531,11 @@ export function EncuestaSalidaWizard() {
 
       {step === 'done' && (
         <Card title="Listo">
-          <p className="text-center text-emerald-700">{msg}</p>
+          <p className="text-center text-[var(--color-success)]">{msg}</p>
           <button
             type="button"
             onClick={resetAll}
-            className="mt-4 rounded bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+            className="mt-4 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
           >
             Nueva encuesta
           </button>

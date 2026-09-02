@@ -1,5 +1,4 @@
 import { fetchWithAuth } from "@/utils/api";
-import { getUser } from "@/utils/cookies";
 import { getApiBaseUrl } from "@/config/public-env";
 
 const API_URL = getApiBaseUrl();

@@ -1,14 +1,8 @@
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/mantenimiento/shared/utils/parse-api-error';
 
 const BASE = `${getApiBaseUrl()}/mantenimiento`;
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  const message = (json as { message?: string | string[] }).message;
-  const text = Array.isArray(message) ? message.join(', ') : message;
-  throw new Error(text || fallback);
-}
 
 export const mantenimientoService = {
   async catalogos() {

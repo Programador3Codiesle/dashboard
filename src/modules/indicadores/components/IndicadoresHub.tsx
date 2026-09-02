@@ -2,16 +2,18 @@
 
 import { SubmodulosHub } from '@/components/shared/hub/SubmodulosHub';
 import { CODIESEL_EMPRESA_ID } from '@/utils/constants';
-import { useIndicadoresPageGuard } from '@/modules/indicadores/shared/hooks/useIndicadoresPageGuard';
+import { INDICADORES_COPY } from '@/modules/indicadores/constants';
 import { INDICADORES_HUB_ITEMS } from '@/modules/indicadores/hub/items';
+import { useIndicadoresPageGuard } from '@/modules/indicadores/shared/hooks/useIndicadoresPageGuard';
 
 export function IndicadoresHub() {
-  useIndicadoresPageGuard();
+  const { blocked } = useIndicadoresPageGuard();
+  if (blocked) return null;
 
   return (
     <SubmodulosHub
-      title="Indicadores"
-      description="Indicadores de posventa para Codiesel"
+      title={INDICADORES_COPY.hub.title}
+      description={INDICADORES_COPY.hub.description}
       items={INDICADORES_HUB_ITEMS}
       variant="border"
       titleClassName="app-title-xl brand-text"

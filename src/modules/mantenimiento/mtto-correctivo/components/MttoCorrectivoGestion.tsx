@@ -1,13 +1,29 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Eye, Upload, Wrench, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Eye, Wrench, X } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  catalogQueryOptions,
+  transactionalQueryOptions,
+} from '@/core/query/catalog-query-options';
+import { MantenimientoPageFrame } from '@/modules/mantenimiento/components/MantenimientoPageFrame';
+import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MantenimientoFileField } from '@/modules/mantenimiento/shared/components/MantenimientoFileField';
+import { MantenimientoInfoChip } from '@/modules/mantenimiento/shared/components/MantenimientoInfoChip';
+import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
+import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
+import {
+  btnIconClass,
+  btnPrimaryClass,
+  btnSuccessClass,
+} from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
+import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
 import {
   estadoLabel,
   urgenciaLabel,
@@ -17,49 +33,9 @@ import { getApiPublicUrl } from '@/config/public-env';
 
 const PAGE_SIZE = 10;
 
-const btnBase =
-  'inline-flex items-center justify-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90';
-
 function solicitudImgUrl(name: string | null | undefined) {
   if (!name) return null;
   return `${getApiPublicUrl()}/mantenimiento/solicitudes/${encodeURIComponent(String(name))}`;
-}
-
-function FileField({
-  label,
-  file,
-  accept,
-  onChange,
-}: {
-  label: string;
-  file: File | null;
-  accept?: string;
-  onChange: (file: File | null) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 transition-colors hover:border-amber-400 hover:bg-amber-50/40">
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-(--color-primary) text-white">
-          <Upload className="h-4 w-4" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-gray-800">
-            {file ? 'Archivo seleccionado' : 'Seleccionar archivo'}
-          </span>
-          <span className="block truncate text-xs text-gray-500">
-            {file ? file.name : 'Haz clic para buscar en tu equipo'}
-          </span>
-        </span>
-        <input
-          type="file"
-          className="sr-only"
-          accept={accept}
-          onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        />
-      </label>
-    </div>
-  );
 }
 
 function EvidenciaImg({
@@ -83,7 +59,7 @@ function EvidenciaImg({
             alt={label}
             className="max-h-40 w-full rounded-lg object-contain bg-white"
           />
-          <span className="mt-1 inline-block text-xs text-sky-700 underline">
+          <span className="mt-1 inline-block text-xs text-[var(--color-info)] underline">
             Abrir imagen
           </span>
         </a>
@@ -97,42 +73,39 @@ function EvidenciaImg({
 export function MttoCorrectivoGestion() {
   const { blocked, user } = useMantenimientoPageGuard(MTTO_CORRECTIVO_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
-  const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
-  const [loading, setLoading] = useState(false);
-  const [bodegas, setBodegas] = useState<Array<{ bodega: number; descripcion: string }>>([]);
-  const [equipos, setEquipos] = useState<
-    Array<{ id_equipo: number; codigo: string; nombre_equipo: string }>
-  >([]);
+  const queryClient = useQueryClient();
+  const sesionLista = !!user && !blocked;
   const [modalNueva, setModalNueva] = useState(false);
   const [detalle, setDetalle] = useState<Record<string, unknown> | null>(null);
   const [page, setPage] = useState(1);
 
   const perfil = Number(user?.perfil_postventa ?? 0);
   const esJefe = ![1, 20, 26, 46].includes(perfil);
-  /** Perfil mantenimiento (legacy) + 26 si aplica en BE */
   const esMantenimiento = perfil === 46 || perfil === 26;
 
-  async function load() {
-    setLoading(true);
-    try {
-      setRows(await mantenimientoService.listarCorrectivo());
-      setPage(1);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const catalogQuery = useQuery({
+    queryKey: mantenimientoKeys.catalogos,
+    queryFn: () => mantenimientoService.catalogos(),
+    enabled: sesionLista,
+    ...catalogQueryOptions,
+  });
 
-  useEffect(() => {
-    if (blocked) return;
-    void load();
-    mantenimientoService.catalogos().then((c) => {
-      setBodegas(c.bodegas);
-      setEquipos(c.equipos);
+  const listQuery = useQuery({
+    queryKey: mantenimientoKeys.correctivo,
+    queryFn: () => mantenimientoService.listarCorrectivo(),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
+
+  const bodegas = catalogQuery.data?.bodegas ?? [];
+  const equipos = catalogQuery.data?.equipos ?? [];
+  const rows = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+
+  async function invalidateList() {
+    await queryClient.invalidateQueries({
+      queryKey: mantenimientoKeys.correctivo,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blocked]);
+  }
 
   /** Pendientes por urgencia (urgente→moderada→leve), luego en proceso, finalizadas al final */
   const sortedRows = useMemo(() => {
@@ -190,23 +163,25 @@ export function MttoCorrectivoGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">Solicitudes de Mantenimiento</h1>
-        <Link href="/dashboard/mantenimiento" className="text-sm text-amber-700 hover:underline">
-          ← Volver
-        </Link>
-      </div>
+    <MantenimientoPageFrame title={MANTENIMIENTO_COPY.correctivo.title}>
+      {listQuery.isError ? (
+        <MantenimientoQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            MANTENIMIENTO_COPY.correctivo.loadError,
+          )}
+        />
+      ) : null}
 
       <div className="flex flex-wrap gap-4 text-sm">
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-green-500" /> Urgencia 1
+          <span className="h-3 w-3 rounded-full bg-[var(--color-success)]" /> Urgencia 1
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-amber-400" /> Urgencia 2
+          <span className="h-3 w-3 rounded-full bg-[var(--color-warning)]" /> Urgencia 2
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-red-500" /> Urgencia 3
+          <span className="h-3 w-3 rounded-full bg-[var(--color-danger)]" /> Urgencia 3
         </span>
       </div>
 
@@ -214,7 +189,7 @@ export function MttoCorrectivoGestion() {
         {(esJefe || perfil === 46 || perfil === 1 || perfil === 20 || perfil === 26) && (
           <button
             type="button"
-            className="rounded-md bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className={btnPrimaryClass}
             onClick={() => setModalNueva(true)}
           >
             Nueva Solicitud
@@ -223,7 +198,7 @@ export function MttoCorrectivoGestion() {
         {[1, 46, 20].includes(perfil) && (
           <button
             type="button"
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className={btnSuccessClass}
             onClick={exportExcel}
           >
             Descargar Excel
@@ -256,7 +231,7 @@ export function MttoCorrectivoGestion() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isFetching && rows.length === 0 ? (
               <tr>
                 <td colSpan={12} className="py-8 text-center text-gray-500">
                   Cargando...
@@ -274,7 +249,11 @@ export function MttoCorrectivoGestion() {
                 const urg = Number(r.urgencia);
                 const estado = Number(r.estado);
                 const urgBg =
-                  urg === 3 ? 'bg-red-100' : urg === 2 ? 'bg-amber-50' : 'bg-green-50';
+                  urg === 3
+                    ? 'bg-[var(--color-danger-soft)]'
+                    : urg === 2
+                      ? 'bg-[var(--color-warning-soft)]'
+                      : 'bg-[var(--color-success-soft)]';
                 const puedeResponder =
                   esMantenimiento && (estado === 1 || estado === 2);
                 return (
@@ -300,7 +279,7 @@ export function MttoCorrectivoGestion() {
                       <div className="flex flex-wrap items-center justify-center gap-1">
                         <button
                           type="button"
-                          className={`${btnBase} bg-sky-600`}
+                          className={`${btnIconClass} bg-[var(--color-info)]`}
                           title="Ver solicitud"
                           onClick={() => void openDetalle(id)}
                         >
@@ -310,7 +289,7 @@ export function MttoCorrectivoGestion() {
                         {puedeResponder && (
                           <button
                             type="button"
-                            className={`${btnBase} bg-amber-600`}
+                            className={`${btnIconClass} bg-[var(--color-warning)]`}
                             title={
                               estado === 1
                                 ? 'Iniciar y asignar tiempo'
@@ -352,7 +331,7 @@ export function MttoCorrectivoGestion() {
           onOk={async () => {
             setModalNueva(false);
             showSuccess('Solicitud creada');
-            await load();
+            await invalidateList();
           }}
           onError={(m) => showError(m)}
         />
@@ -366,51 +345,25 @@ export function MttoCorrectivoGestion() {
           onReloadDetalle={async () => {
             const id = Number(detalle.id_solicitud);
             await openDetalle(id);
-            await load();
+            await invalidateList();
           }}
           onError={(m) => showError(m)}
           onSuccess={(m) => showSuccess(m)}
         />
       )}
-    </div>
+    </MantenimientoPageFrame>
   );
 }
 
 function urgenciaTone(u: number | string) {
   const n = Number(u);
-  if (n === 3) return 'border-red-200 bg-red-50 text-red-800';
-  if (n === 2) return 'border-amber-200 bg-amber-50 text-amber-800';
-  if (n === 1) return 'border-green-200 bg-green-50 text-green-800';
+  if (n === 3)
+    return 'border-[color-mix(in_srgb,var(--color-danger)_25%,white)] bg-[var(--color-danger-soft)] text-[var(--color-danger)]';
+  if (n === 2)
+    return 'border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] text-[var(--color-warning)]';
+  if (n === 1)
+    return 'border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]';
   return 'border-gray-100 bg-white text-gray-900';
-}
-
-function InfoChip({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: string;
-}) {
-  return (
-    <div
-      className={`rounded-xl border px-3 py-2 shadow-sm ${
-        tone ?? 'border-gray-100 bg-white'
-      }`}
-    >
-      <p
-        className={`text-[11px] font-semibold uppercase tracking-wide ${
-          tone ? 'opacity-70' : 'text-gray-500'
-        }`}
-      >
-        {label}
-      </p>
-      <p className={`mt-0.5 text-sm font-medium ${tone ? '' : 'text-gray-900'}`}>
-        {value || '—'}
-      </p>
-    </div>
-  );
 }
 
 function ModalDetalleSolicitud({
@@ -500,16 +453,16 @@ function ModalDetalleSolicitud({
 
         <div className="space-y-4 overflow-y-auto p-5">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoChip
+            <MantenimientoInfoChip
               label="Estado"
               value={estadoLabel(detalle.estado as string, 'corr')}
             />
-            <InfoChip
+            <MantenimientoInfoChip
               label="Urgencia"
               value={urgenciaLabel(detalle.urgencia as string)}
               tone={urgenciaTone(detalle.urgencia as string)}
             />
-            <InfoChip
+            <MantenimientoInfoChip
               label="Tiempo estimado (h)"
               value={
                 detalle.tiempo_estimado != null
@@ -517,12 +470,12 @@ function ModalDetalleSolicitud({
                   : '—'
               }
             />
-            <InfoChip label="Jefe" value={String(detalle.nombreJ ?? '—')} />
-            <InfoChip
+            <MantenimientoInfoChip label="Jefe" value={String(detalle.nombreJ ?? '—')} />
+            <MantenimientoInfoChip
               label="Encargado"
               value={String(detalle.nombreE ?? '—')}
             />
-            <InfoChip
+            <MantenimientoInfoChip
               label="Sede"
               value={String(detalle.sede ?? '—')}
             />
@@ -549,8 +502,8 @@ function ModalDetalleSolicitud({
           </div>
 
           {detalle.respuesta ? (
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-success)]">
                 Respuesta de mantenimiento
               </p>
               <p className="whitespace-pre-wrap text-sm text-gray-800">
@@ -561,8 +514,8 @@ function ModalDetalleSolicitud({
 
           {/* Acciones mantenimiento — estado Pendiente */}
           {esMantenimiento && estado === 1 && (
-            <div className="space-y-3 rounded-xl border border-sky-100 bg-sky-50/50 p-4">
-              <p className="text-sm font-semibold text-sky-900">
+            <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-info)_25%,white)] bg-[color-mix(in_srgb,var(--color-info)_8%,white)] p-4">
+              <p className="text-sm font-semibold text-[var(--color-info)]">
                 Iniciar solicitud (pasa a En proceso)
               </p>
               <label className="block text-sm font-medium text-gray-700">
@@ -578,7 +531,7 @@ function ModalDetalleSolicitud({
               <button
                 type="button"
                 disabled={busy}
-                className="w-full rounded-md bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-md bg-[var(--color-info)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                 onClick={() => void handleIniciar()}
               >
                 {busy ? 'Procesando…' : 'Iniciar'}
@@ -588,8 +541,8 @@ function ModalDetalleSolicitud({
 
           {/* Acciones mantenimiento — En proceso */}
           {esMantenimiento && estado === 2 && (
-            <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-              <p className="text-sm font-semibold text-emerald-900">
+            <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] p-4">
+              <p className="text-sm font-semibold text-[var(--color-success)]">
                 Finalizar solicitud (pasa a Finalizada)
               </p>
               <label className="block text-sm font-medium text-gray-700">
@@ -602,7 +555,7 @@ function ModalDetalleSolicitud({
                   placeholder="Describa la solución aplicada"
                 />
               </label>
-              <FileField
+              <MantenimientoFileField
                 label="Evidencia fotográfica de la respuesta"
                 file={fileResp}
                 accept="image/*,.pdf"
@@ -611,7 +564,7 @@ function ModalDetalleSolicitud({
               <button
                 type="button"
                 disabled={busy}
-                className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-md bg-[var(--color-success)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                 onClick={() => void handleFinalizar()}
               >
                 {busy ? 'Procesando…' : 'Finalizar'}
@@ -740,7 +693,7 @@ function ModalNuevaSolicitud({
               placeholder="Descripción (mín. 15 caracteres)"
             />
           </label>
-          <FileField
+          <MantenimientoFileField
             label="Evidencia fotográfica"
             file={file}
             accept="image/*,.pdf"
@@ -757,7 +710,7 @@ function ModalNuevaSolicitud({
           </button>
           <button
             type="button"
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            className={btnSuccessClass}
             onClick={submit}
           >
             Agregar

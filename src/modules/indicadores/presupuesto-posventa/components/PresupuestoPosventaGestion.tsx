@@ -3,16 +3,27 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
-import {
-  indicadoresService,
-  type PresupuestoConsolidado,
-  type PresupuestoSede,
-} from '@/modules/indicadores/shared/services/indicadores.service';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { IndicadoresPageFrame } from '@/modules/indicadores/components/IndicadoresPageFrame';
+import { INDICADORES_COPY } from '@/modules/indicadores/constants';
 import {
   DualProgressBar,
   ProgressCard,
   formatMoney,
 } from '@/modules/indicadores/presupuesto-posventa/components/ProgressCard';
+import {
+  IndicadoresLoading,
+  IndicadoresQueryError,
+} from '@/modules/indicadores/shared/components/IndicadoresQueryError';
+import { indicadoresKeys } from '@/modules/indicadores/shared/constants/query-keys';
+import { useIndicadoresPageGuard } from '@/modules/indicadores/shared/hooks/useIndicadoresPageGuard';
+import {
+  indicadoresService,
+  type PresupuestoConsolidado,
+  type PresupuestoSede,
+} from '@/modules/indicadores/shared/services/indicadores.service';
+import { getErrorMessage } from '@/modules/indicadores/shared/utils/parse-api-error';
+import { PRESUPUESTO_POSVENTA_SUBMENU_ID } from '@/utils/constants';
 
 function KpiBox({
   label,
@@ -28,9 +39,7 @@ function KpiBox({
       <span className={`h-10 w-10 shrink-0 rounded-lg ${accent}`} />
       <div>
         <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-lg font-semibold text-gray-900">
-          {formatMoney(value)}
-        </p>
+        <p className="text-lg font-semibold text-gray-900">{formatMoney(value)}</p>
       </div>
     </div>
   );
@@ -50,11 +59,11 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
           <span>Meta a cumplir a día de hoy</span>
           <span>
-            <span className="font-medium text-sky-600">
+            <span className="font-medium text-[var(--color-info)]">
               {formatMoney(data.totalVendido)}
             </span>
             {' / '}
-            <span className="font-medium text-red-600">
+            <span className="font-medium text-[var(--color-danger)]">
               {formatMoney(data.metaHoy)}
             </span>
           </span>
@@ -62,7 +71,7 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
         <DualProgressBar
           pctFilled={data.porcentajeHoy}
           pctRest={data.porcentajeHoyRestante}
-          filledClass="bg-sky-500"
+          filledClass="bg-[var(--color-info)]"
         />
       </div>
 
@@ -70,11 +79,11 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
           <span>Meta a cumplir al mes</span>
           <span>
-            <span className="font-medium text-emerald-600">
+            <span className="font-medium text-[var(--color-success)]">
               {formatMoney(data.totalVendido)}
             </span>
             {' / '}
-            <span className="font-medium text-red-600">
+            <span className="font-medium text-[var(--color-danger)]">
               {formatMoney(data.metaMes)}
             </span>
           </span>
@@ -82,7 +91,7 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
         <DualProgressBar
           pctFilled={data.porcentajeMes}
           pctRest={data.porcentajeMesRestante}
-          filledClass="bg-emerald-500"
+          filledClass="bg-[var(--color-success)]"
         />
       </div>
 
@@ -90,13 +99,13 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
         <KpiBox
           label="Mano de Obra"
           value={data.manoObra}
-          accent="bg-sky-500"
+          accent="bg-[var(--color-info)]"
         />
-        <KpiBox label="TOT" value={data.tot} accent="bg-emerald-500" />
+        <KpiBox label="TOT" value={data.tot} accent="bg-[var(--color-success)]" />
         <KpiBox
           label="Repuestos taller"
           value={data.repuestosTaller}
-          accent="bg-amber-500"
+          accent="bg-[var(--color-warning)]"
         />
         <KpiBox
           label="Repuestos mostrador"
@@ -166,58 +175,52 @@ function SedeCardPerfil({ sede }: { sede: PresupuestoSede }) {
 }
 
 export function PresupuestoPosventaGestion() {
+  const { user, blocked } = useIndicadoresPageGuard(PRESUPUESTO_POSVENTA_SUBMENU_ID);
+  const sesionLista = !!user && !blocked;
+
   const query = useQuery({
-    queryKey: ['indicadores', 'presupuesto-posventa'],
+    queryKey: indicadoresKeys.presupuesto,
     queryFn: () => indicadoresService.presupuestoPosventa(),
+    enabled: sesionLista,
     refetchInterval: 60_000,
+    ...transactionalQueryOptions,
   });
 
-  if (query.isLoading) {
-    return (
-      <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
-        Cargando indicadores...
-      </p>
-    );
-  }
-
-  if (query.isError) {
-    return (
-      <p className="rounded-2xl border border-red-100 bg-red-50 p-6 text-sm text-red-700 shadow-sm">
-        {(query.error as Error)?.message ||
-          'No se pudo cargar el presupuesto posventa'}
-      </p>
-    );
-  }
-
-  const data = query.data;
-  if (!data) return null;
-
-  if (data.modo === 'consolidado') {
-    return <ConsolidadoView data={data} />;
-  }
-
-  if (data.sedes.length === 0) {
-    return (
-      <div className="space-y-4">
-        <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
-          No hay sedes asignadas a tu perfil para este indicador.
-        </p>
-        <Link
-          href="/dashboard/indicadores/presupuesto-posventa/sedes"
-          className="inline-flex items-center gap-1 text-sm font-medium brand-text hover:underline"
-        >
-          Ver detalle por sedes
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
-    );
-  }
+  if (blocked) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {data.sedes.map((sede) => (
-        <SedeCardPerfil key={sede.sede} sede={sede} />
-      ))}
-    </div>
+    <IndicadoresPageFrame
+      title={INDICADORES_COPY.presupuesto.title}
+      description={INDICADORES_COPY.presupuesto.description}
+    >
+      {query.isLoading ? (
+        <IndicadoresLoading message="Cargando indicadores..." />
+      ) : query.isError ? (
+        <IndicadoresQueryError
+          message={getErrorMessage(query.error, INDICADORES_COPY.loadError)}
+        />
+      ) : !query.data ? null : query.data.modo === 'consolidado' ? (
+        <ConsolidadoView data={query.data} />
+      ) : query.data.sedes.length === 0 ? (
+        <div className="space-y-4">
+          <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
+            No hay sedes asignadas a tu perfil para este indicador.
+          </p>
+          <Link
+            href="/dashboard/indicadores/presupuesto-posventa/sedes"
+            className="inline-flex items-center gap-1 text-sm font-medium brand-text hover:underline"
+          >
+            Ver detalle por sedes
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {query.data.sedes.map((sede) => (
+            <SedeCardPerfil key={sede.sede} sede={sede} />
+          ))}
+        </div>
+      )}
+    </IndicadoresPageFrame>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { inputClass } from '@/modules/contact-center/shared/constants/ui';
 
 type Props = {
@@ -25,10 +25,6 @@ export const DistribucionPorcentajeInput = memo(function DistribucionPorcentajeI
   const [local, setLocal] = useState(
     distribucion != null ? String(distribucion) : '',
   );
-
-  useEffect(() => {
-    setLocal(distribucion != null ? String(distribucion) : '');
-  }, [distribucion]);
 
   const commit = useCallback(() => {
     const val = Number(local);

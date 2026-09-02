@@ -12,6 +12,7 @@ import {
 import React, { useState, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SidebarNav } from "./SidebarNav";
+import { EmpresaIcon } from "@/components/shared/brand/EmpresaIcon";
 
 interface SidebarProps {
   user: IUser | null;
@@ -63,12 +64,28 @@ function SidebarComponent({
       </AnimatePresence>
 
       <aside className={asideClassName}>
-        <div className={`flex items-center border-b border-gray-800 bg-gray-900/50 p-6 ${isCollapsed && !isMobile ? "justify-center" : "justify-between"}`}>
-          <div className={`flex items-center space-x-3 transition-opacity ${isCollapsed && !isMobile ? "absolute opacity-0" : "relative opacity-100"}`}>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg brand-bg-gradient">
-              <span className="text-lg font-bold text-white">{selectedEmpresa?.nombre.charAt(0) ?? "C"}</span>
-            </div>
-            <div>
+        <div
+          className={`flex border-b border-gray-800 bg-gray-900/50 ${
+            isCollapsed && !isMobile
+              ? "flex-col items-center justify-center gap-2 p-3"
+              : "items-center justify-between p-6"
+          }`}
+        >
+          <div
+            className={`flex items-center ${
+              isCollapsed && !isMobile ? "hidden" : "space-x-3"
+            }`}
+          >
+            <EmpresaIcon
+              empresaId={user?.empresa}
+              size={56}
+              className="h-14 w-14"
+            />
+            <div
+              className={
+                isCollapsed && !isMobile ? "hidden" : "relative"
+              }
+            >
               <div className="relative">
                 <button
                   type="button"
@@ -89,8 +106,9 @@ function SidebarComponent({
                           updateUser({ empresa: empresa.id });
                           setIsDropdownOpen(false);
                         }}
-                        className={`w-full px-4 py-3 text-left text-sm transition-colors hover:bg-gray-800 ${user?.empresa === empresa.id ? "bg-gray-800/50 font-medium brand-text" : "text-gray-300"}`}
+                        className={`flex w-full items-center gap-2 px-4 py-3 text-left text-sm transition-colors hover:bg-gray-800 ${user?.empresa === empresa.id ? "bg-gray-800/50 font-medium brand-text" : "text-gray-300"}`}
                       >
+                        <EmpresaIcon empresaId={empresa.id} size={20} className="h-5 w-5" />
                         {empresa.nombre}
                       </button>
                     ))}
@@ -122,7 +140,7 @@ function SidebarComponent({
         />
 
         <div className={`border-t border-gray-800 bg-gray-900/30 transition-all duration-300 ${isCollapsed ? "p-2" : "p-6"}`}>
-          <div className={`mb-4 flex items-center space-x-3 rounded-xl p-3 transition-all duration-300 ${isCollapsed ? "justify-end bg-transparent pl-12" : "bg-gray-800/50"}`}>
+          <div className={`mb-4 flex items-center rounded-xl transition-all duration-300 ${isCollapsed ? "justify-center bg-transparent p-0" : "space-x-3 bg-gray-800/50 p-3"}`}>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-600">
               <span className="text-sm font-bold text-white">
                 {user?.nombre_usuario?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || "U"}

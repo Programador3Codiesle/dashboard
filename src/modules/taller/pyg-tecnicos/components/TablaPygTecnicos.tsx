@@ -25,6 +25,23 @@ function formatDecimal(value: number): string {
 type SortKey = keyof FilaInformeTecnico;
 type SortDir = "asc" | "desc";
 
+function SortIcon({
+  col,
+  sortKey,
+  sortDir,
+}: {
+  col: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+}) {
+  if (sortKey !== col) return null;
+  return sortDir === "asc" ? (
+    <ChevronUp size={14} className="inline ml-1" />
+  ) : (
+    <ChevronDown size={14} className="inline ml-1" />
+  );
+}
+
 interface TablaPygTecnicosProps {
   filas: FilaInformeTecnico[];
   yearComparar: number;
@@ -98,15 +115,6 @@ export function TablaPygTecnicos({
     }
   };
 
-  const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return null;
-    return sortDir === "asc" ? (
-      <ChevronUp size={14} className="inline ml-1" />
-    ) : (
-      <ChevronDown size={14} className="inline ml-1" />
-    );
-  };
-
   const thClass =
     "px-3 py-2 text-xs font-semibold text-gray-700 whitespace-nowrap cursor-pointer select-none hover:bg-gray-100";
 
@@ -119,56 +127,56 @@ export function TablaPygTecnicos({
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200 text-center">
             <th className={thClass} onClick={() => handleSort("rnk")}>
-              RNK <SortIcon col="rnk" />
+              RNK <SortIcon sortKey={sortKey} sortDir={sortDir} col="rnk" />
             </th>
             <th className={thClass} onClick={() => handleSort("taller")}>
-              TALLER <SortIcon col="taller" />
+              TALLER <SortIcon sortKey={sortKey} sortDir={sortDir} col="taller" />
             </th>
             <th className={thClass} onClick={() => handleSort("nombre")}>
-              TÉCNICO <SortIcon col="nombre" />
+              TÉCNICO <SortIcon sortKey={sortKey} sortDir={sortDir} col="nombre" />
             </th>
             <th className={thClass} onClick={() => handleSort("mano_obra")}>
-              MANO OBRA <SortIcon col="mano_obra" />
+              MANO OBRA <SortIcon sortKey={sortKey} sortDir={sortDir} col="mano_obra" />
             </th>
             <th className={thClass} onClick={() => handleSort("repuestos")}>
-              REPUESTOS <SortIcon col="repuestos" />
+              REPUESTOS <SortIcon sortKey={sortKey} sortDir={sortDir} col="repuestos" />
             </th>
             <th className={thClass} onClick={() => handleSort("utilidad")}>
-              UTILIDAD <SortIcon col="utilidad" />
+              UTILIDAD <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad" />
             </th>
             <th
               className={`${thClass} ${COMPARE_BG}`}
               onClick={() => handleSort("utilidad_year")}
             >
               UTILIDAD AÑO {yearComparar}
-              <SortIcon col="utilidad_year" />
+              <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_year" />
             </th>
             <th className={thClass} onClick={() => handleSort("ticket_total")}>
-              TICKET TOTAL <SortIcon col="ticket_total" />
+              TICKET TOTAL <SortIcon sortKey={sortKey} sortDir={sortDir} col="ticket_total" />
             </th>
             <th className={thClass} onClick={() => handleSort("horas_cliente")}>
-              HORAS CLIENTE <SortIcon col="horas_cliente" />
+              HORAS CLIENTE <SortIcon sortKey={sortKey} sortDir={sortDir} col="horas_cliente" />
             </th>
             <th className={thClass} onClick={() => handleSort("horas_garantia")}>
-              HORAS GARANTÍA <SortIcon col="horas_garantia" />
+              HORAS GARANTÍA <SortIcon sortKey={sortKey} sortDir={sortDir} col="horas_garantia" />
             </th>
             <th className={thClass} onClick={() => handleSort("horas_internas")}>
-              HORAS INTERNAS <SortIcon col="horas_internas" />
+              HORAS INTERNAS <SortIcon sortKey={sortKey} sortDir={sortDir} col="horas_internas" />
             </th>
             <th className={thClass} onClick={() => handleSort("horas_servicio")}>
-              HORAS SERVICIO <SortIcon col="horas_servicio" />
+              HORAS SERVICIO <SortIcon sortKey={sortKey} sortDir={sortDir} col="horas_servicio" />
             </th>
             <th className={thClass} onClick={() => handleSort("total_horas")}>
-              TOTAL HORAS <SortIcon col="total_horas" />
+              TOTAL HORAS <SortIcon sortKey={sortKey} sortDir={sortDir} col="total_horas" />
             </th>
             <th className={thClass} onClick={() => handleSort("valor_hora")}>
-              VALOR HORA <SortIcon col="valor_hora" />
+              VALOR HORA <SortIcon sortKey={sortKey} sortDir={sortDir} col="valor_hora" />
             </th>
             <th className={thClass} onClick={() => handleSort("fecha_ini")}>
-              FECHA INICIO LABOR <SortIcon col="fecha_ini" />
+              FECHA INICIO LABOR <SortIcon sortKey={sortKey} sortDir={sortDir} col="fecha_ini" />
             </th>
             <th className={thClass} onClick={() => handleSort("dias_vacaciones")}>
-              DÍAS VACACIONES <SortIcon col="dias_vacaciones" />
+              DÍAS VACACIONES <SortIcon sortKey={sortKey} sortDir={sortDir} col="dias_vacaciones" />
             </th>
           </tr>
         </thead>

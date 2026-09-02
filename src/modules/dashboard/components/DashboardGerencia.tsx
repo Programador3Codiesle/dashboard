@@ -2,8 +2,11 @@
 
 import { memo } from "react";
 import { DashboardAdmin } from "./DashboardAdmin";
-import type { DashboardGerencia as DashboardGerenciaType } from "../types";
-import type { DashboardAdmin as DashboardAdminType } from "../types";
+import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
+import type {
+  DashboardGerencia as DashboardGerenciaType,
+  DashboardAdmin as DashboardAdminType,
+} from "../types";
 
 function DashboardGerenciaInner({ data }: { data: DashboardGerenciaType }) {
   const asAdmin: DashboardAdminType = {
@@ -12,8 +15,12 @@ function DashboardGerenciaInner({ data }: { data: DashboardGerenciaType }) {
   };
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Gerencia</h2>
-      <DashboardAdmin data={asAdmin} />
+      <PageTitleRow
+        title="Gerencia"
+        headingAs="h2"
+        headingClassName="text-xl font-bold text-gray-900"
+      />
+      <DashboardAdmin data={asAdmin} hideHeading />
     </div>
   );
 }

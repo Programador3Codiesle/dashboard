@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { useAuth } from '@/core/auth/hooks/useAuth';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
 import {
   btnPrimaryClass,
-  btnSecondaryClass,
   inputClass,
 } from '@/modules/repuestos/shared/constants/ui';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { getErrorMessage } from '@/modules/repuestos/shared/utils/get-error-message';
+import { ORDEN_COMPRA_SUBMENU_ID } from '@/utils/constants';
 import { ordenCompraService, OrdenCompraItem } from '../services/orden-compra.service';
 
 function hoyISO() {
@@ -23,7 +27,10 @@ function inicioMesISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
+const ITEMS_VACIOS: OrdenCompraItem[] = [];
+
 export function OrdenCompraGestion() {
+  const { blocked } = useRepuestosPageGuard(ORDEN_COMPRA_SUBMENU_ID);
   const { user } = useAuth();
   const { showError, showSuccess } = useToast();
   const puedeAuth = user?.perfil_postventa === '1' || user?.perfil_postventa === '20';
@@ -48,14 +55,11 @@ export function OrdenCompraGestion() {
     enabled: buscar > 0,
   });
 
-  const items = data?.items ?? [];
+  const items = data?.items ?? ITEMS_VACIOS;
   const totalPaginas = Math.max(1, Math.ceil(items.length / registrosPorPagina));
-  const inicio = (paginaActual - 1) * registrosPorPagina;
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const inicio = (paginaSegura - 1) * registrosPorPagina;
   const paginatedItems = items.slice(inicio, inicio + registrosPorPagina);
-
-  useEffect(() => {
-    setPaginaActual(1);
-  }, [items.length, buscar]);
 
   const seleccionados = useMemo(
     () =>
@@ -69,13 +73,13 @@ export function OrdenCompraGestion() {
   const autorizar = useMutation({
     mutationFn: () => ordenCompraService.autorizar(seleccionados),
     onSuccess: () => { showSuccess('Órdenes autorizadas'); refetch(); setSeleccion({}); },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo autorizar')),
   });
 
   const denegar = useMutation({
     mutationFn: () => ordenCompraService.denegar(seleccionados),
     onSuccess: () => { showSuccess('Órdenes denegadas'); refetch(); setSeleccion({}); },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo denegar')),
   });
 
   const guardarPresupuesto = useMutation({
@@ -86,7 +90,7 @@ export function OrdenCompraGestion() {
         compras: compras ? Number(compras.replace(/\./g, '')) : undefined,
       }),
     onSuccess: () => { showSuccess('Presupuesto guardado'); setModalPresupuesto(false); refetch(); },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo guardar presupuesto')),
   });
 
   const exportarExcel = () => {
@@ -109,7 +113,13 @@ export function OrdenCompraGestion() {
   const rowClass = (item: OrdenCompraItem) =>
     item.denegado ? 'bg-red-50' : 'bg-green-50';
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.ordenCompra.title}
+      description={REPUESTOS_COPY.ordenCompra.description}
+    >
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-wrap gap-3 items-end">
         <div>
@@ -143,7 +153,7 @@ export function OrdenCompraGestion() {
           <>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl brand-bg px-4 py-2 text-sm font-semibold text-white shadow-sm brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!seleccionados.length}
               onClick={() => autorizar.mutate()}
             >
@@ -196,10 +206,11 @@ export function OrdenCompraGestion() {
             ) : items.length === 0 ? (
               <tr><td colSpan={17} className="py-8 text-center">Sin datos</td></tr>
             ) : (
-              paginatedItems.map((item) => {
-                const key = `${item.numeroOc}-${item.codigo}`;
+              paginatedItems.map((item, i) => {
+                const identityKey = `${item.numeroOc}-${item.codigo}`;
+                const rowKey = `${identityKey}-${inicio + i}`;
                 return (
-                  <tr key={key} className={`border-t ${rowClass(item)}`}>
+                  <tr key={rowKey} className={`border-t ${rowClass(item)}`}>
                     <td className="px-1 py-1">{String(item.fechaOc).slice(0, 10)}</td>
                     <td className="px-1 py-1 text-center">{item.bodega}</td>
                     <td className="px-1 py-1 text-center">{item.numeroOc}</td>
@@ -207,8 +218,8 @@ export function OrdenCompraGestion() {
                       {puedeAuth ? (
                         <input
                           type="checkbox"
-                          checked={!!seleccion[key]}
-                          onChange={(e) => setSeleccion((p) => ({ ...p, [key]: e.target.checked }))}
+                          checked={!!seleccion[identityKey]}
+                          onChange={(e) => setSeleccion((p) => ({ ...p, [identityKey]: e.target.checked }))}
                         />
                       ) : (
                         item.autorizadoLabel
@@ -240,7 +251,7 @@ export function OrdenCompraGestion() {
             Mostrando {inicio + 1}-{Math.min(inicio + registrosPorPagina, items.length)} de {items.length} registros
           </p>
           <Pagination
-            currentPage={paginaActual}
+            currentPage={paginaSegura}
             totalPages={totalPaginas}
             onChange={setPaginaActual}
           />
@@ -256,5 +267,6 @@ export function OrdenCompraGestion() {
         </div>
       </Modal>
     </div>
+    </RepuestosPageFrame>
   );
 }

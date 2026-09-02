@@ -1,48 +1,12 @@
 'use client';
 
-import { Plus, Trash2, Upload } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
+import { MantenimientoFileField } from '@/modules/mantenimiento/shared/components/MantenimientoFileField';
 import {
   PERIODOS_MTTO,
   type DatosHidraulicosForm,
   type DatosTecnicosForm,
 } from '../utils/hoja-vida';
-
-function FileField({
-  label,
-  file,
-  accept,
-  onChange,
-}: {
-  label: string;
-  file: File | null;
-  accept?: string;
-  onChange: (file: File | null) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 transition-colors hover:border-amber-400 hover:bg-amber-50/40">
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-(--color-primary) text-white">
-          <Upload className="h-4 w-4" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-gray-800">
-            {file ? 'Archivo seleccionado' : 'Seleccionar imagen'}
-          </span>
-          <span className="block truncate text-xs text-gray-500">
-            {file ? file.name : 'Foto del equipo (opcional)'}
-          </span>
-        </span>
-        <input
-          type="file"
-          className="sr-only"
-          accept={accept}
-          onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        />
-      </label>
-    </div>
-  );
-}
 
 function ListaDinamica({
   label,
@@ -88,7 +52,7 @@ function ListaDinamica({
             />
             <button
               type="button"
-              className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-red-600 hover:bg-red-50"
+              className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
               aria-label="Quitar"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
             >
@@ -194,10 +158,11 @@ export function HojaVidaFormFields({ value, onChange }: Props) {
           value={value.descripcion}
           onChange={(e) => onChange({ descripcion: e.target.value })}
         />
-        <FileField
+        <MantenimientoFileField
           label="Imagen del equipo"
           file={value.file}
           accept="image/*"
+          placeholder="Foto del equipo (opcional)"
           onChange={(file) => onChange({ file })}
         />
       </section>
@@ -226,7 +191,7 @@ export function HojaVidaFormFields({ value, onChange }: Props) {
 
         {value.tiene_tecnicos && (
           <div className="grid gap-2 sm:grid-cols-2">
-            <p className="sm:col-span-2 text-xs font-semibold uppercase text-sky-800">
+            <p className="sm:col-span-2 text-xs font-semibold uppercase text-[var(--color-info)]">
               Datos técnicos
             </p>
             {(
@@ -253,7 +218,7 @@ export function HojaVidaFormFields({ value, onChange }: Props) {
 
         {value.tiene_hidraulicos && (
           <div className="grid gap-2 sm:grid-cols-2">
-            <p className="sm:col-span-2 text-xs font-semibold uppercase text-emerald-800">
+            <p className="sm:col-span-2 text-xs font-semibold uppercase text-[var(--color-success)]">
               Datos hidráulicos
             </p>
             {(

@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/core/auth/hooks/useAuth';
+import { BYD_EMPRESA_ID, MITSUBISHI_EMPRESA_ID } from '@/utils/constants';
 import { getChecklistEmpresaLogo } from '../constants/empresa-logo';
 
 type Props = {
@@ -11,8 +12,8 @@ type Props = {
 export function ChecklistFormHeader({ tituloFormulario, codigoDocumento }: Props) {
   const { user } = useAuth();
   const logo = getChecklistEmpresaLogo(user?.empresa);
-  const isMitsubishi = user?.empresa === 3;
-  const isByd = user?.empresa === 4;
+  const isMitsubishi = user?.empresa === MITSUBISHI_EMPRESA_ID;
+  const isByd = user?.empresa === BYD_EMPRESA_ID;
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

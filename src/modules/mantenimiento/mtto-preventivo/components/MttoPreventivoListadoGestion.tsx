@@ -1,98 +1,98 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useState } from 'react';
 import { Trash2 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConfirmModal from '@/components/shared/ui/ConfirmModal';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { MantenimientoPageFrame } from '@/modules/mantenimiento/components/MantenimientoPageFrame';
+import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
+import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
+import { btnIconClass } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
+import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
+import { paginateRows } from '@/modules/mantenimiento/shared/utils/paginate';
 import { MTTO_PREVENTIVO_SUBMENU_ID } from '@/utils/constants';
 
 const PAGE_SIZE = 10;
 
-const btnBase =
-  'inline-flex items-center justify-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90';
-
 export function MttoPreventivoListadoGestion() {
-  const { blocked } = useMantenimientoPageGuard(MTTO_PREVENTIVO_SUBMENU_ID);
+  const { blocked, user } = useMantenimientoPageGuard(
+    MTTO_PREVENTIVO_SUBMENU_ID,
+  );
   const { showError, showSuccess } = useToast();
-  const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const sesionLista = !!user && !blocked;
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
 
-  async function load() {
-    setLoading(true);
-    try {
-      setRows(await mantenimientoService.listadoPreventivo());
-      setPage(1);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const listQuery = useQuery({
+    queryKey: mantenimientoKeys.preventivoListado,
+    queryFn: () => mantenimientoService.listadoPreventivo(),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
 
-  useEffect(() => {
-    if (blocked) return;
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blocked]);
-
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, safePage]);
-  const onPage = useCallback((p: number) => setPage(p), []);
-
-  async function handleConfirmEliminar() {
-    if (confirmId == null) return;
-    const id = confirmId;
-    setConfirmId(null);
-    setDeletingId(id);
-    try {
-      await mantenimientoService.eliminarOrden(id);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => mantenimientoService.eliminarOrden(id),
+    onSuccess: async () => {
       showSuccess('Eliminada');
-      await load();
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    } finally {
-      setDeletingId(null);
-    }
-  }
+      await queryClient.invalidateQueries({
+        queryKey: mantenimientoKeys.preventivoListado,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: mantenimientoKeys.preventivoEventos,
+      });
+    },
+    onError: (e) => {
+      showError(getErrorMessage(e, 'Error al eliminar'));
+    },
+  });
+
+  const rows = listQuery.data ?? [];
+  const { pageRows, totalPages, safePage, total } = paginateRows(
+    rows,
+    page,
+    PAGE_SIZE,
+  );
+  const onPage = useCallback((p: number) => setPage(p), []);
 
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">Listado OT preventivas pendientes</h1>
-        <Link
-          href="/dashboard/mantenimiento/mtto-preventivo"
-          className="text-sm text-amber-700 hover:underline"
-        >
-          ← Volver al cronograma
-        </Link>
-      </div>
+    <MantenimientoPageFrame
+      title={MANTENIMIENTO_COPY.preventivoListado.title}
+      backHref="/dashboard/mantenimiento/mtto-preventivo"
+      backLabel={MANTENIMIENTO_COPY.backCronograma}
+    >
+      {listQuery.isError ? (
+        <MantenimientoQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            MANTENIMIENTO_COPY.preventivoListado.loadError,
+          )}
+        />
+      ) : null}
 
       <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-(--color-primary) text-white">
             <tr>
-              {['Código', 'Equipo', 'Bodega', 'Fecha req.', 'Descripción', 'Acciones'].map((h) => (
-                <th key={h} className="px-2 py-2">
-                  {h}
-                </th>
-              ))}
+              {['Código', 'Equipo', 'Bodega', 'Fecha req.', 'Descripción', 'Acciones'].map(
+                (h) => (
+                  <th key={h} className="px-2 py-2">
+                    {h}
+                  </th>
+                ),
+              )}
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isFetching && rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-8 text-center text-gray-500">
                   Cargando...
@@ -101,17 +101,21 @@ export function MttoPreventivoListadoGestion() {
             ) : pageRows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-8 text-center text-gray-500">
-                  Sin pendientes
+                  {MANTENIMIENTO_COPY.preventivoListado.empty}
                 </td>
               </tr>
             ) : (
               pageRows.map((r) => {
                 const id = Number(r.id_mantenimientos);
-                const busy = deletingId === id;
+                const busy =
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === id;
                 return (
                   <tr key={id} className="border-t text-center">
                     <td className="px-2 py-2">{String(r.codigo)}</td>
-                    <td className="px-2 py-2 text-left">{String(r.nombre_equipo)}</td>
+                    <td className="px-2 py-2 text-left">
+                      {String(r.nombre_equipo)}
+                    </td>
                     <td className="px-2 py-2">{String(r.bodega)}</td>
                     <td className="px-2 py-2">
                       {String(r.fecha_requerida ?? '').slice(0, 10)}
@@ -123,7 +127,7 @@ export function MttoPreventivoListadoGestion() {
                       <button
                         type="button"
                         disabled={busy}
-                        className={`${btnBase} bg-red-600 disabled:opacity-50`}
+                        className={`${btnIconClass} bg-[var(--color-danger)]`}
                         title="Eliminar orden"
                         onClick={() => setConfirmId(id)}
                       >
@@ -137,9 +141,9 @@ export function MttoPreventivoListadoGestion() {
             )}
           </tbody>
         </table>
-        {rows.length > 0 && (
+        {total > 0 && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm text-gray-600">{rows.length} registros</span>
+            <span className="text-sm text-gray-600">{total} registros</span>
             {totalPages > 1 && (
               <Pagination
                 currentPage={safePage}
@@ -158,9 +162,14 @@ export function MttoPreventivoListadoGestion() {
         variant="danger"
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
-        onConfirm={() => void handleConfirmEliminar()}
+        onConfirm={() => {
+          if (confirmId == null) return;
+          const id = confirmId;
+          setConfirmId(null);
+          deleteMutation.mutate(id);
+        }}
         onCancel={() => setConfirmId(null)}
       />
-    </div>
+    </MantenimientoPageFrame>
   );
 }

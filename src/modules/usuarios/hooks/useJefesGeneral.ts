@@ -1,128 +1,56 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { usuariosService } from "../services/usuarios.service";
-import { IJefeGeneral, IUsuarioJefeCandidato } from "../types";
-import { IErrorResponse } from "@/types/global";
+import { catalogQueryOptions } from "@/core/query/catalog-query-options";
 
-export const useJefesGeneral = () => {
-    const [jefes, setJefes] = useState<IJefeGeneral[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<IErrorResponse | null>(null);
-    const mountedRef = useRef(true);
-    const abortControllerRef = useRef<AbortController | null>(null);
+export const JEFES_GENERAL_QUERY_KEY = ["jefes-general"] as const;
+export const USUARIOS_JEFES_QUERY_KEY = ["usuarios-jefes"] as const;
 
-    const fetchJefes = useCallback(async () => {
-        // Cancelar petición anterior si existe
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
+export const useJefesGeneral = (options?: { enabled?: boolean }) => {
+  const {
+    data: jefes = [],
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: JEFES_GENERAL_QUERY_KEY,
+    queryFn: () => usuariosService.getJefesGeneral(),
+    ...catalogQueryOptions,
+    staleTime: 30 * 1000,
+    enabled: options?.enabled ?? true,
+  });
 
-        // Crear nuevo AbortController para esta petición
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
+  const error = queryError
+    ? {
+        message: (queryError as Error).message || "Error al cargar jefes generales",
+        code: 500,
+      }
+    : null;
 
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const data = await usuariosService.getJefesGeneral();
-
-            // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setJefes(data);
-            }
-        } catch (err: any) {
-            // Ignorar errores de cancelación
-            if (err.name === 'AbortError' || abortController.signal.aborted) {
-                return;
-            }
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setError({
-                    message: err.message || "Error al cargar jefes generales",
-                    code: 500,
-                });
-            }
-        } finally {
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setIsLoading(false);
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        mountedRef.current = true;
-        fetchJefes();
-
-        // Cleanup: marcar como desmontado y cancelar petición pendiente
-        return () => {
-            mountedRef.current = false;
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
-    }, [fetchJefes]);
-
-    return { jefes, isLoading, error, refetch: fetchJefes };
+  return { jefes, isLoading, error, refetch };
 };
 
-export const useUsuariosJefes = () => {
-    const [usuarios, setUsuarios] = useState<IUsuarioJefeCandidato[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<IErrorResponse | null>(null);
-    const mountedRef = useRef(true);
-    const abortControllerRef = useRef<AbortController | null>(null);
+export const useUsuariosJefes = (options?: { enabled?: boolean }) => {
+  const {
+    data: usuarios = [],
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: USUARIOS_JEFES_QUERY_KEY,
+    queryFn: () => usuariosService.getUsuariosJefes(),
+    ...catalogQueryOptions,
+    staleTime: 30 * 1000,
+    enabled: options?.enabled ?? true,
+  });
 
-    const fetchUsuarios = useCallback(async () => {
-        // Cancelar petición anterior si existe
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
+  const error = queryError
+    ? {
+        message:
+          (queryError as Error).message ||
+          "Error al cargar usuarios candidatos a jefe",
+        code: 500,
+      }
+    : null;
 
-        // Crear nuevo AbortController para esta petición
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const data = await usuariosService.getUsuariosJefes();
-
-            // Solo actualizar estado si el componente sigue montado y no se canceló la petición
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setUsuarios(data);
-            }
-        } catch (err: any) {
-            // Ignorar errores de cancelación
-            if (err.name === 'AbortError' || abortController.signal.aborted) {
-                return;
-            }
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setError({
-                    message: err.message || "Error al cargar usuarios candidatos a jefe",
-                    code: 500,
-                });
-            }
-        } finally {
-            if (mountedRef.current && !abortController.signal.aborted) {
-                setIsLoading(false);
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        mountedRef.current = true;
-        fetchUsuarios();
-
-        // Cleanup: marcar como desmontado y cancelar petición pendiente
-        return () => {
-            mountedRef.current = false;
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
-    }, [fetchUsuarios]);
-
-    return { usuarios, isLoading, error, refetch: fetchUsuarios };
+  return { usuarios, isLoading, error, refetch };
 };
-
-

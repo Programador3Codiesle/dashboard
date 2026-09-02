@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Modal from '@/components/shared/ui/Modal';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { buildDatosInd } from '../utils/build-datos-ind';
 import {
   auditoriaContactService,
   IndicadorPuntosRow,
@@ -22,12 +24,6 @@ type Props = {
   onSuccess: (message: string) => void;
 };
 
-function buildDatosInd(rows: IndicadorPuntosRow[]) {
-  return rows
-    .map((r) => `${r.idIndicador},${r.nombres},${r.puntuacion}`)
-    .join(',');
-}
-
 export function AuditoriaIndicadoresPuntosModal({
   open,
   data,
@@ -36,14 +32,10 @@ export function AuditoriaIndicadoresPuntosModal({
   onError,
   onSuccess,
 }: Props) {
-  const [rows, setRows] = useState<IndicadorPuntosRow[]>([]);
+  const [rows, setRows] = useState<IndicadorPuntosRow[]>(
+    () => data?.indicadores.map((r) => ({ ...r })) ?? [],
+  );
   const [guardando, setGuardando] = useState(false);
-
-  useEffect(() => {
-    if (data?.indicadores) {
-      setRows(data.indicadores.map((r) => ({ ...r })));
-    }
-  }, [data]);
 
   const sumaPuntos = useMemo(
     () => rows.reduce((s, r) => s + (Number(r.puntuacion) || 0), 0),
@@ -86,7 +78,7 @@ export function AuditoriaIndicadoresPuntosModal({
         onError('No se pudo guardar el cambio de indicadores');
       }
     } catch (e) {
-      onError(e instanceof Error ? e.message : 'Error al guardar');
+      onError(getErrorMessage(e, 'Error al guardar'));
     } finally {
       setGuardando(false);
     }

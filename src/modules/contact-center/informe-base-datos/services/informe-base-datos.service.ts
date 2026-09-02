@@ -1,3 +1,4 @@
+import { parseError } from '@/modules/contact-center/shared/utils/parse-api-error';
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
 
@@ -31,11 +32,6 @@ const HEADERS_BY_TIPO: Record<TipoInformeDb, string[]> = {
 
 export function getHeadersForTipo(tipo: TipoInformeDb): string[] {
   return HEADERS_BY_TIPO[tipo];
-}
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  throw new Error((json as { message?: string }).message || fallback);
 }
 
 export const informeBaseDatosService = {

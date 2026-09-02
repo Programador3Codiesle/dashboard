@@ -6,6 +6,7 @@ import { memo, useMemo } from 'react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
 import { filterHubItems } from './filter-hub-items';
 import type { HubCardVariant, SubmodulosHubProps } from './types';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 interface HubCardProps {
   item: SubmodulosHubProps['items'][number];
@@ -91,12 +92,12 @@ function SubmodulosHubComponent({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className={titleClassName}>{title}</h1>
-          <p className="mt-1 text-gray-500">{description}</p>
-        </div>
-      </div>
+      <PageTitleRow
+        title={title}
+        description={description}
+        headingClassName={titleClassName}
+        descriptionClassName="mt-1 text-gray-500"
+      />
 
       <div className={gridClassName}>
         {visibleItems.map((item) => (

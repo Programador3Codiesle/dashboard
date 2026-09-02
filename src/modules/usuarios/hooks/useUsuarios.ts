@@ -1,7 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { IUsuario } from '@/modules/usuarios/types';
+import { IUsuario, IUsuariosPaginatedResponseAPI } from '@/modules/usuarios/types';
 import { usuariosService } from '../services/usuarios.service';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { USUARIOS_PAGE_SIZE } from '../constants';
+
+type UsuariosListado = Omit<IUsuariosPaginatedResponseAPI, 'items'> & {
+  items: IUsuario[];
+};
 
 // Query key para usuarios
 export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
@@ -14,7 +19,7 @@ export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
  */
 export const useUsuarios = (
   page: number = 1,
-  limit: number = 10,
+  limit: number = USUARIOS_PAGE_SIZE,
   search: string = '',
 ) => {
   const queryClient = useQueryClient();
@@ -41,7 +46,7 @@ export const useUsuarios = (
 
   // Función para actualizar el cache manualmente (para optimistic updates)
   const setUsuarios = (newUsuarios: IUsuario[] | ((prev: IUsuario[]) => IUsuario[])) => {
-    queryClient.setQueryData(queryKey, (old: any | undefined) => {
+    queryClient.setQueryData(queryKey, (old: UsuariosListado | undefined) => {
       const prevItems: IUsuario[] = old?.items || [];
       if (typeof newUsuarios === 'function') {
         return {

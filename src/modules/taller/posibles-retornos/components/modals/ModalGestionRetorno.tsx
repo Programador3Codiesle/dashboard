@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Portal } from "@/components/shared/ui/Portal";
 import { useToast } from "@/components/shared/ui/ToastContext";
@@ -24,8 +24,12 @@ interface ModalGestionRetornoProps {
 const inputClass =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
-export function ModalGestionRetorno({
-  open,
+export function ModalGestionRetorno(props: ModalGestionRetornoProps) {
+  if (!props.open) return null;
+  return <ModalGestionRetornoForm {...props} />;
+}
+
+function ModalGestionRetornoForm({
   catalogos,
   detalle,
   ordenOrigen,
@@ -51,26 +55,7 @@ export function ModalGestionRetorno({
 
   const esSi = definicion === "1";
 
-  useEffect(() => {
-    if (open) {
-      setDefinicion("1");
-      setSelectRazon("");
-      setSelectRazonNo("");
-      setObsRazon("");
-      setSelectSistInv("");
-      setObsSistInv("");
-      setOrdenR("");
-      setTecnicoR("");
-      setSelectPlan("");
-      setObsPlan("");
-      setPrecio1("");
-      setPrecio2("");
-      setPrecio3("");
-      setObsCostos("");
-    }
-  }, [open]);
-
-  if (!open || !catalogos || ordenOrigen == null) return null;
+  if (!catalogos || ordenOrigen == null) return null;
 
   const razonesSi = catalogos.razones.filter((r) => r.definicion > 0);
   const razonesNo = catalogos.razones.filter((r) => r.definicion < 1);

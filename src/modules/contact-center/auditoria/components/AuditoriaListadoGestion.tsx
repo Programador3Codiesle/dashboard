@@ -1,17 +1,23 @@
 'use client';
 
-import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
-import { ccQueryOptions } from '@/modules/contact-center/shared/constants/query-options';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
+import { AuditoriaBreadcrumb } from './AuditoriaBreadcrumb';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { auditoriaContactService } from '../services/auditoria-contact.service';
 
@@ -24,19 +30,22 @@ const estadoLabel: Record<string, string> = {
 };
 
 export function AuditoriaListadoGestion() {
+  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [nitAgente, setNitAgente] = useState('');
+  const [nitAgenteAplicado, setNitAgenteAplicado] = useState('');
   const [buscar, setBuscar] = useState(false);
   const [paginaActual, setPaginaActual] = useState(1);
   const [modalVer, setModalVer] = useState(false);
   const [modoModal, setModoModal] = useState<'ver' | 'editar'>('ver');
   const [idVer, setIdVer] = useState<number | null>(null);
-  const [compromiso, setCompromiso] = useState('');
+  const [compromisoDraft, setCompromisoDraft] = useState<string | null>(null);
 
   const contextoQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'contexto'],
     queryFn: () => auditoriaContactService.obtenerContexto(),
-    ...ccQueryOptions,
+    enabled: !!user && !blocked,
+    ...catalogQueryOptions,
   });
 
   const esAdmin = contextoQuery.data?.esAdmin ?? false;
@@ -44,19 +53,18 @@ export function AuditoriaListadoGestion() {
   const { data: agentes = [] } = useQuery({
     queryKey: ['contact-center', 'auditoria', 'agentes'],
     queryFn: () => auditoriaContactService.listarAgentes(),
-    enabled: contextoQuery.isSuccess && esAdmin,
-    ...ccQueryOptions,
+    enabled: !!user && !blocked && contextoQuery.isSuccess && esAdmin,
+    ...catalogQueryOptions,
   });
 
   const listadoQuery = useQuery({
-    queryKey: ['contact-center', 'auditoria', 'listado', esAdmin, nitAgente],
+    queryKey: ['contact-center', 'auditoria', 'listado', esAdmin, nitAgenteAplicado],
     queryFn: () =>
       auditoriaContactService.listarAuditorias(
         esAdmin,
-        nitAgente ? Number(nitAgente) : undefined,
+        nitAgenteAplicado ? Number(nitAgenteAplicado) : undefined,
       ),
-    enabled: buscar && contextoQuery.isSuccess,
-    ...ccQueryOptions,
+    enabled: !!user && !blocked && buscar && contextoQuery.isSuccess,
   });
 
   const verQuery = useQuery({
@@ -69,17 +77,14 @@ export function AuditoriaListadoGestion() {
     enabled: modalVer && idVer != null,
   });
 
-  useEffect(() => {
-    if (verQuery.data) {
-      setCompromiso(verQuery.data.compromiso ?? '');
-    }
-  }, [verQuery.data]);
+  const compromisoServidor = verQuery.data?.compromiso ?? '';
+  const compromiso = compromisoDraft ?? compromisoServidor;
 
   const enviarEmail = useMutation({
     mutationFn: (idAuditoria: number) =>
       auditoriaContactService.enviarEmail(idAuditoria),
     onSuccess: () => showSuccess('Email enviado'),
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const guardarCompromiso = useMutation({
@@ -96,7 +101,7 @@ export function AuditoriaListadoGestion() {
       verQuery.refetch();
       listadoQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const respuesta = useMutation({
@@ -109,7 +114,7 @@ export function AuditoriaListadoGestion() {
       });
     },
     onSuccess: () => verQuery.refetch(),
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const handleRespuesta = useCallback(
@@ -122,30 +127,33 @@ export function AuditoriaListadoGestion() {
   const abrirModal = (id: number, modo: 'ver' | 'editar') => {
     setIdVer(id);
     setModoModal(modo);
+    setCompromisoDraft(null);
     setModalVer(true);
   };
 
   const items = listadoQuery.data ?? [];
   const totalPaginas = Math.max(1, Math.ceil(items.length / registrosPorPagina));
-  const inicio = (paginaActual - 1) * registrosPorPagina;
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const inicio = (paginaSegura - 1) * registrosPorPagina;
   const paginatedItems = items.slice(inicio, inicio + registrosPorPagina);
 
+  if (blocked) return null;
+
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.auditoriaListado.title}
+      description={CONTACT_CENTER_COPY.auditoriaListado.description}
+    >
     <div className="space-y-4">
-      <nav className="text-sm text-gray-500">
-        <Link href="/dashboard/contact-center/auditoria" className="hover:underline">
-          Auditoría
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-800">Informe de auditoría</span>
-      </nav>
+      <AuditoriaBreadcrumb current="Informe de auditoría" />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           {esAdmin && (
             <div>
-              <label className="text-sm font-medium text-gray-700">Seleccione el agente</label>
+              <label htmlFor="cc-listado-agente" className="text-sm font-medium text-gray-700">Seleccione el agente</label>
               <select
+                id="cc-listado-agente"
                 className={inputClass}
                 value={nitAgente}
                 onChange={(e) => setNitAgente(e.target.value)}
@@ -160,7 +168,11 @@ export function AuditoriaListadoGestion() {
           <button
             type="button"
             className={btnPrimaryClass}
-            onClick={() => { setBuscar(true); setPaginaActual(1); }}
+            onClick={() => {
+              setNitAgenteAplicado(nitAgente);
+              setBuscar(true);
+              setPaginaActual(1);
+            }}
           >
             Buscar
           </button>
@@ -170,6 +182,13 @@ export function AuditoriaListadoGestion() {
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
         {listadoQuery.isLoading ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
+        ) : listadoQuery.isError || contextoQuery.isError ? (
+          <CcQueryError
+            message={getErrorMessage(
+              listadoQuery.error ?? contextoQuery.error,
+              'Error al cargar el listado de auditorías',
+            )}
+          />
         ) : (
           <>
             <table className="min-w-full text-sm">
@@ -241,7 +260,7 @@ export function AuditoriaListadoGestion() {
             {items.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination
-                  currentPage={paginaActual}
+                  currentPage={paginaSegura}
                   totalPages={totalPaginas}
                   onChange={setPaginaActual}
                 />
@@ -258,7 +277,11 @@ export function AuditoriaListadoGestion() {
         title={`Auditoría #${idVer}${modoModal === 'editar' ? ' (edición)' : ''}`}
         width="min(96vw, 1200px)"
       >
-        {verQuery.data ? (
+        {verQuery.isError ? (
+          <CcQueryError
+            message={getErrorMessage(verQuery.error, 'Error al cargar la auditoría')}
+          />
+        ) : verQuery.data ? (
           <div className="space-y-4">
             <AuditoriaFormulario
               formulario={verQuery.data}
@@ -275,8 +298,8 @@ export function AuditoriaListadoGestion() {
               <div className="text-sm">
                 <p className="font-medium text-gray-700 mb-1">Archivos adjuntos</p>
                 <ul className="list-disc pl-4 space-y-1">
-                  {verQuery.data.archivos.map((f) => (
-                    <li key={f.nombre}>
+                  {verQuery.data.archivos.map((f, i) => (
+                    <li key={`${f.nombre}-${i}`}>
                       <a
                         href={f.url}
                         target="_blank"
@@ -296,7 +319,7 @@ export function AuditoriaListadoGestion() {
                 <textarea
                   className={`${inputClass} min-h-[100px]`}
                   value={compromiso}
-                  onChange={(e) => setCompromiso(e.target.value)}
+                  onChange={(e) => setCompromisoDraft(e.target.value)}
                   placeholder="Describa el compromiso asumido"
                 />
                 <div className="flex justify-end">
@@ -329,5 +352,6 @@ export function AuditoriaListadoGestion() {
       </Modal>
       )}
     </div>
+    </ContactCenterPageFrame>
   );
 }

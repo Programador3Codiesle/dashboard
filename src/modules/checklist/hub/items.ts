@@ -1,4 +1,5 @@
 import {
+  AlignVerticalJustifyCenter,
   Bike,
   Car,
   Flame,
@@ -7,9 +8,9 @@ import {
   TowerControl,
   Truck,
   Wrench,
-  AlignVerticalJustifyCenter,
 } from 'lucide-react';
 import type { HubItem } from '@/components/shared/hub/types';
+import { CHECKLIST_EXTERNAL_URLS } from '@/modules/checklist/constants';
 import {
   CHECKLIST_ALINEADORES_SUBMENU_ID,
   CHECKLIST_CABINA_PINTURA_SUBMENU_ID,
@@ -27,20 +28,18 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     id: 'motocicletas',
     nombre: 'Motocicletas',
     descripcion: 'Checklist de motocicletas (sistema ventas)',
-    ruta: 'https://intranet.codiesel.co/ventas/CheckMoto',
+    ruta: CHECKLIST_EXTERNAL_URLS.motocicletas,
     submenuId: CHECKLIST_MOTOCICLETAS_SUBMENU_ID,
     icono: Bike,
-    color: 'from-teal-600 to-teal-700',
     external: true,
   },
   {
     id: 'vehiculo',
     nombre: 'Vehículo',
     descripcion: 'Checklist de vehículos (sistema ventas)',
-    ruta: 'https://intranet.codiesel.co/ventas/CheckCarro',
+    ruta: CHECKLIST_EXTERNAL_URLS.vehiculo,
     submenuId: CHECKLIST_VEHICULO_SUBMENU_ID,
     icono: Car,
-    color: 'from-sky-600 to-sky-700',
     external: true,
   },
   {
@@ -50,7 +49,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/alineadores',
     submenuId: CHECKLIST_ALINEADORES_SUBMENU_ID,
     icono: AlignVerticalJustifyCenter,
-    color: 'from-blue-600 to-blue-700',
   },
   {
     id: 'elevadores',
@@ -59,7 +57,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/elevadores',
     submenuId: CHECKLIST_ELEVADORES_SUBMENU_ID,
     icono: TowerControl,
-    color: 'from-indigo-600 to-indigo-700',
   },
   {
     id: 'hidraulicos',
@@ -68,7 +65,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/hidraulicos',
     submenuId: CHECKLIST_HIDRAULICOS_SUBMENU_ID,
     icono: Wrench,
-    color: 'from-violet-600 to-violet-700',
   },
   {
     id: 'trabajo-caliente',
@@ -77,7 +73,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/trabajo-caliente',
     submenuId: CHECKLIST_TRABAJO_CALIENTE_SUBMENU_ID,
     icono: Flame,
-    color: 'from-orange-600 to-orange-700',
   },
   {
     id: 'portico',
@@ -86,7 +81,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/portico',
     submenuId: CHECKLIST_PORTICO_SUBMENU_ID,
     icono: Truck,
-    color: 'from-amber-600 to-amber-700',
   },
   {
     id: 'tijera',
@@ -95,7 +89,6 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/tijera',
     submenuId: CHECKLIST_TIJERA_SUBMENU_ID,
     icono: Scissors,
-    color: 'from-lime-600 to-lime-700',
   },
   {
     id: 'cabina-pintura',
@@ -104,6 +97,5 @@ export const CHECKLIST_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/checklist/cabina-pintura',
     submenuId: CHECKLIST_CABINA_PINTURA_SUBMENU_ID,
     icono: Paintbrush,
-    color: 'from-pink-600 to-pink-700',
   },
 ];

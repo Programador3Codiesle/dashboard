@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/encuestas/shared/utils/parse-api-error';
 
 const BASE = `${getApiBaseUrl()}/encuestas/qr`;
 
@@ -8,12 +9,7 @@ async function postJson<T>(path: string, body: Record<string, unknown>): Promise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!resp.ok) {
-    const json = await resp.json().catch(() => ({}));
-    const message = (json as { message?: string | string[] }).message;
-    const text = Array.isArray(message) ? message.join(', ') : message;
-    throw new Error(text || 'Error en la solicitud');
-  }
+  if (!resp.ok) await parseError(resp, 'Error en la solicitud');
   return resp.json();
 }
 
@@ -40,7 +36,7 @@ export type VehiculoQr = {
 export const encuestaQrService = {
   async listarPreguntas(): Promise<PreguntaQr[]> {
     const resp = await fetch(`${BASE}/preguntas`);
-    if (!resp.ok) throw new Error('Error al cargar preguntas');
+    if (!resp.ok) await parseError(resp, 'Error al cargar preguntas');
     return resp.json();
   },
 

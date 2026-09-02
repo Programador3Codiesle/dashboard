@@ -1,9 +1,10 @@
 import { Suspense } from 'react';
+import { PageLoadingSkeleton } from '@/components/shared/ui/PageLoadingSkeleton';
 import { SatisfaccionDetalleGestion } from '@/modules/encuestas/satisfaccion/components/SatisfaccionDetalleGestion';
 
 export default function SatisfaccionDetallePage() {
   return (
-    <Suspense fallback={<p className="p-4 text-muted-foreground">Cargando...</p>}>
+    <Suspense fallback={<PageLoadingSkeleton />}>
       <SatisfaccionDetalleGestion />
     </Suspense>
   );

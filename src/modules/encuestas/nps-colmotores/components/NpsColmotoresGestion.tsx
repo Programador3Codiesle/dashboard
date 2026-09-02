@@ -1,14 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import Link from 'next/link';
-import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
-import {
-  encuestasService,
-  type TecnicoNps,
-} from '@/modules/encuestas/shared/services/encuestas.service';
-import { NPS_COLMOTORES_SUBMENU_ID } from '@/utils/constants';
+import { useMemo, useState, type FormEvent } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
+import { EncuestasPageFrame } from '@/modules/encuestas/components/EncuestasPageFrame';
+import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
+import { EncuestasQueryError } from '@/modules/encuestas/shared/components/EncuestasQueryError';
+import { encuestasKeys } from '@/modules/encuestas/shared/constants/query-keys';
+import {
+  btnInfoClass,
+  btnPrimaryClass,
+  inputClass,
+} from '@/modules/encuestas/shared/constants/ui';
+import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
+import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.service';
+import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
+import { NPS_COLMOTORES_SUBMENU_ID } from '@/utils/constants';
 
 const SEDES_ALL = [
   'general',
@@ -38,14 +46,12 @@ const TIPIFICACIONES = [
 type Modo = 'sede' | 'tecnico' | null;
 
 export function NpsColmotoresGestion() {
-  const { blocked } = useEncuestasPageGuard(NPS_COLMOTORES_SUBMENU_ID);
+  const { user, blocked } = useEncuestasPageGuard(NPS_COLMOTORES_SUBMENU_ID);
   const { showError, showSuccess, showInfo } = useToast();
+  const sesionLista = !!user && !blocked;
   const [modo, setModo] = useState<Modo>(null);
-  const [tecnicos, setTecnicos] = useState<TecnicoNps[]>([]);
   const [tecnicoFilter, setTecnicoFilter] = useState('');
-  const [saving, setSaving] = useState(false);
 
-  // sede form
   const [sedeAll, setSedeAll] = useState('');
   const [fechaAll, setFechaAll] = useState('');
   const [calAll, setCalAll] = useState('');
@@ -56,7 +62,6 @@ export function NpsColmotoresGestion() {
   const [cal78, setCal78] = useState('0');
   const [cal910, setCal910] = useState('0');
 
-  // tecnico form
   const [sedeTec, setSedeTec] = useState('');
   const [tecnico, setTecnico] = useState('');
   const [fechaTec, setFechaTec] = useState('');
@@ -65,20 +70,19 @@ export function NpsColmotoresGestion() {
   const [tipif, setTipif] = useState('Ninguno');
   const [tipoCal, setTipoCal] = useState<'0a6' | '7a8' | '9a10' | ''>('');
 
-  useEffect(() => {
-    if (blocked) return;
-    encuestasService
-      .listarTecnicos()
-      .then(setTecnicos)
-      .catch((e) =>
-        showError(e instanceof Error ? e.message : 'Error técnicos'),
-      );
-  }, [blocked, showError]);
+  const tecnicosQuery = useQuery({
+    queryKey: encuestasKeys.tecnicosNps,
+    queryFn: () => encuestasService.listarTecnicos(),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
 
+  const tecnicos = tecnicosQuery.data;
   const tecnicosFiltrados = useMemo(() => {
+    const list = tecnicos ?? [];
     const t = tecnicoFilter.trim().toLowerCase();
-    if (!t) return tecnicos;
-    return tecnicos.filter(
+    if (!t) return list;
+    return list.filter(
       (x) =>
         x.nombre.toLowerCase().includes(t) ||
         x.nit.toLowerCase().includes(t) ||
@@ -86,23 +90,16 @@ export function NpsColmotoresGestion() {
     );
   }, [tecnicos, tecnicoFilter]);
 
-  if (blocked) return null;
-
-  async function onSubmitSede(e: FormEvent) {
-    e.preventDefault();
-    if (!chk06 && !chk78 && !chk910) {
-      showInfo('Marque al menos un rango de calificación');
-    }
-    setSaving(true);
-    try {
-      await encuestasService.insertNpsSede({
-        sede: sedeAll,
-        fecha: fechaAll,
-        calificacion: Number(calAll),
-        cal06: chk06 ? Number(cal06) || 0 : 0,
-        cal78: chk78 ? Number(cal78) || 0 : 0,
-        cal910: chk910 ? Number(cal910) || 0 : 0,
-      });
+  const sedeMutation = useMutation({
+    mutationFn: (body: {
+      sede: string;
+      fecha: string;
+      calificacion: number;
+      cal06: number;
+      cal78: number;
+      cal910: number;
+    }) => encuestasService.insertNpsSede(body),
+    onSuccess: () => {
       showSuccess('NPS sede guardado');
       setCalAll('');
       setCal06('0');
@@ -111,67 +108,101 @@ export function NpsColmotoresGestion() {
       setChk06(false);
       setChk78(false);
       setChk910(false);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Error al guardar');
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+    onError: (err) => {
+      showError(getErrorMessage(err, 'Error al guardar'));
+    },
+  });
 
-  async function onSubmitTecnico(e: FormEvent) {
-    e.preventDefault();
-    if (!sedeTec || !tecnico || !fechaTec || !vin.trim() || !calTec || !tipoCal) {
-      showError('Complete todos los campos requeridos (incluye VIN)');
-      return;
-    }
-    setSaving(true);
-    try {
-      await encuestasService.insertNpsTecnico({
-        sede: sedeTec,
-        tecnico,
-        fecha: fechaTec,
-        calificacion: Number(calTec),
-        placa: vin.trim().toUpperCase(),
-        tipificacion: tipif,
-        tipo_cal: tipoCal,
-      });
+  const tecnicoMutation = useMutation({
+    mutationFn: (body: {
+      sede: string;
+      tecnico: string;
+      fecha: string;
+      calificacion: number;
+      placa: string;
+      tipificacion: string;
+      tipo_cal: '0a6' | '7a8' | '9a10';
+    }) => encuestasService.insertNpsTecnico(body),
+    onSuccess: (result) => {
+      if (result.skipped) {
+        showInfo(ENCUESTAS_COPY.npsColmotores.tecnicoSkipped);
+        return;
+      }
       showSuccess('NPS técnico guardado');
       setVin('');
       setCalTec('');
       setTipoCal('');
       setTipif('Ninguno');
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Error al guardar');
-    } finally {
-      setSaving(false);
+    },
+    onError: (err) => {
+      showError(getErrorMessage(err, 'Error al guardar'));
+    },
+  });
+
+  const saving = sedeMutation.isPending || tecnicoMutation.isPending;
+
+  if (blocked) return null;
+
+  function onSubmitSede(e: FormEvent) {
+    e.preventDefault();
+    if (!chk06 && !chk78 && !chk910) {
+      showInfo('Marque al menos un rango de calificación');
     }
+    sedeMutation.mutate({
+      sede: sedeAll,
+      fecha: fechaAll,
+      calificacion: Number(calAll),
+      cal06: chk06 ? Number(cal06) || 0 : 0,
+      cal78: chk78 ? Number(cal78) || 0 : 0,
+      cal910: chk910 ? Number(cal910) || 0 : 0,
+    });
+  }
+
+  function onSubmitTecnico(e: FormEvent) {
+    e.preventDefault();
+    if (!sedeTec || !tecnico || !fechaTec || !vin.trim() || !calTec || !tipoCal) {
+      showError('Complete todos los campos requeridos (incluye VIN)');
+      return;
+    }
+    tecnicoMutation.mutate({
+      sede: sedeTec,
+      tecnico,
+      fecha: fechaTec,
+      calificacion: Number(calTec),
+      placa: vin.trim().toUpperCase(),
+      tipificacion: tipif,
+      tipo_cal: tipoCal,
+    });
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="app-title-xl brand-text">Ingreso NPS Colmotores</h1>
-          <p className="text-sm text-muted-foreground">
-            Registro manual de NPS por sede o por técnico
-          </p>
-        </div>
-        <Link href="/dashboard/encuestas" className="text-sm text-amber-700 hover:underline">
-          ← Volver a Encuestas
-        </Link>
-      </div>
+    <EncuestasPageFrame
+      title={ENCUESTAS_COPY.npsColmotores.title}
+      description={ENCUESTAS_COPY.npsColmotores.description}
+      backHref="/dashboard/encuestas"
+      backLabel={ENCUESTAS_COPY.npsColmotores.backLabel}
+    >
+      {tecnicosQuery.isError ? (
+        <EncuestasQueryError
+          message={getErrorMessage(
+            tecnicosQuery.error,
+            ENCUESTAS_COPY.npsColmotores.loadError,
+          )}
+        />
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+          className={btnPrimaryClass}
           onClick={() => setModo('sede')}
         >
           NPS por sede
         </button>
         <button
           type="button"
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+          className={btnInfoClass}
           onClick={() => {
             if (fechaAll) {
               showError('No se puede: hay fecha en formulario de sede');
@@ -191,11 +222,12 @@ export function NpsColmotoresGestion() {
         >
           <h2 className="font-semibold">NPS por sede</h2>
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="text-sm">
+            <label htmlFor="nps-sede-all" className="text-sm">
               Sede
               <select
+                id="nps-sede-all"
                 required
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={sedeAll}
                 onChange={(e) => setSedeAll(e.target.value)}
               >
@@ -207,23 +239,25 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-fecha-all" className="text-sm">
               Fecha
               <input
+                id="nps-fecha-all"
                 required
                 type="date"
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={fechaAll}
                 onChange={(e) => setFechaAll(e.target.value)}
               />
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-cal-all" className="text-sm">
               Calificación
               <input
+                id="nps-cal-all"
                 required
                 type="number"
                 step="0.01"
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={calAll}
                 onChange={(e) => setCalAll(e.target.value)}
               />
@@ -231,6 +265,7 @@ export function NpsColmotoresGestion() {
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <RangoCheck
+              idPrefix="nps-rango-06"
               label="0-6"
               checked={chk06}
               onCheck={setChk06}
@@ -238,6 +273,7 @@ export function NpsColmotoresGestion() {
               onValue={setCal06}
             />
             <RangoCheck
+              idPrefix="nps-rango-78"
               label="7-8"
               checked={chk78}
               onCheck={setChk78}
@@ -245,6 +281,7 @@ export function NpsColmotoresGestion() {
               onValue={setCal78}
             />
             <RangoCheck
+              idPrefix="nps-rango-910"
               label="9-10"
               checked={chk910}
               onCheck={setChk910}
@@ -252,11 +289,7 @@ export function NpsColmotoresGestion() {
               onValue={setCal910}
             />
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <button type="submit" disabled={saving} className={btnPrimaryClass}>
             {saving ? 'Guardando...' : 'Guardar'}
           </button>
         </form>
@@ -269,11 +302,12 @@ export function NpsColmotoresGestion() {
         >
           <h2 className="font-semibold">NPS por técnico</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="text-sm">
+            <label htmlFor="nps-sede-tec" className="text-sm">
               Sede
               <select
+                id="nps-sede-tec"
                 required
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={sedeTec}
                 onChange={(e) => setSedeTec(e.target.value)}
               >
@@ -285,17 +319,24 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <label className="text-sm sm:col-span-2">
-              Técnico
+            <div className="text-sm sm:col-span-2">
+              <label htmlFor="nps-tecnico-filter" className="block">
+                Técnico
+              </label>
               <input
-                className="mt-1 w-full rounded border px-2 py-1 text-xs"
+                id="nps-tecnico-filter"
+                className={`mt-1 ${inputClass} text-xs`}
                 placeholder="Filtrar técnico..."
                 value={tecnicoFilter}
                 onChange={(e) => setTecnicoFilter(e.target.value)}
               />
+              <label htmlFor="nps-tecnico" className="sr-only">
+                Seleccionar técnico
+              </label>
               <select
+                id="nps-tecnico"
                 required
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={tecnico}
                 onChange={(e) => setTecnico(e.target.value)}
               >
@@ -306,41 +347,45 @@ export function NpsColmotoresGestion() {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-sm">
+            </div>
+            <label htmlFor="nps-fecha-tec" className="text-sm">
               Fecha
               <input
+                id="nps-fecha-tec"
                 required
                 type="date"
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={fechaTec}
                 onChange={(e) => setFechaTec(e.target.value)}
               />
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-vin" className="text-sm">
               VIN / Placa
               <input
+                id="nps-vin"
                 required
-                className="mt-1 w-full rounded border px-2 py-2 uppercase"
+                className={`mt-1 ${inputClass} uppercase`}
                 value={vin}
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
               />
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-cal-tec" className="text-sm">
               Calificación
               <input
+                id="nps-cal-tec"
                 required
                 type="number"
                 step="0.01"
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={calTec}
                 onChange={(e) => setCalTec(e.target.value)}
               />
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-tipif" className="text-sm">
               Tipificación
               <select
-                className="mt-1 w-full rounded border px-2 py-2"
+                id="nps-tipif"
+                className={`mt-1 ${inputClass}`}
                 value={tipif}
                 onChange={(e) => setTipif(e.target.value)}
               >
@@ -351,11 +396,12 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <label className="text-sm">
+            <label htmlFor="nps-tipo-cal" className="text-sm">
               Tipo de rango
               <select
+                id="nps-tipo-cal"
                 required
-                className="mt-1 w-full rounded border px-2 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={tipoCal}
                 onChange={(e) =>
                   setTipoCal(e.target.value as '0a6' | '7a8' | '9a10' | '')
@@ -368,36 +414,37 @@ export function NpsColmotoresGestion() {
               </select>
             </label>
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <button type="submit" disabled={saving} className={btnInfoClass}>
             {saving ? 'Guardando...' : 'Guardar'}
           </button>
         </form>
       )}
-    </div>
+    </EncuestasPageFrame>
   );
 }
 
 function RangoCheck({
+  idPrefix,
   label,
   checked,
   onCheck,
   value,
   onValue,
 }: {
+  idPrefix: string;
   label: string;
   checked: boolean;
   onCheck: (v: boolean) => void;
   value: string;
   onValue: (v: string) => void;
 }) {
+  const checkId = `${idPrefix}-chk`;
+  const valueId = `${idPrefix}-val`;
   return (
     <div className="rounded border p-3 text-sm">
-      <label className="flex items-center gap-2">
+      <label htmlFor={checkId} className="flex items-center gap-2">
         <input
+          id={checkId}
           type="checkbox"
           checked={checked}
           onChange={(e) => onCheck(e.target.checked)}
@@ -406,11 +453,13 @@ function RangoCheck({
       </label>
       {checked && (
         <input
+          id={valueId}
           type="number"
           min={0}
-          className="mt-2 w-full rounded border px-2 py-1"
+          className={`mt-2 ${inputClass}`}
           value={value}
           onChange={(e) => onValue(e.target.value)}
+          aria-label={`Cantidad ${label}`}
         />
       )}
     </div>

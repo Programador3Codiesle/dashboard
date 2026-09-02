@@ -1,14 +1,8 @@
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/ordenes-tot/shared/utils/parse-api-error';
 
 const BASE = `${getApiBaseUrl()}/ordenes-tot`;
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  const message = (json as { message?: string | string[] }).message;
-  const text = Array.isArray(message) ? message.join(', ') : message;
-  throw new Error(text || fallback);
-}
 
 function asRecord(row: unknown): Record<string, unknown> {
   return row && typeof row === 'object' ? (row as Record<string, unknown>) : {};
@@ -81,6 +75,11 @@ export type TotListadoItem = {
   contenido: string;
   fechaSalida: string | null;
   fechaReingreso: string | null;
+};
+
+export type TotListadoPage = {
+  items: TotListadoItem[];
+  total: number;
 };
 
 export type RepuestoCandidato = {
@@ -210,9 +209,33 @@ export const ordenesTotService = {
     return resp.json();
   },
 
-  async listadoTot(estado: 1 | 2): Promise<TotListadoItem[]> {
-    const resp = await fetchWithAuth(`${BASE}/tot/listado?estado=${estado}`);
-    return parseList(resp, mapTotListado, 'Error al cargar listado TOT');
+  async listadoTot(
+    estado: 1 | 2,
+    page: number,
+    limit: number,
+  ): Promise<TotListadoPage> {
+    const params = new URLSearchParams({
+      estado: String(estado),
+      page: String(page),
+      limit: String(limit),
+    });
+    const resp = await fetchWithAuth(`${BASE}/tot/listado?${params}`);
+    if (!resp.ok) await parseError(resp, 'Error al cargar listado TOT');
+    const json: unknown = await resp.json();
+    if (Array.isArray(json)) {
+      const items = json.map((r) => mapTotListado(asRecord(r)));
+      return { items, total: items.length };
+    }
+    const record = asRecord(json);
+    const rows = record.items ?? record.data ?? record.rows ?? [];
+    const items = (Array.isArray(rows) ? rows : []).map((r) =>
+      mapTotListado(asRecord(r)),
+    );
+    const totalRaw = Number(record.total);
+    return {
+      items,
+      total: Number.isFinite(totalRaw) ? totalRaw : items.length,
+    };
   },
 
   async reingresoTot(id: number) {

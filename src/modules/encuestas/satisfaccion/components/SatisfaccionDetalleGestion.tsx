@@ -1,79 +1,77 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
+import { useQuery } from '@tanstack/react-query';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { EncuestasPageFrame } from '@/modules/encuestas/components/EncuestasPageFrame';
+import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
 import {
-  encuestasService,
-  type SatisfaccionDetalle,
-} from '@/modules/encuestas/shared/services/encuestas.service';
+  EncuestasLoading,
+  EncuestasQueryError,
+} from '@/modules/encuestas/shared/components/EncuestasQueryError';
+import { encuestasKeys } from '@/modules/encuestas/shared/constants/query-keys';
+import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
+import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.service';
+import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
 import { SATISFACCION_SUBMENU_ID } from '@/utils/constants';
-import { useToast } from '@/components/ui/use-toast';
 
 function colorNps(val: string | number | null | undefined): string {
   const n = Number(val);
   if (!Number.isFinite(n)) return 'bg-slate-500';
-  if (n >= 9) return 'bg-emerald-600';
-  if (n >= 7) return 'bg-amber-500';
-  return 'bg-red-600';
+  if (n >= 9) return 'bg-[var(--color-success)]';
+  if (n >= 7) return 'bg-[var(--color-warning)]';
+  return 'bg-[var(--color-danger)]';
 }
 
 function colorSn(val: string | number | null | undefined): string {
   const s = String(val ?? '').toUpperCase();
-  if (s === 'SI') return 'bg-emerald-600';
-  if (s === 'NO') return 'bg-red-600';
+  if (s === 'SI') return 'bg-[var(--color-success)]';
+  if (s === 'NO') return 'bg-[var(--color-danger)]';
   return 'bg-slate-500';
 }
 
 export function SatisfaccionDetalleGestion() {
-  const { blocked } = useEncuestasPageGuard(SATISFACCION_SUBMENU_ID);
+  const { user, blocked } = useEncuestasPageGuard(SATISFACCION_SUBMENU_ID);
   const searchParams = useSearchParams();
   const ot = searchParams.get('ot') ?? '';
-  const { showError } = useToast();
-  const [data, setData] = useState<SatisfaccionDetalle | null>(null);
-  const [loading, setLoading] = useState(true);
+  const sesionLista = !!user && !blocked && !!ot;
 
-  useEffect(() => {
-    if (blocked || !ot) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const d = await encuestasService.detalleSatisfaccion(ot);
-        if (!cancelled) setData(d);
-      } catch (e) {
-        showError(e instanceof Error ? e.message : 'No se pudo cargar');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [blocked, ot, showError]);
+  const detalleQuery = useQuery({
+    queryKey: encuestasKeys.satisfaccionDetalle(ot),
+    queryFn: () => encuestasService.detalleSatisfaccion(ot),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
 
   if (blocked) return null;
 
-  const r = data?.respuestas;
-  const o = data?.orden;
+  const r = detalleQuery.data?.respuestas;
+  const o = detalleQuery.data?.orden;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">Detalle encuesta</h1>
-        <Link
-          href="/dashboard/encuestas/satisfaccion"
-          className="text-sm text-amber-700 hover:underline"
-        >
-          ← Volver al listado
-        </Link>
-      </div>
-
-      {loading ? (
-        <p className="text-muted-foreground">Cargando...</p>
+    <EncuestasPageFrame
+      title={ENCUESTAS_COPY.satisfaccionDetalle.title}
+      description={ENCUESTAS_COPY.satisfaccionDetalle.description}
+      backHref="/dashboard/encuestas/satisfaccion"
+      backLabel={ENCUESTAS_COPY.satisfaccionDetalle.backLabel}
+    >
+      {!ot ? (
+        <EncuestasQueryError
+          message={ENCUESTAS_COPY.satisfaccionDetalle.missingOt}
+        />
+      ) : detalleQuery.isPending ? (
+        <EncuestasLoading message="Cargando..." />
+      ) : detalleQuery.isError ? (
+        <EncuestasQueryError
+          message={getErrorMessage(
+            detalleQuery.error,
+            ENCUESTAS_COPY.satisfaccionDetalle.loadError,
+          )}
+        />
       ) : !o ? (
-        <p className="text-muted-foreground">No se encontró la orden {ot}</p>
+        <p className="text-muted-foreground">
+          {ENCUESTAS_COPY.satisfaccionDetalle.notFound} {ot}
+        </p>
       ) : (
         <>
           <div className="rounded-lg border bg-card p-4 text-sm">
@@ -121,14 +119,14 @@ export function SatisfaccionDetalleGestion() {
                 <Card
                   title="Para nosotros es importante conocer tu opinión"
                   value={r.pregunta5}
-                  className="bg-sky-600"
+                  className="bg-[var(--color-info)]"
                 />
               </div>
             </div>
           )}
         </>
       )}
-    </div>
+    </EncuestasPageFrame>
   );
 }
 

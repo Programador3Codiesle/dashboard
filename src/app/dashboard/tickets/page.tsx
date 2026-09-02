@@ -1,27 +1,5 @@
-'use client';
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/core/auth/hooks/useAuth";
+import { TicketsRootRedirect } from '@/modules/tickets/components/TicketsRootRedirect';
 
 export default function TicketsRootPage() {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (user) {
-      // Si el perfil es 1 o 20, mostrar activos; si no, mostrar mis tickets
-      const canSeeAllTickets = user.perfil_postventa === "1" || user.perfil_postventa === "20";
-      if (canSeeAllTickets) {
-        router.replace("/dashboard/tickets/activos");
-      } else {
-        router.replace("/dashboard/tickets/mis-tickets");
-      }
-    }
-  }, [user, router]);
-
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-    </div>
-  );
+  return <TicketsRootRedirect />;
 }

@@ -1,4 +1,5 @@
 import { formatDateOnly } from '@/modules/contact-center/shared/utils/format-date-only';
+import { parseError } from '@/modules/contact-center/shared/utils/parse-api-error';
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
 
@@ -27,19 +28,6 @@ export type LeadItem = {
 export type MotivoNoAgendamiento = { id: number; motivo: string };
 
 export type AgenteAsignacion = { id: number; nombre: string };
-
-export const AGENTES_ASIGNACION: AgenteAsignacion[] = [
-  { id: 704, nombre: 'Andrea Carolina Valdeblanquez Gualdron' },
-  { id: 830, nombre: 'Sivia Juliana Saenz Orejuela' },
-  { id: 946, nombre: 'Nora Lucia Espinosa Grass' },
-  { id: 931, nombre: 'Diana Patricia Fandiño Merchan' },
-  { id: 977, nombre: 'Nicolas Fernando Espitia Castillo' },
-];
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  throw new Error((json as { message?: string }).message || fallback);
-}
 
 function mapLead(row: Record<string, unknown>): LeadItem {
   return {
@@ -76,7 +64,11 @@ export const agendamientoLeadsService = {
     const resp = await fetchWithAuth(`${BASE}/listar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        tipoLeads: payload.tipoLeads,
+        fecha_ini: payload.fechaIni,
+        fecha_fin: payload.fechaFin,
+      }),
     });
     if (!resp.ok) await parseError(resp, 'Error al listar leads');
     const json = await resp.json();
@@ -87,7 +79,10 @@ export const agendamientoLeadsService = {
     const resp = await fetchWithAuth(`${BASE}/asignar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        idleads: payload.idleads.join('_'),
+        agente: payload.agente,
+      }),
     });
     if (!resp.ok) await parseError(resp, 'Error al asignar leads');
     return resp.json();
@@ -102,7 +97,12 @@ export const agendamientoLeadsService = {
     const resp = await fetchWithAuth(`${BASE}/gestionar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        idcontactlead: payload.idcontactlead,
+        interesado: Number(payload.interesado),
+        ...(payload.idcita ? { idcita: Number(payload.idcita) } : {}),
+        ...(payload.motivo ? { motivo: Number(payload.motivo) } : {}),
+      }),
     });
     if (!resp.ok) await parseError(resp, 'Error al registrar gestión');
     return resp.json();
@@ -116,6 +116,18 @@ export const agendamientoLeadsService = {
       (m: Record<string, unknown>) => ({
         id: Number(m.id),
         motivo: String(m.motivo ?? ''),
+      }),
+    );
+  },
+
+  async listarAgentesAsignacion(): Promise<AgenteAsignacion[]> {
+    const resp = await fetchWithAuth(`${BASE}/agentes-asignacion`);
+    if (!resp.ok) await parseError(resp, 'Error al cargar agentes');
+    const json = await resp.json();
+    return (Array.isArray(json) ? json : json.agentes ?? []).map(
+      (a: Record<string, unknown>) => ({
+        id: Number(a.id_usuario ?? a.id ?? 0),
+        nombre: String(a.nombres ?? a.nombre ?? ''),
       }),
     );
   },

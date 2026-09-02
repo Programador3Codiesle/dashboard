@@ -1,5 +1,5 @@
-'use client';
+import { InasistenciaGestion } from '@/modules/administracion/inasistencia/components/InasistenciaGestion';
 
-// Reutilizamos exactamente la misma pantalla ya migrada en Administración
-export { default } from "@/app/dashboard/administracion/inasistencia/page";
-
+export default function InasistenciaInformePage() {
+  return <InasistenciaGestion />;
+}

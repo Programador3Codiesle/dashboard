@@ -1,79 +1,86 @@
 'use client';
 
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import Link from 'next/link';
+import { useCallback, useState, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
-import { Pagination } from '@/components/shared/ui/Pagination';
+import { useQuery } from '@tanstack/react-query';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
+import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPageFrame';
+import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
+import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
+import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
 import { BODEGAS_AUDITORIA_BASE } from '@/modules/auditoria/shared/constants/bodegas';
+import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
+import {
+  btnPrimaryClass,
+  inputClass,
+} from '@/modules/auditoria/shared/constants/ui';
+import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
 import { auditoriaService } from '@/modules/auditoria/shared/services/auditoria.service';
+import { getErrorMessage } from '@/modules/auditoria/shared/utils/parse-api-error';
+import { paginateRows } from '@/modules/auditoria/shared/utils/paginate';
 import { CONTROL_ORDENES_DIARIAS_SUBMENU_ID } from '@/utils/constants';
-
-const PAGE_SIZE = 15;
-
-type Row = Awaited<ReturnType<typeof auditoriaService.ordenesDiarias>>[number];
 
 function todayYmd() {
   return new Date().toISOString().slice(0, 10);
 }
 
 export function OrdenesDiariasGestion() {
-  const { blocked } = useAuditoriaPageGuard(CONTROL_ORDENES_DIARIAS_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaPageGuard(
+    CONTROL_ORDENES_DIARIAS_SUBMENU_ID,
+  );
   const { showError } = useToast();
+  const sesionLista = !!user && !blocked;
   const [fecha, setFecha] = useState(todayYmd);
   const [bodega, setBodega] = useState('');
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [applied, setApplied] = useState<{ fecha: string; bodega: string } | null>(
+    null,
+  );
   const [page, setPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, safePage]);
+  const listQuery = useQuery({
+    queryKey: auditoriaKeys.ordenesDiarias(
+      applied?.fecha ?? '',
+      applied?.bodega ?? '',
+    ),
+    queryFn: () =>
+      auditoriaService.ordenesDiarias(applied!.fecha, applied!.bodega),
+    enabled: sesionLista && !!applied,
+    ...transactionalQueryOptions,
+  });
 
-  const handlePageChange = useCallback((p: number) => setPage(p), []);
-
-  async function buscar() {
-    if (!fecha || !bodega) {
-      showError('Seleccione fecha y bodega');
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await auditoriaService.ordenesDiarias(fecha, bodega);
-      setRows(data);
-      setPage(1);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al consultar');
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const rows = listQuery.data ?? [];
+  const { pageRows, total, totalPages, safePage, inicio, fin } = paginateRows(
+    rows,
+    page,
+  );
+  const onPage = useCallback((p: number) => setPage(p), []);
 
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <Header title="Control de Órdenes Diarias" />
+    <AuditoriaPageFrame
+      title={AUDITORIA_COPY.ordenesDiarias.title}
+      description={AUDITORIA_COPY.ordenesDiarias.description}
+      backLabel={AUDITORIA_COPY.backLabel}
+    >
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label className="text-sm">
+        <label htmlFor="aud-od-fecha" className="text-sm">
           Fecha
           <input
+            id="aud-od-fecha"
             type="date"
             max={todayYmd()}
-            className="mt-1 block rounded border px-3 py-2"
+            className={inputClass}
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
         </label>
-        <label className="text-sm min-w-[220px]">
+        <label htmlFor="aud-od-bodega" className="min-w-[220px] text-sm">
           Bodega
           <select
-            className="mt-1 block w-full rounded border px-3 py-2"
+            id="aud-od-bodega"
+            className={inputClass}
             value={bodega}
             onChange={(e) => setBodega(e.target.value)}
           >
@@ -87,14 +94,30 @@ export function OrdenesDiariasGestion() {
         </label>
         <button
           type="button"
-          onClick={buscar}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className={btnPrimaryClass}
+          disabled={listQuery.isFetching}
+          onClick={() => {
+            if (!fecha || !bodega) {
+              showError('Seleccione fecha y bodega');
+              return;
+            }
+            setApplied({ fecha, bodega });
+            setPage(1);
+          }}
         >
           <Search className="h-4 w-4" />
-          {loading ? 'Buscando...' : 'Buscar'}
+          {listQuery.isFetching ? 'Buscando...' : 'Buscar'}
         </button>
       </div>
+
+      {listQuery.isError ? (
+        <AuditoriaQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            AUDITORIA_COPY.ordenesDiarias.loadError,
+          )}
+        />
+      ) : null}
 
       <TableCard>
         <table className="min-w-full text-sm">
@@ -116,16 +139,23 @@ export function OrdenesDiariasGestion() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isFetching && !listQuery.data ? (
               <Empty colSpan={7} text="Cargando..." />
             ) : pageRows.length === 0 ? (
-              <Empty colSpan={7} text="Sin registros. Use los filtros para consultar." />
+              <Empty colSpan={7} text={AUDITORIA_COPY.ordenesDiarias.empty} />
             ) : (
               pageRows.map((r, i) => (
-                <tr key={`${r.nombres}-${i}`} className="border-t border-gray-100">
+                <tr
+                  key={`${r.nombres}-${i}`}
+                  className="border-t border-gray-100"
+                >
                   <td className="px-3 py-2">{r.nombres}</td>
-                  <td className="px-3 py-2 text-center">{r.mantenimiento_preventivo}</td>
-                  <td className="px-3 py-2 text-center">{r.mantenimiento_correctivo}</td>
+                  <td className="px-3 py-2 text-center">
+                    {r.mantenimiento_preventivo}
+                  </td>
+                  <td className="px-3 py-2 text-center">
+                    {r.mantenimiento_correctivo}
+                  </td>
                   <td className="px-3 py-2 text-center">{r.garantia}</td>
                   <td className="px-3 py-2 text-center">{r.retorno}</td>
                   <td className="px-3 py-2 text-center">{r.colision}</td>
@@ -135,27 +165,16 @@ export function OrdenesDiariasGestion() {
             )}
           </tbody>
         </table>
-        {rows.length > 0 && (
-          <Pager
-            total={rows.length}
-            page={safePage}
-            totalPages={totalPages}
-            onChange={handlePageChange}
-          />
-        )}
+        <AuditoriaPager
+          total={total}
+          page={safePage}
+          totalPages={totalPages}
+          onChange={onPage}
+          inicio={inicio}
+          fin={fin}
+        />
       </TableCard>
-    </div>
-  );
-}
-
-function Header({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="app-title-xl brand-text">{title}</h1>
-      <Link href="/dashboard/auditoria" className="text-sm text-amber-700 hover:underline">
-        ← Volver a Auditoría
-      </Link>
-    </div>
+    </AuditoriaPageFrame>
   );
 }
 
@@ -174,30 +193,5 @@ function Empty({ colSpan, text }: { colSpan: number; text: string }) {
         {text}
       </td>
     </tr>
-  );
-}
-
-function Pager({
-  total,
-  page,
-  totalPages,
-  onChange,
-}: {
-  total: number;
-  page: number;
-  totalPages: number;
-  onChange: (p: number) => void;
-}) {
-  const inicio = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const fin = Math.min(page * PAGE_SIZE, total);
-  return (
-    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-gray-500">
-        Mostrando {inicio}–{fin} de {total} ({PAGE_SIZE} por página)
-      </p>
-      {totalPages > 1 && (
-        <Pagination currentPage={page} totalPages={totalPages} onChange={onChange} />
-      )}
-    </div>
   );
 }

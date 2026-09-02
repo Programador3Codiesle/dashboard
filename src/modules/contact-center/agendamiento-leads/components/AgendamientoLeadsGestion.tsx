@@ -1,20 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/core/auth/hooks/useAuth';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   btnSuccessClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
-import { ccQueryOptions } from '@/modules/contact-center/shared/constants/query-options';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { AGENDAMIENTO_LEADS_SUBMENU_ID } from '@/utils/constants';
 import {
-  AGENTES_ASIGNACION,
   agendamientoLeadsService,
   LeadItem,
 } from '../services/agendamiento-leads.service';
@@ -22,7 +26,7 @@ import {
 const registrosPorPagina = 10;
 
 export function AgendamientoLeadsGestion() {
-  const { user } = useAuth();
+  const { user, blocked } = useContactCenterPageGuard(AGENDAMIENTO_LEADS_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const esAdmin = user?.perfil_postventa === '1';
 
@@ -36,7 +40,7 @@ export function AgendamientoLeadsGestion() {
     fechaIni: '',
     fechaFin: '',
   });
-  const [buscar, setBuscar] = useState(!esAdmin);
+  const [buscar, setBuscar] = useState(false);
   const [seleccion, setSeleccion] = useState<Record<number, boolean>>({});
   const [modalAsignar, setModalAsignar] = useState(false);
   const [modalGestion, setModalGestion] = useState(false);
@@ -49,10 +53,21 @@ export function AgendamientoLeadsGestion() {
   });
   const [paginaActual, setPaginaActual] = useState(1);
 
+  const sesionLista = !!user && !blocked;
+  const puedeListar = sesionLista && (!esAdmin || buscar);
+
   const { data: motivos = [] } = useQuery({
     queryKey: ['contact-center', 'agendamiento-leads', 'motivos'],
     queryFn: () => agendamientoLeadsService.listarMotivos(),
-    enabled: modalGestion,
+    enabled: modalGestion && sesionLista,
+    ...catalogQueryOptions,
+  });
+
+  const { data: agentesAsignacion = [] } = useQuery({
+    queryKey: ['contact-center', 'agendamiento-leads', 'agentes-asignacion'],
+    queryFn: () => agendamientoLeadsService.listarAgentesAsignacion(),
+    enabled: modalAsignar && sesionLista,
+    ...catalogQueryOptions,
   });
 
   const listarQuery = useQuery({
@@ -65,20 +80,19 @@ export function AgendamientoLeadsGestion() {
               fechaIni: filtrosAplicados.fechaIni || undefined,
               fechaFin: filtrosAplicados.fechaFin || undefined,
             }
-          : {},
+            : {},
       ),
-    enabled: buscar,
-    ...ccQueryOptions,
+    enabled: puedeListar,
   });
 
-  const items = listarQuery.data ?? [];
+  const items = useMemo(
+    () => listarQuery.data ?? [],
+    [listarQuery.data],
+  );
   const totalPaginas = Math.max(1, Math.ceil(items.length / registrosPorPagina));
-  const inicio = (paginaActual - 1) * registrosPorPagina;
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const inicio = (paginaSegura - 1) * registrosPorPagina;
   const paginatedItems = items.slice(inicio, inicio + registrosPorPagina);
-
-  useEffect(() => {
-    setPaginaActual(1);
-  }, [items.length, buscar]);
 
   const seleccionados = useMemo(
     () => items.filter((i) => seleccion[i.idcontactlead]).map((i) => i.idcontactlead),
@@ -97,7 +111,7 @@ export function AgendamientoLeadsGestion() {
       setSeleccion({});
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const gestionar = useMutation({
@@ -115,7 +129,7 @@ export function AgendamientoLeadsGestion() {
       setModalGestion(false);
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const exportar = useMutation({
@@ -128,7 +142,7 @@ export function AgendamientoLeadsGestion() {
       a.click();
       URL.revokeObjectURL(url);
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const abrirGestion = (lead: LeadItem) => {
@@ -137,9 +151,9 @@ export function AgendamientoLeadsGestion() {
     setModalGestion(true);
   };
 
-  const mostrarColAsignar = esAdmin && filtros.tipoLeads === '1';
-  const mostrarColAgente = esAdmin && filtros.tipoLeads === '0';
-  const mostrarColGestionados = esAdmin && filtros.tipoLeads === '3';
+  const mostrarColAsignar = esAdmin && filtrosAplicados.tipoLeads === '1';
+  const mostrarColAgente = esAdmin && filtrosAplicados.tipoLeads === '0';
+  const mostrarColGestionados = esAdmin && filtrosAplicados.tipoLeads === '3';
 
   const totalColumnas =
     9 +
@@ -148,16 +162,24 @@ export function AgendamientoLeadsGestion() {
     (mostrarColGestionados ? 3 : 0) +
     (mostrarColAsignar ? 1 : 0);
 
-  const sinRegistros = buscar && !listarQuery.isLoading && items.length === 0;
+  const sinRegistros =
+    puedeListar && !listarQuery.isLoading && !listarQuery.isError && items.length === 0;
+
+  if (blocked) return null;
 
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.agendamientoLeads.title}
+      description={CONTACT_CENTER_COPY.agendamientoLeads.description}
+    >
     <div className="space-y-4">
       {esAdmin && (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Tipo de LEADS</label>
+              <label htmlFor="cc-leads-tipo" className="text-sm font-medium text-gray-700">Tipo de LEADS</label>
               <select
+                id="cc-leads-tipo"
                 className={inputClass}
                 value={filtros.tipoLeads}
                 onChange={(e) => setFiltros((f) => ({ ...f, tipoLeads: e.target.value }))}
@@ -169,8 +191,9 @@ export function AgendamientoLeadsGestion() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Fecha inicial</label>
+              <label htmlFor="cc-leads-fecha-ini" className="text-sm font-medium text-gray-700">Fecha inicial</label>
               <input
+                id="cc-leads-fecha-ini"
                 type="date"
                 className={inputClass}
                 value={filtros.fechaIni}
@@ -178,8 +201,9 @@ export function AgendamientoLeadsGestion() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Fecha final</label>
+              <label htmlFor="cc-leads-fecha-fin" className="text-sm font-medium text-gray-700">Fecha final</label>
               <input
+                id="cc-leads-fecha-fin"
                 type="date"
                 className={inputClass}
                 value={filtros.fechaFin}
@@ -227,8 +251,12 @@ export function AgendamientoLeadsGestion() {
       )}
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
-        {listarQuery.isLoading ? (
+        {listarQuery.isLoading || !sesionLista ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
+        ) : listarQuery.isError ? (
+          <CcQueryError
+            message={getErrorMessage(listarQuery.error, 'Error al listar leads')}
+          />
         ) : (
           <>
             <table className="min-w-full text-xs">
@@ -331,7 +359,7 @@ export function AgendamientoLeadsGestion() {
             {items.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination
-                  currentPage={paginaActual}
+                  currentPage={paginaSegura}
                   totalPages={totalPaginas}
                   onChange={setPaginaActual}
                 />
@@ -349,7 +377,7 @@ export function AgendamientoLeadsGestion() {
             onChange={(e) => setAgenteAsignar(e.target.value)}
           >
             <option value="">Seleccione una opción</option>
-            {AGENTES_ASIGNACION.map((a) => (
+            {agentesAsignacion.map((a) => (
               <option key={a.id} value={a.id}>{a.nombre}</option>
             ))}
           </select>
@@ -421,7 +449,7 @@ export function AgendamientoLeadsGestion() {
               type="button"
               className={btnPrimaryClass}
               onClick={() => gestionar.mutate()}
-              disabled={gestionar.isPending}
+              disabled={gestionar.isPending || !gestionForm.interesado}
             >
               Registrar gestión
             </button>
@@ -429,5 +457,6 @@ export function AgendamientoLeadsGestion() {
         </div>
       </Modal>
     </div>
+    </ContactCenterPageFrame>
   );
 }

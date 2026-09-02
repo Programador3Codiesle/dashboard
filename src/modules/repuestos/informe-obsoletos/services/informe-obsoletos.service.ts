@@ -1,5 +1,6 @@
-import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/repuestos/shared/utils/parse-api-error';
+import { fetchWithAuth } from '@/utils/api';
 
 const API_URL = getApiBaseUrl();
 const BASE = `${API_URL}/repuestos/informe-obsoletos`;
@@ -27,10 +28,7 @@ export const informeObsoletosService = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    if (!resp.ok) {
-      const json = await resp.json().catch(() => ({}));
-      throw new Error((json as { message?: string }).message || 'Error al consultar');
-    }
+    if (!resp.ok) await parseError(resp, 'Error al consultar');
     return resp.json();
   },
 };

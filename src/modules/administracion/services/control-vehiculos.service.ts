@@ -1,5 +1,4 @@
 import { fetchWithAuth } from "@/utils/api";
-import { getUser } from "@/utils/cookies";
 import { getApiBaseUrl } from "@/config/public-env";
 
 const API_URL = getApiBaseUrl();
@@ -96,9 +95,6 @@ export const controlVehiculosService = {
    * Registrar salida de vehículo
    */
   async registrarSalida(dto: RegistrarSalidaDTO): Promise<VehiculoSalidaAPI> {
-    const user = getUser();
-    
-    // Preparar body con datos adicionales si son necesarios
     const body = {
       placa: dto.placa,
       km_salida: dto.km_salida,

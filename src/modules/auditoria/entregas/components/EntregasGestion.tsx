@@ -1,14 +1,25 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Pagination } from '@/components/shared/ui/Pagination';
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
+import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPageFrame';
+import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
+import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
+import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
+import {
+  btnToggleActiveClass,
+  btnToggleClass,
+  inputClass,
+} from '@/modules/auditoria/shared/constants/ui';
 import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
 import { auditoriaService } from '@/modules/auditoria/shared/services/auditoria.service';
+import { getErrorMessage } from '@/modules/auditoria/shared/utils/parse-api-error';
+import { paginateRows } from '@/modules/auditoria/shared/utils/paginate';
 import { ENTREGAS_AUDITORIA_SUBMENU_ID } from '@/utils/constants';
 
-const PAGE_SIZE = 15;
 const MESES = [
   '',
   'Enero',
@@ -25,100 +36,97 @@ const MESES = [
   'Diciembre',
 ];
 
-type Row = Awaited<ReturnType<typeof auditoriaService.entregas>>[number];
-
 function colorPromedio(p: number): string {
-  if (p > 100) return 'bg-emerald-500';
-  if (p > 50) return 'bg-sky-500';
-  if (p > 20) return 'bg-amber-400';
-  return 'bg-red-500';
+  if (p > 100) return 'bg-[var(--color-success)]';
+  if (p > 50) return 'bg-[var(--color-info)]';
+  if (p > 20) return 'bg-[var(--color-warning)]';
+  return 'bg-[var(--color-danger)]';
 }
 
 export function EntregasGestion() {
-  const { blocked } = useAuditoriaPageGuard(ENTREGAS_AUDITORIA_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaPageGuard(ENTREGAS_AUDITORIA_SUBMENU_ID);
   const { showError } = useToast();
+  const sesionLista = !!user && !blocked;
   const [ano, setAno] = useState(String(new Date().getFullYear()));
-  const [tipo, setTipo] = useState<1 | 2 | null>(null);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [applied, setApplied] = useState<{ ano: number; tipo: 1 | 2 } | null>(
+    null,
+  );
   const [page, setPage] = useState(1);
-  const [titulo, setTitulo] = useState('');
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, safePage]);
-  const handlePageChange = useCallback((p: number) => setPage(p), []);
+  const listQuery = useQuery({
+    queryKey: auditoriaKeys.entregas(applied?.ano ?? 0, applied?.tipo ?? 1),
+    queryFn: () => auditoriaService.entregas(applied!.ano, applied!.tipo),
+    enabled: sesionLista && !!applied,
+    ...transactionalQueryOptions,
+  });
 
-  async function cargar(t: 1 | 2) {
+  const rows = listQuery.data ?? [];
+  const { pageRows, total, totalPages, safePage, inicio, fin } = paginateRows(
+    rows,
+    page,
+  );
+  const onPage = useCallback((p: number) => setPage(p), []);
+
+  function cargar(tipo: 1 | 2) {
     const year = Number(ano);
     if (!year || year < 2022) {
       showError('Ingrese un año válido');
       return;
     }
-    setTipo(t);
-    setLoading(true);
-    try {
-      const data = await auditoriaService.entregas(year, t);
-      setRows(data);
-      setTitulo(t === 1 ? 'Vehículos livianos' : 'Vehículos pesados');
-      setPage(1);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al consultar');
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
+    setApplied({ ano: year, tipo });
+    setPage(1);
   }
 
   if (blocked) return null;
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">Entregas por tipo de vehículos</h1>
-        <Link href="/dashboard/auditoria" className="text-sm text-amber-700 hover:underline">
-          ← Volver a Auditoría
-        </Link>
-      </div>
+  const titulo =
+    applied?.tipo === 1
+      ? AUDITORIA_COPY.entregas.livianos
+      : applied?.tipo === 2
+        ? AUDITORIA_COPY.entregas.pesados
+        : '';
 
+  return (
+    <AuditoriaPageFrame
+      title={AUDITORIA_COPY.entregas.title}
+      description={AUDITORIA_COPY.entregas.description}
+      backLabel={AUDITORIA_COPY.backLabel}
+    >
       <div className="flex flex-wrap items-center justify-center gap-3 rounded-2xl border bg-white p-4 shadow-sm">
+        <label htmlFor="aud-ent-ano" className="sr-only">
+          Año
+        </label>
         <input
+          id="aud-ent-ano"
           type="number"
           min={2022}
           max={2100}
-          className="w-28 rounded border px-3 py-2 text-sm"
+          className={`w-28 ${inputClass}`}
           value={ano}
           onChange={(e) => setAno(e.target.value.slice(0, 4))}
         />
         <button
           type="button"
           onClick={() => cargar(1)}
-          className={`rounded-md border px-4 py-2 text-sm font-medium ${
-            tipo === 1 ? 'bg-emerald-600 text-white' : 'border-emerald-600 text-emerald-700'
-          }`}
+          className={applied?.tipo === 1 ? btnToggleActiveClass : btnToggleClass}
         >
-          Vehículos livianos
+          {AUDITORIA_COPY.entregas.livianos}
         </button>
         <button
           type="button"
           onClick={() => cargar(2)}
-          className={`rounded-md border px-4 py-2 text-sm font-medium ${
-            tipo === 2 ? 'bg-emerald-600 text-white' : 'border-emerald-600 text-emerald-700'
-          }`}
+          className={applied?.tipo === 2 ? btnToggleActiveClass : btnToggleClass}
         >
-          Vehículos pesados
+          {AUDITORIA_COPY.entregas.pesados}
         </button>
       </div>
 
       <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
         {[
-          { cls: 'bg-emerald-500', label: 'Mayor a 100' },
-          { cls: 'bg-sky-500', label: 'Mayor a 50 y menor a 100' },
-          { cls: 'bg-amber-400', label: 'Mayor a 20 y menor a 50' },
-          { cls: 'bg-red-500', label: 'Menor a 20' },
+          { cls: 'bg-[var(--color-success)]', label: 'Mayor a 100' },
+          { cls: 'bg-[var(--color-info)]', label: 'Mayor a 50 y menor a 100' },
+          { cls: 'bg-[var(--color-warning)]', label: 'Mayor a 20 y menor a 50' },
+          { cls: 'bg-[var(--color-danger)]', label: 'Menor a 20' },
         ].map((l) => (
           <div key={l.label} className="flex items-center gap-2">
             <span className={`inline-block h-5 w-5 rounded-full ${l.cls}`} />
@@ -127,12 +135,23 @@ export function EntregasGestion() {
         ))}
       </div>
 
-      {titulo && (
-        <h2 className="text-center text-lg font-semibold text-gray-700">{titulo}</h2>
-      )}
+      {listQuery.isError ? (
+        <AuditoriaQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            AUDITORIA_COPY.entregas.loadError,
+          )}
+        />
+      ) : null}
+
+      {titulo ? (
+        <h2 className="text-center text-lg font-semibold text-gray-700">
+          {titulo}
+        </h2>
+      ) : null}
 
       <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-sm text-center">
+        <table className="min-w-full text-center text-sm">
           <thead className="bg-(--color-primary) text-white">
             <tr>
               <th className="px-3 py-2.5">Mes</th>
@@ -142,7 +161,7 @@ export function EntregasGestion() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isFetching && !listQuery.data ? (
               <tr>
                 <td colSpan={4} className="py-8 text-gray-500">
                   Cargando...
@@ -151,7 +170,7 @@ export function EntregasGestion() {
             ) : pageRows.length === 0 ? (
               <tr>
                 <td colSpan={4} className="py-8 text-gray-500">
-                  No se encontraron registros. Use los filtros de consulta.
+                  {AUDITORIA_COPY.entregas.empty}
                 </td>
               </tr>
             ) : (
@@ -172,21 +191,15 @@ export function EntregasGestion() {
             )}
           </tbody>
         </table>
-        {rows.length > 0 && (
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-gray-500">
-              {rows.length} registro(s)
-            </p>
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={safePage}
-                totalPages={totalPages}
-                onChange={handlePageChange}
-              />
-            )}
-          </div>
-        )}
+        <AuditoriaPager
+          total={total}
+          page={safePage}
+          totalPages={totalPages}
+          onChange={onPage}
+          inicio={inicio}
+          fin={fin}
+        />
       </div>
-    </div>
+    </AuditoriaPageFrame>
   );
 }

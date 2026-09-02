@@ -1,48 +1,19 @@
 import { ITicket, CrearTicketDTO } from "../types";
 import {
-  empresasDisponibles,
   mapEmpresaCodesToNames,
   mapEstadoFromApi,
   normalizePrioridad,
-} from "../constants";
+} from "../mappers";
 import { fetchWithAuth } from "@/utils/api";
 import { getUser } from "@/utils/cookies";
 import { getApiBaseUrl } from "@/config/public-env";
 
 const API_URL = getApiBaseUrl();
 
-// ==== Tipos de respuesta de la API (raw) ====
-
-type TicketActivoApi = {
+type TicketListadoApi = {
   id: number;
   tipo_soporte: string;
-  empresa: string | null;
-  prioridad: string | null;
-  estado: string;
-  fecha_creacion: string;
-  usuario_id: number;
-  nombre_usuario: string;
-  nombre_encargado: string | null;
-  sede?: string | null;
-  extension?: string | null;
-};
-
-type TicketFinalizadoApi = {
-  id: number;
-  tipo_soporte: string;
-  prioridad: string | null;
-  estado: string;
-  fecha_creacion: string;
-  usuario_id: number;
-  nombre_usuario: string;
-  nombre_encargado: string | null;
-  sede?: string | null;
-  extension?: string | null;
-};
-
-type TicketMisTicketsApi = {
-  id: number;
-  tipo_soporte: string;
+  empresa?: string | null;
   prioridad: string | null;
   estado: string;
   fecha_creacion: string;
@@ -59,17 +30,14 @@ type ApiMessageResponse<T = unknown> = {
   data?: T;
 };
 
-// ==== Mapeadores ====
-
-function mapActivoFromApi(raw: TicketActivoApi): ITicket {
-
+function mapListadoFromApi(raw: TicketListadoApi, empresa: string): ITicket {
   return {
     id: raw.id,
     tipoSoporte: raw.tipo_soporte,
-    anydesk: "", // la API actual no envía anydesk en listados
-    descripcion: "", // sólo viene en detalle/creación, no en los listados
+    anydesk: "",
+    descripcion: "",
     archivoUrl: null,
-    empresa: mapEmpresaCodesToNames(raw.empresa),
+    empresa,
     prioridad: normalizePrioridad(raw.prioridad),
     usuario: raw.nombre_usuario,
     encargado: raw.nombre_encargado,
@@ -80,40 +48,16 @@ function mapActivoFromApi(raw: TicketActivoApi): ITicket {
   };
 }
 
-function mapFinalizadoFromApi(raw: TicketFinalizadoApi): ITicket {
-  return {
-    id: raw.id,
-    tipoSoporte: raw.tipo_soporte,
-    anydesk: "",
-    descripcion: "",
-    archivoUrl: null,
-    empresa: "N/A",
-    prioridad: normalizePrioridad(raw.prioridad),
-    usuario: raw.nombre_usuario,
-    encargado: raw.nombre_encargado,
-    estado: mapEstadoFromApi(raw.estado),
-    fechaCreacion: raw.fecha_creacion,
-    sede: raw.sede || "",
-    extension: raw.extension || "",
-  };
+function mapActivoFromApi(raw: TicketListadoApi): ITicket {
+  return mapListadoFromApi(raw, mapEmpresaCodesToNames(raw.empresa));
 }
 
-function mapMisTicketsFromApi(raw: TicketMisTicketsApi): ITicket {
-  return {
-    id: raw.id,
-    tipoSoporte: raw.tipo_soporte,
-    anydesk: "",
-    descripcion: "",
-    archivoUrl: null,
-    empresa: "N/A",
-    prioridad: normalizePrioridad(raw.prioridad),
-    usuario: raw.nombre_usuario,
-    encargado: raw.nombre_encargado,
-    estado: mapEstadoFromApi(raw.estado),
-    fechaCreacion: raw.fecha_creacion,
-    sede: raw.sede || "",
-    extension: raw.extension || "",
-  };
+function mapFinalizadoFromApi(raw: TicketListadoApi): ITicket {
+  return mapListadoFromApi(raw, "N/A");
+}
+
+function mapMisTicketsFromApi(raw: TicketListadoApi): ITicket {
+  return mapListadoFromApi(raw, "N/A");
 }
 
 // ==== Servicio contra API real ====
@@ -129,7 +73,7 @@ export const ticketsService = {
       throw new Error("No se pudieron cargar los tickets activos");
     }
 
-    const data: TicketActivoApi[] = await resp.json();
+    const data: TicketListadoApi[] = await resp.json();
     return data.map(mapActivoFromApi);
   },
 
@@ -143,7 +87,7 @@ export const ticketsService = {
       throw new Error("No se pudieron cargar los tickets finalizados");
     }
 
-    const data: TicketFinalizadoApi[] = await resp.json();
+    const data: TicketListadoApi[] = await resp.json();
     return data.map(mapFinalizadoFromApi);
   },
 
@@ -163,7 +107,7 @@ export const ticketsService = {
       throw new Error("No se pudieron cargar tus tickets");
     }
 
-    const data: TicketMisTicketsApi[] = await resp.json();
+    const data: TicketListadoApi[] = await resp.json();
     return data.map(mapMisTicketsFromApi);
   },
 
@@ -225,8 +169,13 @@ export const ticketsService = {
       throw new Error("No se pudo crear el ticket");
     }
 
-    const data: ApiMessageResponse<TicketActivoApi & { anydesk?: string; archivo_url?: string | null; descripcion?: string }> =
-      await resp.json();
+    const data: ApiMessageResponse<
+      TicketListadoApi & {
+        anydesk?: string;
+        archivo_url?: string | null;
+        descripcion?: string;
+      }
+    > = await resp.json();
 
     if (!data.status || !data.data) {
       throw new Error(data.message || "No se pudo crear el ticket");

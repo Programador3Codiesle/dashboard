@@ -9,6 +9,15 @@ import type { FiltrosPygState } from "../types";
 import { exportPygTecnicosExcel } from "../utils/export-excel";
 import { FiltrosPygTecnicos } from "./FiltrosPygTecnicos";
 import { TablaPygTecnicos } from "./TablaPygTecnicos";
+import { PYG_TECNICOS_SUBMENU_ID } from "@/utils/constants";
+import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
+import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
+import { TALLER_COPY } from "@/modules/taller/constants";
+import { getErrorMessage } from "@/modules/taller/shared/utils/get-error-message";
+import {
+  evaluatePygFiltrosChange,
+  pygFiltrosGenerarError,
+} from "@/modules/taller/shared/utils/pyg-filtros";
 
 const EMPTY_FILTROS: FiltrosPygState = {
   yearOne: "",
@@ -18,6 +27,7 @@ const EMPTY_FILTROS: FiltrosPygState = {
 };
 
 export function PygTecnicosGestion() {
+  const { blocked } = useTallerPageGuard(PYG_TECNICOS_SUBMENU_ID);
   const { showError } = useToast();
   const [filtros, setFiltros] = useState<FiltrosPygState>(EMPTY_FILTROS);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,39 +35,27 @@ export function PygTecnicosGestion() {
 
   const handleFiltrosChange = useCallback(
     (next: FiltrosPygState) => {
-      if (next.yearOne && next.yearTwo && Number(next.yearTwo) >= Number(next.yearOne)) {
-        showError("Debe seleccionar un año a comparar menor al año del informe");
-        setFiltros({ ...next, yearTwo: "" });
+      const result = evaluatePygFiltrosChange(next);
+      if (!result.ok) {
+        showError(result.message);
+        if (result.clearYearTwo) {
+          setFiltros({ ...next, yearTwo: "" });
+        }
         return;
       }
-
-      if (next.monthOne && next.monthTwo && next.monthOne > next.monthTwo) {
-        showError("El mes DESDE debe ser menor o igual que el mes HASTA");
-        return;
-      }
-
       setFiltros(next);
     },
     [showError],
   );
 
   const handleGenerar = async () => {
+    const generarError = pygFiltrosGenerarError(filtros);
+    if (generarError) {
+      showError(generarError);
+      return;
+    }
+
     const { yearOne, monthOne, monthTwo, yearTwo } = filtros;
-
-    if (!yearOne || !monthOne || !monthTwo || !yearTwo) {
-      showError("Por favor verifique que haya diligenciado todos los campos");
-      return;
-    }
-
-    if (Number(yearTwo) >= Number(yearOne)) {
-      showError("Debe seleccionar un año a comparar menor al año del informe");
-      return;
-    }
-
-    if (monthOne > monthTwo) {
-      showError("El mes DESDE debe ser menor o igual que el mes HASTA");
-      return;
-    }
 
     try {
       reset();
@@ -69,9 +67,7 @@ export function PygTecnicosGestion() {
         yearTwo: Number(yearTwo),
       });
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "No se encontraron datos";
-      showError(msg);
+      showError(getErrorMessage(err, "No se encontraron datos"));
     }
   };
 
@@ -83,7 +79,13 @@ export function PygTecnicosGestion() {
     exportPygTecnicosExcel(data.filas, data.yearComparar);
   };
 
+  if (blocked) return null;
+
   return (
+    <TallerPageFrame
+      title={TALLER_COPY.pygTecnicos.title}
+      description={TALLER_COPY.pygTecnicos.description}
+    >
     <div className="space-y-4">
       <FiltrosPygTecnicos
         filtros={filtros}
@@ -128,5 +130,6 @@ export function PygTecnicosGestion() {
         )}
       </div>
     </div>
+    </TallerPageFrame>
   );
 }

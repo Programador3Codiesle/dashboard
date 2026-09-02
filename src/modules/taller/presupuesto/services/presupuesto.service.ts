@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { parseError } from "@/modules/taller/shared/utils/parse-api-error";
 import type {
   ActualizarPresupuestoParams,
   CatalogosPresupuesto,
@@ -9,17 +10,6 @@ import type {
 
 const API_URL = getApiBaseUrl();
 const BASE = `${API_URL}/taller/presupuesto`;
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  try {
-    const json = (await resp.json()) as { message?: string | string[] };
-    const msg = Array.isArray(json.message) ? json.message[0] : json.message;
-    throw new Error(msg || fallback);
-  } catch (err) {
-    if (err instanceof Error && err.message !== fallback) throw err;
-    throw new Error(fallback);
-  }
-}
 
 export const presupuestoService = {
   async obtenerCatalogos(): Promise<CatalogosPresupuesto> {

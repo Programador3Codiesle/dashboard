@@ -1,15 +1,22 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { useToast } from '@/components/ui/use-toast';
+import { catalogQueryOptions } from '@/core/query/catalog-query-options';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
+import { buildDatosInd } from '../utils/build-datos-ind';
+import { AuditoriaBreadcrumb } from './AuditoriaBreadcrumb';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { AuditoriaIndicadoresPuntosModal } from './AuditoriaIndicadoresPuntosModal';
 import {
@@ -17,15 +24,8 @@ import {
   IndicadoresPuntosResponse,
 } from '../services/auditoria-contact.service';
 
-function buildDatosInd(
-  indicadores: Array<{ idIndicador: number; nombres: string; puntuacion: number }>,
-) {
-  return indicadores
-    .map((i) => `${i.idIndicador},${i.nombres},${i.puntuacion}`)
-    .join(',');
-}
-
 export function AuditoriaConfiguracionGestion() {
+  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [modalIndicadores, setModalIndicadores] = useState(false);
   const [modalItems, setModalItems] = useState(false);
@@ -44,25 +44,28 @@ export function AuditoriaConfiguracionGestion() {
   const indicadoresQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'indicadores'],
     queryFn: () => auditoriaContactService.listarIndicadores(),
-    enabled: modalIndicadores || modalItems,
+    enabled: !!user && !blocked && (modalIndicadores || modalItems),
+    ...catalogQueryOptions,
   });
 
   const itemsQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'items', idIndicadorSel],
     queryFn: () => auditoriaContactService.listarItems(idIndicadorSel!),
-    enabled: modalItems && idIndicadorSel != null,
+    enabled: !!user && !blocked && modalItems && idIndicadorSel != null,
+    ...catalogQueryOptions,
   });
 
   const obsQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'observaciones', idItemSel],
     queryFn: () => auditoriaContactService.listarObservaciones(idItemSel!),
-    enabled: modalObs && idItemSel != null,
+    enabled: !!user && !blocked && modalObs && idItemSel != null,
+    ...catalogQueryOptions,
   });
 
   const formularioQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'vista-previa'],
     queryFn: () => auditoriaContactService.cargarFormularioVistaPrevia(),
-    enabled: vistaPrevia,
+    enabled: !!user && !blocked && vistaPrevia,
   });
 
   const iniciarCambioIndicador = async (idIndicador: number, estadoActual: number) => {
@@ -82,7 +85,7 @@ export function AuditoriaConfiguracionGestion() {
       setModalIndicadores(false);
       setModalPuntos(true);
     } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al cargar indicadores');
+      showError(getErrorMessage(e, 'Error al cargar indicadores'));
     } finally {
       setCargandoPuntos(false);
     }
@@ -113,7 +116,7 @@ export function AuditoriaConfiguracionGestion() {
       setNuevoIndPuntos('');
       indicadoresQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const agregarItem = useMutation({
@@ -127,7 +130,7 @@ export function AuditoriaConfiguracionGestion() {
       setNuevoConcepto('');
       itemsQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const toggleItem = useMutation({
@@ -142,7 +145,7 @@ export function AuditoriaConfiguracionGestion() {
       showSuccess('Item actualizado');
       itemsQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const agregarObs = useMutation({
@@ -156,7 +159,7 @@ export function AuditoriaConfiguracionGestion() {
       setNuevaObs('');
       obsQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const toggleObs = useMutation({
@@ -171,29 +174,29 @@ export function AuditoriaConfiguracionGestion() {
       showSuccess('Observación actualizada');
       obsQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
   const sumaPuntosHabilitados = (indicadoresQuery.data ?? [])
     .filter((i) => i.estado === 2)
     .reduce((s, i) => s + i.puntuacion, 0);
 
+  if (blocked) return null;
+
   const cards = [
-    { title: 'Indicadores', color: 'text-blue-600', onClick: () => setModalIndicadores(true) },
+    { title: 'Indicadores', color: 'brand-text', onClick: () => setModalIndicadores(true) },
     { title: 'Items', color: 'text-gray-600', onClick: () => { setModalItems(true); setIdIndicadorSel(null); } },
     { title: 'Observaciones', color: 'text-green-600', onClick: () => { setModalObs(true); setIdItemSel(null); } },
     { title: 'Ver vista previa', color: 'text-amber-600', onClick: () => setVistaPrevia(true) },
   ];
 
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.auditoriaConfiguracion.title}
+      description={CONTACT_CENTER_COPY.auditoriaConfiguracion.description}
+    >
     <div className="space-y-4">
-      <nav className="text-sm text-gray-500">
-        <Link href="/dashboard/contact-center/auditoria" className="hover:underline">
-          Auditoría
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-800">Configuración</span>
-      </nav>
+      <AuditoriaBreadcrumb current="Configuración" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((c) => (
@@ -268,6 +271,11 @@ export function AuditoriaConfiguracionGestion() {
       </Modal>
 
       <AuditoriaIndicadoresPuntosModal
+        key={
+          puntosData
+            ? `${puntosData.idIndicadorCambiar}-${puntosData.estadoIndCambiar}`
+            : 'puntos'
+        }
         open={modalPuntos}
         data={puntosData}
         onClose={() => {
@@ -385,5 +393,6 @@ export function AuditoriaConfiguracionGestion() {
         </div>
       </Modal>
     </div>
+    </ContactCenterPageFrame>
   );
 }

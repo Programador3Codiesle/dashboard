@@ -4,17 +4,23 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { useToast } from '@/components/ui/use-toast';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   inputClass,
 } from '@/modules/repuestos/shared/constants/ui';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { getErrorMessage } from '@/modules/repuestos/shared/utils/get-error-message';
+import { ENTRADAS_VARIAS_SUBMENU_ID } from '@/utils/constants';
 import {
   entradasVariasService,
   RepuestoLinea,
 } from '../services/entradas-varias.service';
 
 export function EntradasVariasGestion() {
+  const { blocked } = useRepuestosPageGuard(ENTRADAS_VARIAS_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [nOrden, setNOrden] = useState('');
   const [placa, setPlaca] = useState('');
@@ -34,13 +40,13 @@ export function EntradasVariasGestion() {
       setBodegaNum(String(data.bodega));
       setBodegaDesc(data.descripcion);
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se encontró la orden')),
   });
 
   const validarRepuesto = useMutation({
     mutationFn: () => entradasVariasService.validarRepuesto(codRpto.trim()),
     onSuccess: (data) => setDescRpto(data.descripcion),
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Repuesto no válido')),
   });
 
   const guardar = useMutation({
@@ -62,7 +68,7 @@ export function EntradasVariasGestion() {
       setObs('');
       setRepuestos([]);
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo guardar la solicitud')),
   });
 
   const agregarRepuesto = () => {
@@ -88,7 +94,13 @@ export function EntradasVariasGestion() {
     setModalOpen(false);
   };
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.entradasVarias.title}
+      description={REPUESTOS_COPY.entradasVarias.description}
+    >
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
@@ -231,5 +243,6 @@ export function EntradasVariasGestion() {
         </div>
       </Modal>
     </div>
+    </RepuestosPageFrame>
   );
 }

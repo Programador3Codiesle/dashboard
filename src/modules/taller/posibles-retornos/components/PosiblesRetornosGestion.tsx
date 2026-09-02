@@ -22,6 +22,13 @@ import type {
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "../types";
 import { FiltrosPosiblesRetornos } from "./FiltrosPosiblesRetornos";
 import { TablaPosiblesRetornos } from "./TablaPosiblesRetornos";
+import {
+  CODIESEL_EMPRESA_ID,
+  POSIBLES_RETORNOS_SUBMENU_ID,
+} from "@/utils/constants";
+import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
+import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
+import { TALLER_COPY } from "@/modules/taller/constants";
 
 const ModalDetalleRetorno = dynamic(
   () =>
@@ -48,6 +55,10 @@ const EMPTY_FILTROS: FiltrosPosiblesRetornosState = {
 };
 
 export function PosiblesRetornosGestion() {
+  const { blocked } = useTallerPageGuard(
+    POSIBLES_RETORNOS_SUBMENU_ID,
+    CODIESEL_EMPRESA_ID,
+  );
   const { showError, showSuccess } = useToast();
   const [filtrosUi, setFiltrosUi] = useState<FiltrosPosiblesRetornosState>(EMPTY_FILTROS);
   const [filtrosAplicados, setFiltrosAplicados] = useState<FiltrosPosiblesRetornosState | null>(null);
@@ -172,7 +183,13 @@ export function PosiblesRetornosGestion() {
   const endIndex =
     pageSize === -1 ? total : Math.min(startIndex + pageSize, total);
 
+  if (blocked) return null;
+
   return (
+    <TallerPageFrame
+      title={TALLER_COPY.posiblesRetornos.title}
+      description={TALLER_COPY.posiblesRetornos.description}
+    >
     <div className="space-y-4">
       <FiltrosPosiblesRetornos
         filtros={filtrosUi}
@@ -268,5 +285,6 @@ export function PosiblesRetornosGestion() {
         onClose={() => setModalSolucionOpen(false)}
       />
     </div>
+    </TallerPageFrame>
   );
 }

@@ -1,3 +1,4 @@
+import { parseError } from '@/modules/contact-center/shared/utils/parse-api-error';
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
 
@@ -21,11 +22,6 @@ export type MatrizDistribucion = {
   bodegas: BodegaDistribucion[];
   celdas: CeldaDistribucion[];
 };
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  throw new Error((json as { message?: string }).message || fallback);
-}
 
 function mapAgente(row: Record<string, unknown>): AgenteDistribucion {
   return {

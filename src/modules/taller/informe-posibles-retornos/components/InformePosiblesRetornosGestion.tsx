@@ -14,6 +14,13 @@ import type {
 } from "../types";
 import { FiltrosInforme } from "./FiltrosInforme";
 import { GraficoEntradasRetornos } from "./GraficoEntradasRetornos";
+import {
+  CODIESEL_EMPRESA_ID,
+  INFORME_POSIBLES_RETORNOS_SUBMENU_ID,
+} from "@/utils/constants";
+import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
+import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
+import { TALLER_COPY } from "@/modules/taller/constants";
 
 function toChartData(response: GraficoSuccessResponse): GraficoChartPoint[] {
   return response.entradas.map((point, index) => ({
@@ -25,6 +32,10 @@ function toChartData(response: GraficoSuccessResponse): GraficoChartPoint[] {
 }
 
 export function InformePosiblesRetornosGestion() {
+  const { blocked } = useTallerPageGuard(
+    INFORME_POSIBLES_RETORNOS_SUBMENU_ID,
+    CODIESEL_EMPRESA_ID,
+  );
   const { showError } = useToast();
   const currentYear = new Date().getFullYear();
 
@@ -90,7 +101,13 @@ export function InformePosiblesRetornosGestion() {
 
   const isLoading = loadingCatalogos || loading;
 
+  if (blocked) return null;
+
   return (
+    <TallerPageFrame
+      title={TALLER_COPY.informePosiblesRetornos.title}
+      description={TALLER_COPY.informePosiblesRetornos.description}
+    >
     <div className="space-y-4">
       <FiltrosInforme
         year={yearInput}
@@ -133,5 +150,6 @@ export function InformePosiblesRetornosGestion() {
         )}
       </div>
     </div>
+    </TallerPageFrame>
   );
 }

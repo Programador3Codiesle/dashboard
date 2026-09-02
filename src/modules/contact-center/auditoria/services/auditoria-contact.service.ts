@@ -1,5 +1,6 @@
 import { getApiBaseUrl, getApiPublicUrl } from '@/config/public-env';
 import { formatDateOnly } from '@/modules/contact-center/shared/utils/format-date-only';
+import { parseError } from '@/modules/contact-center/shared/utils/parse-api-error';
 import { fetchWithAuth } from '@/utils/api';
 
 const API_URL = getApiBaseUrl();
@@ -116,11 +117,6 @@ export type UploadResult = {
   cantSaveFile: string[];
   cantNotSaveFile: string[];
 };
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  throw new Error((json as { message?: string }).message || fallback);
-}
 
 function resolveAuditoriaFileUrl(storedPath: string): string {
   if (/^https?:\/\//i.test(storedPath)) return storedPath;

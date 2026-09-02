@@ -22,7 +22,7 @@ export interface ControlComprasAPI {
   solochevrolet: number;
 }
 
-export interface ControlCompras extends ControlComprasAPI {}
+export type ControlCompras = ControlComprasAPI;
 
 export interface FiltrosControlCompras {
   orden: number;

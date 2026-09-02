@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
-import Link from 'next/link';
+import { useState, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Bar,
   BarChart,
@@ -16,9 +16,19 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
+import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPageFrame';
+import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
+import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
+import {
+  btnPrimaryClass,
+  inputClass,
+} from '@/modules/auditoria/shared/constants/ui';
 import { useAuditoriaPageGuard } from '@/modules/auditoria/shared/hooks/useAuditoriaPageGuard';
 import { auditoriaService } from '@/modules/auditoria/shared/services/auditoria.service';
+import { getErrorMessage } from '@/modules/auditoria/shared/utils/parse-api-error';
 import { NPS_FABRICA_SUBMENU_ID } from '@/utils/constants';
 
 const SEDE_LABELS: Record<string, string> = {
@@ -30,7 +40,11 @@ const SEDE_LABELS: Record<string, string> = {
 };
 
 const SEDES_TEC = ['giron', 'rosita', 'barranca', 'bocono'] as const;
-const ENC_COLORS = ['#c0504d', '#f2c14e', '#4f81bc'];
+const ENC_COLORS = [
+  'var(--color-danger)',
+  'var(--color-warning)',
+  'var(--color-info)',
+];
 
 type Modo = 'sede' | 'tecnico';
 
@@ -71,70 +85,67 @@ function npsFromEnc(enc06: number, enc78: number, enc910: number) {
 }
 
 export function NpsFabricaGestion() {
-  const { blocked } = useAuditoriaPageGuard(NPS_FABRICA_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaPageGuard(NPS_FABRICA_SUBMENU_ID);
   const { showError } = useToast();
+  const sesionLista = !!user && !blocked;
   const [modo, setModo] = useState<Modo>('sede');
   const [fecha, setFecha] = useState(currentYm);
   const [sedeTec, setSedeTec] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [sedeData, setSedeData] = useState<SedeResponse | null>(null);
-  const [tecData, setTecData] = useState<Record<string, TecnicoSedeData> | null>(
-    null,
-  );
+  const [applied, setApplied] = useState<{
+    modo: Modo;
+    fecha: string;
+    sede: string;
+  } | null>(null);
 
-  const chartSedes = useMemo(() => {
-    if (!sedeData) return [];
-    return Object.entries(sedeData.calificaciones).map(([sede, calificacion]) => ({
+  const sedeQuery = useQuery({
+    queryKey: auditoriaKeys.npsSedes(applied?.fecha ?? ''),
+    queryFn: () =>
+      auditoriaService.npsFabricaSedes(applied!.fecha) as Promise<SedeResponse>,
+    enabled: sesionLista && applied?.modo === 'sede',
+    ...transactionalQueryOptions,
+  });
+
+  const tecQuery = useQuery({
+    queryKey: auditoriaKeys.npsTecnicos(
+      applied?.fecha ?? '',
+      applied?.sede ?? '',
+    ),
+    queryFn: () =>
+      auditoriaService.npsFabricaTecnicos(
+        applied!.fecha,
+        applied!.sede || undefined,
+      ) as Promise<Record<string, TecnicoSedeData>>,
+    enabled: sesionLista && applied?.modo === 'tecnico',
+    ...transactionalQueryOptions,
+  });
+
+  const sedeData = sedeQuery.data ?? null;
+  const tecData = tecQuery.data ?? null;
+  const loading = sedeQuery.isFetching || tecQuery.isFetching;
+  const queryError = sedeQuery.error ?? tecQuery.error;
+
+  const chartSedes = Object.entries(sedeData?.calificaciones ?? {}).map(
+    ([sede, calificacion]) => ({
       sede: SEDE_LABELS[sede] ?? sede,
       calificacion,
-    }));
-  }, [sedeData]);
-
-  async function buscar() {
-    if (!fecha) {
-      showError('Seleccione el mes');
-      return;
-    }
-    setLoading(true);
-    try {
-      if (modo === 'sede') {
-        const data = (await auditoriaService.npsFabricaSedes(fecha)) as SedeResponse;
-        setSedeData(data);
-        setTecData(null);
-      } else {
-        const data = (await auditoriaService.npsFabricaTecnicos(
-          fecha,
-          sedeTec || undefined,
-        )) as Record<string, TecnicoSedeData>;
-        setTecData(data);
-        setSedeData(null);
-      }
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al consultar NPS');
-      setSedeData(null);
-      setTecData(null);
-    } finally {
-      setLoading(false);
-    }
-  }
+    }),
+  );
 
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">NPS Fábrica</h1>
-        <Link href="/dashboard/auditoria" className="text-sm text-amber-700 hover:underline">
-          ← Volver a Auditoría
-        </Link>
-      </div>
-
+    <AuditoriaPageFrame
+      title={AUDITORIA_COPY.npsFabrica.title}
+      description={AUDITORIA_COPY.npsFabrica.description}
+      backLabel={AUDITORIA_COPY.backLabel}
+    >
       <div className="flex flex-wrap items-end gap-4 rounded-2xl border bg-white p-4 shadow-sm">
         <fieldset className="text-sm">
           <legend className="mb-1 font-medium">Tipo de informe</legend>
           <div className="flex gap-4">
-            <label className="inline-flex items-center gap-2">
+            <label htmlFor="aud-nps-modo-sede" className="inline-flex items-center gap-2">
               <input
+                id="aud-nps-modo-sede"
                 type="radio"
                 name="modo-nps"
                 checked={modo === 'sede'}
@@ -142,8 +153,9 @@ export function NpsFabricaGestion() {
               />
               Ver por sede
             </label>
-            <label className="inline-flex items-center gap-2">
+            <label htmlFor="aud-nps-modo-tec" className="inline-flex items-center gap-2">
               <input
+                id="aud-nps-modo-tec"
                 type="radio"
                 name="modo-nps"
                 checked={modo === 'tecnico'}
@@ -154,21 +166,23 @@ export function NpsFabricaGestion() {
           </div>
         </fieldset>
 
-        <label className="text-sm">
+        <label htmlFor="aud-nps-mes" className="text-sm">
           Mes
           <input
+            id="aud-nps-mes"
             type="month"
-            className="mt-1 block rounded border px-3 py-2"
+            className={inputClass}
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
           />
         </label>
 
-        {modo === 'tecnico' && (
-          <label className="text-sm min-w-[180px]">
+        {modo === 'tecnico' ? (
+          <label htmlFor="aud-nps-sede" className="min-w-[180px] text-sm">
             Sede (opcional)
             <select
-              className="mt-1 block w-full rounded border px-3 py-2"
+              id="aud-nps-sede"
+              className={inputClass}
               value={sedeTec}
               onChange={(e) => setSedeTec(e.target.value)}
             >
@@ -180,27 +194,47 @@ export function NpsFabricaGestion() {
               ))}
             </select>
           </label>
-        )}
+        ) : null}
 
         <button
           type="button"
-          onClick={buscar}
+          className={btnPrimaryClass}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white"
+          onClick={() => {
+            if (!fecha) {
+              showError('Seleccione el mes');
+              return;
+            }
+            setApplied({ modo, fecha, sede: sedeTec });
+          }}
         >
           <Search className="h-4 w-4" /> Buscar
         </button>
       </div>
 
-      {loading && (
-        <p className="text-center text-sm text-gray-500 py-8">Cargando informe...</p>
-      )}
+      {queryError ? (
+        <AuditoriaQueryError
+          message={getErrorMessage(
+            queryError,
+            AUDITORIA_COPY.npsFabrica.loadError,
+          )}
+        />
+      ) : null}
 
-      {!loading && modo === 'sede' && sedeData && (
+      {loading ? (
+        <p className="py-8 text-center text-sm text-gray-500">
+          Cargando informe...
+        </p>
+      ) : null}
+
+      {!loading && applied?.modo === 'sede' && sedeData ? (
         <Panel title="Calificación NPS por sede">
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartSedes} margin={{ top: 16, right: 16, bottom: 8, left: 0 }}>
+              <BarChart
+                data={chartSedes}
+                margin={{ top: 16, right: 16, bottom: 8, left: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="sede" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
@@ -209,7 +243,7 @@ export function NpsFabricaGestion() {
                 <Bar
                   dataKey="calificacion"
                   name="Calificación NPS"
-                  fill="#4f81bc"
+                  fill="var(--color-info)"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -220,11 +254,13 @@ export function NpsFabricaGestion() {
             <table className="min-w-full text-sm">
               <thead className="bg-(--color-primary) text-white">
                 <tr>
-                  {['SEDE', 'FECHA', 'NPS', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10'].map((h) => (
-                    <th key={h} className="px-3 py-2.5 text-center font-semibold">
-                      {h}
-                    </th>
-                  ))}
+                  {['SEDE', 'FECHA', 'NPS', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10'].map(
+                    (h) => (
+                      <th key={h} className="px-3 py-2.5 text-center font-semibold">
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -240,8 +276,12 @@ export function NpsFabricaGestion() {
                       <td className="px-3 py-2 text-left">
                         {SEDE_LABELS[d.sede] ?? d.sede}
                       </td>
-                      <td className="px-3 py-2">{d.fecha?.slice?.(0, 10) ?? d.fecha}</td>
-                      <td className="px-3 py-2 font-semibold">{d.calificacion.toFixed(1)}</td>
+                      <td className="px-3 py-2">
+                        {d.fecha?.slice?.(0, 10) ?? d.fecha}
+                      </td>
+                      <td className="px-3 py-2 font-semibold">
+                        {d.calificacion.toFixed(1)}
+                      </td>
                       <td className="px-3 py-2">{d.enc06}</td>
                       <td className="px-3 py-2">{d.enc78}</td>
                       <td className="px-3 py-2">{d.enc910}</td>
@@ -252,9 +292,9 @@ export function NpsFabricaGestion() {
             </table>
           </div>
         </Panel>
-      )}
+      ) : null}
 
-      {!loading && modo === 'tecnico' && tecData && (
+      {!loading && applied?.modo === 'tecnico' && tecData ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {Object.entries(tecData).map(([sede, data]) => {
             const pie = [
@@ -285,7 +325,10 @@ export function NpsFabricaGestion() {
                         label
                       >
                         {pie.map((_, i) => (
-                          <Cell key={i} fill={ENC_COLORS[i % ENC_COLORS.length]} />
+                          <Cell
+                            key={pie[i].name}
+                            fill={ENC_COLORS[i % ENC_COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -298,17 +341,25 @@ export function NpsFabricaGestion() {
                   <table className="min-w-full text-xs md:text-sm">
                     <thead className="bg-(--color-primary) text-white">
                       <tr>
-                        {['TÉCNICO', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10', 'NPS'].map((h) => (
-                          <th key={h} className="px-2 py-2 text-center font-semibold">
-                            {h}
-                          </th>
-                        ))}
+                        {['TÉCNICO', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10', 'NPS'].map(
+                          (h) => (
+                            <th
+                              key={h}
+                              className="px-2 py-2 text-center font-semibold"
+                            >
+                              {h}
+                            </th>
+                          ),
+                        )}
                       </tr>
                     </thead>
                     <tbody>
                       {data.detalle.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="py-4 text-center text-gray-500">
+                          <td
+                            colSpan={5}
+                            className="py-4 text-center text-gray-500"
+                          >
                             Sin técnicos
                           </td>
                         </tr>
@@ -332,8 +383,8 @@ export function NpsFabricaGestion() {
             );
           })}
         </div>
-      )}
-    </div>
+      ) : null}
+    </AuditoriaPageFrame>
   );
 }
 

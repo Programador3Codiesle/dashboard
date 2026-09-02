@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "@/config/public-env";
+import { parseError } from "@/modules/taller/shared/utils/parse-api-error";
 import type {
   MpviFirmarPayload,
   MpviFirmarResponse,
@@ -7,16 +8,6 @@ import type {
 
 const API_URL = getApiBaseUrl();
 const BASE = `${API_URL}/taller/mpvi/firma`;
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  try {
-    const json = (await resp.json()) as { message?: string };
-    throw new Error(json.message || fallback);
-  } catch (err) {
-    if (err instanceof Error && err.message !== fallback) throw err;
-    throw new Error(fallback);
-  }
-}
 
 /** Rutas públicas — sin fetchWithAuth */
 export const mpviFirmaService = {

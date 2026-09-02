@@ -4,6 +4,17 @@
 :root {
   --font-inter: 'Inter', sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+
+  /* Tokens semánticos (no varían por empresa) */
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-soft: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #fffbeb;
+  --color-info: #38bdf8;
+  --color-accent: #818cf8;
 }
 
 /* ===== VARIABLES POR EMPRESA (data-empresa en html) ===== */
@@ -177,6 +188,14 @@ body {
   .brand-focus-ring:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--color-primary-ring);
+  }
+
+  .brand-success {
+    background-color: var(--color-success);
+  }
+
+  .brand-success-hover:hover {
+    background-color: var(--color-success-hover);
   }
 
   .brand-btn {

@@ -2,6 +2,10 @@
 
 import { memo } from "react";
 import type { DashboardAdmin as DashboardAdminType } from "../types";
+import { formatCurrency } from "../utils/format-currency";
+import { DashboardKpiCard } from "./DashboardKpiCard";
+import { DashboardFechaBadge } from "./DashboardFechaBadge";
+import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 const SEDE_LABELS: Record<string, string> = {
   giron: "Girón",
@@ -51,7 +55,13 @@ function ProgressBar({
   );
 }
 
-function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
+function DashboardAdminInner({
+  data,
+  hideHeading = false,
+}: {
+  data: DashboardAdminType;
+  hideHeading?: boolean;
+}) {
   const hasPorcen =
     data.porcen_giron != null ||
     data.porcen_rosita != null ||
@@ -96,51 +106,38 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Panel Administrativo</h2>
+      {!hideHeading ? (
+        <PageTitleRow
+          title="Panel Administrativo"
+          headingAs="h2"
+          headingClassName="text-xl font-bold text-gray-900"
+        />
+      ) : null}
 
-      <div className="flex justify-end">
-        <div className="inline-flex items-center gap-2 rounded-xl brand-bg px-4 py-2 text-white shadow-md text-sm hover-lift">
-          <span className="font-semibold">Fecha:</span>
-          <span className="text-base font-semibold">{data.fecha_actual}</span>
-          {data.dia_festivo === 1 && (
-            <span className="ml-1 rounded-full bg-white/20 px-2 py-0.5 text-[0.7rem] font-medium">
-              Día festivo
-            </span>
-          )}
-        </div>
-      </div>
+      <DashboardFechaBadge
+        fecha={data.fecha_actual}
+        diaFestivo={data.dia_festivo}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">NPS Codiesel</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {Math.round(data.nps_int ?? 0)}%{" "}
-            <span className="text-sm font-normal text-gray-500">/ 81%</span>
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">NPS Colmotores (PAC)</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {(data.cal_pac?.Calificacion ?? 0)}%{" "}
-            <span className="text-sm font-normal text-gray-500">/ 81%</span>
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total Postventa</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {new Intl.NumberFormat("es-CO", {
-              maximumFractionDigits: 0,
-            }).format(Math.round(data.to_posv ?? 0))}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Valor inventario</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {new Intl.NumberFormat("es-CO", {
-              maximumFractionDigits: 0,
-            }).format(Math.round(data.to_inv ?? 0))}
-          </p>
-        </div>
+        <DashboardKpiCard
+          label="NPS Codiesel"
+          value={`${Math.round(data.nps_int ?? 0)}%`}
+          hint="/ 81%"
+        />
+        <DashboardKpiCard
+          label="NPS Colmotores (PAC)"
+          value={`${data.cal_pac?.Calificacion ?? 0}%`}
+          hint="/ 81%"
+        />
+        <DashboardKpiCard
+          label="Total Postventa"
+          value={formatCurrency(Math.round(data.to_posv ?? 0))}
+        />
+        <DashboardKpiCard
+          label="Valor inventario"
+          value={formatCurrency(Math.round(data.to_inv ?? 0))}
+        />
       </div>
 
       {grafSedes.length > 0 && (
@@ -163,9 +160,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                   />
                 </div>
                 <span className="text-sm font-medium text-gray-900 w-28 text-right">
-                  {new Intl.NumberFormat("es-CO", {
-                    maximumFractionDigits: 0,
-                  }).format(Math.round(s.total))}
+                  {formatCurrency(Math.round(s.total))}
                 </span>
               </div>
             ))}
@@ -201,19 +196,13 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                     <span>
                       Meta:{" "}
                       <span className="font-medium text-gray-900">
-                        $
-                        {new Intl.NumberFormat("es-CO", {
-                          maximumFractionDigits: 0,
-                        }).format(Math.round(totalPresupuesto))}
+                        ${formatCurrency(Math.round(totalPresupuesto))}
                       </span>
                     </span>
                     <span>
                       Vendido:{" "}
                       <span className="font-medium text-gray-900">
-                        $
-                        {new Intl.NumberFormat("es-CO", {
-                          maximumFractionDigits: 0,
-                        }).format(Math.round(totalVendido))}
+                        ${formatCurrency(Math.round(totalVendido))}
                       </span>
                     </span>
                     {porcentajeGeneral != null && (
@@ -254,19 +243,13 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                       <span>
                         Meta:{" "}
                         <span className="font-medium text-gray-900">
-                          $
-                          {new Intl.NumberFormat("es-CO", {
-                            maximumFractionDigits: 0,
-                          }).format(Math.round(sede.presupuesto))}
+                          ${formatCurrency(Math.round(sede.presupuesto))}
                         </span>
                       </span>
                       <span>
                         Vendido:{" "}
                         <span className="font-medium text-gray-900">
-                          $
-                          {new Intl.NumberFormat("es-CO", {
-                            maximumFractionDigits: 0,
-                          }).format(Math.round(sede.total))}
+                          ${formatCurrency(Math.round(sede.total))}
                         </span>
                       </span>
                     </div>
@@ -293,18 +276,12 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                 <p className="text-xs text-gray-600 mt-0.5">
                                   Meta:{" "}
                                   <span className="font-medium text-gray-900">
-                                    $
-                                    {new Intl.NumberFormat("es-CO", {
-                                      maximumFractionDigits: 0,
-                                    }).format(Math.round(taller.presupuesto ?? 0))}
+                                    ${formatCurrency(Math.round(taller.presupuesto ?? 0))}
                                   </span>
                                   {" · "}
                                   Vendido:{" "}
                                   <span className="font-medium text-gray-900">
-                                    $
-                                    {new Intl.NumberFormat("es-CO", {
-                                      maximumFractionDigits: 0,
-                                    }).format(Math.round(taller.total))}
+                                    ${formatCurrency(Math.round(taller.total))}
                                   </span>
                                   {" · "}
                                   <span className={taller.metaCumplida ? "text-green-600 font-medium" : "text-gray-700"}>
@@ -319,10 +296,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                       <span>
                                         MO:{" "}
                                         <span className="font-medium text-gray-900">
-                                          $
-                                          {new Intl.NumberFormat("es-CO", {
-                                            maximumFractionDigits: 0,
-                                          }).format(Math.round(taller.mo))}
+                                          ${formatCurrency(Math.round(taller.mo))}
                                         </span>
                                       </span>
                                     )}
@@ -331,10 +305,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                         {" "}
                                         · TOT:{" "}
                                         <span className="font-medium text-gray-900">
-                                          $
-                                          {new Intl.NumberFormat("es-CO", {
-                                            maximumFractionDigits: 0,
-                                          }).format(Math.round(taller.tot))}
+                                          ${formatCurrency(Math.round(taller.tot))}
                                         </span>
                                       </span>
                                     )}
@@ -343,10 +314,7 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
                                         {" "}
                                         · REP:{" "}
                                         <span className="font-medium text-gray-900">
-                                          $
-                                          {new Intl.NumberFormat("es-CO", {
-                                            maximumFractionDigits: 0,
-                                          }).format(Math.round(taller.rep))}
+                                          ${formatCurrency(Math.round(taller.rep))}
                                         </span>
                                       </span>
                                     )}
@@ -445,42 +413,36 @@ function DashboardAdminInner({ data }: { data: DashboardAdminType }) {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Solicitudes de mantenimiento
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs text-gray-500 uppercase">Pendientes</p>
-              <p className="text-xl font-bold text-gray-900">
-                {data.pendientes ?? 0}
-              </p>
-            </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs text-gray-500 uppercase">En proceso</p>
-              <p className="text-xl font-bold text-gray-900">
-                {data.proceso ?? 0}
-              </p>
-            </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs text-gray-500 uppercase">Finalizadas</p>
-              <p className="text-xl font-bold text-gray-900">
-                {data.finalizadas ?? 0}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <DashboardKpiCard
+              label="Pendientes"
+              value={data.pendientes ?? 0}
+            />
+            <DashboardKpiCard
+              label="En proceso"
+              value={data.proceso ?? 0}
+            />
+            <DashboardKpiCard
+              label="Finalizadas"
+              value={data.finalizadas ?? 0}
+            />
           </div>
           <h4 className="text-sm font-medium text-gray-700 mt-4 mb-2">
             Preventivo (hoy)
           </h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="rounded-lg border border-gray-100 p-2">
-              <p className="text-xs text-gray-500">Pendientes</p>
-              <p className="text-lg font-semibold">{data.pendientesPre ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-gray-100 p-2">
-              <p className="text-xs text-gray-500">En proceso</p>
-              <p className="text-lg font-semibold">{data.procesoPre ?? 0}</p>
-            </div>
-            <div className="rounded-lg border border-gray-100 p-2">
-              <p className="text-xs text-gray-500">Finalizadas</p>
-              <p className="text-lg font-semibold">{data.finalizadasPre ?? 0}</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <DashboardKpiCard
+              label="Pendientes"
+              value={data.pendientesPre ?? 0}
+            />
+            <DashboardKpiCard
+              label="En proceso"
+              value={data.procesoPre ?? 0}
+            />
+            <DashboardKpiCard
+              label="Finalizadas"
+              value={data.finalizadasPre ?? 0}
+            />
           </div>
         </div>
       )}

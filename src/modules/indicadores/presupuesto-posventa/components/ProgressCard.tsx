@@ -30,7 +30,7 @@ export function DualProgressBar({
         {filled > 8 ? formatPct(filled) : ''}
       </div>
       <div
-        className="flex items-center justify-center bg-red-500 text-sm font-semibold text-white transition-all"
+        className="flex items-center justify-center bg-[var(--color-danger)] text-sm font-semibold text-white transition-all"
         style={{ width: `${rest}%` }}
       >
         {rest > 8 ? formatPct(rest) : ''}
@@ -77,11 +77,11 @@ export function ProgressCard({
         <div className="flex flex-wrap justify-between gap-2 text-xs text-gray-600 sm:text-sm">
           <span>Meta a cumplir a día de hoy</span>
           <span>
-            <span className="font-medium text-sky-600">
+            <span className="font-medium text-[var(--color-info)]">
               {formatMoney(totalDia)}
             </span>
             {' / '}
-            <span className="font-medium text-red-600">
+            <span className="font-medium text-[var(--color-danger)]">
               {formatMoney(metaHoy)}
             </span>
           </span>
@@ -89,7 +89,7 @@ export function ProgressCard({
         <DualProgressBar
           pctFilled={porcentajeHoy}
           pctRest={porcentajeHoyRestante}
-          filledClass="bg-sky-500"
+          filledClass="bg-[var(--color-info)]"
         />
       </div>
 
@@ -97,11 +97,11 @@ export function ProgressCard({
         <div className="flex flex-wrap justify-between gap-2 text-xs text-gray-600 sm:text-sm">
           <span>Meta a cumplir al mes</span>
           <span>
-            <span className="font-medium text-emerald-600">
+            <span className="font-medium text-[var(--color-success)]">
               {formatMoney(totalDia)}
             </span>
             {' / '}
-            <span className="font-medium text-red-600">
+            <span className="font-medium text-[var(--color-danger)]">
               {formatMoney(metaMes)}
             </span>
           </span>
@@ -109,7 +109,7 @@ export function ProgressCard({
         <DualProgressBar
           pctFilled={porcentajeMes}
           pctRest={porcentajeMesRestante}
-          filledClass="bg-emerald-500"
+          filledClass="bg-[var(--color-success)]"
         />
       </div>
 

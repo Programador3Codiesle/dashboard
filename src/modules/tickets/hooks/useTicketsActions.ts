@@ -102,5 +102,9 @@ export function useTicketsActions() {
     [responderMutation]
   );
 
-  return { crearTicket, reasignar, responder };
+  const uploadTicketFile = useCallback((formData: FormData) => {
+    return ticketsService.uploadTicketFile(formData);
+  }, []);
+
+  return { crearTicket, reasignar, responder, uploadTicketFile };
 }

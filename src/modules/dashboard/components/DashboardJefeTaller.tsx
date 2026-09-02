@@ -1,38 +1,14 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
-import type { DashboardJefeTaller as DashboardJefeTallerType } from "../types";
-import type { DataPoint, JefeTallerSedeItem } from "../types";
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "decimal",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-/* type BodegaRow = DashboardJefeTallerType["data_bodegas"][number];
-
-const DashboardBodegaRow = memo(function DashboardBodegaRow({
-  tecnico,
-  numero_orden,
-  cliente,
-  rptos,
-  MO,
-}: BodegaRow) {
-  return (
-    <tr>
-      <td className="px-4 py-2 text-sm text-gray-900">{tecnico}</td>
-      <td className="px-4 py-2 text-sm text-gray-900">{numero_orden}</td>
-      <td className="px-4 py-2 text-sm text-gray-900">{cliente}</td>
-      <td className="px-4 py-2 text-sm text-right">{formatCurrency(rptos)}</td>
-      <td className="px-4 py-2 text-sm text-right">{formatCurrency(MO)}</td>
-    </tr>
-  );
-});
-
-*/
+import type {
+  DashboardJefeTaller as DashboardJefeTallerType,
+  DataPoint,
+  JefeTallerSedeItem,
+} from "../types";
+import { formatCurrency } from "../utils/format-currency";
+import { DashboardKpiCard } from "./DashboardKpiCard";
+import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 function maxY(points: DataPoint[]): number {
   if (points.length === 0) return 1;
@@ -66,7 +42,7 @@ const ChartBarSimple = memo(function ChartBarSimple({
             ? cumpleMeta
               ? "bg-emerald-500"
               : "bg-red-400"
-            : "bg-[var(--color-primary)]";
+            : "brand-bg";
           const textColor = tieneMeta
             ? cumpleMeta
               ? "text-emerald-600 font-medium"
@@ -193,48 +169,34 @@ const ChartTotalVendido = memo(function ChartTotalVendido({
 const SedeCards = memo(function SedeCards({ sede }: { sede: JefeTallerSedeItem }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Total Vendido</p>
-        <p className="text-2xl font-bold text-gray-900">
-          ${formatCurrency(sede.totalVenta)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Total M.O</p>
-        <p className="text-2xl font-bold text-gray-900">
-          ${formatCurrency(sede.totalVentaManoObra)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Total TOT</p>
-        <p className="text-2xl font-bold text-gray-900">
-          ${formatCurrency(sede.totalVentaTot)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Total Rptos</p>
-        <p className="text-2xl font-bold text-gray-900">
-          ${formatCurrency(sede.totalVentaRepuesto)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">Horas Facturadas</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {formatCurrency(sede.totalHoras)}
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">NPS Interno</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {Math.round(sede.objectiveNpsIntCurrent)}%
-        </p>
-      </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">NPS COLMOTORES</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {Math.round(sede.objectiveNpsGMIntCurrent)}%
-        </p>
-      </div>
+      <DashboardKpiCard
+        label="Total Vendido"
+        value={`$${formatCurrency(sede.totalVenta)}`}
+      />
+      <DashboardKpiCard
+        label="Total M.O"
+        value={`$${formatCurrency(sede.totalVentaManoObra)}`}
+      />
+      <DashboardKpiCard
+        label="Total TOT"
+        value={`$${formatCurrency(sede.totalVentaTot)}`}
+      />
+      <DashboardKpiCard
+        label="Total Rptos"
+        value={`$${formatCurrency(sede.totalVentaRepuesto)}`}
+      />
+      <DashboardKpiCard
+        label="Horas Facturadas"
+        value={formatCurrency(sede.totalHoras)}
+      />
+      <DashboardKpiCard
+        label="NPS Interno"
+        value={`${Math.round(sede.objectiveNpsIntCurrent)}%`}
+      />
+      <DashboardKpiCard
+        label="NPS COLMOTORES"
+        value={`${Math.round(sede.objectiveNpsGMIntCurrent)}%`}
+      />
     </div>
   );
 });
@@ -299,29 +261,36 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
     const sedes = data.sedes!;
     return (
       <div className="space-y-6">
-        <h2 className="text-xl font-bold text-gray-900">
-          Informe diario Taller por sede
-        </h2>
-        <div className="border-b border-gray-200">
-          <nav className="flex gap-1" role="tablist">
-            {sedes.map((sede, index) => (
+        <PageTitleRow
+          title="Informe diario Taller por sede"
+          headingAs="h2"
+          headingClassName="text-xl font-bold text-gray-900"
+        />
+        <nav
+          className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3"
+          role="tablist"
+          aria-label="Sedes del informe diario"
+        >
+          {sedes.map((sede, index) => {
+            const isActive = activeTab === index;
+            return (
               <button
                 key={sede.sede}
                 type="button"
                 role="tab"
-                aria-selected={activeTab === index}
+                aria-selected={isActive}
                 onClick={() => onTabChange(index)}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors ${
-                  activeTab === index
-                    ? "border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary-light)]"
-                    : "border-transparent text-gray-600 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-300 brand-focus-ring sm:px-5 sm:py-2.5 sm:text-sm ${
+                  isActive
+                    ? "brand-btn brand-card-elevated shadow-lg hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.98]"
+                    : "bg-white text-gray-800 shadow-md border brand-border-active hover:-translate-y-0.5 hover:shadow-lg hover:text-[var(--color-primary)] active:scale-[0.98]"
                 }`}
               >
                 {sede.sede}
               </button>
-            ))}
-          </nav>
-        </div>
+            );
+          })}
+        </nav>
         {sedes.map((sede, index) => (
           <SedePanel
             key={sede.sede}
@@ -329,142 +298,40 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
             isActive={activeTab === index}
           />
         ))}
-
-        {/* 
-        {data.data_bodegas.length > 0 && (
-          <div className="bg-white rounded-xl overflow-hidden shadow border border-gray-100">
-            <h3 className="text-lg font-semibold p-4 border-b">
-              Detalle por bodega (todas las sedes)
-            </h3>
-            <div className="app-table-scroll">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Técnico
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Orden
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Cliente
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                      Rptos
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                      M.O
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {data.data_bodegas.map((row) => (
-                    <DashboardBodegaRow
-                      key={`${row.numero_orden}-${row.operario}`}
-                      {...row}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-         */ }
-
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-gray-900">Informe diario Taller</h2>
+      <PageTitleRow
+        title="Informe diario Taller"
+        headingAs="h2"
+        headingClassName="text-xl font-bold text-gray-900"
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total Vendido</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.total_ventas)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total M.O</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.mo)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total TOT</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.tot)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total Rptos</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.rep)}
-          </p>
-        </div>
+        <DashboardKpiCard
+          label="Total Vendido"
+          value={`$${formatCurrency(data.total_ventas)}`}
+        />
+        <DashboardKpiCard label="Total M.O" value={`$${formatCurrency(data.mo)}`} />
+        <DashboardKpiCard label="Total TOT" value={`$${formatCurrency(data.tot)}`} />
+        <DashboardKpiCard
+          label="Total Rptos"
+          value={`$${formatCurrency(data.rep)}`}
+        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Horas Facturadas</p>
-          <p className="text-2xl font-bold text-gray-900">{data.horas_fac}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">NPS Interno</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {Math.round(data.nps_int)}%
-          </p>
-        </div>
+        <DashboardKpiCard label="Horas Facturadas" value={data.horas_fac} />
+        <DashboardKpiCard
+          label="NPS Interno"
+          value={`${Math.round(data.nps_int)}%`}
+        />
       </div>
-      <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-        <p className="text-sm text-gray-600">NPS Colmotores</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {Math.round(data.nps_col)}%
-        </p>
-      </div>
-
-      {/* 
-      {data.data_bodegas.length > 0 && (
-        <div className="bg-white rounded-xl overflow-hidden shadow border border-gray-100">
-          <h3 className="text-lg font-semibold p-4 border-b">
-            Detalle por bodega
-          </h3>
-          <div className="app-table-scroll">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                    Técnico
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                    Orden
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                    Cliente
-                  </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                    Rptos
-                  </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                    M.O
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {data.data_bodegas.map((row) => (
-                  <DashboardBodegaRow
-                    key={`${row.numero_orden}-${row.operario}`}
-                    {...row}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      */ }
+      <DashboardKpiCard
+        label="NPS Colmotores"
+        value={`${Math.round(data.nps_col)}%`}
+      />
     </div>
   );
 }

@@ -56,7 +56,7 @@ export function TablaPosiblesRetornos({
                 <div className="flex flex-wrap justify-center gap-1.5">
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-white brand-bg brand-bg-hover"
                     onClick={() => onVerDetalle(fila.placa, fila.numero)}
                   >
                     <Eye size={14} />

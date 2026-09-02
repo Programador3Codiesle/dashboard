@@ -3,9 +3,7 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { RegistrarSalidaDTO, ModeloVehiculo } from "@/modules/administracion/types";
-import { controlVehiculosService } from "@/modules/administracion/services/control-vehiculos.service";
 import { ChevronDown } from "lucide-react";
-import { useToast } from "@/components/shared/ui/ToastContext";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 
@@ -13,6 +11,8 @@ interface RegistrarSalidaVehiculoModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (data: RegistrarSalidaDTO) => Promise<void>;
+  modelos: ModeloVehiculo[];
+  loadingModelos?: boolean;
 }
 
 const TIPOS_VEHICULO = ["Otro", "Niñera", "Vehículo Remolcado"];
@@ -22,8 +22,9 @@ export default function RegistrarSalidaVehiculoModal({
   open,
   onClose,
   onSave,
+  modelos,
+  loadingModelos = false,
 }: RegistrarSalidaVehiculoModalProps) {
-  const { showError } = useToast();
   const [formData, setFormData] = useState<RegistrarSalidaDTO>({
     placa: "",
     km_salida: 0,
@@ -35,16 +36,10 @@ export default function RegistrarSalidaVehiculoModal({
     pasajeros: "",
     placa_vh_remolcado: "",
   });
-  const [modelos, setModelos] = useState<ModeloVehiculo[]>([]);
-  const [loadingModelos, setLoadingModelos] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      // Cargar modelos cuando se abre el modal
-      loadModelos();
-    } else {
-      // Resetear formulario cuando se cierra
+    if (!open) {
       setFormData({
         placa: "",
         km_salida: 0,
@@ -59,25 +54,13 @@ export default function RegistrarSalidaVehiculoModal({
     }
   }, [open]);
 
-  const loadModelos = async () => {
-    setLoadingModelos(true);
-    try {
-      const modelosData = await controlVehiculosService.obtenerModelos();
-      setModelos(modelosData);
-    } catch (error: any) {
-      showError(error.message || "Error al cargar los modelos");
-    } finally {
-      setLoadingModelos(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await onSave(formData);
       onClose();
-    } catch (error) {
+    } catch {
       // Error manejado por el componente padre
     } finally {
       setLoading(false);

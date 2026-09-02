@@ -1,69 +1,45 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Eye, Search } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { EncuestasPageFrame } from '@/modules/encuestas/components/EncuestasPageFrame';
+import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
+import { EncuestasQueryError } from '@/modules/encuestas/shared/components/EncuestasQueryError';
+import { encuestasKeys } from '@/modules/encuestas/shared/constants/query-keys';
 import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
-import {
-  encuestasService,
-  type SatisfaccionItem,
-} from '@/modules/encuestas/shared/services/encuestas.service';
+import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.service';
+import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
 import { SATISFACCION_SUBMENU_ID } from '@/utils/constants';
-import { useToast } from '@/components/ui/use-toast';
 
 const PAGE_SIZE = 15;
 
 export function SatisfaccionListadoGestion() {
-  const { blocked } = useEncuestasPageGuard(SATISFACCION_SUBMENU_ID);
-  const { showError } = useToast();
-  const [items, setItems] = useState<SatisfaccionItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, blocked } = useEncuestasPageGuard(SATISFACCION_SUBMENU_ID);
+  const sesionLista = !!user && !blocked;
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    if (blocked) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const data = await encuestasService.listarSatisfaccion();
-        if (!cancelled) setItems(data);
-      } catch (e) {
-        showError(e instanceof Error ? e.message : 'No se pudo cargar');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [blocked, showError]);
+  const listQuery = useQuery({
+    queryKey: encuestasKeys.satisfaccion(q.trim(), page),
+    queryFn: () =>
+      encuestasService.listarSatisfaccion({
+        q,
+        page,
+        pageSize: PAGE_SIZE,
+      }),
+    enabled: sesionLista,
+    placeholderData: keepPreviousData,
+    ...transactionalQueryOptions,
+  });
 
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return items;
-    return items.filter(
-      (r) =>
-        r.nit_real.toLowerCase().includes(term) ||
-        r.nombres.toLowerCase().includes(term) ||
-        r.numero.toLowerCase().includes(term) ||
-        r.placa.toLowerCase().includes(term),
-    );
-  }, [items, q]);
-
-  const totalItems = filtered.length;
+  const items = listQuery.data?.items ?? [];
+  const totalItems = listQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
-  const pageItems = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, safePage]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   const handlePageChange = useCallback((next: number) => {
     setPage(next);
@@ -75,27 +51,21 @@ export function SatisfaccionListadoGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="app-title-xl brand-text">Satisfacción</h1>
-          <p className="text-sm text-muted-foreground">
-            Encuestas de satisfacción respondidas (canal email/link)
-          </p>
-        </div>
-        <Link
-          href="/dashboard/encuestas"
-          className="text-sm text-amber-700 hover:underline"
-        >
-          ← Volver a Encuestas
-        </Link>
-      </div>
-
+    <EncuestasPageFrame
+      title={ENCUESTAS_COPY.satisfaccion.title}
+      description={ENCUESTAS_COPY.satisfaccion.description}
+      backHref="/dashboard/encuestas"
+      backLabel={ENCUESTAS_COPY.satisfaccion.backLabel}
+    >
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <label htmlFor="encuestas-satisfaccion-q" className="sr-only">
+          Buscar
+        </label>
         <input
+          id="encuestas-satisfaccion-q"
           className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
-          placeholder="Buscar NIT, cliente, orden o placa..."
+          placeholder={ENCUESTAS_COPY.satisfaccion.searchPlaceholder}
           value={q}
           onChange={(e) => {
             setQ(e.target.value);
@@ -103,6 +73,15 @@ export function SatisfaccionListadoGestion() {
           }}
         />
       </div>
+
+      {listQuery.isError ? (
+        <EncuestasQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            ENCUESTAS_COPY.satisfaccion.loadError,
+          )}
+        />
+      ) : null}
 
       <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
         <table className="min-w-full text-sm">
@@ -117,20 +96,20 @@ export function SatisfaccionListadoGestion() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isPending && !listQuery.data ? (
               <tr>
                 <td colSpan={6} className="px-3 py-8 text-center text-gray-500">
                   Cargando...
                 </td>
               </tr>
-            ) : pageItems.length === 0 ? (
+            ) : items.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-3 py-8 text-center text-gray-500">
-                  Sin registros
+                  {ENCUESTAS_COPY.satisfaccion.empty}
                 </td>
               </tr>
             ) : (
-              pageItems.map((row) => (
+              items.map((row) => (
                 <tr
                   key={`${row.numero}-${row.placa}-${row.fecha}`}
                   className="border-t border-gray-100"
@@ -143,7 +122,7 @@ export function SatisfaccionListadoGestion() {
                   <td className="px-3 py-2 text-center">
                     <Link
                       href={`/dashboard/encuestas/satisfaccion/detalle?ot=${encodeURIComponent(row.numero)}`}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+                      className="inline-flex items-center gap-1.5 rounded-md brand-bg px-3 py-1.5 text-xs font-semibold text-white shadow-sm brand-bg-hover"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       Ver
@@ -155,7 +134,7 @@ export function SatisfaccionListadoGestion() {
           </tbody>
         </table>
 
-        {totalItems > 0 && !loading && (
+        {totalItems > 0 && !(listQuery.isPending && !listQuery.data) && (
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-gray-500">
               Mostrando {inicioRango}–{finRango} de {totalItems} ({PAGE_SIZE} por
@@ -171,6 +150,6 @@ export function SatisfaccionListadoGestion() {
           </div>
         )}
       </div>
-    </div>
+    </EncuestasPageFrame>
   );
 }

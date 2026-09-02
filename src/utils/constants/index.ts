@@ -7,14 +7,20 @@ export interface EmpresaConfig {
   nombre: string;
   color: string;
   colorHover?: string;
+  icono: string;
 }
 
 export const EMPRESAS: EmpresaConfig[] = [
-  { id: 1, nombre: "Codiesel", color: "#f59e0b", colorHover: "#d97706" },
-  { id: 2, nombre: "Dieselco", color: "#4CB8AA", colorHover: "#3da89a" },
-  { id: 3, nombre: "Mitsubishi", color: "#ED0000", colorHover: "#cc0000" },
-  { id: 4, nombre: "BYD", color: "#4F9EDD", colorHover: "#3d8bcc" },
+  { id: 1, nombre: "Codiesel", color: "#f59e0b", colorHover: "#d97706", icono: "/iconos/icono-empresa-1.png?v=2" },
+  { id: 2, nombre: "Dieselco", color: "#4CB8AA", colorHover: "#3da89a", icono: "/iconos/icono-empresa-2.png?v=2" },
+  { id: 3, nombre: "Mitsubishi", color: "#ED0000", colorHover: "#cc0000", icono: "/iconos/icono-empresa-3.png" },
+  { id: 4, nombre: "BYD", color: "#4F9EDD", colorHover: "#3d8bcc", icono: "/iconos/icono-empresa-4.png" },
 ];
+
+export function empresaIconSrc(empresaId?: number | null): string | null {
+  const empresa = empresaId != null ? EMPRESAS.find((item) => item.id === empresaId) : null;
+  return empresa?.icono ?? null;
+}
 
 export const ROUTES = [
   { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
@@ -53,6 +59,9 @@ export const MENU_ID_BY_ROUTE: Record<string, number> = {
   "/dashboard/mantenimiento": 41,
 };
 
+/** Menú Taller (id_menu = 4) */
+export const TALLER_MENU_ID = 4 as const;
+
 /** IDs de submenú MPVI (tabla menús legacy, id_menu padre = 4 Taller) */
 export const MPVI_SUBMENU_IDS = {
   admin: 151,
@@ -87,6 +96,9 @@ export const PRESUPUESTO_SUBMENU_ID = 186;
 
 /** Empresa Codiesel */
 export const CODIESEL_EMPRESA_ID = 1 as const;
+export const DIESELCO_EMPRESA_ID = 2 as const;
+export const MITSUBISHI_EMPRESA_ID = 3 as const;
+export const BYD_EMPRESA_ID = 4 as const;
 
 /** Menú Repuestos (id_menu = 47) — solo Codiesel */
 export const REPUESTOS_MENU_ID = 47 as const;
@@ -180,6 +192,29 @@ export const FACTURACION_TECNICO_SUBMENU_ID = 170;
 export const ORDENES_TECNICOS_SUBMENU_ID = 171;
 export const ENTREGAS_AUDITORIA_SUBMENU_ID = 194;
 
+/** Menú Cotizar (id_menu = 45) */
+export const COTIZAR_MENU_ID = 45 as const;
+
+/** Submenús Cotizar (id_menu = 45) */
+export const COTIZAR_LIVIANOS_SUBMENU_ID = 90;
+export const INFORME_COTIZACIONES_SUBMENU_ID = 91;
+export const REPUESTOS_NO_DISPONIBLES_SUBMENU_ID = 95;
+export const COTIZAR_CONTROL_SUBMENU_ID = 101;
+export const EJECUCION_COTIZADO_VS_FACTURADO_SUBMENU_ID = 110;
+export const ADICIONALES_LIVIANOS_SUBMENU_ID = 118;
+export const EDITAR_REPUESTO_MANO_OBRA_SUBMENU_ID = 196;
+
+/** Menú Nómina (id_menu = 3) */
+export const NOMINA_MENU_ID = 3 as const;
+
+/** Submenús Nómina (id_menu = 3) */
+export const COMISIONES_ASESORES_REPUESTOS_SUBMENU_ID = 32;
+export const COMISIONES_LAMINA_PINTURA_SUBMENU_ID = 42;
+export const COMISIONES_TECNICOS_SUBMENU_ID = 77;
+export const COMISIONES_JEFES_SUBMENU_ID = 78;
+export const NOMINA_DIRECTOR_FLOTAS_SUBMENU_ID = 122;
+export const RELACION_MARGEN_MATERIALES_COLORISTA_SUBMENU_ID = 185;
+
 /** Menú Mantenimiento (id_menu = 41) — solo Codiesel */
 export const MANTENIMIENTO_MENU_ID = 41 as const;
 
@@ -189,6 +224,33 @@ export const MTTO_CORRECTIVO_SUBMENU_ID = 80;
 export const MTTO_PREVENTIVO_SUBMENU_ID = 82;
 export const INFORME_CORRECTIVO_SUBMENU_ID = 96;
 export const INFORME_PREVENTIVO_SUBMENU_ID = 97;
+
+/** Menú Informes (id_menu = 5) — multiempresa */
+export const INFORMES_MENU_ID = 5 as const;
+export const INFORMES_GESTION_HUMANA_SUBMENU_ID = 135 as const;
+export const INFORMES_POSTVENTA_SUBMENU_ID = 137 as const;
+
+/** Menú Administración (id_menu = 11) — multiempresa */
+export const ADMINISTRACION_MENU_ID = 11 as const;
+
+/** Submenús Administración (id_menu = 11) */
+export const AJUSTES_VALORES_CONTABLES_SUBMENU_ID = 178;
+export const CONTROL_VEHICULOS_SUBMENU_ID = 190;
+export const EVALUACION_DESEMPENO_SUBMENU_ID = 153;
+export const FORMATO_DESEMPENO_EMPLEADO_SUBMENU_ID = 152;
+export const FORMATO_ORDEN_SALIDA_SUBMENU_ID = 154;
+export const FORMATOS_NOMINA_SUBMENU_ID = 184;
+export const GESTION_COMPRAS_SUBMENU_ID = 79;
+export const INASISTENCIA_SUBMENU_ID = 126;
+export const INFORME_AUSENTISMO_SUBMENU_ID = 45;
+export const INFORME_SOSTENIBILIDAD_SUBMENU_ID = 189;
+export const INFORME_TIEMPO_SUPLEMENTARIO_SUBMENU_ID = 57;
+export const LISTA_AUSENTISMO_SUBMENU_ID = 62;
+export const LISTA_HORAS_EXTRAS_SUBMENU_ID = 61;
+export const NUEVO_AUSENTISMO_SUBMENU_ID = 44;
+export const SOLICITUD_TIEMPO_SUPLEMENTARIO_SUBMENU_ID = 56;
+export const TALLAS_DOTACION_SUBMENU_ID = 155;
+export const REGLAMENTO_INTERNO_SUBMENU_ID = 172;
 
 // Colores para tarjetas del Dashboard (opcional)
 export const DASHBOARD_CARD_COLORS = {

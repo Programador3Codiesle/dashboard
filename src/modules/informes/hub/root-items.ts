@@ -1,23 +1,26 @@
 import { Users, Wrench } from 'lucide-react';
 import type { HubItem } from '@/components/shared/hub/types';
+import {
+  INFORMES_GESTION_HUMANA_SUBMENU_ID,
+  INFORMES_POSTVENTA_SUBMENU_ID,
+} from '@/utils/constants';
+import { INFORMES_COPY } from '@/modules/informes/constants';
 
 export const INFORMES_ROOT_HUB_ITEMS: HubItem[] = [
   {
     id: 'gestion-humana',
     nombre: 'Gestión Humana',
-    descripcion: 'Informes de ausentismos, tiempo suplementario, pausas activas y más.',
+    descripcion: INFORMES_COPY.ghHub.description,
     ruta: '/dashboard/informes/gestion-humana',
-    submenuId: 135,
+    submenuId: INFORMES_GESTION_HUMANA_SUBMENU_ID,
     icono: Users,
-    color: 'from-emerald-500 to-emerald-600',
   },
   {
     id: 'postventa',
     nombre: 'Postventa',
-    descripcion: 'Informes operativos y de satisfacción de clientes en postventa.',
+    descripcion: INFORMES_COPY.pvHub.description,
     ruta: '/dashboard/informes/postventa',
-    submenuId: 137,
+    submenuId: INFORMES_POSTVENTA_SUBMENU_ID,
     icono: Wrench,
-    color: 'from-sky-500 to-sky-600',
   },
 ];

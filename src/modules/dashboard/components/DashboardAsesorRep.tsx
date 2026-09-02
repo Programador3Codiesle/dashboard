@@ -1,7 +1,12 @@
 "use client";
 
 import { memo, useMemo } from "react";
+import { CircleDollarSign, Gauge, ShoppingCart } from "lucide-react";
 import type { DashboardAsesorRep as DashboardAsesorRepType } from "../types";
+import { formatCurrency } from "../utils/format-currency";
+import { DashboardFechaBadge } from "./DashboardFechaBadge";
+import { DashboardKpiCard } from "./DashboardKpiCard";
+import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 const COLOR_VENDIDO = "var(--color-primary)";
 const COLOR_PRESUPUESTO = "#64748b";
@@ -27,8 +32,14 @@ function DashboardAsesorRepInner({
   selectedIdsede,
   onSedeChange,
 }: DashboardAsesorRepProps) {
-  const presupuestos = data.presupuestos_sede ?? [];
-  const resumen = data.resumen_actual ?? [];
+  const presupuestos = useMemo(
+    () => data.presupuestos_sede ?? [],
+    [data.presupuestos_sede],
+  );
+  const resumen = useMemo(
+    () => data.resumen_actual ?? [],
+    [data.resumen_actual],
+  );
   const showTabs = sedes != null && sedes.length > 1 && selectedIdsede != null && onSedeChange;
 
   const chartData = useMemo(() => {
@@ -119,25 +130,18 @@ function DashboardAsesorRepInner({
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Asesor de repuestos
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Resumen de desempeño, cumplimiento de presupuesto y ventas por sede.
-          </p>
-        </div>
-        <div className="flex justify-end">
-          <div className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-white shadow-md text-sm">
-            <span className="font-semibold">Fecha:</span>
-            <span className="text-base font-semibold">{data.fecha_actual}</span>
-            {data.dia_festivo === 1 && (
-              <span className="ml-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.7rem] font-medium">
-                Día festivo
-              </span>
-            )}
-          </div>
-        </div>
+        <PageTitleRow
+          title="Asesor de repuestos"
+          description="Resumen de desempeño, cumplimiento de presupuesto y ventas por sede."
+          headingAs="h2"
+          headingClassName="text-2xl font-bold text-gray-900 tracking-tight"
+          descriptionClassName="text-sm text-gray-500 mt-1"
+          className="min-w-0"
+        />
+        <DashboardFechaBadge
+          fecha={data.fecha_actual}
+          diaFestivo={data.dia_festivo}
+        />
       </div>
 
       {/* Presupuesto, Resumen y Estado/% en columnas */}
@@ -150,35 +154,12 @@ function DashboardAsesorRepInner({
           {presupuestos.length > 0 ? (
             <div className="flex-1 space-y-3">
               {presupuestos.map((p, i) => (
-                <div
+                <DashboardKpiCard
                   key={i}
-                  className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm flex items-center gap-4 transition-shadow hover:shadow-md"
-                >
-                  <span
-                    className="shrink-0 w-11 h-11 rounded-lg flex items-center justify-center text-white opacity-95"
-                    style={{ backgroundColor: "var(--color-primary)" }}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-600 truncate">{p.sede}</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {new Intl.NumberFormat("es-CO").format(p.presupuesto)}
-                    </p>
-                  </div>
-                </div>
+                  label={p.sede}
+                  value={formatCurrency(p.presupuesto)}
+                  icon={CircleDollarSign}
+                />
               ))}
             </div>
           ) : (
@@ -198,38 +179,28 @@ function DashboardAsesorRepInner({
             </h3>
             <div className="flex-1 space-y-3">
               {resumen.map((row, idx) => (
-                <div
+                <DashboardKpiCard
                   key={`${row.sede}-${idx}`}
-                  className="rounded-xl border border-gray-200/80 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <p className="text-sm font-semibold text-gray-700 truncate">
-                    {row.sede}
-                  </p>
-
-                  {row.sede_label2 && (
-                    <p className="text-xs text-gray-500 truncate">
-                      {row.sede_label2}
-                    </p>
-                  )}
-
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(
-                      row.venta_neta
-                    )}
-                  </p>
-                  <div className="mt-3 flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-2">
-                    <span>Margen</span>
-                    <span className="font-medium tabular-nums">
-                      {row.margen_bruto.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>Comisión</span>
-                    <span className="font-medium tabular-nums">
-                      {new Intl.NumberFormat("es-CO").format(row.total_comision)}
-                    </span>
-                  </div>
-                </div>
+                  label={row.sede_label2 ? `${row.sede} · ${row.sede_label2}` : row.sede}
+                  value={formatCurrency(row.venta_neta)}
+                  icon={ShoppingCart}
+                  footer={
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>Margen</span>
+                        <span className="font-medium tabular-nums text-gray-700">
+                          {row.margen_bruto.toFixed(2)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Comisión</span>
+                        <span className="font-medium tabular-nums text-gray-700">
+                          {formatCurrency(row.total_comision)}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                />
               ))}
             </div>
           </section>
@@ -251,19 +222,13 @@ function DashboardAsesorRepInner({
           <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
             Estado y cumplimiento
           </h3>
-          <div
-            className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm flex flex-col gap-4"
-          >
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <span className="text-sm text-gray-600">% cumplimiento</span>
-              <span className="text-2xl font-bold text-gray-900 tabular-nums">
-                {porcentajeGlobal.toFixed(1)}%
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Estado</span>
+          <DashboardKpiCard
+            label="% cumplimiento"
+            value={`${porcentajeGlobal.toFixed(1)}%`}
+            icon={Gauge}
+            footer={
               <span
-                className={`text-sm font-semibold px-3 py-1.5 rounded ${
+                className={`inline-flex text-sm font-semibold px-3 py-1.5 rounded ${
                   estadoGlobal === "bueno"
                     ? "bg-emerald-100 text-emerald-800"
                     : estadoGlobal === "buena"
@@ -271,10 +236,14 @@ function DashboardAsesorRepInner({
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {estadoGlobal === "bueno" ? "Bueno" : estadoGlobal === "buena" ? "Buena" : "Malo"}
+                {estadoGlobal === "bueno"
+                  ? "Bueno"
+                  : estadoGlobal === "buena"
+                    ? "Buena"
+                    : "Malo"}
               </span>
-            </div>
-          </div>
+            }
+          />
         </section>
       </div>
 
@@ -351,12 +320,10 @@ function DashboardAsesorRepInner({
                       {row.sede}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums text-gray-700">
-                      {new Intl.NumberFormat("es-CO").format(row.presupuesto)}
+                      {formatCurrency(row.presupuesto)}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums text-gray-700">
-                      {new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(
-                        row.vendido
-                      )}
+                      {formatCurrency(row.vendido)}
                     </td>
                     <td className="py-2 px-3 text-right tabular-nums font-medium">
                       {row.porcentaje.toFixed(1)}%
@@ -417,9 +384,7 @@ function DashboardAsesorRepInner({
                     <div className="w-full flex justify-center gap-1 items-end h-36 sm:h-40">
                       <div
                         className="flex flex-col justify-end flex-1 max-w-[28px] sm:max-w-[36px] h-full rounded-t-md overflow-hidden bg-gray-100/80"
-                        title={`Vendido: $${new Intl.NumberFormat(
-                          "es-CO"
-                        ).format(row.vendido)}`}
+                        title={`Vendido: $${formatCurrency(row.vendido)}`}
                       >
                         <div
                           className="w-full rounded-t-md transition-all duration-500 ease-out min-h-[2px]"
@@ -434,9 +399,7 @@ function DashboardAsesorRepInner({
                       </div>
                       <div
                         className="flex flex-col justify-end flex-1 max-w-[28px] sm:max-w-[36px] h-full rounded-t-md overflow-hidden bg-gray-100/80"
-                        title={`Presupuesto: $${new Intl.NumberFormat(
-                          "es-CO"
-                        ).format(row.presupuesto)}`}
+                        title={`Presupuesto: $${formatCurrency(row.presupuesto)}`}
                       >
                         <div
                           className="w-full rounded-t-md transition-all duration-500 ease-out min-h-[2px]"

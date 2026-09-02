@@ -13,6 +13,15 @@ function formatNumber(value: number): string {
 type SortKey = keyof FilaInformeAsesor;
 type SortDir = "asc" | "desc";
 
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+  if (sortKey !== col) return null;
+  return sortDir === "asc" ? (
+    <ChevronUp size={14} className="inline ml-1" />
+  ) : (
+    <ChevronDown size={14} className="inline ml-1" />
+  );
+}
+
 interface TablaPygAsesoresProps {
   filas: FilaInformeAsesor[];
   yearComparar: number;
@@ -60,15 +69,6 @@ export function TablaPygAsesores({
     }
   };
 
-  const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return null;
-    return sortDir === "asc" ? (
-      <ChevronUp size={14} className="inline ml-1" />
-    ) : (
-      <ChevronDown size={14} className="inline ml-1" />
-    );
-  };
-
   const thClass =
     "px-3 py-2 text-xs font-semibold text-gray-700 whitespace-nowrap cursor-pointer select-none hover:bg-gray-100";
 
@@ -80,61 +80,61 @@ export function TablaPygAsesores({
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200 text-center">
             <th className={thClass} onClick={() => handleSort("rnk")}>
-              RNK <SortIcon col="rnk" />
+              RNK <SortIcon sortKey={sortKey} sortDir={sortDir} col="rnk" />
             </th>
             <th className={thClass} onClick={() => handleSort("nombres")}>
-              ASESOR DE REPUESTOS <SortIcon col="nombres" />
+              ASESOR DE REPUESTOS <SortIcon sortKey={sortKey} sortDir={sortDir} col="nombres" />
             </th>
             <th className={thClass} onClick={() => handleSort("venta_taller")}>
-              VENTA TALLER <SortIcon col="venta_taller" />
+              VENTA TALLER <SortIcon sortKey={sortKey} sortDir={sortDir} col="venta_taller" />
             </th>
             <th className={thClass} onClick={() => handleSort("costo_taller")}>
-              COSTO TALLER <SortIcon col="costo_taller" />
+              COSTO TALLER <SortIcon sortKey={sortKey} sortDir={sortDir} col="costo_taller" />
             </th>
             <th className={thClass} onClick={() => handleSort("utilidad_taller")}>
-              UTILIDAD TALLER <SortIcon col="utilidad_taller" />
+              UTILIDAD TALLER <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_taller" />
             </th>
             <th
               className={`${thClass} ${COMPARE_BG}`}
               onClick={() => handleSort("utilidad_taller_ant")}
             >
               UTILIDAD TALLER {yearComparar}
-              <SortIcon col="utilidad_taller_ant" />
+              <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_taller_ant" />
             </th>
             <th className={thClass} onClick={() => handleSort("venta_mostrador")}>
-              VENTA MOSTRADOR <SortIcon col="venta_mostrador" />
+              VENTA MOSTRADOR <SortIcon sortKey={sortKey} sortDir={sortDir} col="venta_mostrador" />
             </th>
             <th className={thClass} onClick={() => handleSort("costo_mostrador")}>
-              COSTO MOSTRADOR <SortIcon col="costo_mostrador" />
+              COSTO MOSTRADOR <SortIcon sortKey={sortKey} sortDir={sortDir} col="costo_mostrador" />
             </th>
             <th className={thClass} onClick={() => handleSort("utilidad_mostrador")}>
-              UTILIDAD MOSTRADOR <SortIcon col="utilidad_mostrador" />
+              UTILIDAD MOSTRADOR <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_mostrador" />
             </th>
             <th
               className={`${thClass} ${COMPARE_BG}`}
               onClick={() => handleSort("utilidad_mostrador_ant")}
             >
               UTILIDAD MOSTRADOR {yearComparar}
-              <SortIcon col="utilidad_mostrador_ant" />
+              <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_mostrador_ant" />
             </th>
             <th className={thClass} onClick={() => handleSort("utilidad_total")}>
-              UTILIDAD TOTAL <SortIcon col="utilidad_total" />
+              UTILIDAD TOTAL <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_total" />
             </th>
             <th
               className={`${thClass} ${COMPARE_BG}`}
               onClick={() => handleSort("utilidad_total_ant")}
             >
               UTILIDAD TOTAL {yearComparar}
-              <SortIcon col="utilidad_total_ant" />
+              <SortIcon sortKey={sortKey} sortDir={sortDir} col="utilidad_total_ant" />
             </th>
             <th className={thClass} onClick={() => handleSort("salario")}>
-              SALARIO <SortIcon col="salario" />
+              SALARIO <SortIcon sortKey={sortKey} sortDir={sortDir} col="salario" />
             </th>
             <th className={thClass} onClick={() => handleSort("fecha_ini")}>
-              FECHA INICIO LABOR <SortIcon col="fecha_ini" />
+              FECHA INICIO LABOR <SortIcon sortKey={sortKey} sortDir={sortDir} col="fecha_ini" />
             </th>
             <th className={thClass} onClick={() => handleSort("dias")}>
-              DÍAS VACACIONES <SortIcon col="dias" />
+              DÍAS VACACIONES <SortIcon sortKey={sortKey} sortDir={sortDir} col="dias" />
             </th>
           </tr>
         </thead>

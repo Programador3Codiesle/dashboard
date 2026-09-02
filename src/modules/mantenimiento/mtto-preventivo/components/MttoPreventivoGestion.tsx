@@ -1,72 +1,43 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import { Upload, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  catalogQueryOptions,
+  transactionalQueryOptions,
+} from '@/core/query/catalog-query-options';
+import { MantenimientoPageFrame } from '@/modules/mantenimiento/components/MantenimientoPageFrame';
+import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MantenimientoFileField } from '@/modules/mantenimiento/shared/components/MantenimientoFileField';
+import { MantenimientoInfoChip } from '@/modules/mantenimiento/shared/components/MantenimientoInfoChip';
+import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
+import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
+import {
+  btnInfoClass,
+  btnSuccessClass,
+  btnWarningClass,
+} from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
+import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
 import { estadoLabel } from '@/modules/mantenimiento/shared/constants/labels';
 import { PERIODOS_MTTO } from '@/modules/mantenimiento/equipos/utils/hoja-vida';
 import { MTTO_PREVENTIVO_SUBMENU_ID } from '@/utils/constants';
 import { fetchWithAuth } from '@/utils/api';
 
-function FileField({
-  label,
-  file,
-  accept,
-  onChange,
-}: {
-  label: string;
-  file: File | null;
-  accept?: string;
-  onChange: (file: File | null) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 transition-colors hover:border-amber-400 hover:bg-amber-50/40">
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-(--color-primary) text-white">
-          <Upload className="h-4 w-4" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-gray-800">
-            {file ? 'Archivo seleccionado' : 'Seleccionar archivo'}
-          </span>
-          <span className="block truncate text-xs text-gray-500">
-            {file ? file.name : 'Haz clic para buscar en tu equipo'}
-          </span>
-        </span>
-        <input
-          type="file"
-          className="sr-only"
-          accept={accept}
-          onChange={(e) => onChange(e.target.files?.[0] ?? null)}
-        />
-      </label>
-    </div>
-  );
-}
-
 export function MttoPreventivoGestion() {
   const { blocked, user } = useMantenimientoPageGuard(MTTO_PREVENTIVO_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
-  const [events, setEvents] = useState<
-    Array<{
-      id: string;
-      title: string;
-      start: string;
-      backgroundColor?: string;
-      borderColor?: string;
-      allDay?: boolean;
-    }>
-  >([]);
-  const [personal, setPersonal] = useState<Array<{ nit: string; nombres: string }>>([]);
+  const queryClient = useQueryClient();
+  const sesionLista = !!user && !blocked;
   const [orden, setOrden] = useState<Record<string, unknown> | null>(null);
   const [modalUpload, setModalUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -82,31 +53,40 @@ export function MttoPreventivoGestion() {
   const puedeAdmin = perfil === 46 || perfil === 20;
   const puedeGestionar = perfil === 46;
 
-  const load = useCallback(async () => {
-    try {
-      const data = await mantenimientoService.eventosPreventivo();
-      setEvents(
-        data
-          .filter((e) => e.start)
-          .map((e) => ({
-            id: String(e.id),
-            title: e.title,
-            start: e.start,
-            allDay: true,
-            backgroundColor: e.color,
-            borderColor: e.color,
-          })),
-      );
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    }
-  }, [showError]);
+  const catalogQuery = useQuery({
+    queryKey: mantenimientoKeys.catalogos,
+    queryFn: () => mantenimientoService.catalogos(),
+    enabled: sesionLista,
+    ...catalogQueryOptions,
+  });
 
-  useEffect(() => {
-    if (blocked) return;
-    void load();
-    mantenimientoService.catalogos().then((c) => setPersonal(c.personal));
-  }, [blocked, load]);
+  const eventosQuery = useQuery({
+    queryKey: mantenimientoKeys.preventivoEventos,
+    queryFn: () => mantenimientoService.eventosPreventivo(),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
+
+  const personal = catalogQuery.data?.personal ?? [];
+  const events = (eventosQuery.data ?? [])
+    .filter((e) => e.start)
+    .map((e) => ({
+      id: String(e.id),
+      title: e.title,
+      start: e.start,
+      allDay: true as const,
+      backgroundColor: e.color,
+      borderColor: e.color,
+    }));
+
+  async function invalidatePreventivo() {
+    await queryClient.invalidateQueries({
+      queryKey: mantenimientoKeys.preventivoEventos,
+    });
+    await queryClient.invalidateQueries({
+      queryKey: mantenimientoKeys.preventivoListado,
+    });
+  }
 
   async function openOrden(id: string) {
     try {
@@ -161,7 +141,7 @@ export function MttoPreventivoGestion() {
       );
       setModalReasignar(false);
       setOrden(null);
-      await load();
+      await invalidatePreventivo();
     } catch (e) {
       showError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -196,7 +176,7 @@ export function MttoPreventivoGestion() {
       showSuccess(`Insertados ${res.ok}, errores ${res.err_db}`);
       setModalUpload(false);
       setUploadFile(null);
-      await load();
+      await invalidatePreventivo();
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Error');
     } finally {
@@ -207,21 +187,21 @@ export function MttoPreventivoGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">
-          Plan o Cronograma de Mantenimiento Preventivo
-        </h1>
-        <Link href="/dashboard/mantenimiento" className="text-sm text-amber-700 hover:underline">
-          ← Volver
-        </Link>
-      </div>
+    <MantenimientoPageFrame title={MANTENIMIENTO_COPY.preventivo.title}>
+      {eventosQuery.isError ? (
+        <MantenimientoQueryError
+          message={getErrorMessage(
+            eventosQuery.error,
+            MANTENIMIENTO_COPY.preventivo.loadError,
+          )}
+        />
+      ) : null}
 
       {puedeAdmin && (
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+            className={btnSuccessClass}
             onClick={() => {
               setUploadFile(null);
               setModalUpload(true);
@@ -231,14 +211,14 @@ export function MttoPreventivoGestion() {
           </button>
           <button
             type="button"
-            className="rounded-md bg-amber-500 px-4 py-2 text-sm font-semibold text-white"
+            className={btnWarningClass}
             onClick={descargarPlantilla}
           >
             Descargar Plantilla
           </button>
           <Link
             href="/dashboard/mantenimiento/mtto-preventivo/listado"
-            className="rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white"
+            className={btnInfoClass}
           >
             Ver listado Plantilla
           </Link>
@@ -285,21 +265,21 @@ export function MttoPreventivoGestion() {
 
             <div className="space-y-4 overflow-y-auto p-5">
               <div className="grid gap-3 sm:grid-cols-2">
-                <InfoChip
+                <MantenimientoInfoChip
                   label="Estado"
                   value={estadoLabel(orden.estado as string, 'prev')}
                   tone={estadoTonePrev(orden.estado as string)}
                 />
-                <InfoChip label="Bodega" value={String(orden.bodega ?? '')} />
-                <InfoChip
+                <MantenimientoInfoChip label="Bodega" value={String(orden.bodega ?? '')} />
+                <MantenimientoInfoChip
                   label="Periodo mtto"
                   value={periodoLabel(orden.periodo_mtto_preventivo)}
                 />
-                <InfoChip
+                <MantenimientoInfoChip
                   label="Responsable"
                   value={String(orden.nombre_responsable ?? '—')}
                 />
-                <InfoChip
+                <MantenimientoInfoChip
                   label="Asignado"
                   value={String(orden.nombre_asignado ?? '—')}
                 />
@@ -315,8 +295,8 @@ export function MttoPreventivoGestion() {
               </div>
 
               {puedeGestionar && Number(orden.estado) === 1 && (
-                <div className="space-y-3 rounded-xl border border-sky-100 bg-sky-50/40 p-4">
-                  <p className="text-sm font-semibold text-sky-900">Gestionar orden</p>
+                <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-info)_25%,white)] bg-[color-mix(in_srgb,var(--color-info)_8%,white)] p-4">
+                  <p className="text-sm font-semibold text-[var(--color-info)]">Gestionar orden</p>
                   <label className="block text-sm font-medium text-gray-700">
                     Asignado
                     <select
@@ -334,7 +314,7 @@ export function MttoPreventivoGestion() {
                   </label>
                   <button
                     type="button"
-                    className="w-full rounded-md bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                    className="w-full rounded-md bg-[var(--color-info)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
                     onClick={async () => {
                       try {
                         await mantenimientoService.iniciarOrden(
@@ -343,7 +323,7 @@ export function MttoPreventivoGestion() {
                         );
                         showSuccess('Iniciada');
                         setOrden(null);
-                        await load();
+                        await invalidatePreventivo();
                       } catch (e) {
                         showError(e instanceof Error ? e.message : 'Error');
                       }
@@ -355,8 +335,8 @@ export function MttoPreventivoGestion() {
               )}
 
               {puedeGestionar && Number(orden.estado) === 2 && (
-                <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-                  <p className="text-sm font-semibold text-emerald-900">Finalizar orden</p>
+                <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] p-4">
+                  <p className="text-sm font-semibold text-[var(--color-success)]">Finalizar orden</p>
                   <textarea
                     className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                     rows={2}
@@ -373,7 +353,7 @@ export function MttoPreventivoGestion() {
                   />
                   <button
                     type="button"
-                    className="w-full rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                    className="w-full rounded-md bg-[var(--color-success)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
                     onClick={abrirModalReasignar}
                   >
                     Finalizar
@@ -451,7 +431,7 @@ export function MttoPreventivoGestion() {
               </button>
             </div>
             <div className="space-y-4 p-5">
-              <FileField
+              <MantenimientoFileField
                 label="Archivo Excel del cronograma"
                 file={uploadFile}
                 accept=".xlsx,.xls"
@@ -472,7 +452,7 @@ export function MttoPreventivoGestion() {
               <button
                 type="button"
                 disabled={uploading || !uploadFile}
-                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                className={`${btnSuccessClass} disabled:opacity-50`}
                 onClick={() => void cargarCronograma()}
               >
                 {uploading ? 'Cargando…' : 'Cargar'}
@@ -481,7 +461,7 @@ export function MttoPreventivoGestion() {
           </div>
         </div>
       )}
-    </div>
+    </MantenimientoPageFrame>
   );
 }
 
@@ -592,7 +572,7 @@ function ModalReasignarPreventivo({
           )}
 
           {fechaProx ? (
-            <p className="rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+            <p className="rounded-lg border border-[color-mix(in_srgb,var(--color-info)_25%,white)] bg-[color-mix(in_srgb,var(--color-info)_8%,white)] px-3 py-2 text-sm text-[var(--color-info)]">
               Nueva fecha requerida:{' '}
               <span className="font-semibold">{formatFechaEs(fechaProx)}</span>
             </p>
@@ -615,7 +595,7 @@ function ModalReasignarPreventivo({
           <button
             type="button"
             disabled={busy || (sinPeriodo && !periodoSelect)}
-            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            className={`${btnSuccessClass} disabled:opacity-50`}
             onClick={onSi}
           >
             {busy ? 'Procesando…' : 'Sí, reasignar'}
@@ -628,37 +608,11 @@ function ModalReasignarPreventivo({
 
 function estadoTonePrev(estado: number | string) {
   const n = Number(estado);
-  if (n === 1) return 'border-sky-200 bg-sky-50 text-sky-800';
-  if (n === 2) return 'border-amber-200 bg-amber-50 text-amber-800';
-  if (n === 3) return 'border-green-200 bg-green-50 text-green-800';
+  if (n === 1)
+    return 'border-[color-mix(in_srgb,var(--color-info)_35%,white)] bg-[color-mix(in_srgb,var(--color-info)_10%,white)] text-[var(--color-info)]';
+  if (n === 2)
+    return 'border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] text-[var(--color-warning)]';
+  if (n === 3)
+    return 'border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]';
   return 'border-gray-100 bg-white text-gray-900';
-}
-
-function InfoChip({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: string;
-}) {
-  return (
-    <div
-      className={`rounded-xl border px-3 py-2 shadow-sm ${
-        tone ?? 'border-gray-100 bg-white'
-      }`}
-    >
-      <p
-        className={`text-[11px] font-semibold uppercase tracking-wide ${
-          tone ? 'opacity-70' : 'text-gray-500'
-        }`}
-      >
-        {label}
-      </p>
-      <p className={`mt-0.5 text-sm font-medium ${tone ? '' : 'text-gray-900'}`}>
-        {value || '—'}
-      </p>
-    </div>
-  );
 }

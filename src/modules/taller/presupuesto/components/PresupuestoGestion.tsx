@@ -18,6 +18,13 @@ import type {
 import { FiltrosPresupuesto } from "./FiltrosPresupuesto";
 import { TablaPresupuesto } from "./TablaPresupuesto";
 import { ModalActualizarPresupuesto } from "./modals/ModalActualizarPresupuesto";
+import {
+  CODIESEL_EMPRESA_ID,
+  PRESUPUESTO_SUBMENU_ID,
+} from "@/utils/constants";
+import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
+import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
+import { TALLER_COPY } from "@/modules/taller/constants";
 
 const EMPTY_FILTROS: FiltrosPresupuestoState = {
   idCategoria: "",
@@ -26,6 +33,10 @@ const EMPTY_FILTROS: FiltrosPresupuestoState = {
 };
 
 export function PresupuestoGestion() {
+  const { blocked } = useTallerPageGuard(
+    PRESUPUESTO_SUBMENU_ID,
+    CODIESEL_EMPRESA_ID,
+  );
   const { showError, showSuccess } = useToast();
   const [filtros, setFiltros] = useState<FiltrosPresupuestoState>(EMPTY_FILTROS);
   const [resultado, setResultado] = useState<ConsultarPresupuestoResponse | null>(
@@ -102,7 +113,13 @@ export function PresupuestoGestion() {
 
   const loading = consultarMutation.isPending || loadingCatalogos;
 
+  if (blocked) return null;
+
   return (
+    <TallerPageFrame
+      title={TALLER_COPY.presupuesto.title}
+      description={TALLER_COPY.presupuesto.description}
+    >
     <div className="space-y-4">
       <FiltrosPresupuesto
         filtros={filtros}
@@ -152,5 +169,6 @@ export function PresupuestoGestion() {
         onGuardar={handleGuardar}
       />
     </div>
+    </TallerPageFrame>
   );
 }

@@ -5,12 +5,17 @@ import { useMutation } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSuccessClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
 import { formatDateOnly } from '@/modules/contact-center/shared/utils/format-date-only';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { INFORME_BASE_DATOS_CC_SUBMENU_ID } from '@/utils/constants';
 import {
   getHeadersForTipo,
   informeBaseDatosService,
@@ -52,6 +57,7 @@ function normalizeRows(
 }
 
 export function InformeBaseDatosGestion() {
+  const { blocked } = useContactCenterPageGuard(INFORME_BASE_DATOS_CC_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [tipo, setTipo] = useState<TipoInformeDb | ''>('');
   const [dateStart, setDateStart] = useState('');
@@ -82,11 +88,12 @@ export function InformeBaseDatosGestion() {
       setPaginaActual(1);
       showSuccess(data.message);
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error al consultar informe')),
   });
 
   const totalPaginas = Math.max(1, Math.ceil(tableRows.length / FILAS_POR_PAGINA));
-  const inicio = (paginaActual - 1) * FILAS_POR_PAGINA;
+  const paginaSegura = Math.min(paginaActual, totalPaginas);
+  const inicio = (paginaSegura - 1) * FILAS_POR_PAGINA;
   const paginatedRows = useMemo(
     () => tableRows.slice(inicio, inicio + FILAS_POR_PAGINA),
     [tableRows, inicio],
@@ -107,13 +114,20 @@ export function InformeBaseDatosGestion() {
     XLSX.writeFile(wb, 'informe-base-datos-cc.xlsx');
   };
 
+  if (blocked) return null;
+
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.informeBaseDatos.title}
+      description={CONTACT_CENTER_COPY.informeBaseDatos.description}
+    >
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">Tipo (*)</label>
+            <label htmlFor="cc-bdc-tipo" className="text-sm font-medium text-gray-700">Tipo (*)</label>
             <select
+              id="cc-bdc-tipo"
               className={inputClass}
               value={tipo}
               onChange={(e) => {
@@ -128,10 +142,11 @@ export function InformeBaseDatosGestion() {
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">
+            <label htmlFor="cc-bdc-fecha-desde" className="text-sm font-medium text-gray-700">
               {tipo === '2' ? 'Fecha inicio (km)' : 'Fecha desde'}
             </label>
             <input
+              id="cc-bdc-fecha-desde"
               type="date"
               className={inputClass}
               value={dateStart}
@@ -139,8 +154,9 @@ export function InformeBaseDatosGestion() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Fecha hasta</label>
+            <label htmlFor="cc-bdc-fecha-hasta" className="text-sm font-medium text-gray-700">Fecha hasta</label>
             <input
+              id="cc-bdc-fecha-hasta"
               type="date"
               className={inputClass}
               value={dateEnd}
@@ -191,7 +207,7 @@ export function InformeBaseDatosGestion() {
           {tableRows.length > FILAS_POR_PAGINA && (
             <div className="mt-4">
               <Pagination
-                currentPage={paginaActual}
+                currentPage={paginaSegura}
                 totalPages={totalPaginas}
                 onChange={setPaginaActual}
               />
@@ -200,6 +216,7 @@ export function InformeBaseDatosGestion() {
         </div>
       )}
     </div>
+    </ContactCenterPageFrame>
   );
 }
 

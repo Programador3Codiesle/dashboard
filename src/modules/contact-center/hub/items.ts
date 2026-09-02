@@ -9,6 +9,7 @@ import type { HubItem } from '@/components/shared/hub/types';
 import {
   AGENDAMIENTO_LEADS_SUBMENU_ID,
   AUDITORIA_CC_SUBMENU_ID,
+  CODIESEL_EMPRESA_ID,
   DISTRIBUCION_AGENTE_CC_SUBMENU_ID,
   DISTRIBUCION_CC_SUBMENU_ID,
   INFORME_BASE_DATOS_CC_SUBMENU_ID,
@@ -21,6 +22,7 @@ export const CONTACT_CENTER_HUB_ITEMS: HubItem[] = [
     descripcion: 'Informes de clientes por tiempo, kilometraje o fecha de entrega',
     ruta: '/dashboard/contact-center/informe-base-datos',
     submenuId: INFORME_BASE_DATOS_CC_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
     icono: Database,
   },
   {
@@ -29,6 +31,7 @@ export const CONTACT_CENTER_HUB_ITEMS: HubItem[] = [
     descripcion: 'Matriz de asignación agente por bodega con porcentajes',
     ruta: '/dashboard/contact-center/distribucion',
     submenuId: DISTRIBUCION_CC_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
     icono: Grid3X3,
   },
   {
@@ -37,6 +40,7 @@ export const CONTACT_CENTER_HUB_ITEMS: HubItem[] = [
     descripcion: 'Gestiones actuales, futuras y recordación del agente',
     ruta: '/dashboard/contact-center/distribucion-agente',
     submenuId: DISTRIBUCION_AGENTE_CC_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
     icono: UserCheck,
   },
   {
@@ -45,6 +49,7 @@ export const CONTACT_CENTER_HUB_ITEMS: HubItem[] = [
     descripcion: 'Asignación y gestión de leads de postventa',
     ruta: '/dashboard/contact-center/agendamiento-leads',
     submenuId: AGENDAMIENTO_LEADS_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
     icono: PhoneCall,
   },
   {
@@ -53,6 +58,7 @@ export const CONTACT_CENTER_HUB_ITEMS: HubItem[] = [
     descripcion: 'Auditorías de agentes, configuración e informes detallados',
     ruta: '/dashboard/contact-center/auditoria',
     submenuId: AUDITORIA_CC_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
     icono: ClipboardCheck,
   },
 ];

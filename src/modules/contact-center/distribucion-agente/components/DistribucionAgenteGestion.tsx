@@ -2,6 +2,12 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
+import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
+import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
+import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
+import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
+import { DISTRIBUCION_AGENTE_CC_SUBMENU_ID } from '@/utils/constants';
 import { distribucionAgenteService, GaRow } from '../services/distribucion-agente.service';
 
 type TabId = 'actuales' | 'futuras' | 'recordacion';
@@ -40,7 +46,12 @@ function GaTable({ rows, loading }: { rows: GaRow[]; loading: boolean }) {
               <td className="px-3 py-2">{r.fechaEstimada}</td>
               <td className="px-3 py-2">{r.estado}</td>
               <td className="px-3 py-2">
-                <button type="button" className="text-xs rounded bg-sky-500 text-white px-2 py-1">
+                <button
+                  type="button"
+                  disabled
+                  title="Acción no disponible en esta versión"
+                  className="text-xs rounded brand-bg text-white px-2 py-1 disabled:opacity-50"
+                >
                   Iniciar
                 </button>
               </td>
@@ -53,30 +64,22 @@ function GaTable({ rows, loading }: { rows: GaRow[]; loading: boolean }) {
 }
 
 export function DistribucionAgenteGestion() {
+  const { user, blocked } = useContactCenterPageGuard(DISTRIBUCION_AGENTE_CC_SUBMENU_ID);
   const [tab, setTab] = useState<TabId>('actuales');
 
   const actuales = useQuery({
     queryKey: ['contact-center', 'distribucion-agente', 'actuales'],
     queryFn: () => distribucionAgenteService.gaActuales(),
-    enabled: tab === 'actuales',
+    enabled: !!user && !blocked && tab === 'actuales',
   });
 
-  const futuras = useQuery({
-    queryKey: ['contact-center', 'distribucion-agente', 'futuras'],
-    queryFn: () => distribucionAgenteService.gaFuturas(),
-    enabled: tab === 'futuras',
-  });
-
-  const recordacion = useQuery({
-    queryKey: ['contact-center', 'distribucion-agente', 'recordacion'],
-    queryFn: () => distribucionAgenteService.gaRecordacion(),
-    enabled: tab === 'recordacion',
-  });
-
-  const activeQuery =
-    tab === 'actuales' ? actuales : tab === 'futuras' ? futuras : recordacion;
+  if (blocked) return null;
 
   return (
+    <ContactCenterPageFrame
+      title={CONTACT_CENTER_COPY.distribucionAgente.title}
+      description={CONTACT_CENTER_COPY.distribucionAgente.description}
+    >
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 border-b border-gray-200">
         {TABS.map((t) => (
@@ -103,10 +106,15 @@ export function DistribucionAgenteGestion() {
           <p className="text-gray-500 text-sm py-4">
             Módulo en construcción (equivalente al placeholder legacy).
           </p>
+        ) : actuales.isError ? (
+          <CcQueryError
+            message={getErrorMessage(actuales.error, 'Error al cargar G.A. actuales')}
+          />
         ) : (
-          <GaTable rows={activeQuery.data ?? []} loading={activeQuery.isLoading} />
+          <GaTable rows={actuales.data ?? []} loading={actuales.isLoading} />
         )}
       </div>
     </div>
+    </ContactCenterPageFrame>
   );
 }

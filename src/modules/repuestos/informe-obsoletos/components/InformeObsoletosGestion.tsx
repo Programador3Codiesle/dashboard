@@ -4,10 +4,15 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/components/ui/use-toast';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
 import {
   btnPrimaryClass,
   inputClass,
 } from '@/modules/repuestos/shared/constants/ui';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { getErrorMessage } from '@/modules/repuestos/shared/utils/get-error-message';
+import { INFORME_OBSOLETOS_SUBMENU_ID } from '@/utils/constants';
 import {
   informeObsoletosService,
   ObsoletoFiltroRow,
@@ -26,6 +31,7 @@ type FiltroState = {
 };
 
 export function InformeObsoletosGestion() {
+  const { blocked } = useRepuestosPageGuard(INFORME_OBSOLETOS_SUBMENU_ID);
   const { showError } = useToast();
   const [filtros, setFiltros] = useState<Record<number, FiltroState>>({
     1: { categoria: '', rango: '' },
@@ -50,7 +56,7 @@ export function InformeObsoletosGestion() {
       setRows(data);
       setDescuentos({});
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error al consultar')),
   });
 
   const exportarExcel = () => {
@@ -73,7 +79,13 @@ export function InformeObsoletosGestion() {
     XLSX.writeFile(wb, 'informe-obsoletos-filtro.xlsx');
   };
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.informeObsoletos.title}
+      description={REPUESTOS_COPY.informeObsoletos.description}
+    >
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
         <table className="min-w-full text-sm">
@@ -148,8 +160,8 @@ export function InformeObsoletosGestion() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={`${r.codigo}-${r.bodega}`} className="border-t">
+                {rows.map((r, i) => (
+                  <tr key={`${r.codigo}-${r.bodega}-${i}`} className="border-t">
                     <td className="px-2 py-1">{r.codigo}</td>
                     <td className="px-2 py-1">{r.descripcion}</td>
                     <td className="px-2 py-1 text-center">{r.bodega}</td>
@@ -181,5 +193,6 @@ export function InformeObsoletosGestion() {
         </div>
       )}
     </div>
+    </RepuestosPageFrame>
   );
 }

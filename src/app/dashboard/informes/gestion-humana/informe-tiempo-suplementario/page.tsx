@@ -1,23 +1,5 @@
-'use client';
+import { InformeTiempoSuplementarioGestion } from '@/modules/administracion/informe-tiempo-suplementario/components/InformeTiempoSuplementarioGestion';
 
-// Reutilizamos exactamente la misma pantalla ya migrada en Administración
-export { default } from "@/app/dashboard/administracion/informe-tiempo-suplementario/page";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export default function InformeTiempoSuplementarioInformePage() {
+  return <InformeTiempoSuplementarioGestion />;
+}

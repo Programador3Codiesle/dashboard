@@ -4,6 +4,10 @@ import { usuariosService } from '../services/usuarios.service';
 import { HorarioData, IHorarioApi } from '../types';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { USUARIOS_QUERY_KEY } from './useUsuarios';
+import {
+    JEFES_GENERAL_QUERY_KEY,
+    USUARIOS_JEFES_QUERY_KEY,
+} from './useJefesGeneral';
 
 /**
  * Hook de acciones de usuario con React Query Mutations
@@ -31,7 +35,7 @@ export function useUsuarioActions() {
             showSuccess('Jefe asignado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al asignar jefe');
         },
     });
@@ -43,7 +47,7 @@ export function useUsuarioActions() {
             showSuccess('Jefe eliminado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al eliminar jefe');
         },
     });
@@ -54,8 +58,10 @@ export function useUsuarioActions() {
         onSuccess: () => {
             showSuccess('Jefe creado correctamente');
             invalidateUsuarios();
+            queryClient.invalidateQueries({ queryKey: JEFES_GENERAL_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: USUARIOS_JEFES_QUERY_KEY });
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al crear jefe');
         },
     });
@@ -68,7 +74,7 @@ export function useUsuarioActions() {
             showSuccess('Sede asignada correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al asignar sede');
         },
     });
@@ -80,7 +86,7 @@ export function useUsuarioActions() {
             showSuccess('Sede eliminada correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al eliminar sede');
         },
     });
@@ -93,7 +99,7 @@ export function useUsuarioActions() {
             showSuccess('Perfil actualizado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al actualizar perfil');
         },
     });
@@ -108,7 +114,7 @@ export function useUsuarioActions() {
             showSuccess('Horario guardado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al guardar horario');
         },
     });
@@ -121,7 +127,7 @@ export function useUsuarioActions() {
             showSuccess('Empresas asignadas correctamente');
             // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al asignar empresas');
             // El componente se encarga de revertir el optimistic update si falla
         },
@@ -134,7 +140,7 @@ export function useUsuarioActions() {
             showSuccess('Empresas eliminadas correctamente');
             // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al eliminar empresas');
             // El componente se encarga de revertir el optimistic update si falla
         },
@@ -148,7 +154,7 @@ export function useUsuarioActions() {
             showSuccess('Usuario creado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al crear usuario');
         },
     });
@@ -159,7 +165,7 @@ export function useUsuarioActions() {
             showSuccess('Usuario habilitado correctamente');
             // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al habilitar usuario');
             // El componente se encarga de revertir el optimistic update si falla
         },
@@ -171,7 +177,7 @@ export function useUsuarioActions() {
             showSuccess('Usuario deshabilitado correctamente');
             // NO hacer invalidateUsuarios() - el componente ya hizo optimistic update
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al deshabilitar usuario');
             // El componente se encarga de revertir el optimistic update si falla
         },
@@ -183,7 +189,7 @@ export function useUsuarioActions() {
         onSuccess: () => {
             showSuccess('Contraseña actualizada correctamente');
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al actualizar contraseña');
         },
     });
@@ -194,7 +200,7 @@ export function useUsuarioActions() {
             showSuccess('Usuario eliminado correctamente');
             invalidateUsuarios();
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             showError(error.message || 'Error al eliminar usuario');
         },
     });

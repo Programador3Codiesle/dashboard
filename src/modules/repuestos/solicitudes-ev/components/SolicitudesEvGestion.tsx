@@ -4,11 +4,21 @@ import { useCallback, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { useToast } from '@/components/ui/use-toast';
+import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
+import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
   inputClass,
 } from '@/modules/repuestos/shared/constants/ui';
+import {
+  FILTROS_EV_VACIOS,
+  FiltrosEvBar,
+  toEvListarPayload,
+} from '@/modules/repuestos/shared/components/FiltrosEvBar';
+import { useRepuestosPageGuard } from '@/modules/repuestos/shared/hooks/useRepuestosPageGuard';
+import { getErrorMessage } from '@/modules/repuestos/shared/utils/get-error-message';
+import { SOLICITUDES_EV_SUBMENU_ID } from '@/utils/constants';
 import {
   DetalleLinea,
   solicitudesEvService,
@@ -23,14 +33,11 @@ const estadoRowClass = (estado: number | null) => {
 };
 
 export function SolicitudesEvGestion() {
+  const { blocked } = useRepuestosPageGuard(SOLICITUDES_EV_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
-  const [filtros, setFiltros] = useState({
-    nOrden: '',
-    placa: '',
-    bodega: '',
-    fechaRegistro: '',
-  });
-  const [buscar, setBuscar] = useState(false);
+  const [filtros, setFiltros] = useState(FILTROS_EV_VACIOS);
+  const [filtrosAplicados, setFiltrosAplicados] = useState(FILTROS_EV_VACIOS);
+  const [consulta, setConsulta] = useState(0);
   const [modalGestion, setModalGestion] = useState(false);
   const [modalDetalle, setModalDetalle] = useState(false);
   const [modalEv, setModalEv] = useState(false);
@@ -49,15 +56,9 @@ export function SolicitudesEvGestion() {
   });
 
   const listarQuery = useQuery({
-    queryKey: ['repuestos', 'solicitudes-ev', 'listar', filtros, buscar],
-    queryFn: () =>
-      solicitudesEvService.listar({
-        nOrden: filtros.nOrden ? Number(filtros.nOrden) : undefined,
-        placa: filtros.placa || undefined,
-        bodega: filtros.bodega ? Number(filtros.bodega) : undefined,
-        fechaRegistro: filtros.fechaRegistro || undefined,
-      }),
-    enabled: buscar,
+    queryKey: ['repuestos', 'solicitudes-ev', 'listar', filtrosAplicados, consulta],
+    queryFn: () => solicitudesEvService.listar(toEvListarPayload(filtrosAplicados)),
+    enabled: consulta > 0,
   });
 
   const cargarDetalle = useCallback(
@@ -71,7 +72,7 @@ export function SolicitudesEvGestion() {
         if (modo === 0) setModalGestion(true);
         else setModalDetalle(true);
       } catch (e) {
-        showError(e instanceof Error ? e.message : 'Error al cargar detalle');
+        showError(getErrorMessage(e, 'Error al cargar detalle'));
       }
     },
     [showError],
@@ -93,10 +94,9 @@ export function SolicitudesEvGestion() {
     onSuccess: (data: { message: string }) => {
       showSuccess(data.message);
       setModalGestion(false);
-      setBuscar(true);
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo autorizar')),
   });
 
   const registrarEv = useMutation({
@@ -117,7 +117,7 @@ export function SolicitudesEvGestion() {
       if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo registrar EV')),
   });
 
   const registrarSv = useMutation({
@@ -138,7 +138,7 @@ export function SolicitudesEvGestion() {
       if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo registrar SV')),
   });
 
   const marcarEntregado = useMutation({
@@ -149,47 +149,26 @@ export function SolicitudesEvGestion() {
       if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
       listarQuery.refetch();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo marcar entregado')),
   });
 
+  if (blocked) return null;
+
   return (
+    <RepuestosPageFrame
+      title={REPUESTOS_COPY.solicitudesEv.title}
+      description={REPUESTOS_COPY.solicitudesEv.description}
+    >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-3">
-        <input
-          type="number"
-          placeholder="N° Orden"
-          className={inputClass}
-          value={filtros.nOrden}
-          onChange={(e) => setFiltros((f) => ({ ...f, nOrden: e.target.value }))}
-        />
-        <input
-          placeholder="Placa"
-          className={inputClass}
-          value={filtros.placa}
-          onChange={(e) => setFiltros((f) => ({ ...f, placa: e.target.value.toUpperCase() }))}
-        />
-        <select
-          className={inputClass}
-          value={filtros.bodega}
-          onChange={(e) => setFiltros((f) => ({ ...f, bodega: e.target.value }))}
-        >
-          <option value="">Bodega</option>
-          {bodegas.map((b) => (
-            <option key={b.bodega} value={b.bodega}>
-              {b.descripcion}
-            </option>
-          ))}
-        </select>
-        <input
-          type="date"
-          className={inputClass}
-          value={filtros.fechaRegistro}
-          onChange={(e) => setFiltros((f) => ({ ...f, fechaRegistro: e.target.value }))}
-        />
-        <button type="button" className={btnPrimaryClass} onClick={() => setBuscar(true)}>
-          Buscar
-        </button>
-      </div>
+      <FiltrosEvBar
+        filtros={filtros}
+        onChange={setFiltros}
+        bodegas={bodegas}
+        onBuscar={() => {
+          setFiltrosAplicados(filtros);
+          setConsulta((n) => n + 1);
+        }}
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
         <table className="min-w-full text-xs md:text-sm">
@@ -315,7 +294,12 @@ export function SolicitudesEvGestion() {
         </div>
       </Modal>
 
-      <Modal open={modalEv} onClose={() => setModalEv(false)} title="Entrada Varia">
+      <Modal
+        key={modalEv ? `ev-${lineaActiva?.id}` : 'ev'}
+        open={modalEv}
+        onClose={() => setModalEv(false)}
+        title="Entrada Varia"
+      >
         <div className="space-y-3">
           {(['tipoEv', 'numeroEv', 'numeroOrdenEv'] as const).map((field) => (
             <input key={field} className={inputClass} placeholder={field} value={evForm[field]} onChange={(e) => setEvForm((f) => ({ ...f, [field]: e.target.value }))} />
@@ -325,7 +309,12 @@ export function SolicitudesEvGestion() {
         </div>
       </Modal>
 
-      <Modal open={modalSv} onClose={() => setModalSv(false)} title="Salida Varia">
+      <Modal
+        key={modalSv ? `sv-${lineaActiva?.id}` : 'sv'}
+        open={modalSv}
+        onClose={() => setModalSv(false)}
+        title="Salida Varia"
+      >
         <div className="space-y-3">
           {(['tipoSv', 'numeroSv', 'numeroOrdenSv'] as const).map((field) => (
             <input key={field} className={inputClass} placeholder={field} value={svForm[field]} onChange={(e) => setSvForm((f) => ({ ...f, [field]: e.target.value }))} />
@@ -335,5 +324,6 @@ export function SolicitudesEvGestion() {
         </div>
       </Modal>
     </div>
+    </RepuestosPageFrame>
   );
 }

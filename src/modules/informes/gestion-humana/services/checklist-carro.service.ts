@@ -86,7 +86,7 @@ export interface ChecklistCarroAPI {
   observacion_general: string | null;
 }
 
-export interface ChecklistCarro extends ChecklistCarroAPI {}
+export type ChecklistCarro = ChecklistCarroAPI;
 
 export interface FiltrosChecklistCarro {
   fechaIni?: string;

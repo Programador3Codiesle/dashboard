@@ -1,19 +1,38 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useMutation } from '@tanstack/react-query';
 import { Download, Upload } from 'lucide-react';
-import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
-import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.service';
-import { NPS_TECNICOS_INGRESO_SUBMENU_ID } from '@/utils/constants';
 import { useToast } from '@/components/ui/use-toast';
 import { fetchWithAuth } from '@/utils/api';
+import { EncuestasPageFrame } from '@/modules/encuestas/components/EncuestasPageFrame';
+import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
+import {
+  btnPrimaryClass,
+  btnSecondaryClass,
+} from '@/modules/encuestas/shared/constants/ui';
+import { useEncuestasPageGuard } from '@/modules/encuestas/shared/hooks/useEncuestasPageGuard';
+import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.service';
+import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
+import { NPS_TECNICOS_INGRESO_SUBMENU_ID } from '@/utils/constants';
 
 export function NpsTecnicosCargaGestion() {
   const { blocked } = useEncuestasPageGuard(NPS_TECNICOS_INGRESO_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const uploadMutation = useMutation({
+    mutationFn: (f: File) => encuestasService.uploadNpsTecnicos(f),
+    onSuccess: (r) => {
+      showSuccess(
+        `Se insertaron ${r.insertados} registros. Omitidos/fallidos: ${r.omitidos}.`,
+      );
+      setFile(null);
+    },
+    onError: (e) => {
+      showError(getErrorMessage(e, ENCUESTAS_COPY.npsTecnicos.uploadError));
+    },
+  });
 
   if (blocked) return null;
 
@@ -29,47 +48,30 @@ export function NpsTecnicosCargaGestion() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error descarga');
+      showError(getErrorMessage(e, 'Error descarga'));
     }
   }
 
-  async function cargar() {
+  function cargar() {
     if (!file) {
       showError('Seleccione un archivo');
       return;
     }
-    setLoading(true);
-    try {
-      const r = await encuestasService.uploadNpsTecnicos(file);
-      showSuccess(
-        `Se insertaron ${r.insertados} registros. Omitidos/fallidos: ${r.omitidos}.`,
-      );
-      setFile(null);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error al cargar');
-    } finally {
-      setLoading(false);
-    }
+    uploadMutation.mutate(file);
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="app-title-xl brand-text">Ingreso NPS Técnicos</h1>
-          <p className="text-sm text-muted-foreground">
-            Carga masiva desde archivo Excel GM
-          </p>
-        </div>
-        <Link href="/dashboard/encuestas" className="text-sm text-amber-700 hover:underline">
-          ← Volver a Encuestas
-        </Link>
-      </div>
-
+    <EncuestasPageFrame
+      title={ENCUESTAS_COPY.npsTecnicos.title}
+      description={ENCUESTAS_COPY.npsTecnicos.description}
+      backHref="/dashboard/encuestas"
+      backLabel={ENCUESTAS_COPY.npsTecnicos.backLabel}
+    >
       <div className="max-w-xl space-y-4 rounded-lg border bg-card p-6">
-        <label className="block text-sm font-medium">
+        <label htmlFor="nps-tecnicos-file" className="block text-sm font-medium">
           Archivo Excel
           <input
+            id="nps-tecnicos-file"
             type="file"
             accept=".xlsx,.xls"
             className="mt-2 block w-full text-sm"
@@ -82,23 +84,23 @@ export function NpsTecnicosCargaGestion() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            disabled={loading}
+            disabled={uploadMutation.isPending}
             onClick={cargar}
-            className="inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+            className={btnPrimaryClass}
           >
-            <Upload className="h-4 w-4" />
-            {loading ? 'Cargando...' : 'Cargar'}
+            <Upload className="mr-2 h-4 w-4" />
+            {uploadMutation.isPending ? 'Cargando...' : 'Cargar'}
           </button>
           <button
             type="button"
             onClick={descargarPlantilla}
-            className="inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm hover:bg-muted"
+            className={btnSecondaryClass}
           >
-            <Download className="h-4 w-4" />
+            <Download className="mr-2 h-4 w-4" />
             Descargar plantilla
           </button>
         </div>
       </div>
-    </div>
+    </EncuestasPageFrame>
   );
 }

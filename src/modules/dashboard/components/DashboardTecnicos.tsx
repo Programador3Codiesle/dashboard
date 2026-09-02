@@ -2,18 +2,20 @@
 
 import { memo, useMemo } from "react";
 import type { DashboardTecnicos as DashboardTecnicosType } from "../types";
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "decimal",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
+import { formatCurrency } from "../utils/format-currency";
+import { DashboardKpiCard } from "./DashboardKpiCard";
+import { DASHBOARD_STYLES } from "../constants";
+import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
-  const ventasSeries = data.ventas_mensuales ?? [];
-  const horasSeries = data.horas_mensuales ?? [];
+  const ventasSeries = useMemo(
+    () => data.ventas_mensuales ?? [],
+    [data.ventas_mensuales],
+  );
+  const horasSeries = useMemo(
+    () => data.horas_mensuales ?? [],
+    [data.horas_mensuales],
+  );
   const npsIntSeries = data.nps_interno_mensual ?? [];
   const npsGmSeries = data.nps_gm_mensual ?? [];
 
@@ -37,49 +39,34 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-bold text-gray-900">Dashboard Técnicos</h2>
-        <p className="text-sm text-gray-500">
-          Resumen diario e histórico de desempeño del técnico.
-        </p>
-      </div>
+        <PageTitleRow
+          title="Dashboard Técnicos"
+          description="Resumen diario e histórico de desempeño del técnico."
+          headingAs="h2"
+          headingClassName="text-xl font-bold text-gray-900"
+          descriptionClassName="text-sm text-gray-500"
+        />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Total Vendido</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.total_ventas)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">M.O</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.mo)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Repuestos</p>
-          <p className="text-2xl font-bold text-gray-900">
-            ${formatCurrency(data.rep)}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Horas Facturadas</p>
-          <p className="text-2xl font-bold text-gray-900">{data.horas_fac}</p>
-        </div>
+        <DashboardKpiCard
+          label="Total Vendido"
+          value={`$${formatCurrency(data.total_ventas)}`}
+        />
+        <DashboardKpiCard label="M.O" value={`$${formatCurrency(data.mo)}`} />
+        <DashboardKpiCard
+          label="Repuestos"
+          value={`$${formatCurrency(data.rep)}`}
+        />
+        <DashboardKpiCard label="Horas Facturadas" value={data.horas_fac} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">NPS Interno</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {Math.round(data.nps_int)}%
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">NPS Colmotores</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {Math.round(data.nps_col)}%
-          </p>
-        </div>
+        <DashboardKpiCard
+          label="NPS Interno"
+          value={`${Math.round(data.nps_int)}%`}
+        />
+        <DashboardKpiCard
+          label="NPS Colmotores"
+          value={`${Math.round(data.nps_col)}%`}
+        />
       </div>
       {(ventasSeries.length > 0 || horasSeries.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -103,7 +90,7 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
                       </div>
                       <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-linear-to-r from-sky-500 via-blue-500 to-indigo-500"
+                          className={DASHBOARD_STYLES.barPrimary}
                           style={{ width: `${width}%` }}
                         />
                       </div>
@@ -137,7 +124,7 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
                       </div>
                       <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-linear-to-r from-indigo-500 to-sky-500"
+                          className={DASHBOARD_STYLES.barPrimary}
                           style={{ width: `${width}%` }}
                         />
                       </div>
@@ -208,35 +195,6 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
         </div>
       )}
 
-      {/*  
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Ranking ventas (taller)</p>
-          <p className="text-2xl font-bold text-gray-900">
-            #{data.ranking_talleres.ran_vendido || "-"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Ranking NPS (taller)</p>
-          <p className="text-2xl font-bold text-gray-900">
-            #{data.ranking_talleres.ran_nps || "-"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Ranking ventas (sede)</p>
-          <p className="text-2xl font-bold text-gray-900">
-            #{data.ranking_sedes.ran_vendido || "-"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 shadow border border-gray-100">
-          <p className="text-sm text-gray-600">Ranking NPS (sede)</p>
-          <p className="text-2xl font-bold text-gray-900">
-            #{data.ranking_sedes.ran_nps || "-"}
-          </p>
-        </div>
-      </div>
-
-      */ }
       {data.ranking_presupuesto && data.ranking_presupuesto.length > 0 && (
         <div className="bg-white rounded-xl overflow-hidden shadow border border-gray-100">
           <h3 className="text-lg font-semibold p-4 border-b">Ranking mensual</h3>

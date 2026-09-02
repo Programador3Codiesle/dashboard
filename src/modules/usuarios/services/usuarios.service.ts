@@ -1,8 +1,6 @@
 import {
     IUsuario,
-    IUsuarioAPI,
     IUsuariosPaginatedResponseAPI,
-    HorarioData,
     IJefe,
     IJefeGeneral,
     ISede,
@@ -11,15 +9,17 @@ import {
     IUsuarioJefeCandidato,
     IApiMessageResponse
 } from "../types";
+import { mapUsuarioFromApi } from "../mappers";
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { USUARIOS_PAGE_SIZE } from "../constants";
 
 const API_URL = getApiBaseUrl();
 
 export const usuariosService = {
     async getUsuarios(
         page: number = 1,
-        limit: number = 10,
+        limit: number = USUARIOS_PAGE_SIZE,
         search: string = '',
     ): Promise<Omit<IUsuariosPaginatedResponseAPI, 'items'> & { items: IUsuario[] }> {
         const params = new URLSearchParams({ page: String(page), limit: String(limit) });
@@ -32,30 +32,7 @@ export const usuariosService = {
         if (!response.ok) throw new Error('Error al cargar usuarios');
         const data: IUsuariosPaginatedResponseAPI = await response.json();
         
-        // Mapear la respuesta de la API al formato esperado por el componente
-        const items = data.items.map((usuario) => {
-
-            const rawEstado = usuario.estado;
-            const isActivo =
-                rawEstado === 'ACTIVO' ||
-                rawEstado === '1' ||
-                rawEstado === 1 as any;
-            const estado: IUsuario['estado'] = isActivo ? 'Activo' : 'Inactivo';
-
-            return {
-                id: parseInt(usuario.id, 10),
-                idEmpleado: usuario.id_empleado,
-                nombre: usuario.nombresCompletos,
-                usuario: parseInt(usuario.nit, 10) || 0,
-                totalMarca: usuario.empresasNombresArray?.length || 0,
-                marcas: usuario.empresasNombresArray || [],
-                sede: usuario.sede || '',
-                estado,
-                perfil: usuario.perfil,
-                nit: usuario.nit,
-                empresas: usuario.empresasArray || [],
-            };
-        });
+        const items = data.items.map(mapUsuarioFromApi);
 
         return {
             ...data,

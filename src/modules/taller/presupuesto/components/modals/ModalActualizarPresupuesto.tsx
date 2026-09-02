@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Portal } from "@/components/shared/ui/Portal";
 import type { ModalActualizarState } from "../../types";
@@ -20,11 +20,33 @@ export function ModalActualizarPresupuesto({
   onClose,
   onGuardar,
 }: ModalActualizarPresupuestoProps) {
-  const [nuevoValor, setNuevoValor] = useState("");
+  if (!open || !state) return null;
 
-  useEffect(() => {
-    if (open) setNuevoValor("");
-  }, [open, state]);
+  const formKey = `${state.celda.anio}-${state.celda.mes}-${state.celda.sedeId}-${state.celda.tipoId}-${state.tipo}`;
+
+  return (
+    <ModalActualizarPresupuestoForm
+      key={formKey}
+      state={state}
+      guardando={guardando}
+      onClose={onClose}
+      onGuardar={onGuardar}
+    />
+  );
+}
+
+function ModalActualizarPresupuestoForm({
+  state,
+  guardando = false,
+  onClose,
+  onGuardar,
+}: {
+  state: ModalActualizarState;
+  guardando?: boolean;
+  onClose: () => void;
+  onGuardar: (nuevoValor: number) => Promise<void>;
+}) {
+  const [nuevoValor, setNuevoValor] = useState("");
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -35,8 +57,6 @@ export function ModalActualizarPresupuesto({
     },
     [nuevoValor, onGuardar],
   );
-
-  if (!open || !state) return null;
 
   const titulo =
     state.tipo === "saldo" ? "Actualizar Saldo" : "Actualizar Presupuesto";

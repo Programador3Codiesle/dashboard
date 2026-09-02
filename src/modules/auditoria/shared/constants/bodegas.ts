@@ -27,9 +27,3 @@ export const BODEGAS_FACTURACION_TALLER: BodegaOption[] = [
 export const BODEGAS_FACTURACION_TECNICO: BodegaOption[] = [
   ...BODEGAS_AUDITORIA_BASE,
 ];
-
-export function cumplimientoPct(venta: number, presupuesto: number): number {
-  if (!venta) return 0;
-  const den = presupuesto === 0 ? venta : presupuesto;
-  return (venta / den) * 100;
-}

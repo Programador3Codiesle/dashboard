@@ -7,4 +7,6 @@ export { DashboardCompras } from "./DashboardCompras";
 export { DashboardAsesorRep } from "./DashboardAsesorRep";
 export { DashboardInformeMto } from "./DashboardInformeMto";
 export { DashboardEmpty } from "./DashboardEmpty";
-export { DashboardSkeleton } from "./DashboardSkeleton";
+export { DashboardHomeGestion } from "./DashboardHomeGestion";
+export { DashboardKpiCard } from "./DashboardKpiCard";
+export { DashboardFechaBadge } from "./DashboardFechaBadge";

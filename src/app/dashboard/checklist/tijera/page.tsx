@@ -1,12 +1,9 @@
-'use client';
-
-import { CHECKLIST_TIJERA_SUBMENU_ID } from '@/utils/constants';
-import { ChecklistStandardForm } from '@/modules/checklist/shared/components/ChecklistStandardForm';
+import { ChecklistFormGestion } from '@/modules/checklist/components/ChecklistFormGestion';
 import { FORM_TIJERA } from '@/modules/checklist/shared/definitions/form-configs';
-import { useChecklistPageGuard } from '@/modules/checklist/shared/hooks/useChecklistPageGuard';
+import { CHECKLIST_TIJERA_SUBMENU_ID } from '@/utils/constants';
 
 export default function TijeraPage() {
-  const { blocked } = useChecklistPageGuard(CHECKLIST_TIJERA_SUBMENU_ID);
-  if (blocked) return null;
-  return <ChecklistStandardForm config={FORM_TIJERA} />;
+  return (
+    <ChecklistFormGestion submenuId={CHECKLIST_TIJERA_SUBMENU_ID} config={FORM_TIJERA} />
+  );
 }

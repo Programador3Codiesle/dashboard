@@ -106,6 +106,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           userName={user?.nombre_usuario}
           nomPerfil={user?.nom_perfil}
           empresaId={user?.empresa}
+          showEmpresaIcon={isMobile ? !showSidebar : isCollapsed}
         />
         
         <main className="flex-1 min-w-0 min-h-0 border-l-2 border-[var(--color-primary)]/20">

@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ExternalLink,
   MapPin,
@@ -11,8 +12,15 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
+import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
+import { btnSuccessClass } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
+import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
+import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
 import { estadoLabel } from '@/modules/mantenimiento/shared/constants/labels';
 import { EQUIPOS_MANTENIMIENTO_SUBMENU_ID } from '@/utils/constants';
 import { getApiPublicUrl } from '@/config/public-env';
@@ -22,6 +30,72 @@ import {
   type HojaVidaFormState,
 } from './HojaVidaFormFields';
 import { appendHojaVidaToForm, emptyTecnicos, emptyHidraulicos } from '../utils/hoja-vida';
+
+type HojaVidaRes = Awaited<ReturnType<typeof mantenimientoService.getHojaVida>>;
+
+function snapshotFromHoja(res: HojaVidaRes): {
+  nombre: string;
+  alias: string;
+  bodega: string;
+  area: string;
+  estado: string;
+  codigo: string;
+  hoja: HojaVidaFormState;
+} {
+  const eq = res.equipo;
+  const tec = res.tecnicos;
+  const hid = res.hidraulicos;
+  return {
+    nombre: String(eq.nombre_equipo ?? ''),
+    alias: String(eq.alias_equipo ?? ''),
+    bodega: String(eq.bodega ?? ''),
+    area: String(eq.area ?? ''),
+    estado: String(eq.estado ?? ''),
+    codigo: String(eq.codigo ?? ''),
+    hoja: {
+      fabricante: String(eq.fabricante ?? ''),
+      modelo: String(eq.modelo ?? ''),
+      marca: String(eq.marca ?? ''),
+      ubicacion: String(eq.ubicacion ?? ''),
+      sector: String(eq.sector ?? ''),
+      descripcion: String(eq.descripcion ?? ''),
+      periodo_mtto_preventivo: String(eq.periodo_mtto_preventivo ?? ''),
+      dist_nombre: String(eq.dist_nombre ?? ''),
+      dist_direccion: String(eq.dist_direccion ?? ''),
+      dist_telefono: String(eq.dist_telefono ?? ''),
+      dist_ciudad: String(eq.dist_ciudad ?? ''),
+      dist_departamento: String(eq.dist_departamento ?? ''),
+      dist_redes_sociales: String(eq.dist_redes_sociales ?? ''),
+      tiene_tecnicos: Boolean(tec),
+      tiene_hidraulicos: Boolean(hid),
+      tecnicos: tec
+        ? {
+            alimentacion: String(tec.alimentacion ?? ''),
+            frecuencia_alimentacion: String(tec.frecuencia_alimentacion ?? ''),
+            anio_fabricacion: String(tec.anio_fabricacion ?? ''),
+            numero_serie: String(tec.numero_serie ?? ''),
+            potencia_consumo: String(tec.potencia_consumo ?? ''),
+            peso: String(tec.peso ?? ''),
+            revolucion: String(tec.revolucion ?? ''),
+          }
+        : emptyTecnicos(),
+      hidraulicos: hid
+        ? {
+            capacidad_litros: String(hid.capacidad_litros ?? ''),
+            capacidad_carga_tn: String(hid.capacidad_carga_tn ?? ''),
+            tipo_aceite: String(hid.tipo_aceite ?? ''),
+            capacidad_maxima_carga: String(hid.capacidad_maxima_carga ?? ''),
+          }
+        : emptyHidraulicos(),
+      elementos: res.elementos.map((e) => e.texto),
+      recomendaciones: res.recomendaciones.map((e) => e.texto),
+      mtto_operativo: res.mtto_operativo.map((e) => e.texto),
+      file: null,
+    } satisfies HojaVidaFormState,
+  };
+}
+
+type HojaSnapshot = ReturnType<typeof snapshotFromHoja>;
 
 function imgUrl(name: string | null | undefined) {
   if (!name) return null;
@@ -53,9 +127,10 @@ function SpecGrid({
   if (!filled.length) return null;
   const wrap =
     tone === 'sky'
-      ? 'border-sky-200/80 bg-sky-50/50'
-      : 'border-emerald-200/80 bg-emerald-50/50';
-  const titleCls = tone === 'sky' ? 'text-sky-900' : 'text-emerald-900';
+      ? 'border-[color-mix(in_srgb,var(--color-info)_35%,white)] bg-[color-mix(in_srgb,var(--color-info)_8%,white)]'
+      : 'border-[color-mix(in_srgb,var(--color-success)_35%,white)] bg-[var(--color-success-soft)]';
+  const titleCls =
+    tone === 'sky' ? 'text-[var(--color-info)]' : 'text-[var(--color-success)]';
   return (
     <section className={`rounded-xl border ${wrap} p-3.5`}>
       <h3 className={`mb-2 text-xs font-bold uppercase tracking-wider ${titleCls}`}>
@@ -113,92 +188,42 @@ function ListaCompacta({
 export function EquipoHojaVidaGestion() {
   const params = useParams();
   const id = Number(params?.id);
-  const { blocked } = useMantenimientoPageGuard(EQUIPOS_MANTENIMIENTO_SUBMENU_ID);
+  const { blocked, user } = useMantenimientoPageGuard(
+    EQUIPOS_MANTENIMIENTO_SUBMENU_ID,
+  );
   const { showError, showSuccess } = useToast();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const sesionLista = !!user && !blocked && Number.isFinite(id) && id > 0;
   const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [data, setData] = useState<Awaited<
-    ReturnType<typeof mantenimientoService.getHojaVida>
-  > | null>(null);
-  const [hoja, setHoja] = useState<HojaVidaFormState>(emptyHojaVidaForm);
-  const [nombre, setNombre] = useState('');
-  const [alias, setAlias] = useState('');
-  const [bodega, setBodega] = useState('');
-  const [area, setArea] = useState('');
-  const [estado, setEstado] = useState('');
-  const [codigo, setCodigo] = useState('');
+  const [draft, setDraft] = useState<HojaSnapshot | null>(null);
 
-  const load = useCallback(async () => {
-    if (!id || Number.isNaN(id)) return;
-    setLoading(true);
-    try {
-      const res = await mantenimientoService.getHojaVida(id);
-      setData(res);
-      const eq = res.equipo;
-      setNombre(String(eq.nombre_equipo ?? ''));
-      setAlias(String(eq.alias_equipo ?? ''));
-      setBodega(String(eq.bodega ?? ''));
-      setArea(String(eq.area ?? ''));
-      setEstado(String(eq.estado ?? ''));
-      setCodigo(String(eq.codigo ?? ''));
-      const tec = res.tecnicos;
-      const hid = res.hidraulicos;
-      setHoja({
-        fabricante: String(eq.fabricante ?? ''),
-        modelo: String(eq.modelo ?? ''),
-        marca: String(eq.marca ?? ''),
-        ubicacion: String(eq.ubicacion ?? ''),
-        sector: String(eq.sector ?? ''),
-        descripcion: String(eq.descripcion ?? ''),
-        periodo_mtto_preventivo: String(eq.periodo_mtto_preventivo ?? ''),
-        dist_nombre: String(eq.dist_nombre ?? ''),
-        dist_direccion: String(eq.dist_direccion ?? ''),
-        dist_telefono: String(eq.dist_telefono ?? ''),
-        dist_ciudad: String(eq.dist_ciudad ?? ''),
-        dist_departamento: String(eq.dist_departamento ?? ''),
-        dist_redes_sociales: String(eq.dist_redes_sociales ?? ''),
-        tiene_tecnicos: Boolean(tec),
-        tiene_hidraulicos: Boolean(hid),
-        tecnicos: tec
-          ? {
-              alimentacion: String(tec.alimentacion ?? ''),
-              frecuencia_alimentacion: String(tec.frecuencia_alimentacion ?? ''),
-              anio_fabricacion: String(tec.anio_fabricacion ?? ''),
-              numero_serie: String(tec.numero_serie ?? ''),
-              potencia_consumo: String(tec.potencia_consumo ?? ''),
-              peso: String(tec.peso ?? ''),
-              revolucion: String(tec.revolucion ?? ''),
-            }
-          : emptyTecnicos(),
-        hidraulicos: hid
-          ? {
-              capacidad_litros: String(hid.capacidad_litros ?? ''),
-              capacidad_carga_tn: String(hid.capacidad_carga_tn ?? ''),
-              tipo_aceite: String(hid.tipo_aceite ?? ''),
-              capacidad_maxima_carga: String(hid.capacidad_maxima_carga ?? ''),
-            }
-          : emptyHidraulicos(),
-        elementos: res.elementos.map((e) => e.texto),
-        recomendaciones: res.recomendaciones.map((e) => e.texto),
-        mtto_operativo: res.mtto_operativo.map((e) => e.texto),
-        file: null,
-      });
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, showError]);
+  const hojaQuery = useQuery({
+    queryKey: mantenimientoKeys.hojaVida(id),
+    queryFn: () => mantenimientoService.getHojaVida(id),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
 
-  useEffect(() => {
-    if (blocked) return;
-    void load();
-  }, [blocked, load]);
+  const serverSnap = hojaQuery.data ? snapshotFromHoja(hojaQuery.data) : null;
+  const form = draft ?? serverSnap;
+  const nombre = form?.nombre ?? '';
+  const alias = form?.alias ?? '';
+  const bodega = form?.bodega ?? '';
+  const area = form?.area ?? '';
+  const estado = form?.estado ?? '';
+  const codigo = form?.codigo ?? '';
+  const hoja = form?.hoja ?? emptyHojaVidaForm();
 
-  async function guardar() {
-    setSaving(true);
-    try {
+  function patchDraft<K extends keyof HojaSnapshot>(key: K, value: HojaSnapshot[K]) {
+    setDraft((prev) => {
+      const base = prev ?? serverSnap;
+      if (!base) return prev;
+      return { ...base, [key]: value };
+    });
+  }
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       const form = new FormData();
       form.append('nombre_equipo', nombre);
       form.append('alias_equipo', alias);
@@ -208,22 +233,41 @@ export function EquipoHojaVidaGestion() {
       form.append('codigo', codigo);
       appendHojaVidaToForm(form, hoja);
       await mantenimientoService.updateHojaVida(id, form);
+    },
+    onSuccess: async () => {
       showSuccess('Hoja de vida actualizada');
       setEditing(false);
-      await load();
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-    } finally {
-      setSaving(false);
-    }
-  }
+      setDraft(null);
+      await queryClient.invalidateQueries({
+        queryKey: mantenimientoKeys.hojaVida(id),
+      });
+    },
+    onError: (e) => {
+      showError(getErrorMessage(e, 'Error al actualizar hoja de vida'));
+    },
+  });
 
   if (blocked) return null;
-  if (loading) {
+  if (hojaQuery.isLoading) {
     return <p className="py-10 text-center text-sm text-gray-500">Cargando hoja de vida…</p>;
   }
+  if (hojaQuery.isError) {
+    return (
+      <MantenimientoQueryError
+        message={getErrorMessage(
+          hojaQuery.error,
+          MANTENIMIENTO_COPY.hojaVida.loadError,
+        )}
+      />
+    );
+  }
+  const data = hojaQuery.data;
   if (!data) {
-    return <p className="py-10 text-center text-sm text-gray-500">Equipo no encontrado</p>;
+    return (
+      <p className="py-10 text-center text-sm text-gray-500">
+        {MANTENIMIENTO_COPY.hojaVida.empty}
+      </p>
+    );
   }
 
   const eq = data.equipo;
@@ -237,9 +281,9 @@ export function EquipoHojaVidaGestion() {
   const estadoStr = String(eq.estado ?? '');
   const estadoTone =
     estadoStr.toLowerCase() === 'activo'
-      ? 'bg-emerald-100 text-emerald-800'
+      ? 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
       : estadoStr.toLowerCase().includes('repar')
-        ? 'bg-amber-100 text-amber-800'
+        ? 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
         : 'bg-gray-100 text-gray-700';
 
   return (
@@ -248,7 +292,7 @@ export function EquipoHojaVidaGestion() {
         <div className="min-w-0">
           <Link
             href="/dashboard/mantenimiento/equipos"
-            className="text-xs font-medium text-amber-700 hover:underline"
+            className="text-xs font-medium brand-text hover:underline"
           >
             ← Volver a equipos
           </Link>
@@ -256,6 +300,7 @@ export function EquipoHojaVidaGestion() {
             <h1 className="app-title-xl brand-text truncate">
               {String(eq.alias_equipo || eq.nombre_equipo)}
             </h1>
+            <EmpresaBadge />
             <span
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${estadoTone}`}
             >
@@ -270,8 +315,11 @@ export function EquipoHojaVidaGestion() {
           {!editing ? (
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-md bg-(--color-primary) px-3.5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1.5 rounded-md brand-bg px-3.5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              onClick={() => {
+                if (serverSnap) setDraft(serverSnap);
+                setEditing(true);
+              }}
             >
               <Pencil className="h-3.5 w-3.5" />
               Editar
@@ -283,18 +331,18 @@ export function EquipoHojaVidaGestion() {
                 className="rounded-md border border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 onClick={() => {
                   setEditing(false);
-                  void load();
+                  setDraft(null);
                 }}
               >
                 Cancelar
               </button>
               <button
                 type="button"
-                disabled={saving}
-                className="rounded-md bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                onClick={() => void guardar()}
+                disabled={saveMutation.isPending}
+                className={btnSuccessClass}
+                onClick={() => saveMutation.mutate()}
               >
-                {saving ? 'Guardando…' : 'Guardar'}
+                {saveMutation.isPending ? 'Guardando…' : 'Guardar'}
               </button>
             </>
           )}
@@ -307,37 +355,37 @@ export function EquipoHojaVidaGestion() {
             <input
               className="rounded-lg border px-3 py-2 text-sm"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={(e) => patchDraft('nombre', e.target.value)}
               placeholder="Nombre equipo"
             />
             <input
               className="rounded-lg border px-3 py-2 text-sm"
               value={alias}
-              onChange={(e) => setAlias(e.target.value)}
+              onChange={(e) => patchDraft('alias', e.target.value)}
               placeholder="Alias"
             />
             <input
               className="rounded-lg border px-3 py-2 text-sm"
               value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
+              onChange={(e) => patchDraft('codigo', e.target.value)}
               placeholder="Código"
             />
             <input
               className="rounded-lg border px-3 py-2 text-sm"
               value={bodega}
-              onChange={(e) => setBodega(e.target.value)}
+              onChange={(e) => patchDraft('bodega', e.target.value)}
               placeholder="Bodega"
             />
             <input
               className="rounded-lg border px-3 py-2 text-sm"
               value={area}
-              onChange={(e) => setArea(e.target.value)}
+              onChange={(e) => patchDraft('area', e.target.value)}
               placeholder="Área"
             />
             <select
               className="rounded-lg border px-3 py-2 text-sm"
               value={estado}
-              onChange={(e) => setEstado(e.target.value)}
+              onChange={(e) => patchDraft('estado', e.target.value)}
             >
               <option value="Activo">Activo</option>
               <option value="Reparacion">Reparacion</option>
@@ -346,7 +394,9 @@ export function EquipoHojaVidaGestion() {
           </div>
           <HojaVidaFormFields
             value={hoja}
-            onChange={(patch) => setHoja((p) => ({ ...p, ...patch }))}
+            onChange={(patch) =>
+              patchDraft('hoja', { ...hoja, ...patch })
+            }
           />
         </div>
       ) : (
@@ -383,7 +433,7 @@ export function EquipoHojaVidaGestion() {
                     ) : null}
                   </div>
                   {periodo ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-900">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--color-warning)]">
                       <Wrench className="h-3 w-3" />
                       Mtto {periodo}
                     </span>
@@ -415,7 +465,7 @@ export function EquipoHojaVidaGestion() {
                     href={imgUrl(String(eq.cv_equipo))!}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sky-700 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-info)] hover:underline"
                   >
                     <ExternalLink className="h-3 w-3" />
                     Ver CV archivo legacy
@@ -523,7 +573,7 @@ export function EquipoHojaVidaGestion() {
                       href={String(eq.dist_redes_sociales)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 break-all pl-5 text-sky-700 hover:underline"
+                      className="inline-flex items-center gap-1 break-all pl-5 text-[var(--color-info)] hover:underline"
                     >
                       <ExternalLink className="h-3 w-3 shrink-0" />
                       Redes
@@ -541,9 +591,9 @@ export function EquipoHojaVidaGestion() {
                 Historial de mantenimiento
               </h3>
               <p className="text-[11px] text-gray-500">
-                <span className="mr-2 inline-block h-2 w-2 rounded-full bg-amber-400" />
+                <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[var(--color-warning)]" />
                 Preventivo
-                <span className="mx-2 inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="mx-2 inline-block h-2 w-2 rounded-full bg-[var(--color-success)]" />
                 Correctivo
               </p>
             </div>
@@ -580,7 +630,7 @@ export function EquipoHojaVidaGestion() {
                       {data.historial.preventivo.map((h, i) => (
                         <tr
                           key={`p-${i}`}
-                          className="border-t border-amber-100/80 bg-amber-50/60 align-top"
+                          className="border-t border-[color-mix(in_srgb,var(--color-warning)_20%,white)] bg-[var(--color-warning-soft)] align-top"
                         >
                           <td className="px-3 py-2 font-medium whitespace-nowrap">
                             Preventivo
@@ -612,7 +662,7 @@ export function EquipoHojaVidaGestion() {
                       {data.historial.correctivo.map((h, i) => (
                         <tr
                           key={`c-${i}`}
-                          className="border-t border-emerald-100/80 bg-emerald-50/60 align-top"
+                          className="border-t border-[color-mix(in_srgb,var(--color-success)_20%,white)] bg-[var(--color-success-soft)] align-top"
                         >
                           <td className="px-3 py-2 font-medium whitespace-nowrap">
                             Correctivo

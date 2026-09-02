@@ -5,6 +5,7 @@ import { EMPRESAS } from "@/utils/constants";
 import React, { useState, memo, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HeaderPageTitle } from "./HeaderPageTitle";
+import { EmpresaIcon } from "@/components/shared/brand/EmpresaIcon";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
   userName?: string;
   nomPerfil?: string;
   empresaId?: number;
+  showEmpresaIcon?: boolean;
 }
 
 function formatNombre(nombreCompleto: string): string {
@@ -47,7 +49,14 @@ function nombreCompacto(nombreFormateado: string): string {
   return `${w[0]} ${w[2]}`;
 }
 
-function HeaderComponent({ onToggleSidebar, onLogout, userName, nomPerfil, empresaId }: HeaderProps) {
+function HeaderComponent({
+  onToggleSidebar,
+  onLogout,
+  userName,
+  nomPerfil,
+  empresaId,
+  showEmpresaIcon = false,
+}: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
   const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
@@ -81,18 +90,17 @@ function HeaderComponent({ onToggleSidebar, onLogout, userName, nomPerfil, empre
           </button>
 
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            {showEmpresaIcon ? (
+              <EmpresaIcon
+                empresaId={empresaId}
+                size={48}
+                className="h-11 w-11 sm:h-12 sm:w-12"
+              />
+            ) : null}
             <div className="min-w-0">
               <HeaderPageTitle />
               <p className="truncate text-[11px] text-gray-500 sm:text-xs md:text-sm">Bienvenido de vuelta</p>
             </div>
-            {empresa && (
-              <span
-                className="hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm sm:inline-flex sm:px-3 sm:text-xs"
-                style={{ backgroundColor: empresa.color }}
-              >
-                {empresa.nombre}
-              </span>
-            )}
           </div>
         </div>
 

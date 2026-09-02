@@ -25,11 +25,79 @@ export interface VehiculoCotizacionLivianos {
   empresaMarcaId?: number | null;
 }
 
+export interface ClaseDescripcionLivianos {
+  clase: string;
+  descripcion: string;
+}
+
+export interface BodegaOptionLivianos {
+  bodega: number;
+  descripcion: string;
+}
+
+export interface AdicionalNombreLivianos {
+  id: number;
+  adicional: string;
+  estado: number;
+}
+
+export interface TipoRetornoLivianos {
+  id_tipo_retorno?: number;
+  id?: number;
+  tipo_retorno?: string;
+  nombre?: string;
+}
+
 export interface LivianosInitData {
-  clases: any[];
-  bodegas: any[];
-  adicionales: any[];
-  tiposRetorno: any[];
+  clases: ClaseDescripcionLivianos[];
+  bodegas: BodegaOptionLivianos[];
+  adicionales: AdicionalNombreLivianos[];
+  tiposRetorno: TipoRetornoLivianos[];
+}
+
+export interface RepuestoCotizacionRow extends RepuestoRevisionDetalle {
+  obligatorio: boolean;
+  autorizado: boolean;
+  adicional?: string | null;
+}
+
+export interface ManoObraCotizacionRow {
+  operacion: string;
+  descripcion_operacion: string;
+  valor_unitario: number;
+  cant_horas: number;
+  valor_mas_5anos?: number;
+  autorizado: boolean;
+  adicional?: string | null;
+}
+
+export interface RepuestoAdicionalModal {
+  codigo: string;
+  descripcion: string;
+  cantidad?: number | string;
+  categoria?: string;
+  unidades_disponibles?: number | string;
+  Valor?: number | string;
+  valor?: number | string;
+  descuento?: number | string | null;
+  name_adicional?: string;
+}
+
+export interface ManoObraAdicionalModal {
+  id?: number;
+  operacion: string;
+  tiempo?: number | string;
+  cant_horas?: number | string;
+  valor_menos_5anos?: number | string;
+  valor_mas_5anos?: number | string;
+  descuento?: number | string | null;
+  name_adicional?: string;
+}
+
+export interface AdicionalesModalResponse {
+  soloManoObra: boolean;
+  repuestos: RepuestoAdicionalModal[];
+  manoObra: ManoObraAdicionalModal[];
 }
 
 export interface RevisionOption {
@@ -245,7 +313,7 @@ export const cotizadorLivianosService = {
     bodega: number;
     adicional: number;
     year: number;
-  }): Promise<{ soloManoObra: boolean; repuestos: any[]; manoObra: any[] }> {
+  }): Promise<AdicionalesModalResponse> {
     const search = new URLSearchParams({
       clase: params.clase,
       bodega: String(params.bodega),
@@ -260,7 +328,7 @@ export const cotizadorLivianosService = {
       const msg = await response.text();
       throw new Error(msg || "No se pudieron cargar los datos del adicional.");
     }
-    return response.json();
+    return (await response.json()) as AdicionalesModalResponse;
   },
 
   async crearPosibleRetorno(payload: CrearPosibleRetornoPayload): Promise<{ idRetorno: number }> {

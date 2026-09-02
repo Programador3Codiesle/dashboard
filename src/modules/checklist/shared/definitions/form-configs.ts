@@ -21,7 +21,7 @@ export type FormularioChecklistConfig = {
 
 export const FORM_ALINEADOR: FormularioChecklistConfig = {
   check: 1,
-  tituloPagina: 'Inspección preoperacional de elevadores de aliniador',
+  tituloPagina: 'Inspección preoperacional de elevadores de alineador',
   tituloFormulario: 'INSPECCIÓN PREOPERACIONAL DEL ELEVADOR DEL ALINEADOR',
   codigoDocumento: 'CÓDIGO: GH- SST -F-030 | VERSIÓN: 23/09/2022 | EDICIÓN 2',
   codigoNumerico: true,

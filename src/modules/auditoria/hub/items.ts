@@ -6,7 +6,6 @@ import {
   ClipboardList,
   Factory,
   FileWarning,
-  Receipt,
   RotateCcw,
   UserCog,
   Wrench,

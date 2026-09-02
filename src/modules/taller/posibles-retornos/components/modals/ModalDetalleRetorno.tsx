@@ -14,7 +14,7 @@ interface ModalDetalleRetornoProps {
 export function ModalDetalleRetorno({
   open,
   detalle,
-  ordenOrigen,
+  ordenOrigen: _ordenOrigen,
   onClose,
   onGestionar,
 }: ModalDetalleRetornoProps) {
@@ -119,7 +119,7 @@ export function ModalDetalleRetorno({
           <div className="flex justify-end gap-2 p-4 border-t border-gray-200">
             <button
               type="button"
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white brand-bg brand-bg-hover"
               onClick={onGestionar}
             >
               Gestionar

@@ -3,14 +3,25 @@
 import type { ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { OrdenesTotPageFrame } from '@/modules/ordenes-tot/components/OrdenesTotPageFrame';
+import { ORDENES_TOT_COPY } from '@/modules/ordenes-tot/constants';
+import { OtQueryError } from '@/modules/ordenes-tot/shared/components/OtQueryError';
 import {
   btnPrimaryClass,
   btnSuccessClass,
+  porteriaAccentGeneral,
+  porteriaAccentTot,
+  porteriaAccentVehiculos,
 } from '@/modules/ordenes-tot/shared/constants/ui';
+import { ordenesTotKeys } from '@/modules/ordenes-tot/shared/constants/query-keys';
+import { useOrdenesTotPageGuard } from '@/modules/ordenes-tot/shared/hooks/useOrdenesTotPageGuard';
 import {
   ordenesTotService,
   type PorteriaItem,
 } from '@/modules/ordenes-tot/shared/services/ordenes-tot.service';
+import { getErrorMessage } from '@/modules/ordenes-tot/shared/utils/parse-api-error';
+import { BUSCAR_ORDENES_SUBMENU_ID } from '@/utils/constants';
 
 const POLL_MS = 3000;
 
@@ -34,7 +45,9 @@ function PorteriaCard({
   extraFields?: ReactNode;
 }) {
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden ${accentClass}`}>
+    <div
+      className={`overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ${accentClass}`}
+    >
       <div className="border-b border-gray-100 px-4 py-3">
         <h3 className="text-base font-bold text-gray-900">{title}</h3>
       </div>
@@ -66,29 +79,37 @@ function PorteriaCard({
 }
 
 export function BuscarOrdenesGestion() {
+  const { user, blocked } = useOrdenesTotPageGuard(BUSCAR_ORDENES_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
+  const sesionLista = !!user && !blocked;
 
   const vehiculosQuery = useQuery({
-    queryKey: ['ordenes-tot', 'porteria', 'vehiculos'],
+    queryKey: ordenesTotKeys.porteriaVehiculos,
     queryFn: () => ordenesTotService.porteriaVehiculos(),
     refetchInterval: POLL_MS,
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
   });
 
   const totQuery = useQuery({
-    queryKey: ['ordenes-tot', 'porteria', 'tot'],
+    queryKey: ordenesTotKeys.porteriaTot,
     queryFn: () => ordenesTotService.porteriaTot(),
     refetchInterval: POLL_MS,
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
   });
 
   const ordenesQuery = useQuery({
-    queryKey: ['ordenes-tot', 'porteria', 'ordenes-generales'],
+    queryKey: ordenesTotKeys.porteriaOrdenes,
     queryFn: () => ordenesTotService.porteriaOrdenesGenerales(),
     refetchInterval: POLL_MS,
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
   });
 
   const invalidatePorteria = () => {
-    queryClient.invalidateQueries({ queryKey: ['ordenes-tot', 'porteria'] });
+    queryClient.invalidateQueries({ queryKey: ordenesTotKeys.porteria });
   };
 
   const confirmarSalida = useMutation({
@@ -97,7 +118,8 @@ export function BuscarOrdenesGestion() {
       showSuccess('Salida confirmada');
       invalidatePorteria();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) =>
+      showError(getErrorMessage(e, 'Error al confirmar salida')),
   });
 
   const confirmarReingreso = useMutation({
@@ -106,44 +128,61 @@ export function BuscarOrdenesGestion() {
       showSuccess('Reingreso confirmado');
       invalidatePorteria();
     },
-    onError: (e: Error) => showError(e.message),
+    onError: (e: unknown) =>
+      showError(getErrorMessage(e, 'Error al confirmar reingreso')),
   });
 
-  const pendingAction =
-    confirmarSalida.isPending || confirmarReingreso.isPending;
+  const pendingAction = confirmarSalida.isPending || confirmarReingreso.isPending;
+
+  if (blocked) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+    <OrdenesTotPageFrame
+      title={ORDENES_TOT_COPY.buscarOrdenes.title}
+      description={ORDENES_TOT_COPY.buscarOrdenes.description}
+    >
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
             Vehículos
           </h3>
           {vehiculosQuery.isLoading && (
             <p className="text-sm text-gray-500">Cargando...</p>
           )}
+          {vehiculosQuery.isError && (
+            <OtQueryError
+              message={getErrorMessage(
+                vehiculosQuery.error,
+                'Error al cargar vehículos de portería',
+              )}
+            />
+          )}
           {(vehiculosQuery.data ?? []).map((item) => (
             <PorteriaCard
               key={`vh-${item.id}`}
               item={item}
               title={`PLACA: ${item.placa || '—'}`}
-              accentClass="border-l-4 border-l-amber-400"
+              accentClass={porteriaAccentVehiculos}
               buttonClass={btnSuccessClass}
               actionLabel="Confirmar Salida"
               pending={pendingAction}
               onAction={() => confirmarSalida.mutate(item.id)}
             />
           ))}
-          {!vehiculosQuery.isLoading && (vehiculosQuery.data ?? []).length === 0 && (
-            <p className="text-sm text-gray-500">Sin vehículos pendientes</p>
-          )}
+          {!vehiculosQuery.isLoading &&
+            !vehiculosQuery.isError &&
+            (vehiculosQuery.data ?? []).length === 0 && (
+              <p className="text-sm text-gray-500">Sin vehículos pendientes</p>
+            )}
         </section>
 
-        <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
-            TOT
-          </h3>
-          {totQuery.isLoading && (
-            <p className="text-sm text-gray-500">Cargando...</p>
+        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">TOT</h3>
+          {totQuery.isLoading && <p className="text-sm text-gray-500">Cargando...</p>}
+          {totQuery.isError && (
+            <OtQueryError
+              message={getErrorMessage(totQuery.error, 'Error al cargar TOT de portería')}
+            />
           )}
           {(totQuery.data ?? []).map((item) => {
             const reingreso = Boolean(item.fechaSalida);
@@ -152,7 +191,7 @@ export function BuscarOrdenesGestion() {
                 key={`tot-${item.id}`}
                 item={item}
                 title={`PLACA: ${item.placa || '—'}`}
-                accentClass="border-l-4 border-l-sky-400"
+                accentClass={porteriaAccentTot}
                 buttonClass={btnPrimaryClass}
                 actionLabel={reingreso ? 'Confirmar Reingreso' : 'Confirmar Salida'}
                 pending={pendingAction}
@@ -174,24 +213,34 @@ export function BuscarOrdenesGestion() {
               />
             );
           })}
-          {!totQuery.isLoading && (totQuery.data ?? []).length === 0 && (
-            <p className="text-sm text-gray-500">Sin TOT pendientes</p>
-          )}
+          {!totQuery.isLoading &&
+            !totQuery.isError &&
+            (totQuery.data ?? []).length === 0 && (
+              <p className="text-sm text-gray-500">Sin TOT pendientes</p>
+            )}
         </section>
 
-        <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-3">
+        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
             Órdenes Generales
           </h3>
           {ordenesQuery.isLoading && (
             <p className="text-sm text-gray-500">Cargando...</p>
           )}
+          {ordenesQuery.isError && (
+            <OtQueryError
+              message={getErrorMessage(
+                ordenesQuery.error,
+                'Error al cargar órdenes generales de portería',
+              )}
+            />
+          )}
           {(ordenesQuery.data ?? []).map((item) => (
             <PorteriaCard
               key={`og-${item.id}`}
               item={item}
               title={`SERIAL: ${item.placa || item.orden || '—'}`}
-              accentClass="border-l-4 border-l-indigo-400"
+              accentClass={porteriaAccentGeneral}
               buttonClass={btnPrimaryClass}
               actionLabel="Confirmar Salida"
               pending={pendingAction}
@@ -205,10 +254,13 @@ export function BuscarOrdenesGestion() {
               }
             />
           ))}
-          {!ordenesQuery.isLoading && (ordenesQuery.data ?? []).length === 0 && (
-            <p className="text-sm text-gray-500">Sin órdenes generales pendientes</p>
-          )}
+          {!ordenesQuery.isLoading &&
+            !ordenesQuery.isError &&
+            (ordenesQuery.data ?? []).length === 0 && (
+              <p className="text-sm text-gray-500">Sin órdenes generales pendientes</p>
+            )}
         </section>
-    </div>
+      </div>
+    </OrdenesTotPageFrame>
   );
 }

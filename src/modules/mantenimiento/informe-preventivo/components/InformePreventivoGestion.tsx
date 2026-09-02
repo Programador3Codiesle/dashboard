@@ -1,58 +1,60 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useCallback, useState } from 'react';
 import * as XLSX from 'xlsx';
+import { useQuery } from '@tanstack/react-query';
 import { Pagination } from '@/components/shared/ui/Pagination';
-import { useToast } from '@/components/ui/use-toast';
+import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
+import { MantenimientoPageFrame } from '@/modules/mantenimiento/components/MantenimientoPageFrame';
+import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
+import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
+import {
+  btnPrimaryClass,
+  btnSuccessClass,
+} from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
 import {
   estadoLabel,
   SEDES_INFORME_PREVENTIVO,
 } from '@/modules/mantenimiento/shared/constants/labels';
+import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
+import { paginateRows } from '@/modules/mantenimiento/shared/utils/paginate';
 import { INFORME_PREVENTIVO_SUBMENU_ID } from '@/utils/constants';
 
 const PAGE_SIZE = 20;
 
 export function InformePreventivoGestion() {
-  const { blocked } = useMantenimientoPageGuard(INFORME_PREVENTIVO_SUBMENU_ID);
-  const { showError } = useToast();
+  const { blocked, user } = useMantenimientoPageGuard(
+    INFORME_PREVENTIVO_SUBMENU_ID,
+  );
+  const sesionLista = !!user && !blocked;
   const [bodega, setBodega] = useState('');
   const [estado, setEstado] = useState('');
-  const [rows, setRows] = useState<Array<Record<string, unknown>>>([]);
-  const [loading, setLoading] = useState(false);
+  const [applied, setApplied] = useState({ estado: '', bodega: '' });
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    if (blocked) return;
-    void cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blocked]);
+  const listQuery = useQuery({
+    queryKey: mantenimientoKeys.informePreventivo(
+      applied.estado,
+      applied.bodega,
+    ),
+    queryFn: () =>
+      mantenimientoService.informePreventivo(
+        applied.estado || undefined,
+        applied.bodega || undefined,
+      ),
+    enabled: sesionLista,
+    ...transactionalQueryOptions,
+  });
 
-  async function cargar(fEstado = estado, fBodega = bodega) {
-    setLoading(true);
-    try {
-      const data = await mantenimientoService.informePreventivo(
-        fEstado || undefined,
-        fBodega || undefined,
-      );
-      setRows(data);
-      setPage(1);
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, safePage]);
+  const rows = listQuery.data ?? [];
+  const { pageRows, totalPages, safePage } = paginateRows(
+    rows,
+    page,
+    PAGE_SIZE,
+  );
   const onPage = useCallback((p: number) => setPage(p), []);
 
   function exportExcel() {
@@ -82,19 +84,7 @@ export function InformePreventivoGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="app-title-xl brand-text">
-          Informe de mantenimiento preventivo
-        </h1>
-        <Link
-          href="/dashboard/mantenimiento"
-          className="text-sm text-amber-700 hover:underline"
-        >
-          ← Volver a Mantenimiento
-        </Link>
-      </div>
-
+    <MantenimientoPageFrame title={MANTENIMIENTO_COPY.informePreventivo.title}>
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
         <label className="text-sm min-w-[180px]">
           Sede
@@ -126,11 +116,14 @@ export function InformePreventivoGestion() {
         </label>
         <button
           type="button"
-          className="rounded-md bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white"
-          onClick={() => cargar()}
-          disabled={loading}
+          className={btnPrimaryClass}
+          onClick={() => {
+            setApplied({ estado, bodega });
+            setPage(1);
+          }}
+          disabled={listQuery.isFetching}
         >
-          Cargar
+          {listQuery.isFetching ? 'Cargando...' : 'Cargar'}
         </button>
         <button
           type="button"
@@ -138,19 +131,29 @@ export function InformePreventivoGestion() {
           onClick={() => {
             setBodega('');
             setEstado('');
-            void cargar('', '');
+            setApplied({ estado: '', bodega: '' });
+            setPage(1);
           }}
         >
           Refrescar
         </button>
         <button
           type="button"
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+          className={btnSuccessClass}
           onClick={exportExcel}
         >
           Descargar
         </button>
       </div>
+
+      {listQuery.isError ? (
+        <MantenimientoQueryError
+          message={getErrorMessage(
+            listQuery.error,
+            MANTENIMIENTO_COPY.informePreventivo.loadError,
+          )}
+        />
+      ) : null}
 
       <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm max-h-[75vh]">
         <table className="min-w-full text-xs md:text-sm">
@@ -180,7 +183,7 @@ export function InformePreventivoGestion() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {listQuery.isFetching && rows.length === 0 ? (
               <tr>
                 <td colSpan={15} className="py-8 text-center text-gray-500">
                   Cargando...
@@ -189,7 +192,7 @@ export function InformePreventivoGestion() {
             ) : pageRows.length === 0 ? (
               <tr>
                 <td colSpan={15} className="py-8 text-center text-gray-500">
-                  Sin información
+                  {MANTENIMIENTO_COPY.informePreventivo.empty}
                 </td>
               </tr>
             ) : (
@@ -243,6 +246,6 @@ export function InformePreventivoGestion() {
           </div>
         )}
       </div>
-    </div>
+    </MantenimientoPageFrame>
   );
 }

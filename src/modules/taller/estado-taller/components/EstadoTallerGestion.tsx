@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import * as XLSX from "xlsx";
 import ConfirmModal from "@/components/shared/ui/ConfirmModal";
 import { useToast } from "@/components/shared/ui/ToastContext";
@@ -24,6 +24,10 @@ import {
   EstadoTallerLoadingOverlay,
 } from "./EstadoTallerLoading";
 import { ET_CARD } from "../utils/estado-taller.styles";
+import { ESTADO_TALLER_SUBMENU_ID } from "@/utils/constants";
+import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
+import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
+import { TALLER_COPY } from "@/modules/taller/constants";
 
 const ModalAgregarEvento = dynamic(
   () =>
@@ -59,11 +63,13 @@ const ModalCotizacionesSacyr = dynamic(
 
 
 export function EstadoTallerGestion() {
+  const { blocked } = useTallerPageGuard(ESTADO_TALLER_SUBMENU_ID);
   const { showError } = useToast();
   const { user } = useAuth();
   const empresa = user?.empresa;
 
   const [bodega, setBodega] = useState("todas");
+  const [empresaFiltro, setEmpresaFiltro] = useState(empresa);
   const [busqueda, setBusqueda] = useState("");
   const [modalEvento, setModalEvento] = useState<number | null>(null);
   const [modalHistorial, setModalHistorial] = useState<number | null>(null);
@@ -76,9 +82,10 @@ export function EstadoTallerGestion() {
     null,
   );
 
-  useEffect(() => {
+  if (empresa !== empresaFiltro) {
+    setEmpresaFiltro(empresa);
     setBodega("todas");
-  }, [empresa]);
+  }
 
   const { panel, loading, error } = useEstadoTallerPanel(bodega, empresa);
   const { data: estados = [] } = useEstadosOtCatalogo(modalEvento != null);
@@ -127,11 +134,17 @@ export function EstadoTallerGestion() {
     const f = new Date();
     const fecha = `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
     XLSX.writeFile(wb, `Informe-${fecha}.xlsx`);
-  }, [panel?.ordenes, busqueda, showError]);
+  }, [panel, busqueda, showError]);
 
   const cargandoInicial = loading && !panel;
 
+  if (blocked) return null;
+
   return (
+    <TallerPageFrame
+      title={TALLER_COPY.estadoTaller.title}
+      description={TALLER_COPY.estadoTaller.description}
+    >
     <div className="space-y-4">
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -228,5 +241,6 @@ export function EstadoTallerGestion() {
         onDismiss={handleDismissFactura}
       />
     </div>
+    </TallerPageFrame>
   );
 }

@@ -1,4 +1,5 @@
 import { formatDateOnly } from '@/modules/contact-center/shared/utils/format-date-only';
+import { parseError } from '@/modules/contact-center/shared/utils/parse-api-error';
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
 
@@ -14,11 +15,6 @@ export type GaRow = {
   fechaEstimada: string;
   estado: string;
 };
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  throw new Error((json as { message?: string }).message || fallback);
-}
 
 function mapGaRow(row: Record<string, unknown>): GaRow {
   return {
@@ -38,13 +34,5 @@ export const distribucionAgenteService = {
     if (!resp.ok) await parseError(resp, 'Error al cargar G.A. actuales');
     const json = await resp.json();
     return (Array.isArray(json) ? json : json.items ?? []).map(mapGaRow);
-  },
-
-  async gaFuturas(): Promise<GaRow[]> {
-    return [];
-  },
-
-  async gaRecordacion(): Promise<GaRow[]> {
-    return [];
   },
 };

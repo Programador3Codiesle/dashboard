@@ -56,7 +56,7 @@ export const formatosNominaService = {
   /**
    * Descargar formato de nómina
    */
-  async descargarFormato(id: number, nombre: string): Promise<void> {
+  async descargarFormato(id: number): Promise<void> {
     try {
       const ruta = await this.obtenerRutaArchivo(id);
       if (!ruta) {

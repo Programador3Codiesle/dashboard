@@ -1,5 +1,6 @@
 import { fetchWithAuth } from '@/utils/api';
 import { getApiBaseUrl } from '@/config/public-env';
+import { parseError } from '@/modules/indicadores/shared/utils/parse-api-error';
 
 const BASE = `${getApiBaseUrl()}/indicadores`;
 
@@ -77,13 +78,6 @@ export type TipoOperacion = {
   porcentajeMes: number;
   porcentajeMesRestante: number;
 };
-
-async function parseError(resp: Response, fallback: string): Promise<never> {
-  const json = await resp.json().catch(() => ({}));
-  const message = (json as { message?: string | string[] }).message;
-  const text = Array.isArray(message) ? message.join(', ') : message;
-  throw new Error(text || fallback);
-}
 
 function asRecord(row: unknown): Record<string, unknown> {
   return row && typeof row === 'object' ? (row as Record<string, unknown>) : {};
