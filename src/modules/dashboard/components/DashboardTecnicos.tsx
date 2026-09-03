@@ -4,6 +4,7 @@ import { memo, useMemo } from "react";
 import type { DashboardTecnicos as DashboardTecnicosType } from "../types";
 import { formatCurrency } from "../utils/format-currency";
 import { DashboardKpiCard } from "./DashboardKpiCard";
+import { DashboardFechaBadge } from "./DashboardFechaBadge";
 import { DASHBOARD_STYLES } from "../constants";
 import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
@@ -39,13 +40,20 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
 
   return (
     <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <PageTitleRow
           title="Dashboard Técnicos"
           description="Resumen diario e histórico de desempeño del técnico."
           headingAs="h2"
           headingClassName="text-xl font-bold text-gray-900"
           descriptionClassName="text-sm text-gray-500"
+          className="min-w-0"
         />
+        <DashboardFechaBadge
+          fecha={data.fecha_actual}
+          diaFestivo={data.dia_festivo}
+        />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
           label="Total Vendido"

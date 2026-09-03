@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import { formatCurrency } from "../utils/format-currency";
 import { DashboardKpiCard } from "./DashboardKpiCard";
+import { DashboardFechaBadge } from "./DashboardFechaBadge";
 import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 function maxY(points: DataPoint[]): number {
@@ -261,11 +262,18 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
     const sedes = data.sedes!;
     return (
       <div className="space-y-6">
-        <PageTitleRow
-          title="Informe diario Taller por sede"
-          headingAs="h2"
-          headingClassName="text-xl font-bold text-gray-900"
-        />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <PageTitleRow
+            title="Informe diario Taller por sede"
+            headingAs="h2"
+            headingClassName="text-xl font-bold text-gray-900"
+            className="min-w-0"
+          />
+          <DashboardFechaBadge
+            fecha={data.fecha_actual}
+            diaFestivo={data.dia_festivo}
+          />
+        </div>
         <nav
           className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-3"
           role="tablist"
@@ -304,11 +312,18 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
 
   return (
     <div className="space-y-6">
-      <PageTitleRow
-        title="Informe diario Taller"
-        headingAs="h2"
-        headingClassName="text-xl font-bold text-gray-900"
-      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageTitleRow
+          title="Informe diario Taller"
+          headingAs="h2"
+          headingClassName="text-xl font-bold text-gray-900"
+          className="min-w-0"
+        />
+        <DashboardFechaBadge
+          fecha={data.fecha_actual}
+          diaFestivo={data.dia_festivo}
+        />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
           label="Total Vendido"

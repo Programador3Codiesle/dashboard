@@ -37,7 +37,8 @@ export function EmpresaIcon({
     !src || !empresa ? (
       fallback
     ) : (
-      // Local public PNG; next/image optimizer no sirve estos assets en dev.
+      // PNG en /public; next/image optimizer no sirve estos assets en dev.
+      // src ya incluye basePath (`withNextBasePath`) para prod `/postventa2`.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
