@@ -114,7 +114,7 @@ export function MttoPreventivoVehiculosPropiosGestion() {
         </div>
 
         <div className="app-table-scroll">
-          <table className="w-full">
+          <table className="w-full min-w-[1100px]">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">Placa</th>
@@ -258,8 +258,8 @@ export function MttoPreventivoVehiculosPropiosGestion() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto border border-gray-200 rounded-xl">
-                <table className="w-full text-sm">
+              <div className="app-table-scroll">
+                <table className="w-full min-w-[960px] text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200 text-xs">
                     <tr>
                       <th className="text-left py-2 px-3 font-semibold text-gray-700 whitespace-nowrap">

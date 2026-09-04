@@ -24,8 +24,8 @@ function GaTable({ rows, loading }: { rows: GaRow[]; loading: boolean }) {
     return <p className="text-gray-500 text-sm py-4">Sin registros.</p>;
   }
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm">
+    <div className="app-table-scroll">
+      <table className="w-full min-w-[900px] text-sm">
         <thead className="bg-gray-50">
           <tr>
             {['Placa', 'Nombre', 'Familia', 'Campaña', 'KM Estimado', 'Fecha - Hora', 'Estado', 'Tarea'].map(
@@ -81,13 +81,13 @@ export function DistribucionAgenteGestion() {
       description={CONTACT_CENTER_COPY.distribucionAgente.description}
     >
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 border-b border-gray-200">
+      <div className="app-tabs-scroll gap-1 border-b border-gray-200">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`shrink-0 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               tab === t.id
                 ? 'border-[var(--color-primary)] brand-text'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -98,7 +98,7 @@ export function DistribucionAgenteGestion() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+      <div className="app-section-card w-full min-w-0">
         <h3 className="font-semibold text-gray-800 mb-3">
           G.A {TABS.find((t) => t.id === tab)?.label}
         </h3>

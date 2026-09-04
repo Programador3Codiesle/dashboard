@@ -19,7 +19,7 @@ export default function VerSolicitudCompraModal({
   return (
     <Modal open={open} onClose={onClose} title="Detalle de Solicitud">
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Área que solicita la compra
@@ -44,7 +44,7 @@ export default function VerSolicitudCompraModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Persona que realiza la solicitud
@@ -69,7 +69,7 @@ export default function VerSolicitudCompraModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Gerente que autoriza
@@ -94,7 +94,7 @@ export default function VerSolicitudCompraModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nivel de urgencia

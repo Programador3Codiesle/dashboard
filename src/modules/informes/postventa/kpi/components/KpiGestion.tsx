@@ -90,8 +90,8 @@ export function KpiGestion() {
     return (
       <>
         <h2 className="text-lg font-semibold mb-3 brand-text">{titulo}</h2>
-        <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm bg-white">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+        <div className="app-table-scroll shadow-sm bg-white">
+          <table className="min-w-[1100px] w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-(--color-primary) text-white">
               <tr>
                 <th className="px-4 py-2 text-left font-semibold">Sede</th>
@@ -170,8 +170,8 @@ export function KpiGestion() {
         <h2 className="text-lg font-semibold mb-3 brand-text">
           FACTURACIÓN TOTAL Y OT POR TÉCNICO
         </h2>
-        <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm bg-white">
-          <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+        <div className="app-table-scroll shadow-sm bg-white">
+          <table className="min-w-[1100px] w-full divide-y divide-gray-200 text-xs md:text-sm">
             <thead className="bg-(--color-primary) text-white">
               <tr>
                 <th className="px-4 py-2 text-left font-semibold whitespace-nowrap">

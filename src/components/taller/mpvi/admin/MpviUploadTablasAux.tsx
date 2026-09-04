@@ -37,7 +37,7 @@ export function MpviUploadTablasAux() {
       <p className="text-sm text-gray-600 mb-4">
         Suba archivos para actualizar maestros GMICA, repuestos GM o reemplazos.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div className="app-form-grid-3 items-end">
         <div>
           <label htmlFor="tabla-aux" className="block text-sm font-medium text-gray-700 mb-1">
             Tipo de tabla

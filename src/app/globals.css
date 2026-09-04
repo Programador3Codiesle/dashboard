@@ -80,27 +80,70 @@ body {
 /* ===== CONFIGURACIÓN TAILWIND ===== */
 @theme {
   --font-family-sans: 'Plus Jakarta Sans', sans-serif;
-  /* ← Fuente por defecto */
   --font-family-inter: 'Inter', sans-serif;
   --font-family-jakarta: 'Plus Jakarta Sans', sans-serif;
+  /* Portátil grande / TV Full HD (~1920px). 2xl de Tailwind es 1536px. */
+  --breakpoint-3xl: 120rem;
 }
 
 /* ===== COMPONENTES PERSONALIZADOS ===== */
 @layer components {
+  .app-shell-gutter {
+    @apply mx-auto w-full max-w-[1760px] px-3 sm:px-4 md:px-6 xl:px-8 2xl:px-10 3xl:max-w-[2200px] 3xl:px-12;
+  }
+
   .app-page-container {
-    @apply w-full max-w-[1760px] mx-auto px-3 sm:px-4 md:px-6 xl:px-8 2xl:px-10;
+    @apply mx-auto w-full max-w-[1760px] px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 xl:px-8 xl:py-8 2xl:px-10 3xl:max-w-[2200px] 3xl:px-12;
   }
 
   .app-section-card {
-    @apply bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-200/70 p-3 sm:p-4 md:p-5 xl:p-6;
+    @apply rounded-xl border border-gray-200/70 bg-white p-3 shadow-sm sm:p-4 md:rounded-2xl md:p-5 xl:p-6;
   }
 
   .app-title-xl {
-    @apply text-xl sm:text-2xl xl:text-3xl font-bold tracking-tight;
+    @apply text-xl font-bold tracking-tight sm:text-2xl xl:text-3xl 3xl:text-4xl;
+  }
+
+  .app-hub-grid {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6 3xl:grid-cols-5;
+  }
+
+  .app-hub-grid-2 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5;
+  }
+
+  .app-kpi-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5;
+  }
+
+  .app-kpi-grid-3 {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3;
+  }
+
+  .app-filter-grid {
+    @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4;
+  }
+
+  .app-filter-grid-5 {
+    @apply grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5;
+  }
+
+  .app-form-grid-3 {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .app-form-grid-2 {
+    @apply grid grid-cols-1 gap-4 md:grid-cols-2;
+  }
+
+  .app-tabs-scroll {
+    @apply flex overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app-table-scroll {
-    @apply w-full overflow-auto max-h-[72vh] rounded-xl border border-gray-200;
+    @apply max-h-[72vh] w-full overflow-auto rounded-xl border border-gray-200;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar-scroll {
@@ -133,7 +176,14 @@ body {
   }
 
   .hover-lift {
-    @apply transition-all duration-300 hover:scale-105 hover:shadow-xl;
+    @apply transition-shadow duration-300;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+    }
   }
 
   .gradient-text {

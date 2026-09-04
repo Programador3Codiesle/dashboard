@@ -14,9 +14,9 @@ interface HubCardProps {
 }
 
 const cardClassBorder =
-  'group brand-card-elevated hover-lift flex cursor-pointer flex-col rounded-2xl border brand-border-active bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6';
+  'group brand-card-elevated hover-lift flex min-h-[11rem] cursor-pointer flex-col rounded-2xl border brand-border-active bg-white p-4 transition-all duration-300 sm:min-h-[12.5rem] sm:p-6 3xl:min-h-[14rem] 3xl:p-7';
 const cardClassGradient =
-  'group brand-card-elevated hover-lift flex cursor-pointer flex-col rounded-2xl border brand-border-active bg-white p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-4 md:p-6';
+  'group brand-card-elevated hover-lift flex min-h-[11rem] cursor-pointer flex-col rounded-2xl border brand-border-active bg-white p-3 transition-all duration-300 sm:p-4 md:p-6';
 
 function HubCard({ item, variant }: HubCardProps) {
   const Icon = item.icono;
@@ -40,7 +40,7 @@ function HubCard({ item, variant }: HubCardProps) {
         {item.nombre}
       </h3>
       <p className="text-sm leading-relaxed text-gray-600">{item.descripcion}</p>
-      <div className="mt-4 flex items-center text-sm font-medium brand-text opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="mt-auto flex items-center pt-4 text-sm font-medium brand-text [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100">
         <span>Acceder</span>
         <ChevronRight size={16} className="ml-1" />
       </div>
@@ -75,8 +75,8 @@ function SubmodulosHubComponent({
   items,
   filter,
   variant = 'gradient',
-  titleClassName = 'text-2xl sm:text-3xl font-bold brand-text tracking-tight',
-  gridClassName = 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  titleClassName = 'app-title-xl brand-text',
+  gridClassName = 'app-hub-grid',
   emptyWhenFiltered = false,
 }: SubmodulosHubProps) {
   const { user } = useAuth();

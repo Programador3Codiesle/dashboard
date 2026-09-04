@@ -19,6 +19,7 @@ import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/quer
 import {
   btnIconClass,
   btnPrimaryClass,
+  btnSecondaryClass,
   btnSuccessClass,
 } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
@@ -173,19 +174,19 @@ export function MttoCorrectivoGestion() {
         />
       ) : null}
 
-      <div className="flex flex-wrap gap-4 text-sm">
+      <div className="flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:gap-4">
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--color-success)]" /> Urgencia 1
+          <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--color-success)]" /> Urgencia 1
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--color-warning)]" /> Urgencia 2
+          <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--color-warning)]" /> Urgencia 2
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--color-danger)]" /> Urgencia 3
+          <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--color-danger)]" /> Urgencia 3
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
         {(esJefe || perfil === 46 || perfil === 1 || perfil === 20 || perfil === 26) && (
           <button
             type="button"
@@ -206,9 +207,10 @@ export function MttoCorrectivoGestion() {
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-xs md:text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-table-scroll">
+        <table className="w-full min-w-[1080px] text-xs md:text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               {[
                 '#',
@@ -260,7 +262,7 @@ export function MttoCorrectivoGestion() {
                   <tr key={id} className={`border-t text-center ${urgBg}`}>
                     <td className="px-2 py-2">{id}</td>
                     <td className="px-2 py-2">{String(r.codigo ?? 'N/A')}</td>
-                    <td className="px-2 py-2 text-left max-w-[180px] truncate">
+                    <td className="px-2 py-2 text-left max-w-[180px] truncate" title={String(r.solicitud ?? '')}>
                       {String(r.solicitud ?? '')}
                     </td>
                     <td className="px-2 py-2">{estadoLabel(r.estado as string, 'corr')}</td>
@@ -309,6 +311,7 @@ export function MttoCorrectivoGestion() {
             )}
           </tbody>
         </table>
+        </div>
         {rows.length > 0 && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-600">{rows.length} registros</span>
@@ -427,10 +430,10 @@ function ModalDetalleSolicitud({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
-          <div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+        <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
+          <div className="min-w-0 pr-2">
             <h2 className="text-lg font-semibold">
               Solicitud #{String(detalle.id_solicitud)}
             </h2>
@@ -576,7 +579,7 @@ function ModalDetalleSolicitud({
         <div className="border-t bg-gray-50 px-5 py-3">
           <button
             type="button"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className={btnSecondaryClass}
             onClick={onClose}
           >
             Cerrar
@@ -622,9 +625,9 @@ function ModalNuevaSolicitud({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-      <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+      <div className="w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+        <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
           <h2 className="text-lg font-semibold">Nueva Solicitud</h2>
           <button
             type="button"
@@ -668,7 +671,7 @@ function ModalNuevaSolicitud({
           </label>
           <div className="text-sm">
             <p className="mb-2 font-medium">Nivel de urgencia (3 = más urgente)</p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               {[1, 2, 3].map((u) => (
                 <label key={u} className="inline-flex items-center gap-1.5">
                   <input
@@ -700,10 +703,10 @@ function ModalNuevaSolicitud({
             onChange={setFile}
           />
         </div>
-        <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-3">
+        <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-3 sm:flex-row sm:justify-end">
           <button
             type="button"
-            className="rounded-md border px-4 py-2 text-sm font-medium"
+            className={btnSecondaryClass}
             onClick={onClose}
           >
             Cerrar

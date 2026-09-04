@@ -94,7 +94,7 @@ export function InformePausasActivasGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
             <select
@@ -178,7 +178,7 @@ export function InformePausasActivasGestion() {
         </div>
 
         <div className="app-table-scroll">
-          <table className="w-full">
+          <table className="w-full min-w-[720px]">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">Documento</th>

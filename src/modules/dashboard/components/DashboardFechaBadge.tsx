@@ -52,7 +52,7 @@ export function DashboardFechaBadge({
 }: DashboardFechaBadgeProps) {
   return (
     <div className="flex justify-end">
-      <div className="inline-flex items-center gap-2.5 rounded-full border brand-border-active bg-white px-3.5 py-2 text-sm text-gray-800 shadow-md brand-card-elevated">
+      <div className="inline-flex max-w-full flex-wrap items-center gap-2.5 rounded-full border brand-border-active bg-white px-3 py-2 text-sm text-gray-800 shadow-md brand-card-elevated sm:px-3.5">
         <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full brand-bg-light">
           <CalendarDays size={15} className="brand-text" strokeWidth={2.25} />
         </span>

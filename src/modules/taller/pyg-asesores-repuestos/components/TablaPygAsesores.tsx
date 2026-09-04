@@ -75,7 +75,7 @@ export function TablaPygAsesores({
   if (!filas.length) return null;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="app-table-scroll">
       <table className="w-full text-sm border-collapse min-w-[1200px]">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200 text-center">

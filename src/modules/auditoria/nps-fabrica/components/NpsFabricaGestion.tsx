@@ -139,77 +139,79 @@ export function NpsFabricaGestion() {
       description={AUDITORIA_COPY.npsFabrica.description}
       backLabel={AUDITORIA_COPY.backLabel}
     >
-      <div className="flex flex-wrap items-end gap-4 rounded-2xl border bg-white p-4 shadow-sm">
-        <fieldset className="text-sm">
-          <legend className="mb-1 font-medium">Tipo de informe</legend>
-          <div className="flex gap-4">
-            <label htmlFor="aud-nps-modo-sede" className="inline-flex items-center gap-2">
-              <input
-                id="aud-nps-modo-sede"
-                type="radio"
-                name="modo-nps"
-                checked={modo === 'sede'}
-                onChange={() => setModo('sede')}
-              />
-              Ver por sede
-            </label>
-            <label htmlFor="aud-nps-modo-tec" className="inline-flex items-center gap-2">
-              <input
-                id="aud-nps-modo-tec"
-                type="radio"
-                name="modo-nps"
-                checked={modo === 'tecnico'}
-                onChange={() => setModo('tecnico')}
-              />
-              Ver por técnico
-            </label>
-          </div>
-        </fieldset>
+      <div className="app-section-card w-full min-w-0">
+        <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <fieldset className="w-full min-w-0 text-sm sm:w-auto">
+            <legend className="mb-1 font-medium">Tipo de informe</legend>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
+              <label htmlFor="aud-nps-modo-sede" className="inline-flex items-center gap-2">
+                <input
+                  id="aud-nps-modo-sede"
+                  type="radio"
+                  name="modo-nps"
+                  checked={modo === 'sede'}
+                  onChange={() => setModo('sede')}
+                />
+                Ver por sede
+              </label>
+              <label htmlFor="aud-nps-modo-tec" className="inline-flex items-center gap-2">
+                <input
+                  id="aud-nps-modo-tec"
+                  type="radio"
+                  name="modo-nps"
+                  checked={modo === 'tecnico'}
+                  onChange={() => setModo('tecnico')}
+                />
+                Ver por técnico
+              </label>
+            </div>
+          </fieldset>
 
-        <label htmlFor="aud-nps-mes" className="text-sm">
-          Mes
-          <input
-            id="aud-nps-mes"
-            type="month"
-            className={inputClass}
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-          />
-        </label>
-
-        {modo === 'tecnico' ? (
-          <label htmlFor="aud-nps-sede" className="min-w-[180px] text-sm">
-            Sede (opcional)
-            <select
-              id="aud-nps-sede"
+          <label htmlFor="aud-nps-mes" className="w-full min-w-0 text-sm sm:w-auto">
+            Mes
+            <input
+              id="aud-nps-mes"
+              type="month"
               className={inputClass}
-              value={sedeTec}
-              onChange={(e) => setSedeTec(e.target.value)}
-            >
-              <option value="">Todas</option>
-              {SEDES_TEC.map((s) => (
-                <option key={s} value={s}>
-                  {SEDE_LABELS[s]}
-                </option>
-              ))}
-            </select>
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
           </label>
-        ) : null}
 
-        <button
-          type="button"
-          className={btnPrimaryClass}
-          disabled={loading}
-          onClick={() => {
-            if (!fecha) {
-              showError('Seleccione el mes');
-              return;
-            }
-            setApplied({ modo, fecha, sede: sedeTec });
-          }}
-        >
-          <Search className="h-4 w-4" /> Buscar
-        </button>
+          {modo === 'tecnico' ? (
+            <label htmlFor="aud-nps-sede" className="w-full min-w-0 text-sm sm:w-auto sm:min-w-[12rem]">
+              Sede (opcional)
+              <select
+                id="aud-nps-sede"
+                className={inputClass}
+                value={sedeTec}
+                onChange={(e) => setSedeTec(e.target.value)}
+              >
+                <option value="">Todas</option>
+                {SEDES_TEC.map((s) => (
+                  <option key={s} value={s}>
+                    {SEDE_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={loading}
+            onClick={() => {
+              if (!fecha) {
+                showError('Seleccione el mes');
+                return;
+              }
+              setApplied({ modo, fecha, sede: sedeTec });
+            }}
+          >
+            <Search className="h-4 w-4" /> Buscar
+          </button>
+        </div>
       </div>
 
       {queryError ? (
@@ -229,7 +231,7 @@ export function NpsFabricaGestion() {
 
       {!loading && applied?.modo === 'sede' && sedeData ? (
         <Panel title="Calificación NPS por sede">
-          <div className="h-[320px] w-full">
+          <div className="h-[240px] w-full min-w-0 sm:h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartSedes}
@@ -250,9 +252,9 @@ export function NpsFabricaGestion() {
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-(--color-primary) text-white">
+          <div className="mt-4 app-table-scroll">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="brand-bg text-white">
                 <tr>
                   {['SEDE', 'FECHA', 'NPS', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10'].map(
                     (h) => (
@@ -295,7 +297,7 @@ export function NpsFabricaGestion() {
       ) : null}
 
       {!loading && applied?.modo === 'tecnico' && tecData ? (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2 min-w-0">
           {Object.entries(tecData).map(([sede, data]) => {
             const pie = [
               { name: 'Enc 0-6', value: data.agregado.enc06 },
@@ -312,7 +314,7 @@ export function NpsFabricaGestion() {
                 key={sede}
                 title={`${SEDE_LABELS[sede] ?? sede} — NPS ${nps.toFixed(1)}`}
               >
-                <div className="h-[220px] w-full">
+                <div className="h-[220px] w-full min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -337,9 +339,9 @@ export function NpsFabricaGestion() {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="mt-2 overflow-x-auto">
-                  <table className="min-w-full text-xs md:text-sm">
-                    <thead className="bg-(--color-primary) text-white">
+                <div className="mt-2 app-table-scroll">
+                  <table className="w-full min-w-[640px] text-xs md:text-sm">
+                    <thead className="brand-bg text-white">
                       <tr>
                         {['TÉCNICO', 'ENC 0-6', 'ENC 7-8', 'ENC 9-10', 'NPS'].map(
                           (h) => (
@@ -390,8 +392,8 @@ export function NpsFabricaGestion() {
 
 function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm">
-      <h2 className="mb-3 text-base font-semibold text-gray-800">{title}</h2>
+    <div className="app-section-card w-full min-w-0">
+      <h2 className="mb-3 break-words text-base font-semibold text-gray-800">{title}</h2>
       {children}
     </div>
   );

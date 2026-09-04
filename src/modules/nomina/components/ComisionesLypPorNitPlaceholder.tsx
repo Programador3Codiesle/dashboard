@@ -6,7 +6,7 @@ export function ComisionesLypPorNitPlaceholder() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-        <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
+        <h1 className="app-title-xl brand-text">
           Comisiones LYP por NIT
         </h1>
         <EmpresaBadge />

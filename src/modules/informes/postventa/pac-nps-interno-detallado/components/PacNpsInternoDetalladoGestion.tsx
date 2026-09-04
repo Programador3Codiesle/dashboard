@@ -252,7 +252,7 @@ export function PacNpsInternoDetalladoGestion() {
       backLabel={INFORMES_COPY.backPv}
     >
       <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1">Año y mes</p>
             <input
@@ -262,12 +262,12 @@ export function PacNpsInternoDetalladoGestion() {
               onChange={(e) => setMonth(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap items-end gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <button
               type="button"
               onClick={handleBuscar}
               disabled={cargandoResumen}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md brand-btn text-sm font-medium disabled:opacity-60"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-md brand-btn text-sm font-medium disabled:opacity-60"
             >
               {cargandoResumen && <Loader2 size={16} className="animate-spin" />}
               {cargandoResumen ? 'Cargando...' : 'Buscar'}
@@ -276,7 +276,7 @@ export function PacNpsInternoDetalladoGestion() {
               type="button"
               onClick={handleDescargarTablas}
               disabled={!resumen?.bodegas.length}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-red-200 bg-red-50 text-red-800 text-sm font-medium hover:bg-red-100 disabled:opacity-50"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-md border border-red-200 bg-red-50 text-red-800 text-sm font-medium hover:bg-red-100 disabled:opacity-50"
             >
               Descargar (tablas)
             </button>
@@ -284,7 +284,7 @@ export function PacNpsInternoDetalladoGestion() {
               <button
                 type="button"
                 onClick={handleExportTodos}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700"
               >
                 Descargar detalle de todos los técnicos
               </button>
@@ -304,7 +304,7 @@ export function PacNpsInternoDetalladoGestion() {
       </div>
 
       {consultaFecha && (
-        <div className="bg-white rounded-xl border brand-border shadow-sm overflow-x-auto">
+        <div className="app-table-scroll bg-white rounded-xl border brand-border shadow-sm">
           <table className="min-w-full border-collapse text-sm" id="tabla_bodega_encuestas">
             <thead>
               <tr>{bodegas.map((b) => (
@@ -334,7 +334,7 @@ export function PacNpsInternoDetalladoGestion() {
           <h2 className="text-lg font-semibold text-gray-900">
             Técnicos — {bodegaSel.descripcion}
           </h2>
-          <div className="overflow-x-auto border border-gray-100 rounded-lg" id="tabla_detalle_bodega_wrap">
+          <div className="app-table-scroll" id="tabla_detalle_bodega_wrap">
             {cargandoTecnicos ? (
               <div className="flex items-center justify-center py-12 text-gray-500 gap-2">
                 <Loader2 className="animate-spin" size={20} />

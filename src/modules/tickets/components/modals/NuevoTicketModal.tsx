@@ -87,7 +87,7 @@ export default function NuevoTicketModal({
       maxWidthClassName="max-w-[95vw] sm:max-w-[90vw] md:max-w-[780px]"
     >
       <form onSubmit={submit} className="space-y-5 p-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>
               Tipo de soporte <span className="text-red-500">*</span>
@@ -123,7 +123,7 @@ export default function NuevoTicketModal({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>
               Sede <span className="text-red-500">*</span>
@@ -180,7 +180,7 @@ export default function NuevoTicketModal({
             />
             <div className="space-y-1 text-center">
               {archivo ? (
-                <div className="flex items-center justify-center text-indigo-600">
+                <div className="flex items-center justify-center brand-text">
                   <span className="font-medium">{archivo.name}</span>
                   <button
                     type="button"
@@ -197,7 +197,7 @@ export default function NuevoTicketModal({
                 <>
                   <Upload className="mx-auto h-10 w-10 text-gray-400" />
                   <div className="flex text-sm text-gray-600 justify-center">
-                    <span className="font-medium text-indigo-600 hover:text-indigo-500">
+                    <span className="font-medium brand-text hover:underline">
                       Sube un archivo
                     </span>
                     <p className="pl-1">o arrástralo aquí</p>
@@ -212,14 +212,14 @@ export default function NuevoTicketModal({
         <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
           <button
             type="button"
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
             onClick={onClose}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-black transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? 'Creando...' : 'Crear ticket'}

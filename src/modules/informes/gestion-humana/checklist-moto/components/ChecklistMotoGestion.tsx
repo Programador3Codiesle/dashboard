@@ -174,12 +174,12 @@ export function ChecklistMotoGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={handleFiltrar}
             disabled={isFetching}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>Filtrar</span>

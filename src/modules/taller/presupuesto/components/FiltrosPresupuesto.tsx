@@ -32,8 +32,8 @@ export function FiltrosPresupuesto({
       onSubmit={handleSubmit}
       className="bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-5"
     >
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="min-w-[160px] flex-1">
+      <div className="app-filter-grid">
+        <div className="min-w-0">
           <label
             htmlFor="idCategoria"
             className="block text-xs font-semibold text-gray-600 mb-1"
@@ -58,7 +58,7 @@ export function FiltrosPresupuesto({
           </select>
         </div>
 
-        <div className="min-w-[160px] flex-1">
+        <div className="min-w-0">
           <label
             htmlFor="idSede"
             className="block text-xs font-semibold text-gray-600 mb-1"
@@ -81,7 +81,7 @@ export function FiltrosPresupuesto({
           </select>
         </div>
 
-        <div className="min-w-[160px] flex-1">
+        <div className="min-w-0">
           <label
             htmlFor="idTipo"
             className="block text-xs font-semibold text-gray-600 mb-1"
@@ -106,7 +106,7 @@ export function FiltrosPresupuesto({
         <div className="flex pb-0.5">
           <button
             type="submit"
-            className="brand-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
+            className="brand-btn inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
             disabled={loading}
           >
             <Search size={16} />

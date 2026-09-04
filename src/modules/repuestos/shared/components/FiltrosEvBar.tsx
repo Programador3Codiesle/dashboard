@@ -42,7 +42,7 @@ export function FiltrosEvBar({
   onBuscar: () => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-3">
+    <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm app-filter-grid-5">
       <input
         type="number"
         placeholder="N° Orden"

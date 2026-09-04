@@ -81,7 +81,7 @@ export const sedesTicketsDisponibles = [
 ];
 
 export const COMPANY_STYLES: Record<string, string> = {
-  Codiesel: "bg-blue-50 text-blue-700 border-blue-200 ring-blue-500/10",
+  Codiesel: "brand-bg-light brand-text brand-border ring-[var(--color-primary)]/10",
   Dieselco: "bg-teal-50 text-teal-700 border-teal-200 ring-teal-500/10",
   Mitsubishi: "bg-red-50 text-red-700 border-red-200 ring-red-500/10",
   BYD: "bg-teal-50 text-teal-700 border-teal-200 ring-teal-500/10",
@@ -89,13 +89,13 @@ export const COMPANY_STYLES: Record<string, string> = {
 };
 
 export const TICKETS_CARD_EN_PROCESO_CLASS =
-  "group relative bg-gradient-to-br from-[var(--color-primary-light)] via-white to-[var(--color-primary-light)] p-6 rounded-2xl shadow-lg border-2 border-[var(--color-primary)] hover:shadow-xl hover:border-[var(--color-primary-hover)] transition-all duration-300 flex flex-col justify-between overflow-hidden";
+  "group relative bg-gradient-to-br from-[var(--color-primary-light)] via-white to-[var(--color-primary-light)] p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[var(--color-primary)] hover:shadow-xl hover:border-[var(--color-primary-hover)] transition-all duration-300 flex flex-col justify-between overflow-hidden";
 
 export const TICKETS_CARD_ACTIVO_CLASS =
-  "group relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 p-6 rounded-2xl shadow-md border-2 border-blue-300 hover:shadow-lg hover:border-blue-400 transition-all duration-300 flex flex-col justify-between overflow-hidden";
+  "group relative bg-white p-4 sm:p-6 rounded-2xl shadow-md border-2 brand-border hover:shadow-lg hover:border-(--color-primary) transition-all duration-300 flex flex-col justify-between overflow-hidden";
 
 export const TICKETS_BADGE_EN_PROCESO_CLASS =
   "px-3 py-1.5 rounded-full text-xs font-bold brand-bg-gradient text-white shadow-md flex items-center gap-1.5";
 
 export const TICKETS_BADGE_ACTIVO_CLASS =
-  "px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md flex items-center gap-1.5";
+  "px-3 py-1.5 rounded-full text-xs font-bold brand-bg-light brand-text shadow-sm flex items-center gap-1.5";

@@ -18,7 +18,7 @@ import { useToast } from "@/components/shared/ui/ToastContext";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { getApiBaseUrl } from "@/config/public-env";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 export function InformeCotizacionesGestion() {
   const { blocked } = useCotizarPageGuard(INFORME_COTIZACIONES_SUBMENU_ID);
@@ -114,27 +114,18 @@ export function InformeCotizacionesGestion() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-            Informe de cotizaciones
-          </h1>
-            <EmpresaBadge />
-          </div>
-          <p className="text-gray-500 mt-1">
-            Consulta las cotizaciones realizadas para livianos y pesados en un rango de fechas.
-          </p>
-        </div>
-      </div>
+      <PageTitleRow
+        title="Informe de cotizaciones"
+        description="Consulta las cotizaciones realizadas para livianos y pesados en un rango de fechas."
+      />
 
       {/* Filtros */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 space-y-4"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Desde
@@ -167,7 +158,7 @@ export function InformeCotizacionesGestion() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tipo
             </label>
-            <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+            <div className="inline-flex w-full sm:w-auto flex-wrap rounded-xl border border-gray-200 bg-gray-50 p-1">
               <button
                 type="button"
                 onClick={() => setTipo("livianos")}
@@ -197,7 +188,7 @@ export function InformeCotizacionesGestion() {
         </div>
 
         {/* Resumen */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div className="app-kpi-grid-3 pt-2">
           <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total cotizaciones</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{resumen.total}</p>
@@ -219,7 +210,7 @@ export function InformeCotizacionesGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {tipo === "livianos" ? "Cotizaciones livianos" : "Cotizaciones pesados"}
           </h2>
@@ -235,7 +226,7 @@ export function InformeCotizacionesGestion() {
         )}
 
         <div className="app-table-scroll">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[960px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-left py-2 px-3">ID</th>

@@ -63,7 +63,7 @@ export default function ResponderTicketModal({
         }
     };
 
-    const inputClass = "w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm";
+    const inputClass = "w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm";
 
     const displayData = ticketData || ticket;
     const archivoHref =
@@ -80,7 +80,7 @@ export default function ResponderTicketModal({
                     </div>
                 ) : (
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-2">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div className="flex items-center gap-3 text-sm text-gray-600 col-span-2">
                                 <User size={14} className="text-gray-400" />
                                 <span className="font-bold text-gray-900">Usuario:</span>
@@ -124,10 +124,10 @@ export default function ResponderTicketModal({
                                     href={archivoHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white text-sm text-indigo-600 border border-indigo-100 hover:bg-indigo-50 transition-colors"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white text-sm brand-text border brand-border hover:brand-bg-light transition-colors"
                                 >
                                     <FileText size={14} />
-                                    <span className="truncate max-w-[220px]">{displayData.archivoUrl.split("/").pop()}</span>
+                                    <span className="truncate max-w-[min(220px,calc(100vw-8rem))]">{displayData.archivoUrl.split("/").pop()}</span>
                                 </a>
                             </div>
                         )}
@@ -179,23 +179,23 @@ export default function ResponderTicketModal({
                             type="checkbox"
                             checked={cerrar}
                             onChange={(e) => setCerrar(e.target.checked)}
-                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                            className="w-4 h-4 rounded border-gray-300 brand-text focus:ring-[var(--color-primary)]"
                         />
                         <span className="text-sm text-gray-700">Marcar ticket como resuelto y cerrar</span>
                     </label>
 
-                    <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+                    <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2 border-t border-gray-100">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading || !mensaje}
-                            className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {loading ? "Enviando..." : "Responder"}
                         </button>

@@ -56,8 +56,8 @@ export function InformeEvSvGestion() {
         }}
       />
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto max-h-[70vh]">
-        <table className="min-w-full text-xs md:text-sm text-center">
+      <div className="app-table-scroll">
+        <table className="w-full min-w-[1400px] text-xs md:text-sm text-center">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {['Solicitud', 'Orden', 'Placa', 'Bodega', 'Solicita', 'Autoriza', 'Gestión Repuestos', 'Gestión Bodega'].map((h) => (

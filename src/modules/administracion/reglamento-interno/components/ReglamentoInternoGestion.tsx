@@ -26,7 +26,7 @@ export function ReglamentoInternoGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl border border-gray-100 bg-white p-3 shadow-lg sm:p-4 md:p-6"
       >
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl brand-bg">
               <BookOpen className="text-white" size={24} />
@@ -44,7 +44,7 @@ export function ReglamentoInternoGestion() {
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90"
+            className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90"
           >
             <ExternalLink size={18} />
             <span>Abrir en nueva pestaña</span>

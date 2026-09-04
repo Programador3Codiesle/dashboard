@@ -14,10 +14,12 @@ import { MantenimientoFileField } from '@/modules/mantenimiento/shared/component
 import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
 import {
+  btnDangerClass,
   btnIconClass,
   btnPrimaryClass,
+  btnSecondaryClass,
   btnSuccessClass,
-  btnDangerClass,
+  inputClass,
 } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
@@ -118,60 +120,65 @@ export function EquiposGestion() {
 
   return (
     <MantenimientoPageFrame title={MANTENIMIENTO_COPY.equipos.title}>
-      <div className="flex flex-wrap gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <select
-          className="rounded border px-3 py-2 text-sm"
-          value={bodega}
-          onChange={(e) => {
-            setBodega(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="">Bodega</option>
-          {BODEGAS_FILTRO_EQUIPOS.map((b) => (
-            <option key={b.value} value={b.value}>
-              {b.label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="rounded border px-3 py-2 text-sm"
-          value={area}
-          onChange={(e) => {
-            setArea(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="">Área</option>
-          {AREAS_FILTRO.map((a) => (
-            <option key={a.value} value={a.value}>
-              {a.label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="rounded border px-3 py-2 text-sm"
-          onClick={() => {
-            setBodega('');
-            setArea('');
-            setFilter('');
-            setPage(1);
-          }}
-        >
-          Restablecer
-        </button>
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3 items-end">
+          <select
+            className={`${inputClass} mt-0`}
+            value={bodega}
+            onChange={(e) => {
+              setBodega(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Bodega"
+          >
+            <option value="">Bodega</option>
+            {BODEGAS_FILTRO_EQUIPOS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className={`${inputClass} mt-0`}
+            value={area}
+            onChange={(e) => {
+              setArea(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Área"
+          >
+            <option value="">Área</option>
+            {AREAS_FILTRO.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className={btnSecondaryClass}
+            onClick={() => {
+              setBodega('');
+              setArea('');
+              setFilter('');
+              setPage(1);
+            }}
+          >
+            Restablecer
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row">
           <select
-            className="rounded border px-2 py-2 text-sm"
+            className={`${inputClass} mt-0 w-full sm:w-auto`}
             value={limit}
             onChange={(e) => {
               setLimit(Number(e.target.value));
               setPage(1);
             }}
+            aria-label="Registros por página"
           >
             {[10, 20, 30, 50, 100].map((n) => (
               <option key={n} value={n}>
@@ -180,7 +187,7 @@ export function EquiposGestion() {
             ))}
           </select>
           <input
-            className="rounded border px-3 py-2 text-sm"
+            className={`${inputClass} mt-0 w-full sm:min-w-[12rem]`}
             placeholder="Buscar..."
             value={filter}
             onChange={(e) => {
@@ -189,7 +196,7 @@ export function EquiposGestion() {
             }}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <button
             type="button"
             className={btnPrimaryClass}
@@ -216,13 +223,14 @@ export function EquiposGestion() {
         />
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-table-scroll">
         <table
-          className={`min-w-full text-sm transition-opacity ${
+          className={`w-full min-w-[960px] text-sm transition-opacity ${
             loading && rows.length > 0 ? 'opacity-70' : 'opacity-100'
           }`}
         >
-          <thead className="bg-(--color-primary) text-white">
+          <thead className="brand-bg text-white">
             <tr>
               {['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Mtto', 'Hoja de vida', 'Retirar'].map(
                 (h) => (
@@ -294,7 +302,8 @@ export function EquiposGestion() {
             )}
           </tbody>
         </table>
-        <div className="mt-3 flex justify-between text-sm text-gray-600">
+        </div>
+        <div className="mt-3 flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
           <span>{total} registros</span>
           {totalPages > 1 && (
             <Pagination currentPage={Math.min(page, totalPages)} totalPages={totalPages} onChange={setPage} />
@@ -398,9 +407,9 @@ function ModalNuevoEquipo({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+        <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
           <h2 className="text-lg font-semibold">Registro de nuevo equipo</h2>
           <button
             type="button"
@@ -478,10 +487,10 @@ function ModalNuevoEquipo({
             onChange={(patch) => setHoja((prev) => ({ ...prev, ...patch }))}
           />
         </div>
-        <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-3">
+        <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-3 sm:flex-row sm:justify-end">
           <button
             type="button"
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className={btnSecondaryClass}
             onClick={onClose}
           >
             Cancelar
@@ -530,16 +539,16 @@ function ModalOt({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white p-4 space-y-3">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+      <div className="w-full max-w-lg space-y-3 rounded-t-2xl bg-white p-4 sm:rounded-xl">
         <h2 className="text-center font-semibold">Orden de Mantenimiento Preventivo</h2>
         <input className="w-full rounded border px-3 py-2 text-sm bg-gray-50" readOnly value={equipo.codigo} />
         <input className="w-full rounded border px-3 py-2 text-sm bg-gray-50" readOnly value={equipo.nombre_equipo} />
         <input type="date" className="w-full rounded border px-3 py-2 text-sm" value={fecha} onChange={(e) => setFecha(e.target.value)} />
         <input type="number" min={1} className="w-full rounded border px-3 py-2 text-sm" value={tiempo} onChange={(e) => setTiempo(e.target.value)} placeholder="Horas" />
         <textarea className="w-full rounded border px-3 py-2 text-sm" rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descripción" />
-        <div className="flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2 text-sm" onClick={onClose}>Cancelar</button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" className={btnSecondaryClass} onClick={onClose}>Cancelar</button>
           <button type="button" className={btnSuccessClass} onClick={submit}>Agregar</button>
         </div>
       </div>
@@ -582,9 +591,9 @@ function ModalRetiro({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-4 space-y-3">
-        <h2 className="text-center font-semibold">Solicitud retiro — {equipo.codigo}</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+      <div className="w-full max-w-md space-y-3 rounded-t-2xl bg-white p-4 sm:rounded-xl">
+        <h2 className="text-center font-semibold break-words">Solicitud retiro — {equipo.codigo}</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" value={jefe} onChange={(e) => setJefe(e.target.value)}>
           {jefes.map((j) => (
             <option key={j.nit} value={j.nit}>{j.nombres}</option>
@@ -597,8 +606,8 @@ function ModalRetiro({
           accept="image/*,.pdf"
           onChange={setFile}
         />
-        <div className="flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2 text-sm" onClick={onClose}>Cancelar</button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" className={btnSecondaryClass} onClick={onClose}>Cancelar</button>
           <button type="button" className={btnDangerClass} onClick={submit}>Retirar</button>
         </div>
       </div>

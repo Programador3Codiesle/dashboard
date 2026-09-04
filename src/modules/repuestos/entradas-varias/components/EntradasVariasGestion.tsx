@@ -102,10 +102,10 @@ export function EntradasVariasGestion() {
       description={REPUESTOS_COPY.entradasVarias.description}
     >
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="app-filter-grid">
         <div>
           <label className="text-sm font-medium text-gray-700">N° Orden</label>
-          <div className="flex gap-2 mt-1">
+          <div className="flex flex-col gap-2 mt-1 sm:flex-row">
             <input
               type="number"
               className={inputClass}
@@ -114,7 +114,7 @@ export function EntradasVariasGestion() {
             />
             <button
               type="button"
-              className="btn-secondary text-sm px-3"
+              className={`${btnSecondaryClass} shrink-0`}
               onClick={() => buscarOrden.mutate()}
               disabled={!nOrden || buscarOrden.isPending}
             >
@@ -136,15 +136,15 @@ export function EntradasVariasGestion() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-semibold text-gray-800">Repuestos</h3>
         <button type="button" className={`${btnPrimaryClass} text-sm`} onClick={() => setModalOpen(true)}>
           Añadir repuesto
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border border-gray-100">
+      <div className="app-table-scroll">
+        <table className="w-full min-w-[560px] text-sm">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 py-2">Referencia</th>
@@ -207,7 +207,7 @@ export function EntradasVariasGestion() {
         <div className="space-y-3">
           <div>
             <label className="text-sm font-medium">Referencia</label>
-            <div className="flex gap-2 mt-1">
+            <div className="flex flex-col gap-2 mt-1 sm:flex-row">
               <input
                 className={`${inputClass} flex-1`}
                 value={codRpto}
@@ -215,7 +215,7 @@ export function EntradasVariasGestion() {
               />
               <button
                 type="button"
-                className={btnSecondaryClass}
+                className={`${btnSecondaryClass} shrink-0`}
                 onClick={() => validarRepuesto.mutate()}
                 disabled={!codRpto || validarRepuesto.isPending}
               >
@@ -237,7 +237,7 @@ export function EntradasVariasGestion() {
               onChange={(e) => setCantRpto(e.target.value)}
             />
           </div>
-          <button type="button" className={`${btnPrimaryClass} w-full`} onClick={agregarRepuesto}>
+          <button type="button" className={`${btnPrimaryClass} !w-full`} onClick={agregarRepuesto}>
             Añadir a la tabla
           </button>
         </div>

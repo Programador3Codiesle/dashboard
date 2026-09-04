@@ -35,8 +35,8 @@ function AsesoresOtTableComponent({ asesores, busqueda }: AsesoresOtTableProps) 
 
   return (
     <div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="app-table-scroll">
+        <table className="w-full min-w-[480px] text-sm">
           <thead>
             <tr className="text-center text-gray-600 border-b border-gray-200 bg-gray-50">
               <th className="px-3 py-2">Asesor</th>

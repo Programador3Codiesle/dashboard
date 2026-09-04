@@ -14,7 +14,9 @@ import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/componen
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
 import {
   btnPrimaryClass,
+  btnSecondaryClass,
   btnSuccessClass,
+  inputClass,
 } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
@@ -93,65 +95,69 @@ export function InformeCorrectivoGestion() {
 
   return (
     <MantenimientoPageFrame title={MANTENIMIENTO_COPY.informeCorrectivo.title}>
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label className="text-sm min-w-[200px]">
-          Sede / Bodega
-          <select
-            className="mt-1 block w-full rounded border px-3 py-2"
-            value={bodega}
-            onChange={(e) => setBodega(e.target.value)}
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-2">
+          <label className="w-full min-w-0 text-sm">
+            Sede / Bodega
+            <select
+              className={inputClass}
+              value={bodega}
+              onChange={(e) => setBodega(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {bodegas.map((b) => (
+                <option key={b.bodega} value={String(b.bodega)}>
+                  {b.descripcion}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="w-full min-w-0 text-sm">
+            Estado
+            <select
+              className={inputClass}
+              value={estado}
+              onChange={(e) => setEstado(e.target.value)}
+            >
+              <option value="">Todos</option>
+              <option value="1">Pendiente</option>
+              <option value="2">En proceso</option>
+              <option value="3">Finalizada</option>
+            </select>
+          </label>
+        </div>
+        <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            onClick={() => {
+              setApplied({ estado, bodega });
+              setPage(1);
+            }}
+            disabled={listQuery.isFetching}
           >
-            <option value="">Todos</option>
-            {bodegas.map((b) => (
-              <option key={b.bodega} value={String(b.bodega)}>
-                {b.descripcion}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm min-w-[160px]">
-          Estado
-          <select
-            className="mt-1 block w-full rounded border px-3 py-2"
-            value={estado}
-            onChange={(e) => setEstado(e.target.value)}
+            {listQuery.isFetching ? 'Cargando...' : 'Cargar'}
+          </button>
+          <button
+            type="button"
+            className={btnSecondaryClass}
+            onClick={() => {
+              setBodega('');
+              setEstado('');
+              setApplied({ estado: '', bodega: '' });
+              setPage(1);
+            }}
           >
-            <option value="">Todos</option>
-            <option value="1">Pendiente</option>
-            <option value="2">En proceso</option>
-            <option value="3">Finalizada</option>
-          </select>
-        </label>
-        <button
-          type="button"
-          className={btnPrimaryClass}
-          onClick={() => {
-            setApplied({ estado, bodega });
-            setPage(1);
-          }}
-          disabled={listQuery.isFetching}
-        >
-          {listQuery.isFetching ? 'Cargando...' : 'Cargar'}
-        </button>
-        <button
-          type="button"
-          className="rounded-md border px-4 py-2 text-sm"
-          onClick={() => {
-            setBodega('');
-            setEstado('');
-            setApplied({ estado: '', bodega: '' });
-            setPage(1);
-          }}
-        >
-          Refrescar
-        </button>
-        <button
-          type="button"
-          className={btnSuccessClass}
-          onClick={exportExcel}
-        >
-          Descargar
-        </button>
+            Refrescar
+          </button>
+          <button
+            type="button"
+            className={btnSuccessClass}
+            onClick={exportExcel}
+          >
+            Descargar
+          </button>
+        </div>
       </div>
 
       {listQuery.isError ? (
@@ -163,9 +169,10 @@ export function InformeCorrectivoGestion() {
         />
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm max-h-[75vh]">
-        <table className="min-w-full text-xs md:text-sm">
-          <thead className="sticky top-0 bg-(--color-primary) text-white">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-table-scroll">
+        <table className="w-full min-w-[1080px] text-xs md:text-sm">
+          <thead className="sticky top-0 brand-bg text-white">
             <tr>
               {[
                 'CODIGO',
@@ -236,6 +243,7 @@ export function InformeCorrectivoGestion() {
             )}
           </tbody>
         </table>
+        </div>
         {rows.length > PAGE_SIZE && (
           <div className="mt-4">
             <Pagination

@@ -60,8 +60,8 @@ export const AuditoriaFormulario = memo(function AuditoriaFormulario({
   onRespuesta,
 }: Props) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm border">
+    <div className="app-table-scroll">
+      <table className="w-full min-w-[640px] text-sm border">
         <thead>
           <tr className="bg-gray-50">
             <th className="px-3 py-2 text-center w-[30%]">Indicador</th>

@@ -68,7 +68,7 @@ function EstadoTallerTableComponent({
 
   return (
     <div>
-      <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
+      <div className="app-table-scroll max-h-[520px]">
         <table className="w-full text-xs sm:text-sm min-w-[1600px]">
           <thead className="sticky top-0 z-[1] bg-white shadow-sm">
             <tr className="text-center text-gray-600 border-b border-gray-200">

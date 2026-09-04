@@ -205,7 +205,7 @@ export function ProductividadTecnicosGestion() {
         onSubmit={handleSubmit}
         className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-700">Año</label>
             <input
@@ -284,11 +284,11 @@ export function ProductividadTecnicosGestion() {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex">
           <button
             type="submit"
             disabled={isFetching}
-            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
+            className="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
           >
             {isFetching ? 'Generando...' : 'Generar'}
           </button>
@@ -300,8 +300,8 @@ export function ProductividadTecnicosGestion() {
           <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Mes actual
           </h2>
-          <div className="overflow-x-auto w-full">
-            <table className="w-full min-w-full text-xs border-collapse">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[960px] text-xs border-collapse">
               <thead>
                 <tr className="brand-bg text-white text-center">
                   {COLUMNAS_TABLA.map((col) => (
@@ -344,8 +344,8 @@ export function ProductividadTecnicosGestion() {
           <h2 className="text-sm font-semibold text-gray-800 mb-3">
             Consolidado
           </h2>
-          <div className="overflow-x-auto w-full">
-            <table className="w-full min-w-full text-xs border-collapse">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[960px] text-xs border-collapse">
               <thead>
                 <tr className="brand-bg text-white text-center">
                   {COLUMNAS_TABLA.map((col) => (

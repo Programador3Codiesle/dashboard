@@ -82,12 +82,12 @@ export function TallasPersonalGestion() {
       backLabel={INFORMES_COPY.backGh}
     >
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex">
         <button
           type="button"
           onClick={handleExportCsv}
           disabled={!rows.length}
-          className="inline-flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium shadow hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium shadow hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           Exportar a Excel
         </button>
@@ -95,7 +95,7 @@ export function TallasPersonalGestion() {
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="app-table-scroll">
-          <table className="min-w-full text-xs" id="tabladatos">
+          <table className="min-w-[720px] w-full text-xs" id="tabladatos">
             <thead className="bg-(--color-primary) text-white">
               <tr>
                 <th className="px-2 py-1 text-left">Documento</th>

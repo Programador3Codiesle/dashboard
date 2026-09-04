@@ -11,6 +11,13 @@ import {
   type VehiculoQr,
 } from '@/modules/encuestas/shared/services/encuesta-qr.service';
 import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
+import {
+  btnPrimaryClass,
+  btnSecondaryClass,
+  btnSuccessClass,
+  btnWarningClass,
+  inputClass,
+} from '@/modules/encuestas/shared/constants/ui';
 
 type Step =
   | 'placa'
@@ -248,10 +255,12 @@ export function EncuestaSalidaWizard() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 px-4 py-8">
+    <div className="mx-auto min-h-screen w-full min-w-0 max-w-3xl bg-slate-50 px-3 py-6 sm:px-4 sm:py-8">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold brand-text">CODIESEL S.A.</h1>
-        <p className="text-sm text-slate-600">Generar orden de salida / Encuesta de satisfacción</p>
+        <h1 className="app-title-xl brand-text">CODIESEL S.A.</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Generar orden de salida / Encuesta de satisfacción
+        </p>
       </div>
 
       {(error || preguntasQuery.isError) && (
@@ -267,9 +276,9 @@ export function EncuestaSalidaWizard() {
 
       {step === 'placa' && (
         <Card title="DIGITE LA PLACA DE SU VEHÍCULO">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
             <input
-              className="flex-1 rounded border px-3 py-2 uppercase"
+              className={`${inputClass} uppercase`}
               placeholder="PLACA"
               value={placa}
               onChange={(e) => setPlaca(e.target.value.toUpperCase())}
@@ -278,7 +287,7 @@ export function EncuestaSalidaWizard() {
             <button
               type="button"
               onClick={buscarPlaca}
-              className="rounded brand-bg px-4 py-2 font-medium text-white brand-bg-hover"
+              className={btnPrimaryClass}
             >
               Buscar
             </button>
@@ -288,7 +297,7 @@ export function EncuestaSalidaWizard() {
 
       {step === 'confirmVh' && vh && (
         <Card title="INFORMACIÓN DEL VEHÍCULO">
-          <div className="mb-4 rounded border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] p-3 text-sm">
+          <div className="mb-4 rounded border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] p-3 text-sm break-words">
             <p>
               <strong>Placa:</strong> {vh.placa}
             </p>
@@ -312,7 +321,7 @@ export function EncuestaSalidaWizard() {
             N° de documento
             <input
               type="number"
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`mt-1 ${inputClass}`}
               value={doc}
               onChange={(e) => setDoc(e.target.value)}
             />
@@ -320,7 +329,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={continuarDoc}
-            className="mt-3 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
+            className={`mt-3 ${btnPrimaryClass}`}
           >
             Continuar
           </button>
@@ -329,44 +338,44 @@ export function EncuestaSalidaWizard() {
 
       {step === 'updateOwner' && (
         <Card title="ACTUALIZAR DATOS PERSONALES">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-sm">
+          <div className="app-form-grid-2">
+            <label className="w-full min-w-0 text-sm">
               Nombre
               <input
                 readOnly
-                className="mt-1 w-full rounded border bg-slate-100 px-3 py-2"
+                className={`mt-1 ${inputClass} bg-slate-100`}
                 value={vh?.nombres ?? ''}
               />
             </label>
-            <label className="text-sm">
+            <label className="w-full min-w-0 text-sm">
               Email *
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={mail}
                 onChange={(e) => setMail(e.target.value)}
               />
             </label>
-            <label className="text-sm">
+            <label className="w-full min-w-0 text-sm">
               Celular *
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
             </label>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               onClick={actualizarPropietario}
-              className="rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
+              className={btnPrimaryClass}
             >
               Actualizar / Continuar
             </button>
             <button
               type="button"
               onClick={() => setStep('askSurvey')}
-              className="rounded bg-[var(--color-warning)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+              className={btnWarningClass}
             >
               Continuar sin cambios
             </button>
@@ -376,28 +385,28 @@ export function EncuestaSalidaWizard() {
 
       {step === 'userVh' && (
         <Card title="DATOS DEL USUARIO DEL VEHÍCULO">
-          <div className="grid gap-3">
-            <label className="text-sm">
+          <div className="grid grid-cols-1 gap-3">
+            <label className="w-full min-w-0 text-sm">
               Nombre *
               <input
-                className="mt-1 w-full rounded border px-3 py-2 uppercase"
+                className={`mt-1 ${inputClass} uppercase`}
                 value={userName}
                 onChange={(e) => setUserName(e.target.value.toUpperCase())}
                 readOnly={userMode === 'update'}
               />
             </label>
-            <label className="text-sm">
+            <label className="w-full min-w-0 text-sm">
               Correo electrónico *
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={userMail}
                 onChange={(e) => setUserMail(e.target.value)}
               />
             </label>
-            <label className="text-sm">
+            <label className="w-full min-w-0 text-sm">
               Teléfono o celular *
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${inputClass}`}
                 value={userPhone}
                 onChange={(e) => setUserPhone(e.target.value)}
               />
@@ -406,7 +415,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={registrarUsuario}
-            className="mt-3 rounded brand-success px-4 py-2 text-sm font-medium text-white brand-success-hover"
+            className={`mt-3 ${btnSuccessClass}`}
           >
             {userMode === 'insert' ? 'Registrar' : 'Actualizar'}
           </button>
@@ -415,18 +424,18 @@ export function EncuestaSalidaWizard() {
 
       {step === 'askSurvey' && (
         <Card title="¿Desea realizar la Encuesta de satisfacción?">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full flex-col gap-2 sm:flex-row">
             <button
               type="button"
               onClick={() => setStep('encuesta')}
-              className="rounded brand-success px-4 py-2 text-sm font-medium text-white brand-success-hover"
+              className={btnSuccessClass}
             >
               Sí
             </button>
             <button
               type="button"
               onClick={sinEncuesta}
-              className="rounded bg-slate-500 px-4 py-2 text-sm font-medium text-white"
+              className={btnSecondaryClass}
             >
               No
             </button>
@@ -447,7 +456,7 @@ export function EncuestaSalidaWizard() {
               >
                 <p className="mb-2 font-medium">{p.pregunta}:</p>
                 {p.tipo === '1-10' && p.id === 1 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
                     {[
                       {
                         v: '6',
@@ -468,7 +477,7 @@ export function EncuestaSalidaWizard() {
                       <button
                         key={opt.v}
                         type="button"
-                        className={`rounded border-2 px-3 py-2 ${opt.cls} ${
+                        className={`w-full rounded border-2 px-3 py-2 sm:w-auto ${opt.cls} ${
                           answers[`pregunta${p.id}`] === opt.v
                             ? 'bg-slate-100 font-bold'
                             : ''
@@ -483,12 +492,12 @@ export function EncuestaSalidaWizard() {
                   </div>
                 )}
                 {p.tipo === 'sn' && (
-                  <div className="flex gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:flex-row">
                     {['NO', 'SI'].map((opt) => (
                       <button
                         key={opt}
                         type="button"
-                        className={`rounded border px-4 py-2 ${
+                        className={`w-full rounded border px-4 py-2 sm:w-auto ${
                           answers[`pregunta${p.id}`] === opt
                             ? 'bg-[var(--color-info)] text-white'
                             : 'bg-white'
@@ -505,7 +514,7 @@ export function EncuestaSalidaWizard() {
                 {p.tipo === 'op' && (
                   <textarea
                     rows={4}
-                    className="w-full rounded border px-3 py-2"
+                    className={inputClass}
                     placeholder="Escriba aquí su opinión acerca del servicio prestado"
                     value={answers[`pregunta${p.id}`] ?? ''}
                     onChange={(e) =>
@@ -522,7 +531,7 @@ export function EncuestaSalidaWizard() {
           <button
             type="button"
             onClick={enviarEncuesta}
-            className="mt-4 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
+            className={`mt-4 ${btnPrimaryClass}`}
           >
             Enviar Respuestas
           </button>
@@ -531,11 +540,11 @@ export function EncuestaSalidaWizard() {
 
       {step === 'done' && (
         <Card title="Listo">
-          <p className="text-center text-[var(--color-success)]">{msg}</p>
+          <p className="break-words text-center text-[var(--color-success)]">{msg}</p>
           <button
             type="button"
             onClick={resetAll}
-            className="mt-4 rounded brand-bg px-4 py-2 text-sm font-medium text-white brand-bg-hover"
+            className={`mt-4 ${btnPrimaryClass}`}
           >
             Nueva encuesta
           </button>
@@ -553,8 +562,8 @@ function Card({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-center text-lg font-semibold text-slate-800">
+    <div className="app-section-card w-full min-w-0">
+      <h2 className="mb-4 break-words text-center text-lg font-semibold text-slate-800">
         {title}
       </h2>
       {children}

@@ -97,9 +97,9 @@ export function LlegadaVehiculosGestion() {
       backLabel={INFORMES_COPY.backPv}
     >
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4 max-w-md">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4 w-full max-w-md">
         <div className="grid grid-cols-1 gap-4">
-          <div className="flex flex-col gap-1 max-w-xs">
+          <div className="flex flex-col gap-1 min-w-0">
             <label className="text-sm font-medium text-gray-700">
               Año / Mes
             </label>
@@ -126,7 +126,7 @@ export function LlegadaVehiculosGestion() {
 
         {!isLoading && data && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="app-kpi-grid-3">
               <div className="rounded-xl bg-(--color-primary) text-white p-4 shadow-sm">
                 <h2 className="text-sm font-medium opacity-80">
                   Porcentaje Citas Cumplidas
@@ -183,7 +183,7 @@ export function LlegadaVehiculosGestion() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="app-kpi-grid-3">
               {[
                 { title: "Citas Cumplidas", items: citasCumplidas, total: data.citasAgendadas },
                 { title: "Estado de Citas", items: estadoCitas, total: data.citasAsistidas },
@@ -223,7 +223,7 @@ export function LlegadaVehiculosGestion() {
               <h3 className="text-sm font-semibold text-gray-800 mb-3">
                 Resumen numérico
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+              <div className="app-kpi-grid-3 gap-3 text-sm">
                 <div className="flex justify-between bg-white rounded-lg px-3 py-2 border border-gray-100">
                   <span className="text-gray-600">Citas agendadas</span>
                   <span className="font-medium">

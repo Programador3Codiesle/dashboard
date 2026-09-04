@@ -122,8 +122,8 @@ export function InformeBaseDatosGestion() {
       description={CONTACT_CENTER_COPY.informeBaseDatos.description}
     >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3">
           <div>
             <label htmlFor="cc-bdc-tipo" className="text-sm font-medium text-gray-700">Tipo (*)</label>
             <select
@@ -164,7 +164,7 @@ export function InformeBaseDatosGestion() {
             />
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2 justify-end">
+        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
             className={btnPrimaryClass}
@@ -182,11 +182,12 @@ export function InformeBaseDatosGestion() {
       </div>
 
       {tableRows.length > 0 && tipo && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto space-y-3">
+        <div className="app-section-card w-full min-w-0 space-y-3">
           <p className="text-xs text-gray-500">
             {tableRows.length} registro(s) — {FILAS_POR_PAGINA} por página
           </p>
-          <table className="min-w-full text-xs">
+          <div className="app-table-scroll">
+          <table className="w-full min-w-[960px] text-xs">
             <thead className="bg-gray-50">
               <tr>
                 {headers.map((h) => (
@@ -204,6 +205,7 @@ export function InformeBaseDatosGestion() {
               ))}
             </tbody>
           </table>
+          </div>
           {tableRows.length > FILAS_POR_PAGINA && (
             <div className="mt-4">
               <Pagination

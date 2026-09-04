@@ -1,9 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft } from 'lucide-react';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { IndicadoresPageFrame } from '@/modules/indicadores/components/IndicadoresPageFrame';
 import { INDICADORES_COPY } from '@/modules/indicadores/constants';
@@ -45,21 +43,15 @@ export function PresupuestoTipoOperacionesGestion() {
     <IndicadoresPageFrame
       title={INDICADORES_COPY.tipoOperaciones.title}
       description={INDICADORES_COPY.tipoOperaciones.description}
+      backHref={backHref}
+      backLabel="← Volver a talleres"
     >
       {!bodega ? (
-        <p className="rounded-2xl border border-[color-mix(in_srgb,var(--color-warning)_35%,white)] bg-[var(--color-warning-soft)] p-6 text-sm text-gray-800 shadow-sm">
+        <p className="app-section-card border-[color-mix(in_srgb,var(--color-warning)_35%,white)] bg-[var(--color-warning-soft)] text-sm text-gray-800">
           Falta el parámetro de taller/bodega.
         </p>
       ) : (
         <>
-          <Link
-            href={backHref}
-            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:brand-text"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Volver a talleres
-          </Link>
-
           <p className="text-sm text-gray-500">
             Taller: <span className="font-medium text-gray-800">{bodega}</span>
           </p>
@@ -74,7 +66,7 @@ export function PresupuestoTipoOperacionesGestion() {
               )}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
               {operaciones.map((op) => (
                 <ProgressCard
                   key={op.operacion}

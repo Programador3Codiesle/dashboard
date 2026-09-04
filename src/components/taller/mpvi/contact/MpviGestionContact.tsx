@@ -53,7 +53,7 @@ export function MpviGestionContact() {
               onChange={(e) => setPlacaFiltro(e.target.value.toUpperCase())}
             />
           </div>
-          <Button className="brand-btn flex items-center gap-2" onClick={handleBuscar}>
+          <Button className="brand-btn flex w-full sm:w-auto items-center justify-center gap-2" onClick={handleBuscar}>
             <Search size={18} />
             Buscar
           </Button>
@@ -66,8 +66,8 @@ export function MpviGestionContact() {
           </div>
         )}
 
-        <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full text-sm border rounded-lg">
+        <div className="mt-6 app-table-scroll">
+          <table className="min-w-[960px] w-full text-sm border rounded-lg">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 py-2 border-b">N° Cotización</th>
@@ -104,7 +104,7 @@ export function MpviGestionContact() {
                   <td className="px-3 py-2">{c.fechaContacto}</td>
                   <td className="px-3 py-2 text-center">{c.diasRestantes}</td>
                   <td className="px-3 py-2">
-                    <div className="flex justify-center gap-2">
+                    <div className="flex flex-wrap justify-center gap-2">
                       <Button className="brand-btn text-xs px-2 py-1" onClick={() => handleGestionar(c.id)}>
                         Gestionar
                       </Button>
@@ -133,7 +133,7 @@ export function MpviGestionContact() {
         <p className="text-gray-600 mb-4">
           ¿Desea descartar la cotización #{descartarTarget?.id} de la placa {descartarTarget?.placa}?
         </p>
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
           <Button variant="secondary" onClick={() => setDescartarTarget(null)}>
             Cancelar
           </Button>

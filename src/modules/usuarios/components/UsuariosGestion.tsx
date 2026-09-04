@@ -11,7 +11,7 @@ export function UsuariosGestion() {
       <PageTitleRow
         title={USUARIOS_COPY.title}
         headingAs="h2"
-        headingClassName="app-title-xl text-gray-800"
+        headingClassName="app-title-xl brand-text"
         className="mb-4 sm:mb-6"
       />
       <UsuariosToolbar />

@@ -192,7 +192,7 @@ export function NpsColmotoresGestion() {
         />
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
         <button
           type="button"
           className={btnPrimaryClass}
@@ -218,11 +218,11 @@ export function NpsColmotoresGestion() {
       {modo === 'sede' && (
         <form
           onSubmit={onSubmitSede}
-          className="space-y-4 rounded-lg border bg-card p-4"
+          className="app-section-card w-full min-w-0 space-y-4"
         >
           <h2 className="font-semibold">NPS por sede</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label htmlFor="nps-sede-all" className="text-sm">
+          <div className="app-form-grid-3">
+            <label htmlFor="nps-sede-all" className="w-full min-w-0 text-sm">
               Sede
               <select
                 id="nps-sede-all"
@@ -239,7 +239,7 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <label htmlFor="nps-fecha-all" className="text-sm">
+            <label htmlFor="nps-fecha-all" className="w-full min-w-0 text-sm">
               Fecha
               <input
                 id="nps-fecha-all"
@@ -250,7 +250,7 @@ export function NpsColmotoresGestion() {
                 onChange={(e) => setFechaAll(e.target.value)}
               />
             </label>
-            <label htmlFor="nps-cal-all" className="text-sm">
+            <label htmlFor="nps-cal-all" className="w-full min-w-0 text-sm">
               Calificación
               <input
                 id="nps-cal-all"
@@ -263,7 +263,7 @@ export function NpsColmotoresGestion() {
               />
             </label>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="app-form-grid-3">
             <RangoCheck
               idPrefix="nps-rango-06"
               label="0-6"
@@ -298,11 +298,11 @@ export function NpsColmotoresGestion() {
       {modo === 'tecnico' && (
         <form
           onSubmit={onSubmitTecnico}
-          className="space-y-4 rounded-lg border bg-card p-4"
+          className="app-section-card w-full min-w-0 space-y-4"
         >
           <h2 className="font-semibold">NPS por técnico</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <label htmlFor="nps-sede-tec" className="text-sm">
+          <div className="app-form-grid-3">
+            <label htmlFor="nps-sede-tec" className="w-full min-w-0 text-sm">
               Sede
               <select
                 id="nps-sede-tec"
@@ -319,7 +319,7 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <div className="text-sm sm:col-span-2">
+            <div className="w-full min-w-0 text-sm sm:col-span-2 xl:col-span-2">
               <label htmlFor="nps-tecnico-filter" className="block">
                 Técnico
               </label>
@@ -348,7 +348,7 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </div>
-            <label htmlFor="nps-fecha-tec" className="text-sm">
+            <label htmlFor="nps-fecha-tec" className="w-full min-w-0 text-sm">
               Fecha
               <input
                 id="nps-fecha-tec"
@@ -359,7 +359,7 @@ export function NpsColmotoresGestion() {
                 onChange={(e) => setFechaTec(e.target.value)}
               />
             </label>
-            <label htmlFor="nps-vin" className="text-sm">
+            <label htmlFor="nps-vin" className="w-full min-w-0 text-sm">
               VIN / Placa
               <input
                 id="nps-vin"
@@ -369,7 +369,7 @@ export function NpsColmotoresGestion() {
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
               />
             </label>
-            <label htmlFor="nps-cal-tec" className="text-sm">
+            <label htmlFor="nps-cal-tec" className="w-full min-w-0 text-sm">
               Calificación
               <input
                 id="nps-cal-tec"
@@ -381,7 +381,7 @@ export function NpsColmotoresGestion() {
                 onChange={(e) => setCalTec(e.target.value)}
               />
             </label>
-            <label htmlFor="nps-tipif" className="text-sm">
+            <label htmlFor="nps-tipif" className="w-full min-w-0 text-sm">
               Tipificación
               <select
                 id="nps-tipif"
@@ -396,7 +396,7 @@ export function NpsColmotoresGestion() {
                 ))}
               </select>
             </label>
-            <label htmlFor="nps-tipo-cal" className="text-sm">
+            <label htmlFor="nps-tipo-cal" className="w-full min-w-0 text-sm">
               Tipo de rango
               <select
                 id="nps-tipo-cal"
@@ -441,7 +441,7 @@ function RangoCheck({
   const checkId = `${idPrefix}-chk`;
   const valueId = `${idPrefix}-val`;
   return (
-    <div className="rounded border p-3 text-sm">
+    <div className="min-w-0 rounded border p-3 text-sm">
       <label htmlFor={checkId} className="flex items-center gap-2">
         <input
           id={checkId}

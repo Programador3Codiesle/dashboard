@@ -9,7 +9,6 @@ export default function AsignarJefeModal({ open, usuario, onClose, onAsignar, on
     const [selectedJefe, setSelectedJefe] = useState<string | null>(null);
     const [jefeAEliminar, setJefeAEliminar] = useState<string | null>(null);
 
-    // Filtrar jefes disponibles que no están ya asignados
     const jefesDisponiblesParaAsignar = jefesDisponibles.filter(
         jefe => !jefesUsuario.some(j => j.id === jefe.id)
     );
@@ -37,49 +36,31 @@ export default function AsignarJefeModal({ open, usuario, onClose, onAsignar, on
         setJefeAEliminar(null);
     };
 
+    const closeButtonClass =
+        "w-full sm:w-auto rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 transition-colors";
+
     return (
         <>
         <Modal open={open} onClose={onClose} title={`Gestionar Jefes - ${usuario?.nombre}`} width="600px">
             <div>
-                {/* Jefes actuales del usuario */}
                 {jefesUsuario.length > 0 && (
-                    <div style={{ marginBottom: "25px" }}>
-                        <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "12px", color: "#333" }}>
+                    <div className="mb-6">
+                        <h3 className="mb-3 text-base font-semibold text-gray-800">
                             Jefes asignados:
                         </h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div className="flex flex-col gap-2">
                             {jefesUsuario.map((jefe) => (
                                 <div
                                     key={jefe.id}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        padding: "12px",
-                                        border: "1px solid #ddd",
-                                        borderRadius: "8px",
-                                        backgroundColor: "#f9fafb"
-                                    }}
+                                    className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between"
                                 >
-                                    <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                                    <span className="min-w-0 break-words text-sm font-medium">
                                         {jefe.nombre}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => handleOpenEliminar(jefe.id.toString())}
-                                        style={{
-                                            padding: "6px 12px",
-                                            background: "#fee2e2",
-                                            color: "#b91c1c",
-                                            borderRadius: "9999px",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "6px",
-                                            fontSize: "12px",
-                                            fontWeight: "500"
-                                        }}
+                                        className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 transition-colors"
                                     >
                                         <Trash2 size={14} />
                                         Quitar
@@ -90,96 +71,75 @@ export default function AsignarJefeModal({ open, usuario, onClose, onAsignar, on
                     </div>
                 )}
 
-                {/* Formulario para asignar nuevo jefe */}
                 {jefesDisponiblesParaAsignar.length > 0 && (
                     <form onSubmit={handleAsignar}>
-                        <p style={{ marginBottom: "15px", fontSize: "14px", color: "#666" }}>
+                        <p className="mb-4 text-sm text-gray-500">
                             Selecciona un jefe para asignar:
                         </p>
 
-                        <div style={{ marginBottom: "20px", maxHeight: "300px", overflowY: "auto" }}>
-                            {jefesDisponiblesParaAsignar.map((jefe) => (
+                        <div className="mb-5 max-h-[300px] overflow-y-auto">
+                            {jefesDisponiblesParaAsignar.map((jefe) => {
+                                const selected = selectedJefe === jefe.id.toString();
+                                return (
                                 <label
                                     key={jefe.id}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        padding: "12px",
-                                        marginBottom: "10px",
-                                        border: "2px solid",
-                                        borderColor: selectedJefe === jefe.id.toString() ? "#f59e0b" : "#ddd",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        backgroundColor: selectedJefe === jefe.id.toString() ? "#fef3c7" : "#fff",
-                                        transition: "all 0.2s"
-                                    }}
+                                    className={`mb-2.5 flex cursor-pointer items-center rounded-lg border-2 p-3 transition-all ${
+                                        selected
+                                            ? "brand-border brand-bg-light"
+                                            : "border-gray-200 bg-white hover:border-gray-300"
+                                    }`}
                                 >
                                     <input
                                         type="radio"
                                         name="jefe"
-                                        checked={selectedJefe === jefe.id.toString()}
+                                        checked={selected}
                                         onChange={() => setSelectedJefe(jefe.id.toString())}
-                                        style={{
-                                            marginRight: "12px",
-                                            width: "18px",
-                                            height: "18px",
-                                            cursor: "pointer"
-                                        }}
+                                        className="mr-3 h-[18px] w-[18px] cursor-pointer accent-[var(--color-primary)]"
                                     />
-                                    <div style={{ fontSize: "14px", fontWeight: "600" }}>
+                                    <span className="text-sm font-semibold">
                                         {jefe.nombre}
-                                    </div>
+                                    </span>
                                 </label>
-                            ))}
+                                );
+                            })}
                         </div>
 
-                        {jefesDisponiblesParaAsignar.length === 0 && (
-                            <p style={{ padding: "15px", backgroundColor: "#f3f4f6", borderRadius: "8px", color: "#666", fontSize: "14px" }}>
-                                Todos los jefes disponibles ya están asignados.
-                            </p>
-                        )}
-
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                        <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{
-                                    padding: "8px 16px",
-                                    background: "#ddd",
-                                    borderRadius: "6px",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontWeight: "500"
-                                }}
+                                className={closeButtonClass}
                             >
                                 Cerrar
                             </button>
-                            {jefesDisponiblesParaAsignar.length > 0 && (
-                                <button
-                                    type="submit"
-                                    disabled={selectedJefe === null}
-                                    style={{
-                                        padding: "8px 16px",
-                                        background: selectedJefe === null ? "#ccc" : "#f59e0b",
-                                        color: "#fff",
-                                        borderRadius: "6px",
-                                        border: "none",
-                                        cursor: selectedJefe === null ? "not-allowed" : "pointer",
-                                        fontWeight: "500",
-                                        opacity: selectedJefe === null ? 0.6 : 1
-                                    }}
-                                >
-                                    Asignar
-                                </button>
-                            )}
+                            <button
+                                type="submit"
+                                disabled={selectedJefe === null}
+                                className="w-full sm:w-auto rounded-lg px-4 py-2 text-sm font-medium text-white brand-bg brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Asignar
+                            </button>
                         </div>
                     </form>
                 )}
 
-                {jefesDisponiblesParaAsignar.length === 0 && jefesUsuario.length === 0 && (
-                    <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
-                        <p>No hay jefes disponibles para asignar.</p>
-                    </div>
+                {jefesDisponiblesParaAsignar.length === 0 && (
+                    <>
+                        {jefesUsuario.length === 0 && (
+                            <div className="mb-4 p-5 text-center text-sm text-gray-500">
+                                <p>No hay jefes disponibles para asignar.</p>
+                            </div>
+                        )}
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className={closeButtonClass}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </Modal>

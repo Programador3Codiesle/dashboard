@@ -33,7 +33,7 @@ export default function DetalleAusentismoModal({
             </span>
             Datos del colaborador
           </h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Gestionado Por</label>
               <p className="text-gray-900 font-medium">{ausentismo.gestionadoPor}</p>
@@ -68,7 +68,7 @@ export default function DetalleAusentismoModal({
             </span>
             Fechas y horarios
           </h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Fecha Inicio</label>
               <p className="text-gray-900 font-medium">{ausentismo.fechaInicio}</p>

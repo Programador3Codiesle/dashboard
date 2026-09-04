@@ -8,6 +8,7 @@ import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPage
 import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
 import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
 import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { AuditoriaTableCard } from '@/modules/auditoria/shared/components/AuditoriaTableCard';
 import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
 import {
   btnToggleActiveClass,
@@ -92,36 +93,38 @@ export function EntregasGestion() {
       description={AUDITORIA_COPY.entregas.description}
       backLabel={AUDITORIA_COPY.backLabel}
     >
-      <div className="flex flex-wrap items-center justify-center gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label htmlFor="aud-ent-ano" className="sr-only">
-          Año
-        </label>
-        <input
-          id="aud-ent-ano"
-          type="number"
-          min={2022}
-          max={2100}
-          className={`w-28 ${inputClass}`}
-          value={ano}
-          onChange={(e) => setAno(e.target.value.slice(0, 4))}
-        />
-        <button
-          type="button"
-          onClick={() => cargar(1)}
-          className={applied?.tipo === 1 ? btnToggleActiveClass : btnToggleClass}
-        >
-          {AUDITORIA_COPY.entregas.livianos}
-        </button>
-        <button
-          type="button"
-          onClick={() => cargar(2)}
-          className={applied?.tipo === 2 ? btnToggleActiveClass : btnToggleClass}
-        >
-          {AUDITORIA_COPY.entregas.pesados}
-        </button>
+      <div className="app-section-card w-full min-w-0">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <label htmlFor="aud-ent-ano" className="w-full min-w-0 text-sm sm:w-auto">
+            Año
+            <input
+              id="aud-ent-ano"
+              type="number"
+              min={2022}
+              max={2100}
+              className={`w-full sm:w-28 ${inputClass}`}
+              value={ano}
+              onChange={(e) => setAno(e.target.value.slice(0, 4))}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => cargar(1)}
+            className={applied?.tipo === 1 ? btnToggleActiveClass : btnToggleClass}
+          >
+            {AUDITORIA_COPY.entregas.livianos}
+          </button>
+          <button
+            type="button"
+            onClick={() => cargar(2)}
+            className={applied?.tipo === 2 ? btnToggleActiveClass : btnToggleClass}
+          >
+            {AUDITORIA_COPY.entregas.pesados}
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+      <div className="flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
         {[
           { cls: 'bg-[var(--color-success)]', label: 'Mayor a 100' },
           { cls: 'bg-[var(--color-info)]', label: 'Mayor a 50 y menor a 100' },
@@ -150,9 +153,20 @@ export function EntregasGestion() {
         </h2>
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-center text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <AuditoriaTableCard
+        footer={
+          <AuditoriaPager
+            total={total}
+            page={safePage}
+            totalPages={totalPages}
+            onChange={onPage}
+            inicio={inicio}
+            fin={fin}
+          />
+        }
+      >
+        <table className="w-full min-w-[520px] text-center text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               <th className="px-3 py-2.5">Mes</th>
               <th className="px-3 py-2.5">Entregas</th>
@@ -191,15 +205,7 @@ export function EntregasGestion() {
             )}
           </tbody>
         </table>
-        <AuditoriaPager
-          total={total}
-          page={safePage}
-          totalPages={totalPages}
-          onChange={onPage}
-          inicio={inicio}
-          fin={fin}
-        />
-      </div>
+      </AuditoriaTableCard>
     </AuditoriaPageFrame>
   );
 }

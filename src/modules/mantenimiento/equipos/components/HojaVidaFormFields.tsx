@@ -21,11 +21,11 @@ function ListaDinamica({
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm font-semibold text-gray-800">{label}</p>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 sm:w-auto"
           onClick={() => onChange([...items, ''])}
         >
           <Plus className="h-3.5 w-3.5" />

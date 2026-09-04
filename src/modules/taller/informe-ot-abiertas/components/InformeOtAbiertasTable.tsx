@@ -73,7 +73,7 @@ function InformeOtAbiertasTableComponent({
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      <div className="app-table-scroll">
         <table className="w-full text-sm min-w-[900px]">
           <thead>
             <tr className="text-center text-gray-600 border-b border-gray-200 bg-gray-50">

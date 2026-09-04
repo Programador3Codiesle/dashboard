@@ -79,7 +79,7 @@ function HeaderComponent({
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200/60 bg-white/80 shadow-sm backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:px-6 xl:px-8 2xl:px-10">
+      <div className="app-shell-gutter flex items-center justify-between gap-2 py-3 sm:gap-3 sm:py-4">
         <div className="flex min-w-0 flex-1 items-center space-x-3 sm:space-x-4">
           <button
             type="button"
@@ -121,7 +121,7 @@ function HeaderComponent({
           )}
 
           {(formattedFullName || rolEtiqueta) && (
-            <div className="flex max-w-32 flex-col items-end text-right sm:max-w-56 md:hidden">
+            <div className="hidden max-w-56 flex-col items-end text-right sm:flex md:hidden">
               {formattedShortName && (
                 <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
                   {formattedShortName}
@@ -154,6 +154,20 @@ function HeaderComponent({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
+                  {(formattedFullName || rolEtiqueta) && (
+                    <div className="border-b border-gray-100 px-4 py-2">
+                      {formattedFullName ? (
+                        <p className="break-words text-sm font-semibold text-gray-900">
+                          {formattedFullName}
+                        </p>
+                      ) : null}
+                      {rolEtiqueta ? (
+                        <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                          {rolEtiqueta}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
                   <button type="button" className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-gray-50">
                     <User size={16} className="mr-2 shrink-0" />
                     Mi Perfil
@@ -165,7 +179,7 @@ function HeaderComponent({
                   <div className="my-1 border-t border-gray-100" />
                   <button
                     type="button"
-                    className="flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
                     onClick={() => {
                       setShowProfile(false);
                       onLogout();

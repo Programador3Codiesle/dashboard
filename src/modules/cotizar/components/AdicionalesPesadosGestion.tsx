@@ -9,7 +9,7 @@ import {
   useCrearAdicionalPesado,
   useListarAdicionalesPesados,
 } from "@/modules/cotizador/hooks/useAdicionalesPesados";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 import type {
   BulkManoObraAdicionalPesadoInput,
   BulkRepuestoAdicionalPesadoInput,
@@ -86,18 +86,10 @@ export function AdicionalesPesadosGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Adicionales Pesados
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Administración de adicionales de repuestos y mano de obra para el
-          cotizador de vehículos pesados.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Adicionales Pesados"
+        description="Administración de adicionales de repuestos y mano de obra para el cotizador de vehículos pesados."
+      />
 
       {errorInit && (
         <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm">
@@ -112,37 +104,41 @@ export function AdicionalesPesadosGestion() {
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
         <div className="border-b border-gray-200">
-          <nav className="flex" aria-label="Tabs">
+          <nav className="app-tabs-scroll" aria-label="Tabs">
             {[
-              { id: "crear", label: "Crear adicionales", icon: PlusCircle },
-              { id: "cargar", label: "Cargar adicionales", icon: Layers },
-              { id: "listar", label: "Lista adicionales", icon: ListChecks },
+              { id: "crear", label: "Crear adicionales", shortLabel: "Crear", icon: PlusCircle },
+              { id: "cargar", label: "Cargar adicionales", shortLabel: "Cargar", icon: Layers },
+              { id: "listar", label: "Lista adicionales", shortLabel: "Lista", icon: ListChecks },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as TabId)}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                title={tab.label}
+                className={`shrink-0 flex-1 min-w-[6.5rem] flex items-center justify-center gap-2 px-2 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? "border-(--color-primary) text-(--color-primary) bg-gray-50"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50/50"
                 }`}
               >
-                <tab.icon size={18} />
-                <span>{tab.label}</span>
+                <tab.icon size={18} className="shrink-0" />
+                <span className="truncate">
+                  <span className="sm:hidden">{tab.shortLabel}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </span>
               </button>
             ))}
           </nav>
         </div>
 
-        <div className="p-5 space-y-6">
+        <div className="p-3 sm:p-5 space-y-6">
           {activeTab === "crear" && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-800">
                 Crear nuevo adicional
               </h2>
-              <div className="flex flex-wrap items-end gap-3">
-                <div className="min-w-[220px]">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-3">
+                <div className="w-full sm:min-w-[220px] sm:w-auto">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nombre nuevo adicional
                   </label>
@@ -158,7 +154,7 @@ export function AdicionalesPesadosGestion() {
                   type="button"
                   onClick={handleCrear}
                   disabled={crearMutation.isPending || !nuevoNombre.trim()}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
                 >
                   <PlusCircle size={18} />
                   Crear
@@ -172,7 +168,7 @@ export function AdicionalesPesadosGestion() {
                 {loadingInit ? (
                   <p className="text-sm text-gray-500">Cargando...</p>
                 ) : (
-                  <div className="max-h-64 overflow-auto border border-gray-100 rounded-xl">
+                  <div className="app-table-scroll max-h-64">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 text-gray-600 uppercase tracking-wider text-xs">
                         <tr>
@@ -224,7 +220,7 @@ export function AdicionalesPesadosGestion() {
               <h2 className="text-lg font-semibold text-gray-800">
                 Cargar repuestos y mano de obra a adicionales
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="app-form-grid-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Adicional
@@ -272,7 +268,7 @@ export function AdicionalesPesadosGestion() {
               </div>
 
               <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-gray-700">
                     Repuestos
                   </h3>
@@ -285,8 +281,8 @@ export function AdicionalesPesadosGestion() {
                     Agregar fila
                   </button>
                 </div>
-                <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                  <table className="w-full text-xs">
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[720px] text-xs">
                     <thead className="bg-gray-50 text-gray-600 uppercase tracking-wider">
                       <tr>
                         <th className="px-3 py-2 text-left">Código</th>
@@ -418,7 +414,7 @@ export function AdicionalesPesadosGestion() {
               </div>
 
               <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-gray-700">
                     Mano de obra
                   </h3>
@@ -431,8 +427,8 @@ export function AdicionalesPesadosGestion() {
                     Agregar fila
                   </button>
                 </div>
-                <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                  <table className="w-full text-xs">
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[720px] text-xs">
                     <thead className="bg-gray-50 text-gray-600 uppercase tracking-wider">
                       <tr>
                         <th className="px-3 py-2 text-left">Operación</th>
@@ -564,7 +560,7 @@ export function AdicionalesPesadosGestion() {
                     !adicionalSeleccionado ||
                     clasesSeleccionadas.length === 0
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
                 >
                   {cargarMutation.isPending ? "Guardando..." : "Guardar adicional"}
                 </button>
@@ -585,7 +581,7 @@ export function AdicionalesPesadosGestion() {
               <h2 className="text-lg font-semibold text-gray-800">
                 Lista de adicionales (repuestos y mano de obra)
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="app-form-grid-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Adicional
@@ -638,8 +634,8 @@ export function AdicionalesPesadosGestion() {
                   {loadingLista ? (
                     <p className="text-sm text-gray-500">Cargando...</p>
                   ) : (
-                    <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                      <table className="w-full text-xs">
+                    <div className="app-table-scroll">
+                      <table className="w-full min-w-[720px] text-xs">
                         <thead className="bg-white text-gray-600 uppercase tracking-wider">
                           <tr>
                             <th className="px-3 py-2 text-center">Clase</th>
@@ -704,8 +700,8 @@ export function AdicionalesPesadosGestion() {
                   {loadingLista ? (
                     <p className="text-sm text-gray-500">Cargando...</p>
                   ) : (
-                    <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                      <table className="w-full text-xs">
+                    <div className="app-table-scroll">
+                      <table className="w-full min-w-[720px] text-xs">
                         <thead className="bg-white text-gray-600 uppercase tracking-wider">
                           <tr>
                             <th className="px-3 py-2 text-center">Clase</th>

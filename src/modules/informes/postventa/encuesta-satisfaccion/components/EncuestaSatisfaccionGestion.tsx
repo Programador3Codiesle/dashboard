@@ -103,7 +103,7 @@ export function EncuestaSatisfaccionGestion() {
       backLabel={INFORMES_COPY.backPv}
     >
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className={labelClass}>Fecha inicial</label>
             <input
@@ -156,7 +156,7 @@ export function EncuestaSatisfaccionGestion() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div className="flex flex-col">
             <label className={labelClass}>Cliente (NIT)</label>
             <input
@@ -188,12 +188,12 @@ export function EncuestaSatisfaccionGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center justify-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
           <button
             type="button"
             onClick={handleBuscar}
             disabled={isFetching}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isFetching ? 'Cargando...' : 'Buscar'}
           </button>
@@ -205,7 +205,7 @@ export function EncuestaSatisfaccionGestion() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="app-kpi-grid-3">
         {data?.map((row) => {
           const colorP1 = getColorClase(row.promP1);
           const colorP2 = getColorClase(row.promP2);

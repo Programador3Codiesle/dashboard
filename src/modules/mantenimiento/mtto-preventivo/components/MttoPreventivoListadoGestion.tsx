@@ -78,9 +78,10 @@ export function MttoPreventivoListadoGestion() {
         />
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-table-scroll">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               {['Código', 'Equipo', 'Bodega', 'Fecha req.', 'Descripción', 'Acciones'].map(
                 (h) => (
@@ -141,6 +142,7 @@ export function MttoPreventivoListadoGestion() {
             )}
           </tbody>
         </table>
+        </div>
         {total > 0 && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-600">{total} registros</span>

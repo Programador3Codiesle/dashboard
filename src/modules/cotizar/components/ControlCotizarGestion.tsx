@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
 import { useControlRepuestos } from "@/modules/cotizador/hooks/useControlRepuestos";
 import type { FilaControlRepuesto } from "@/modules/cotizador/services/cotizador-control.service";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 function toNum(v: unknown): number {
   if (typeof v === "number" && !Number.isNaN(v)) return v;
@@ -79,6 +79,7 @@ const TAB_OPTIONS = [
   {
     id: "tab1",
     label: "Disponible es inferior a agendada",
+    shortLabel: "Inf. agendada",
     icon: AlertTriangle,
     bgHeader: "bg-red-100",
     borderColor: "border-red-200",
@@ -86,6 +87,7 @@ const TAB_OPTIONS = [
   {
     id: "tab2",
     label: "Disponible inferior al stock min",
+    shortLabel: "Inf. stock min",
     icon: TrendingDown,
     bgHeader: "bg-amber-100",
     borderColor: "border-amber-200",
@@ -93,6 +95,7 @@ const TAB_OPTIONS = [
   {
     id: "tab3",
     label: "Disponible es superior al stock min",
+    shortLabel: "Sup. stock min",
     icon: TrendingUp,
     bgHeader: "brand-bg-light",
     borderColor: "brand-border",
@@ -108,7 +111,7 @@ function TablaControl({
 }) {
   return (
     <div className="app-table-scroll">
-      <table className="w-full text-sm text-left border-collapse">
+      <table className="w-full min-w-[1100px] text-sm text-left border-collapse">
         <thead>
           <tr className={`${bgHeader} border-b border-gray-200`}>
             <th
@@ -217,17 +220,10 @@ export function ControlCotizarGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Control repuestos
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Control de repuestos por cotización y citas: disponible vs agendada y stock min/max por bodega.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Control repuestos"
+        description="Control de repuestos por cotización y citas: disponible vs agendada y stock min/max por bodega."
+      />
 
       {error && (
         <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm">
@@ -242,22 +238,26 @@ export function ControlCotizarGestion() {
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
         <div className="border-b border-gray-200">
-          <nav className="flex" aria-label="Tabs">
+          <nav className="app-tabs-scroll" aria-label="Tabs">
             {TAB_OPTIONS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as "tab1" | "tab2" | "tab3")}
+                title={tab.label}
                 className={`
-                  flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors
+                  shrink-0 sm:flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors
                   ${activeTab === tab.id
                     ? "border-(--color-primary) text-(--color-primary) bg-gray-50"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50/50"
                   }
                 `}
               >
-                <tab.icon size={18} />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <tab.icon size={18} className="shrink-0" />
+                <span className="whitespace-nowrap text-xs sm:text-sm">
+                  <span className="lg:hidden">{tab.shortLabel}</span>
+                  <span className="hidden lg:inline">{tab.label}</span>
+                </span>
               </button>
             ))}
           </nav>

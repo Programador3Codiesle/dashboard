@@ -16,7 +16,7 @@ import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
 import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
-import { btnSuccessClass } from '@/modules/mantenimiento/shared/constants/ui';
+import { btnPrimaryClass, btnSecondaryClass, btnSuccessClass } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
@@ -287,8 +287,8 @@ export function EquipoHojaVidaGestion() {
         : 'bg-gray-100 text-gray-700';
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <Link
             href="/dashboard/mantenimiento/equipos"
@@ -297,7 +297,7 @@ export function EquipoHojaVidaGestion() {
             ← Volver a equipos
           </Link>
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            <h1 className="app-title-xl brand-text truncate">
+            <h1 className="app-title-xl brand-text break-words">
               {String(eq.alias_equipo || eq.nombre_equipo)}
             </h1>
             <EmpresaBadge />
@@ -311,11 +311,11 @@ export function EquipoHojaVidaGestion() {
             Ficha técnica · Inventario {String(eq.codigo)}
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row">
           {!editing ? (
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-md brand-bg px-3.5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className={btnPrimaryClass}
               onClick={() => {
                 if (serverSnap) setDraft(serverSnap);
                 setEditing(true);
@@ -328,7 +328,7 @@ export function EquipoHojaVidaGestion() {
             <>
               <button
                 type="button"
-                className="rounded-md border border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className={btnSecondaryClass}
                 onClick={() => {
                   setEditing(false);
                   setDraft(null);
@@ -350,7 +350,7 @@ export function EquipoHojaVidaGestion() {
       </div>
 
       {editing ? (
-        <div className="space-y-3 rounded-xl border bg-white p-4 shadow-sm">
+        <div className="app-section-card w-full min-w-0 space-y-3">
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             <input
               className="rounded-lg border px-3 py-2 text-sm"
@@ -597,8 +597,8 @@ export function EquipoHojaVidaGestion() {
                 Correctivo
               </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-xs">
+            <div className="app-table-scroll border-0 rounded-none">
+              <table className="w-full min-w-[800px] text-xs">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-[10px] uppercase tracking-wide text-gray-500">
                     {[

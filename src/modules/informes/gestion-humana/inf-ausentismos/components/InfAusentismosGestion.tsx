@@ -119,8 +119,7 @@ export function InfAusentismosGestion() {
           message={getErrorMessage(error, INFORMES_COPY.infAusentismos.loadError)}
         />
       ) : null}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">Mes</label>
             <input
@@ -141,7 +140,6 @@ export function InfAusentismosGestion() {
               className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
             />
           </div>
-        </div>
       </div>
 
       <motion.div
@@ -168,7 +166,7 @@ export function InfAusentismosGestion() {
         </div>
 
         <div className="app-table-scroll">
-          <table className="w-full">
+          <table className="w-full min-w-[900px]">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">Documento</th>

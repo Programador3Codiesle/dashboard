@@ -11,7 +11,9 @@ export function RankingNpsTecnicosGestion() {
   if (blocked) return null;
   return (
     <AuditoriaPageFrame backLabel={AUDITORIA_COPY.backLabel}>
-      <PacNpsInternoDetalladoPage />
+      <div className="w-full min-w-0">
+        <PacNpsInternoDetalladoPage />
+      </div>
     </AuditoriaPageFrame>
   );
 }

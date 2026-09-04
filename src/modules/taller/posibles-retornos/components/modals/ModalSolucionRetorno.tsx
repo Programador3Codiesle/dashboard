@@ -39,7 +39,7 @@ export function ModalSolucionRetorno({
             </h2>
           </div>
 
-          <div className="p-4 overflow-x-auto">
+          <div className="p-4 app-table-scroll">
             <table className="w-full text-xs border-collapse min-w-[1400px]">
               <thead>
                 <tr className="bg-gray-50 border text-center">

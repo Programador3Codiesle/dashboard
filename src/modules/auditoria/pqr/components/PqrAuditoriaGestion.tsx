@@ -11,7 +11,9 @@ export function PqrAuditoriaGestion() {
   if (blocked) return null;
   return (
     <AuditoriaPageFrame backLabel={AUDITORIA_COPY.backLabel}>
-      <PqrNpsPage />
+      <div className="w-full min-w-0">
+        <PqrNpsPage />
+      </div>
     </AuditoriaPageFrame>
   );
 }

@@ -125,19 +125,19 @@ export default function AgregarUsuarioModal({
                 )}
 
                 {/* Botones */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isSubmitting && <Loader2 className="animate-spin" size={16} />}
                         Guardar

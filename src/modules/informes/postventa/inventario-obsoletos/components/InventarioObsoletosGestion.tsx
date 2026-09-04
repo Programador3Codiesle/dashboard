@@ -234,7 +234,7 @@ export function InventarioObsoletosGestion() {
         width="min(96vw, 1400px)"
       >
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p className="text-xs md:text-sm text-gray-500">
               Nuevo PVP total simulado:{" "}
               <span className="font-semibold">
@@ -244,7 +244,7 @@ export function InventarioObsoletosGestion() {
             <button
               type="button"
               onClick={exportarExcel}
-              className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+              className="inline-flex w-full sm:w-auto justify-center items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
             >
               Generar Excel
             </button>
@@ -258,8 +258,8 @@ export function InventarioObsoletosGestion() {
           ) : rows.length === 0 ? (
             <p className="text-sm text-gray-500">No hay detalle para mostrar.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-100 max-h-[65vh]">
-              <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
+            <div className="app-table-scroll max-h-[65vh]">
+              <table className="min-w-[1100px] w-full divide-y divide-gray-200 text-[11px] md:text-xs">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-2 py-2 text-center font-semibold">#</th>

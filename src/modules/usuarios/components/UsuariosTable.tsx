@@ -448,18 +448,18 @@ export const UsuariosTable = memo(function UsuariosTable() {
       </div>
 
       <div className="app-table-scroll bg-white shadow-sm">
-        <table className="w-full min-w-[780px] lg:min-w-[860px] xl:min-w-[920px]">
+        <table className="w-full min-w-[960px]">
           <thead className="brand-bg text-white text-center">
             <tr>
-              <th className="px-4 py-2 text-center">ID</th>
-              <th className="px-4 py-2 text-center">Nombre</th>
-              <th className="px-4 py-2 text-center">Usuario</th>
-              <th className="px-4 py-2 text-center">Marcas</th>
-              <th className="px-4 py-2 text-center">Estado</th>
-              <th className="px-4 py-2 text-center">Perfil</th>
-              <th className="px-4 py-2 text-center">Sede</th>
-              <th className="px-4 py-2 text-center">Rest-clave</th>
-              <th className="px-4 py-2 text-center">Acciones</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">ID</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Nombre</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Usuario</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Marcas</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Estado</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Perfil</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Sede</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Rest-clave</th>
+              <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">Acciones</th>
             </tr>
           </thead>
 

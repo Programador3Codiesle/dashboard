@@ -145,7 +145,7 @@ function DashboardAsesorRepInner({
       </div>
 
       {/* Presupuesto, Resumen y Estado/% en columnas */}
-      <div className=" grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Columna 1: Presupuesto por sede */}
         <section className="py-1 rounded-xl flex flex-col h-full ">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">

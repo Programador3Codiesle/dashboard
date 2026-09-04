@@ -128,7 +128,7 @@ export function TallasDotacionGestion() {
             <h3 className="mb-3 font-semibold text-gray-900">
               Información de tallas actual
             </h3>
-            <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3 lg:grid-cols-5">
+            <div className="app-kpi-grid text-sm">
               <div>
                 <span className="text-gray-600">NIT:</span>
                 <p className="font-medium text-gray-900">{tallasActuales.nit}</p>
@@ -170,11 +170,11 @@ export function TallasDotacionGestion() {
             formData={formData}
             onFormDataChange={setDraft}
           />
-          <div className="flex justify-end">
+          <div className="flex">
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex items-center gap-2 rounded-xl brand-bg px-6 py-3 font-medium text-white shadow-md transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-6 py-3 font-medium text-white shadow-md transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save size={18} />
               <span>

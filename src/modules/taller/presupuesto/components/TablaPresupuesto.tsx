@@ -105,7 +105,7 @@ export function TablaPresupuesto({
   };
 
   return (
-    <div className="overflow-x-auto mb-6">
+    <div className="app-table-scroll mb-6">
       <table className={`w-full min-w-[900px] text-sm border-collapse ${cellBorder}`}>
         <thead>
           <tr className="bg-gray-50 text-center">

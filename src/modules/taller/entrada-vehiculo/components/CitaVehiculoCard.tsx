@@ -1,7 +1,6 @@
 "use client";
 
 import type { CitaEntrada, BodegaVisualContext } from "../types/entrada-vehiculo.types";
-import { EV_DETAIL_TABLE } from "../utils/entrada-vehiculo.styles";
 import { VehiculoCardLayout } from "./VehiculoCardLayout";
 import { VehiculoDetailField } from "./VehiculoDetailField";
 
@@ -44,7 +43,7 @@ export function CitaVehiculoCard({
               type="button"
               disabled={marcando}
               onClick={() => onMarcarEntrada?.(cita.idCita, cita.fechaHoraIni)}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm ${
+              className={`w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-sm ${
                 puedeMarcar
                   ? "text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] border border-[var(--color-primary)]"
                   : "bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed"
@@ -61,23 +60,13 @@ export function CitaVehiculoCard({
         ) : undefined
       }
     >
-      <div className="overflow-x-auto">
-        <table className={EV_DETAIL_TABLE}>
-          <tbody>
-            <tr>
-              <VehiculoDetailField label="Cliente" value={cita.nombreCliente ?? "—"} />
-              <VehiculoDetailField label="Encargado" value={cita.nombreEncargado ?? "—"} />
-            </tr>
-            <tr>
-              <VehiculoDetailField label="Vehículo" value={cita.vehiculo ?? "—"} />
-              <VehiculoDetailField label="Fecha/Hora cita" value={cita.fechaCita} />
-            </tr>
-            <tr>
-              <VehiculoDetailField label="Bahía/Técnico" value={cita.descripcionBahia ?? "—"} />
-              <VehiculoDetailField label="Notas" value={cita.notas ?? "—"} />
-            </tr>
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <VehiculoDetailField label="Cliente" value={cita.nombreCliente ?? "—"} />
+        <VehiculoDetailField label="Encargado" value={cita.nombreEncargado ?? "—"} />
+        <VehiculoDetailField label="Vehículo" value={cita.vehiculo ?? "—"} />
+        <VehiculoDetailField label="Fecha/Hora cita" value={cita.fechaCita} />
+        <VehiculoDetailField label="Bahía/Técnico" value={cita.descripcionBahia ?? "—"} />
+        <VehiculoDetailField label="Notas" value={cita.notas ?? "—"} />
       </div>
     </VehiculoCardLayout>
   );

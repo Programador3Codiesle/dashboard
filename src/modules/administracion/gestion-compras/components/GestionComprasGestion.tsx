@@ -213,7 +213,7 @@ export function GestionComprasGestion() {
           type="button"
           onClick={() => void handleDownload()}
           disabled={descargando}
-          className="flex items-center gap-2 rounded-xl bg-(--color-success) px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl bg-(--color-success) px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
         >
           {descargando ? (
             <>
@@ -230,7 +230,7 @@ export function GestionComprasGestion() {
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg"
+          className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg"
         >
           <Plus size={18} />
           <span>Nueva Solicitud</span>
@@ -248,7 +248,7 @@ export function GestionComprasGestion() {
         className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
       >
         <div className="app-table-scroll">
-          <table className="w-full">
+          <table className="w-full min-w-[1200px]">
             <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
               <tr>
                 <th className="px-6 py-4 text-left font-semibold text-white">

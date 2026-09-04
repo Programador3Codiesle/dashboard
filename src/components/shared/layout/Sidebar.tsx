@@ -137,11 +137,12 @@ function SidebarComponent({
           isCollapsed={isCollapsed}
           isMobile={isMobile}
           onClose={onClose}
+          onExpand={!isMobile && isCollapsed ? onToggleCollapse : undefined}
         />
 
         <div className={`border-t border-gray-800 bg-gray-900/30 transition-all duration-300 ${isCollapsed ? "p-2" : "p-6"}`}>
           <div className={`mb-4 flex items-center rounded-xl transition-all duration-300 ${isCollapsed ? "justify-center bg-transparent p-0" : "space-x-3 bg-gray-800/50 p-3"}`}>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full brand-bg-gradient">
               <span className="text-sm font-bold text-white">
                 {user?.nombre_usuario?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase() || "U"}
               </span>

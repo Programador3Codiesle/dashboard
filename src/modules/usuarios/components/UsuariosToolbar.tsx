@@ -48,10 +48,10 @@ export const UsuariosToolbar = memo(function UsuariosToolbar() {
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button
           variant="primary"
-          className="flex items-center"
+          className="flex w-full sm:w-auto items-center justify-center"
           onClick={handleOpenAgregarUsuario}
         >
           <ReceiptText size={16} className="mr-2" />
@@ -59,7 +59,7 @@ export const UsuariosToolbar = memo(function UsuariosToolbar() {
         </Button>
         <Button
           variant="primary"
-          className="flex items-center ml-2"
+          className="flex w-full sm:w-auto items-center justify-center"
           onClick={handleOpenAgregarJefe}
         >
           <ReceiptText size={16} className="mr-2" />

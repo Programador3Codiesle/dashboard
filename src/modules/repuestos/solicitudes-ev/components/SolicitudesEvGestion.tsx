@@ -170,8 +170,8 @@ export function SolicitudesEvGestion() {
         }}
       />
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
-        <table className="min-w-full text-xs md:text-sm">
+      <div className="app-table-scroll">
+        <table className="w-full min-w-[1200px] text-xs md:text-sm">
           <thead className="bg-gray-50">
             <tr>
               {['N° Solicitud', 'N° Orden', 'Placa', 'Bodega', 'Fecha', 'Solicitado', 'Obs.', 'Fecha auth', 'Autorizado', 'Obs. auth', 'Opción'].map((h) => (
@@ -214,8 +214,9 @@ export function SolicitudesEvGestion() {
       </div>
 
       <Modal open={modalGestion} onClose={() => setModalGestion(false)} title={`Autorizar solicitud #${solicitudActiva?.id}`} width="min(96vw, 1200px)">
-        <div className="space-y-4 overflow-x-auto">
-          <table className="min-w-full text-xs">
+        <div className="space-y-4">
+          <div className="app-table-scroll">
+          <table className="w-full min-w-[720px] text-xs">
             <thead>
               <tr>
                 {['Referencia', 'Descripción', 'Cant.', 'Stock', 'Autorizado'].map((h) => (
@@ -236,7 +237,7 @@ export function SolicitudesEvGestion() {
                   </td>
                   <td className="px-2 py-1 text-center">
                     {l.puedeAutorizar ? (
-                      <div className="flex gap-2 justify-center">
+                      <div className="flex flex-wrap gap-2 justify-center">
                         <label><input type="radio" name={`auth-${l.id}`} onChange={() => setAuthLineas((p) => ({ ...p, [l.id]: 1 }))} /> SI</label>
                         <label><input type="radio" name={`auth-${l.id}`} onChange={() => setAuthLineas((p) => ({ ...p, [l.id]: 2 }))} /> NO</label>
                       </div>
@@ -248,14 +249,15 @@ export function SolicitudesEvGestion() {
               ))}
             </tbody>
           </table>
+          </div>
           <textarea className={`${inputClass} min-h-20`} placeholder="Observación autorización" value={obsAuth} onChange={(e) => setObsAuth(e.target.value)} />
           <button type="button" className={btnPrimaryClass} onClick={() => autorizar.mutate()} disabled={!obsAuth || autorizar.isPending}>Guardar</button>
         </div>
       </Modal>
 
       <Modal open={modalDetalle} onClose={() => setModalDetalle(false)} title={`Detalle solicitud #${solicitudActiva?.id}`} width="min(96vw, 1200px)">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-xs">
+        <div className="app-table-scroll">
+          <table className="w-full min-w-[1100px] text-xs">
             <thead>
               <tr>
                 {['Ref', 'Desc', 'Cant', 'Auth', 'EV', 'Obs EV', 'SV', 'Obs SV', 'Entregado'].map((h) => (

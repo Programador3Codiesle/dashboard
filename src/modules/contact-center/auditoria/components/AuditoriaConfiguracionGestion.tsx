@@ -198,7 +198,7 @@ export function AuditoriaConfiguracionGestion() {
     <div className="space-y-4">
       <AuditoriaBreadcrumb current="Configuración" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <button
             key={c.title}
@@ -212,8 +212,8 @@ export function AuditoriaConfiguracionGestion() {
       </div>
 
       {vistaPrevia && formularioQuery.data && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-          <div className="flex justify-between items-center mb-3">
+        <div className="app-section-card w-full min-w-0">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-semibold">Vista previa del formulario</h3>
             <button type="button" className={btnSecondaryClass} onClick={() => setVistaPrevia(false)}>
               Cerrar
@@ -229,7 +229,7 @@ export function AuditoriaConfiguracionGestion() {
         </p>
         <div className="space-y-3 max-h-[50vh] overflow-y-auto">
           {(indicadoresQuery.data ?? []).map((ind) => (
-            <div key={ind.idIndicador} className="flex items-center justify-between border-b py-2 text-sm gap-2">
+            <div key={ind.idIndicador} className="flex flex-col gap-2 border-b py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
               <span>{ind.nombres} ({ind.puntuacion} pts)</span>
               <button
                 type="button"
@@ -244,7 +244,7 @@ export function AuditoriaConfiguracionGestion() {
         </div>
         <div className="mt-4 pt-4 border-t space-y-2">
           <p className="text-sm font-medium text-gray-700">Crear indicador</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <input
               className={inputClass}
               placeholder="Nombre"
@@ -253,7 +253,7 @@ export function AuditoriaConfiguracionGestion() {
             />
             <input
               type="number"
-              className={`${inputClass} w-28`}
+              className={`${inputClass} sm:w-28`}
               placeholder="Puntos"
               value={nuevoIndPuntos}
               onChange={(e) => setNuevoIndPuntos(e.target.value)}
@@ -304,7 +304,7 @@ export function AuditoriaConfiguracionGestion() {
             <>
               <ul className="text-sm space-y-2 max-h-40 overflow-y-auto">
                 {(itemsQuery.data ?? []).map((it) => (
-                  <li key={it.idItem} className="flex items-center justify-between border-b py-1 gap-2">
+                  <li key={it.idItem} className="flex flex-col gap-1 border-b py-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                     <span>{it.concepto}</span>
                     <button
                       type="button"
@@ -321,7 +321,7 @@ export function AuditoriaConfiguracionGestion() {
                   </li>
                 ))}
               </ul>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   className={inputClass}
                   placeholder="Nuevo concepto"
@@ -355,7 +355,7 @@ export function AuditoriaConfiguracionGestion() {
             <>
               <ul className="text-sm space-y-2 max-h-40 overflow-y-auto">
                 {(obsQuery.data ?? []).map((o) => (
-                  <li key={o.idObs} className="flex items-center justify-between border-b py-1 gap-2">
+                  <li key={o.idObs} className="flex flex-col gap-1 border-b py-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                     <span>{o.observacion}</span>
                     <button
                       type="button"
@@ -372,7 +372,7 @@ export function AuditoriaConfiguracionGestion() {
                   </li>
                 ))}
               </ul>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   className={inputClass}
                   placeholder="Nueva observación"

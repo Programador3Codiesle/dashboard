@@ -24,7 +24,10 @@ function HeaderPageTitleComponent() {
   const currentTitle = useMemo(() => resolvePageTitle(currentPath), [currentPath]);
 
   return (
-    <h1 className="text-base sm:text-lg md:text-xl xl:text-2xl 2xl:text-3xl font-bold bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent truncate">
+    <h1
+      title={currentTitle}
+      className="min-w-0 break-words text-base font-bold leading-tight bg-linear-to-br from-gray-900 to-gray-700 bg-clip-text text-transparent sm:text-lg md:text-xl xl:text-2xl 2xl:text-3xl"
+    >
       {currentTitle}
     </h1>
   );

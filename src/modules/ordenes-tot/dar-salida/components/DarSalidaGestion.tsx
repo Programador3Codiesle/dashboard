@@ -11,6 +11,7 @@ import { OrdenesTotPageFrame } from '@/modules/ordenes-tot/components/OrdenesTot
 import { ORDENES_TOT_COPY } from '@/modules/ordenes-tot/constants';
 import { OtQueryError } from '@/modules/ordenes-tot/shared/components/OtQueryError';
 import {
+  btnIconClass,
   btnPrimaryClass,
   btnSecondaryClass,
   btnSuccessClass,
@@ -291,9 +292,9 @@ export function DarSalidaGestion({ tipo }: Props) {
   return (
     <OrdenesTotPageFrame title={copy.title} description={copy.description}>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+        <div className="app-section-card min-w-0">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="min-w-0 text-sm text-gray-500">
               {tipo === 'vehiculo' &&
                 'Registre vehículos pendientes de confirmación en portería.'}
               {tipo === 'tot' &&
@@ -312,8 +313,8 @@ export function DarSalidaGestion({ tipo }: Props) {
         </div>
 
         {tipo === 'vehiculo' && (
-          <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-gray-800">
+          <div className="app-section-card min-w-0 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800">
               Vehículos pendientes
             </h3>
             {pendientesQuery.isLoading ? (
@@ -327,39 +328,41 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-600">
-                      <th className="px-2 py-2">Placa</th>
-                      <th className="px-2 py-2">Orden</th>
-                      <th className="px-2 py-2">Fecha ingreso</th>
-                      <th className="px-2 py-2">Autorización</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalItems === 0 ? (
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead className="brand-bg text-white">
                       <tr>
-                        <td colSpan={4} className="px-2 py-4 text-gray-500">
-                          No hay vehículos pendientes
-                        </td>
+                        <th className="px-3 py-2.5 text-left font-semibold">Placa</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Orden</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Fecha ingreso</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Autorización</th>
                       </tr>
-                    ) : (
-                      (paginatedRows as NonNullable<typeof pendientesQuery.data>).map(
-                        (item) => (
-                          <tr
-                            key={`${item.id}-${item.orden}-${item.placa}`}
-                            className="border-b border-gray-50"
-                          >
-                            <td className="px-2 py-2 font-medium">{item.placa}</td>
-                            <td className="px-2 py-2">{item.orden}</td>
-                            <td className="px-2 py-2">{item.fechaIngreso ?? '—'}</td>
-                            <td className="px-2 py-2">{item.autorizacion || '—'}</td>
-                          </tr>
-                        ),
-                      )
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {totalItems === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-4 text-gray-500">
+                            No hay vehículos pendientes
+                          </td>
+                        </tr>
+                      ) : (
+                        (paginatedRows as NonNullable<typeof pendientesQuery.data>).map(
+                          (item) => (
+                            <tr
+                              key={`${item.id}-${item.orden}-${item.placa}`}
+                              className="border-b border-gray-50"
+                            >
+                              <td className="px-3 py-2 font-medium">{item.placa}</td>
+                              <td className="px-3 py-2">{item.orden}</td>
+                              <td className="px-3 py-2">{item.fechaIngreso ?? '—'}</td>
+                              <td className="px-3 py-2">{item.autorizacion || '—'}</td>
+                            </tr>
+                          ),
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
                 <TablaPaginadaFooter {...footerProps} />
               </>
             )}
@@ -367,7 +370,7 @@ export function DarSalidaGestion({ tipo }: Props) {
         )}
 
         {tipo === 'tot' && (
-          <div className="space-y-3 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="app-section-card min-w-0 space-y-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-sm font-semibold text-gray-800">Listado TOT</h3>
               <button
@@ -389,66 +392,70 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-600">
-                      <th className="px-2 py-2">N° de orden</th>
-                      <th className="px-2 py-2">Placa</th>
-                      <th className="px-2 py-2">Vehículo</th>
-                      <th className="px-2 py-2">Proveedor</th>
-                      <th className="px-2 py-2">Contenido</th>
-                      <th className="px-2 py-2">Fecha salida</th>
-                      <th className="px-2 py-2">Fecha reingreso</th>
-                      <th className="px-2 py-2">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalItems === 0 ? (
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[1100px] text-sm">
+                    <thead className="brand-bg text-white">
                       <tr>
-                        <td colSpan={8} className="px-2 py-4 text-gray-500">
-                          Sin registros
-                        </td>
+                        <th className="px-3 py-2.5 text-left font-semibold">N° de orden</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Placa</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Vehículo</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Proveedor</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Contenido</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Fecha salida</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Fecha reingreso</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Acciones</th>
                       </tr>
-                    ) : (
-                      (paginatedRows as TotListadoItem[]).map((item) => (
-                        <tr
-                          key={item.id}
-                          className={`border-b border-gray-50 ${totRowClass(item)}`}
-                        >
-                          <td className="px-2 py-2">{item.orden}</td>
-                          <td className="px-2 py-2">{item.placa}</td>
-                          <td className="px-2 py-2">{item.descripcion || '—'}</td>
-                          <td className="px-2 py-2">{item.proveedor || '—'}</td>
-                          <td className="px-2 py-2">{item.contenido || '—'}</td>
-                          <td className="px-2 py-2">{item.fechaSalida ?? '—'}</td>
-                          <td className="px-2 py-2">{item.fechaReingreso ?? '—'}</td>
-                          <td className="px-2 py-2">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                className={`${btnSuccessClass} !px-2 !py-1`}
-                                title="Imprimir recibo"
-                                disabled={estadoTot === 2 || imprimirRecibo.isPending}
-                                onClick={() => imprimirRecibo.mutate(item.id)}
-                              >
-                                <Printer size={14} />
-                              </button>
-                              <button
-                                type="button"
-                                className={`${btnPrimaryClass} !px-2 !py-1`}
-                                title="Marcar reingreso"
-                                disabled={estadoTot === 2 || reingreso.isPending}
-                                onClick={() => reingreso.mutate(item.id)}
-                              >
-                                <RotateCcw size={14} />
-                              </button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {totalItems === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="px-3 py-4 text-gray-500">
+                            Sin registros
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        (paginatedRows as TotListadoItem[]).map((item) => (
+                          <tr
+                            key={item.id}
+                            className={`border-b border-gray-50 ${totRowClass(item)}`}
+                          >
+                            <td className="px-3 py-2">{item.orden}</td>
+                            <td className="px-3 py-2">{item.placa}</td>
+                            <td className="px-3 py-2">{item.descripcion || '—'}</td>
+                            <td className="px-3 py-2">{item.proveedor || '—'}</td>
+                            <td className="px-3 py-2">{item.contenido || '—'}</td>
+                            <td className="px-3 py-2">{item.fechaSalida ?? '—'}</td>
+                            <td className="px-3 py-2">{item.fechaReingreso ?? '—'}</td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  className={`${btnIconClass} brand-success`}
+                                  title="Imprimir recibo"
+                                  aria-label="Imprimir recibo"
+                                  disabled={estadoTot === 2 || imprimirRecibo.isPending}
+                                  onClick={() => imprimirRecibo.mutate(item.id)}
+                                >
+                                  <Printer size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${btnIconClass} brand-bg`}
+                                  title="Marcar reingreso"
+                                  aria-label="Marcar reingreso"
+                                  disabled={estadoTot === 2 || reingreso.isPending}
+                                  onClick={() => reingreso.mutate(item.id)}
+                                >
+                                  <RotateCcw size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
                 <TablaPaginadaFooter {...footerProps} />
               </>
             )}
@@ -456,8 +463,8 @@ export function DarSalidaGestion({ tipo }: Props) {
         )}
 
         {tipo === 'repuesto' && (
-          <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-gray-800">
+          <div className="app-section-card min-w-0 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-800">
               Candidatos a salida de repuestos
             </h3>
             {candidatosQuery.isLoading ? (
@@ -471,39 +478,43 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-600">
-                      <th className="px-2 py-2">N° orden</th>
-                      <th className="px-2 py-2">Placa</th>
-                      <th className="px-2 py-2">Bodega / descripción</th>
-                      <th className="px-2 py-2">Fecha ingreso</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {totalItems === 0 ? (
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[640px] text-sm">
+                    <thead className="brand-bg text-white">
                       <tr>
-                        <td colSpan={4} className="px-2 py-4 text-gray-500">
-                          No hay candidatos
-                        </td>
+                        <th className="px-3 py-2.5 text-left font-semibold">N° orden</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Placa</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">
+                          Bodega / descripción
+                        </th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Fecha ingreso</th>
                       </tr>
-                    ) : (
-                      (paginatedRows as NonNullable<typeof candidatosQuery.data>).map(
-                        (item, idx) => (
-                          <tr
-                            key={`${item.numero}-${item.placa}-${idx}`}
-                            className="border-b border-gray-50"
-                          >
-                            <td className="px-2 py-2 font-medium">{item.numero}</td>
-                            <td className="px-2 py-2">{item.placa}</td>
-                            <td className="px-2 py-2">{item.descripcion || '—'}</td>
-                            <td className="px-2 py-2">{item.fechaIngreso ?? '—'}</td>
-                          </tr>
-                        ),
-                      )
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {totalItems === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-4 text-gray-500">
+                            No hay candidatos
+                          </td>
+                        </tr>
+                      ) : (
+                        (paginatedRows as NonNullable<typeof candidatosQuery.data>).map(
+                          (item, idx) => (
+                            <tr
+                              key={`${item.numero}-${item.placa}-${idx}`}
+                              className="border-b border-gray-50"
+                            >
+                              <td className="px-3 py-2 font-medium">{item.numero}</td>
+                              <td className="px-3 py-2">{item.placa}</td>
+                              <td className="px-3 py-2">{item.descripcion || '—'}</td>
+                              <td className="px-3 py-2">{item.fechaIngreso ?? '—'}</td>
+                            </tr>
+                          ),
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
                 <TablaPaginadaFooter {...footerProps} />
               </>
             )}
@@ -517,7 +528,7 @@ export function DarSalidaGestion({ tipo }: Props) {
                 Formulario no disponible en legacy. El registro de repuestos requería placa y
                 orden, pero el modal quedó sin campos en el sistema anterior.
               </p>
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button type="button" className={btnSecondaryClass} onClick={closeModal}>
                   Cerrar
                 </button>
@@ -611,7 +622,7 @@ export function DarSalidaGestion({ tipo }: Props) {
                 </>
               )}
 
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button type="button" className={btnSecondaryClass} onClick={closeModal}>
                   Cancelar
                 </button>

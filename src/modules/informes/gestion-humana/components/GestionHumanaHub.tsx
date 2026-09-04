@@ -22,7 +22,6 @@ export function GestionHumanaHub() {
       items={GESTION_HUMANA_HUB_ITEMS}
       variant="border"
       titleClassName="app-title-xl brand-text"
-      gridClassName="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3"
       filter={{ permission: 'trimenu' }}
       emptyWhenFiltered
     />

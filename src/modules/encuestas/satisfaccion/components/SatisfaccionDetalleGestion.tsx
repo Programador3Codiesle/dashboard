@@ -74,18 +74,18 @@ export function SatisfaccionDetalleGestion() {
         </p>
       ) : (
         <>
-          <div className="rounded-lg border bg-card p-4 text-sm">
-            <h2 className="mb-3 text-center text-lg font-semibold">
+          <div className="app-section-card w-full min-w-0 text-sm">
+            <h2 className="mb-3 break-words text-center text-lg font-semibold">
               Respuestas de: {o.cliente}
             </h2>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div>
+            <div className="app-form-grid-3 gap-2">
+              <div className="min-w-0 break-words">
                 <strong>N° Orden:</strong> {o.numero}
               </div>
-              <div>
+              <div className="min-w-0 break-words">
                 <strong>Bodega:</strong> {o.descripcion}
               </div>
-              <div>
+              <div className="min-w-0 break-words">
                 <strong>Técnico:</strong> {o.tecnico}
               </div>
             </div>
@@ -94,7 +94,7 @@ export function SatisfaccionDetalleGestion() {
           {!r ? (
             <p className="text-muted-foreground">Sin respuestas registradas</p>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Card
                 title="Satisfacción con el concesionario"
                 value={r.pregunta1}
@@ -115,7 +115,7 @@ export function SatisfaccionDetalleGestion() {
                 value={r.pregunta4}
                 className={colorSn(r.pregunta4)}
               />
-              <div className="md:col-span-2 lg:col-span-4">
+              <div className="sm:col-span-2 xl:col-span-4">
                 <Card
                   title="Para nosotros es importante conocer tu opinión"
                   value={r.pregunta5}
@@ -140,11 +140,15 @@ function Card({
   className: string;
 }) {
   return (
-    <div className={`rounded-lg text-white shadow ${className}`}>
-      <div className="border-b border-white/20 px-3 py-2 text-sm font-medium">
+    <div className={`min-w-0 rounded-lg text-white shadow ${className}`}>
+      <div className="border-b border-white/20 px-3 py-2 text-sm font-medium break-words">
         {title}
       </div>
-      <div className="px-3 py-6 text-center text-3xl font-bold">
+      <div
+        className={`px-3 py-6 text-center font-bold break-words ${
+          String(value ?? '').length > 8 ? 'text-base sm:text-lg' : 'text-3xl'
+        }`}
+      >
         {value == null || value === '' ? '—' : String(value)}
       </div>
     </div>

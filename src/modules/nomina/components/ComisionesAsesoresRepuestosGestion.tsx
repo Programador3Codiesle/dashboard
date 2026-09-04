@@ -209,9 +209,9 @@ export function ComisionesAsesoresRepuestosGestion() {
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Comisiones asesores repuestos
-        </h1>
+          <h1 className="app-title-xl brand-text">
+            Comisiones asesores repuestos
+          </h1>
           <EmpresaBadge />
         </div>
         <p className="text-gray-500 mt-1">
@@ -221,7 +221,7 @@ export function ComisionesAsesoresRepuestosGestion() {
       </div>
 
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Año</label>
             <select
@@ -256,7 +256,7 @@ export function ComisionesAsesoresRepuestosGestion() {
           <button
             type="button"
             onClick={onBuscar}
-            className="inline-flex items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-(--color-primary-dark) transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary)"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-(--color-primary-dark) transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary)"
           >
             <Search size={16} className="mr-2" />
             Buscar
@@ -265,7 +265,7 @@ export function ComisionesAsesoresRepuestosGestion() {
           <button
             type="button"
             onClick={onRecargar}
-            className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <RotateCcw size={16} className="mr-2" />
             Recargar
@@ -280,7 +280,7 @@ export function ComisionesAsesoresRepuestosGestion() {
           <button
             type="button"
             onClick={onExportExcel}
-            className="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
           >
             <FileSpreadsheet size={16} className="mr-2" />
             Descargar Excel
@@ -300,8 +300,8 @@ export function ComisionesAsesoresRepuestosGestion() {
         )}
 
         {!listarMutation.isPending && rows.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[1400px] divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">Sede</th>
@@ -393,21 +393,21 @@ export function ComisionesAsesoresRepuestosGestion() {
             className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
             onClick={() => setIsDetalleOpen(false)}
           />
-          <div className="relative z-10 w-full max-w-6xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-linear-to-r from-slate-50 to-white">
+          <div className="relative z-10 flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex flex-col gap-3 border-b border-gray-200 bg-linear-to-r from-slate-50 to-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div>
-                <h2 className="text-xl font-bold brand-text tracking-tight">
+                <h2 className="text-lg font-bold tracking-tight brand-text sm:text-xl">
                   {detalleTitle}
                 </h2>
                 <p className="text-sm text-gray-500">
                   Detalle de ventas, costos y utilidad por tipo.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <button
                   type="button"
                   onClick={onExportDetalleExcel}
-                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors"
+                  className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors"
                 >
                   <FileSpreadsheet size={14} className="mr-1.5" />
                   Exportar detalle
@@ -423,7 +423,7 @@ export function ComisionesAsesoresRepuestosGestion() {
               </div>
             </div>
 
-            <div className="p-3 sm:p-4 md:p-6">
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
               {detalleMutation.isPending && (
                 <p className="text-sm text-gray-500">Cargando detalle...</p>
               )}
@@ -435,8 +435,8 @@ export function ComisionesAsesoresRepuestosGestion() {
               )}
 
               {!detalleMutation.isPending && detalleRows.length > 0 && (
-                <div className="overflow-x-auto rounded-xl border border-gray-100">
-                  <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[960px] divide-y divide-gray-200 text-xs md:text-sm">
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-3 py-2 text-center font-semibold">

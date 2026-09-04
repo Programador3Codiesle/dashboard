@@ -102,7 +102,7 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({
               className={`p-2.5 rounded-lg transition-all duration-200 ${
                 t.estado === 'cerrado'
                   ? 'text-gray-300 cursor-not-allowed opacity-50'
-                  : 'text-blue-600 hover:bg-blue-50 hover:shadow-sm hover:scale-105'
+                  : 'brand-text hover:brand-bg-light hover:shadow-sm hover:scale-105'
               }`}
               title="Responder"
             >

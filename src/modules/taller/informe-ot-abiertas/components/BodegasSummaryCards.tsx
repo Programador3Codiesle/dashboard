@@ -11,7 +11,7 @@ interface BodegasSummaryCardsProps {
 
 export function BodegasSummaryCards({ totales }: BodegasSummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="app-kpi-grid">
       {totales.map((item) => (
         <div
           key={item.bodegaId}

@@ -9,6 +9,7 @@ import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPage
 import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
 import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
 import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { AuditoriaTableCard } from '@/modules/auditoria/shared/components/AuditoriaTableCard';
 import { BODEGAS_FACTURACION_TALLER } from '@/modules/auditoria/shared/constants/bodegas';
 import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
 import {
@@ -73,38 +74,40 @@ export function FacturacionTallerGestion() {
       description={AUDITORIA_COPY.facturacionTaller.description}
       backLabel={AUDITORIA_COPY.backLabel}
     >
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label htmlFor="aud-ft-bodega" className="min-w-[240px] text-sm">
-          Bodega
-          <select
-            id="aud-ft-bodega"
-            className={inputClass}
-            value={bodega}
-            onChange={(e) => setBodega(e.target.value)}
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-2 items-end">
+          <label htmlFor="aud-ft-bodega" className="w-full min-w-0 text-sm">
+            Bodega
+            <select
+              id="aud-ft-bodega"
+              className={inputClass}
+              value={bodega}
+              onChange={(e) => setBodega(e.target.value)}
+            >
+              <option value="">Seleccione...</option>
+              {BODEGAS_FACTURACION_TALLER.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={listQuery.isFetching}
+            onClick={() => {
+              if (!bodega) {
+                showError('Seleccione una bodega');
+                return;
+              }
+              setApplied(bodega);
+              setPage(1);
+            }}
           >
-            <option value="">Seleccione...</option>
-            {BODEGAS_FACTURACION_TALLER.map((b) => (
-              <option key={b.value} value={b.value}>
-                {b.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className={btnPrimaryClass}
-          disabled={listQuery.isFetching}
-          onClick={() => {
-            if (!bodega) {
-              showError('Seleccione una bodega');
-              return;
-            }
-            setApplied(bodega);
-            setPage(1);
-          }}
-        >
-          <Search className="h-4 w-4" /> Buscar
-        </button>
+            <Search className="h-4 w-4" /> Buscar
+          </button>
+        </div>
       </div>
 
       {listQuery.isError ? (
@@ -116,9 +119,20 @@ export function FacturacionTallerGestion() {
         />
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-xs md:text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <AuditoriaTableCard
+        footer={
+          <AuditoriaPager
+            total={total}
+            page={safePage}
+            totalPages={totalPages}
+            onChange={onPage}
+            inicio={inicio}
+            fin={fin}
+          />
+        }
+      >
+        <table className="w-full min-w-[1080px] text-xs md:text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               {[
                 'FECHA',
@@ -190,15 +204,7 @@ export function FacturacionTallerGestion() {
             )}
           </tbody>
         </table>
-        <AuditoriaPager
-          total={total}
-          page={safePage}
-          totalPages={totalPages}
-          onChange={onPage}
-          inicio={inicio}
-          fin={fin}
-        />
-      </div>
+      </AuditoriaTableCard>
     </AuditoriaPageFrame>
   );
 }

@@ -160,7 +160,7 @@ export function NpsInternoGestion() {
         <h2 className="text-sm font-semibold text-gray-800">
           Detalle de encuestas
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col min-w-0">
             <label className={labelClass}>Sede</label>
             <select
@@ -190,12 +190,12 @@ export function NpsInternoGestion() {
             </select>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleBuscarEncuestas}
             disabled={encSurveysLoading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
           >
             {fetchingEncuestas && (
               <Loader2 size={16} className="animate-spin" />
@@ -206,7 +206,7 @@ export function NpsInternoGestion() {
             type="button"
             onClick={handleExportEncuestasExcel}
             disabled={!encuestas.length || fetchingEncuestas}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
               encuestas.length
                 ? 'bg-emerald-600 text-white hover:opacity-90'
                 : 'border border-gray-300 text-gray-700 bg-white'
@@ -233,7 +233,7 @@ export function NpsInternoGestion() {
             Listado de encuestas
           </h2>
         </div>
-        <div className="w-full overflow-x-auto">
+        <div className="app-table-scroll">
           <table className="w-full min-w-[960px] text-[11px]">
             <thead className="brand-bg text-white">
               <tr>

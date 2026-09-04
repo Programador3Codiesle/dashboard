@@ -89,7 +89,7 @@ export function TicketPromedioTecnicoGestion() {
     >
 
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-2">
           <div className="flex flex-col min-w-0 gap-1">
             <label className="text-xs font-medium text-gray-600">
               Año / Mes
@@ -137,8 +137,8 @@ export function TicketPromedioTecnicoGestion() {
         )}
 
         {!isLoading && rows.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+          <div className="app-table-scroll">
+            <table className="min-w-[960px] w-full divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-(--color-primary) text-white">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">

@@ -261,7 +261,7 @@ export function LlegadasTardeGestion() {
     >
     <div className="space-y-6">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">Sede</label>
             <select className={inputClass} value={sede} onChange={(e) => setSede(e.target.value)}>
@@ -326,7 +326,7 @@ export function LlegadasTardeGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={handleConsultar}
@@ -336,7 +336,7 @@ export function LlegadasTardeGestion() {
               !fechaFin ||
               empleados.length === 0
             }
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {detalleMutation.isPending && <Loader2 size={16} className="animate-spin" />}
             <span>{detalleMutation.isPending ? 'Consultando...' : 'Consultar'}</span>
@@ -345,7 +345,7 @@ export function LlegadasTardeGestion() {
             type="button"
             onClick={handleExportDetalle}
             disabled={!detalle.length}
-            className="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Exportar a Excel (detalle)
           </button>
@@ -353,7 +353,7 @@ export function LlegadasTardeGestion() {
             type="button"
             onClick={handleExportResumen}
             disabled={resumenMutation.isPending || !fechaInicio || !fechaFin}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {resumenMutation.isPending && <Loader2 size={16} className="animate-spin" />}
             <span>{resumenMutation.isPending ? 'Generando...' : 'Consolidado horas'}</span>
@@ -379,7 +379,7 @@ export function LlegadasTardeGestion() {
           </div>
         </div>
         <div className="app-table-scroll">
-          <table className="min-w-full text-xs" id="tableInfLlegadasTarde">
+          <table className="min-w-[960px] w-full text-xs" id="tableInfLlegadasTarde">
             <thead className="bg-(--color-primary) text-white">
               <tr>
                 <th className="px-2 py-1 text-left">Documento</th>

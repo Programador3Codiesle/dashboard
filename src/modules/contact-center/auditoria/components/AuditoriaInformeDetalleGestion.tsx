@@ -83,8 +83,8 @@ export function AuditoriaInformeDetalleGestion() {
     <div className="space-y-4">
       <AuditoriaBreadcrumb current="Informe detallado" />
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3 items-end">
           <div>
             <label htmlFor="cc-informe-agente" className="text-sm font-medium text-gray-700">Seleccione el agente</label>
             <select
@@ -130,7 +130,7 @@ export function AuditoriaInformeDetalleGestion() {
       )}
 
       {informeQuery.data && items.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="app-kpi-grid-3">
           <div className="bg-white rounded-xl border p-3 text-center">
             <p className="text-xs text-gray-500">Auditorías</p>
             <p className="text-lg font-semibold">{informeQuery.data.cantidad ?? items.length}</p>
@@ -146,7 +146,7 @@ export function AuditoriaInformeDetalleGestion() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
+      <div className="app-section-card w-full min-w-0">
         {informeQuery.isLoading ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
         ) : informeQuery.isError ? (
@@ -158,7 +158,8 @@ export function AuditoriaInformeDetalleGestion() {
           />
         ) : (
           <>
-            <table className="min-w-full text-sm">
+            <div className="app-table-scroll">
+            <table className="w-full min-w-[420px] text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   {['Fecha', 'Puntos', 'Opción'].map((h) => (
@@ -186,6 +187,7 @@ export function AuditoriaInformeDetalleGestion() {
                 ))}
               </tbody>
             </table>
+            </div>
             {items.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination

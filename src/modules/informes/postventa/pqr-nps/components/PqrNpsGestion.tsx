@@ -337,7 +337,7 @@ export function PqrNpsGestion() {
               setEstado(e.target.value as EstadoPqr);
               setCurrentPage(1);
             }}
-            className="rounded-md border border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+            className="w-full rounded-md border border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
           >
             <option value="abiertos">Abiertos</option>
             <option value="cerrados">Cerrados</option>
@@ -360,22 +360,22 @@ export function PqrNpsGestion() {
         <div className="text-xs text-gray-500">
           {isLoading ? 'Cargando registros...' : `Total registros: ${itemsFiltrados.length}`}
         </div>
-        <div className="flex gap-2 md:ml-auto">
-          <button type="button" onClick={() => setCrearPqrOpen(true)} className="px-3 py-2 text-sm rounded-md brand-btn">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap w-full md:w-auto md:ml-auto">
+          <button type="button" onClick={() => setCrearPqrOpen(true)} className="w-full sm:w-auto px-3 py-2 text-sm rounded-md brand-btn">
             Agregar PQR
           </button>
           <button
             type="button"
             onClick={exportarExcel}
-            className="px-3 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+            className="w-full sm:w-auto px-3 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
           >
             Exportar Excel
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border overflow-auto">
-        <table className="min-w-full text-xs">
+      <div className="app-table-scroll bg-white rounded-xl shadow-sm border brand-border">
+        <table className="min-w-[1400px] w-full text-xs">
           <thead className="brand-bg text-white">
             <tr>
               <th className="px-2 py-2 text-left">Acción</th>

@@ -29,13 +29,13 @@ export const UsuariosTableRow = memo(function UsuariosTableRow({
 }: UsuarioRowProps) {
   return (
     <tr className="border-b hover:bg-gray-50">
-      <td className="px-4 py-3">{usuario.id || "Sin id"}</td>
+      <td className="px-2 py-2 sm:px-4 sm:py-3">{usuario.id || "Sin id"}</td>
 
-      <td className="px-4 py-3">{usuario.nombre || "Sin nombre"}</td>
+      <td className="px-2 py-2 sm:px-4 sm:py-3">{usuario.nombre || "Sin nombre"}</td>
 
-      <td className="px-4 py-3">{usuario.usuario || "Sin usuario"}</td>
+      <td className="px-2 py-2 sm:px-4 sm:py-3">{usuario.usuario || "Sin usuario"}</td>
 
-      <td className="px-4 py-3">
+      <td className="px-2 py-2 sm:px-4 sm:py-3">
         {loadingEmpresa ? (
           <span className={USUARIOS_STYLES.marcasLoading}>
             <Loader2 size={12} className="animate-spin" />
@@ -50,7 +50,7 @@ export const UsuariosTableRow = memo(function UsuariosTableRow({
         )}
       </td>
 
-      <td className="px-4 py-3">
+      <td className="px-2 py-2 sm:px-4 sm:py-3">
         {loadingEstado ? (
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
             <Loader2 size={14} className="animate-spin" />
@@ -74,12 +74,13 @@ export const UsuariosTableRow = memo(function UsuariosTableRow({
           </span>
         )}
       </td>
-      <td className="px-4 py-3">{usuario.perfil || "Sin perfil"}</td>
+      <td className="px-2 py-2 sm:px-4 sm:py-3">{usuario.perfil || "Sin perfil"}</td>
 
-      <td className="px-4 py-3">{usuario.sede || "Sin sede"}</td>
+      <td className="px-2 py-2 sm:px-4 sm:py-3">{usuario.sede || "Sin sede"}</td>
 
-      <td className="px-4 py-3">
+      <td className="px-2 py-2 sm:px-4 sm:py-3">
         <button
+          type="button"
           onClick={() => onResetPassword(usuario)}
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full brand-bg-gradient text-white shadow-sm hover:shadow-md hover:opacity-90 transition-all text-xs font-semibold"
         >
@@ -87,7 +88,7 @@ export const UsuariosTableRow = memo(function UsuariosTableRow({
         </button>
       </td>
 
-      <td className="px-4 py-3 flex justify-center">
+      <td className="px-2 py-2 sm:px-4 sm:py-3 flex justify-center">
         <button
           onClick={(event) => onOpenDropdown(event, usuario)}
           className="cursor-pointer hover:bg-gray-200 p-1 rounded transition-colors"

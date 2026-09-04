@@ -31,7 +31,7 @@ export const DateRangeFilter = React.memo(({
   }, [onFechaFinalChange]);
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${className}`}>
+    <div className={`app-form-grid-2 ${className}`}>
       <DateFilterInput
         label="Fecha Inicio"
         value={fechaInicio}

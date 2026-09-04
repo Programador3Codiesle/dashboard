@@ -202,7 +202,7 @@ const InfoGeneral = React.memo(function InfoGeneral({
         </div>
         <h2 className="text-2xl font-bold text-gray-900">Información General</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="app-form-grid-3">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Nombre del Empleado
@@ -270,7 +270,7 @@ const EscalaEvaluacion = React.memo(function EscalaEvaluacion() {
         <span className="w-2 h-2 brand-bg rounded-full"></span>
         Escala de Evaluación
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+      <div className="app-filter-grid-5 text-sm">
         <div className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm">
           <span className="font-bold text-green-700">Sobresaliente (5):</span>
           <p className="text-gray-600 text-xs mt-2 leading-relaxed">
@@ -598,7 +598,7 @@ export function EvaluacionDesempenoGestion() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-8 space-y-8"
+            className="bg-white rounded-2xl shadow-xl border border-gray-200/50 p-3 sm:p-4 md:p-8 space-y-8"
           >
             <InfoGeneral formData={formData} />
             <EscalaEvaluacion />
@@ -607,8 +607,8 @@ export function EvaluacionDesempenoGestion() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Desempeño Laboral
               </h2>
-              <div className="overflow-x-auto rounded-xl border-2 border-blue-200 shadow-sm">
-                <table className="w-full">
+              <div className="app-table-scroll rounded-xl border-2 border-blue-200 shadow-sm">
+                <table className="w-full min-w-[720px]">
                   <thead>
                     <tr className="brand-bg border-b-2 border-[var(--color-primary)]">
                       <th className="text-left py-4 px-6 font-bold text-white">
@@ -650,7 +650,7 @@ export function EvaluacionDesempenoGestion() {
               </div>
 
               <div className="mt-6 p-3 sm:p-4 md:p-6 bg-blue-50/50 rounded-2xl border-2 border-blue-200 shadow-md">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
                   <span className="font-bold text-gray-900 text-lg">
                     Promedio Total:
                   </span>
@@ -699,11 +699,11 @@ export function EvaluacionDesempenoGestion() {
               rows={5}
             />
 
-            <div className="flex justify-end pt-6 border-t-2 border-blue-100">
+            <div className="flex pt-6 border-t-2 border-blue-100">
               <button
                 type="submit"
                 disabled={calificarMutation.isPending}
-                className="flex items-center gap-3 brand-bg brand-bg-hover text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full sm:w-auto justify-center items-center gap-3 brand-bg brand-bg-hover text-white px-8 py-3.5 rounded-xl font-bold text-base transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save size={20} />
                 <span>

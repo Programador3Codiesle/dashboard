@@ -59,7 +59,7 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
   filtroMesAplicado: string;
 }) {
   return (
-    <div className="overflow-x-auto relative">
+    <div className="app-table-scroll relative">
       {loading && tiempos.length > 0 && (
         <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-b-xl">
           <div className="flex items-center gap-2 text-gray-600 bg-white px-4 py-2 rounded-lg shadow-md">
@@ -68,7 +68,7 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
           </div>
         </div>
       )}
-      <table className="w-full">
+      <table className="w-full min-w-[960px]">
         <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
           <tr>
             <th className="text-left py-4 px-6 font-semibold text-white">
@@ -186,7 +186,7 @@ const FiltersSection = memo(function FiltersSection({
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="app-filter-grid">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Seleccionar Mes
@@ -220,12 +220,12 @@ const FiltersSection = memo(function FiltersSection({
           placeholder="Todos"
         />
       </div>
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
           onClick={onBuscar}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
+          className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
           <span>Buscar</span>
@@ -234,7 +234,7 @@ const FiltersSection = memo(function FiltersSection({
           type="button"
           onClick={onDownload}
           disabled={descargando || loading || totalRegistros === 0}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+          className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
             totalRegistros > 0
               ? 'bg-emerald-600 text-white hover:opacity-90'
               : 'border border-gray-300 text-gray-700 bg-white'

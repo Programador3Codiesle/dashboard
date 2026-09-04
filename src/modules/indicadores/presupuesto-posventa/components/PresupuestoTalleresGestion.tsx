@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { IndicadoresPageFrame } from '@/modules/indicadores/components/IndicadoresPageFrame';
 import { INDICADORES_COPY } from '@/modules/indicadores/constants';
@@ -40,21 +40,15 @@ export function PresupuestoTalleresGestion() {
     <IndicadoresPageFrame
       title={INDICADORES_COPY.talleres.title}
       description={INDICADORES_COPY.talleres.description}
+      backHref="/dashboard/indicadores/presupuesto-posventa/sedes"
+      backLabel="← Volver a sedes"
     >
       {!sede ? (
-        <p className="rounded-2xl border border-[color-mix(in_srgb,var(--color-warning)_35%,white)] bg-[var(--color-warning-soft)] p-6 text-sm text-gray-800 shadow-sm">
+        <p className="app-section-card border-[color-mix(in_srgb,var(--color-warning)_35%,white)] bg-[var(--color-warning-soft)] text-sm text-gray-800">
           Falta el parámetro de sede. Vuelve al listado de sedes.
         </p>
       ) : (
         <>
-          <Link
-            href="/dashboard/indicadores/presupuesto-posventa/sedes"
-            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:brand-text"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Volver a sedes
-          </Link>
-
           <p className="text-sm text-gray-500">
             Sede: <span className="font-medium text-gray-800">{sede}</span>
           </p>
@@ -69,7 +63,7 @@ export function PresupuestoTalleresGestion() {
               )}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
               {talleres.map((taller) => (
                 <ProgressCard
                   key={taller.nombre}

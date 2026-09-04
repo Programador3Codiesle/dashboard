@@ -4,6 +4,48 @@ import { useState, useEffect } from "react";
 import { HorarioData, HorarioModalProps } from "@/modules/usuarios/types";
 import { SEDES_DISPONIBLES } from "@/modules/usuarios/constants";
 
+const timeInputClass =
+  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none brand-focus-ring";
+
+function TimePair({
+  entrada,
+  salida,
+  onEntrada,
+  onSalida,
+  required = true,
+}: {
+  entrada: string;
+  salida: string;
+  onEntrada: (value: string) => void;
+  onSalida: (value: string) => void;
+  required?: boolean;
+}) {
+  return (
+    <div className="app-form-grid-2">
+      <div>
+        <label className="mb-1.5 block text-xs text-gray-500">Entrada</label>
+        <input
+          type="time"
+          value={entrada}
+          onChange={(e) => onEntrada(e.target.value)}
+          required={required}
+          className={timeInputClass}
+        />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs text-gray-500">Salida</label>
+        <input
+          type="time"
+          value={salida}
+          onChange={(e) => onSalida(e.target.value)}
+          required={required}
+          className={timeInputClass}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function HorarioModal({ open, usuario, onClose, onSave, horarioActual }: HorarioModalProps) {
     const [horario, setHorario] = useState<HorarioData>({
         sede: "",
@@ -55,24 +97,15 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
     return (
         <Modal open={open} onClose={onClose} title={`Configurar Horario - ${usuario?.nombre}`} width="700px">
             <form onSubmit={handleSubmit}>
-                {/* Sede */}
-                <div style={{ marginBottom: "20px" }}>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: "500" }}>
-                        Sede <span style={{ color: "#ef4444" }}>*</span>
+                <div className="mb-5">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                        Sede <span className="text-red-500">*</span>
                     </label>
                     <select
                         value={horario.sede}
                         onChange={(e) => handleChange("sede", e.target.value)}
                         required
-                        style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            border: "1px solid #ddd",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                            backgroundColor: "#fff",
-                            cursor: "pointer"
-                        }}
+                        className={timeInputClass}
                     >
                         <option value="">Seleccione una sede</option>
                         {SEDES_DISPONIBLES.map((sede) => (
@@ -83,255 +116,78 @@ export default function HorarioModal({ open, usuario, onClose, onSave, horarioAc
                     </select>
                 </div>
 
-                {/* Semana AM */}
-                <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-                    <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
+                <div className="mb-5 rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">
                         Semana - Turno Mañana
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Entrada
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_ent_sem_am}
-                                onChange={(e) => handleChange("hora_ent_sem_am", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Salida
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_sal_sem_am}
-                                onChange={(e) => handleChange("hora_sal_sem_am", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <TimePair
+                        entrada={horario.hora_ent_sem_am}
+                        salida={horario.hora_sal_sem_am}
+                        onEntrada={(v) => handleChange("hora_ent_sem_am", v)}
+                        onSalida={(v) => handleChange("hora_sal_sem_am", v)}
+                    />
                 </div>
 
-                {/* Semana PM */}
-                <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-                    <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
+                <div className="mb-5 rounded-lg bg-gray-50 p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">
                         Semana - Turno Tarde
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Entrada
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_ent_sem_pm}
-                                onChange={(e) => handleChange("hora_ent_sem_pm", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Salida
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_sal_sem_pm}
-                                onChange={(e) => handleChange("hora_sal_sem_pm", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <TimePair
+                        entrada={horario.hora_ent_sem_pm}
+                        salida={horario.hora_sal_sem_pm}
+                        onEntrada={(v) => handleChange("hora_ent_sem_pm", v)}
+                        onSalida={(v) => handleChange("hora_sal_sem_pm", v)}
+                    />
                 </div>
 
-                {/* Viernes AM */}
-                <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#fef3c7", borderRadius: "8px" }}>
-                    <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
+                <div className="mb-5 rounded-lg brand-bg-light p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">
                         Viernes - Turno Mañana
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Entrada
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_ent_am_viernes}
-                                onChange={(e) => handleChange("hora_ent_am_viernes", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Salida
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_sal_am_viernes}
-                                onChange={(e) => handleChange("hora_sal_am_viernes", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <TimePair
+                        entrada={horario.hora_ent_am_viernes}
+                        salida={horario.hora_sal_am_viernes}
+                        onEntrada={(v) => handleChange("hora_ent_am_viernes", v)}
+                        onSalida={(v) => handleChange("hora_sal_am_viernes", v)}
+                    />
                 </div>
 
-                {/* Viernes PM (hora_ent_viernes_pm y hora_sal_viernes) */}
-                <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#fef3c7", borderRadius: "8px" }}>
-                    <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
+                <div className="mb-5 rounded-lg brand-bg-light p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">
                         Viernes - Turno Tarde
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Entrada
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_ent_viernes_pm || "15:00"}
-                                onChange={(e) => handleChange("hora_ent_viernes_pm", e.target.value)}
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Salida
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_sal_viernes || "22:00"}
-                                onChange={(e) => handleChange("hora_sal_viernes", e.target.value)}
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <TimePair
+                        entrada={horario.hora_ent_viernes_pm || "15:00"}
+                        salida={horario.hora_sal_viernes || "22:00"}
+                        onEntrada={(v) => handleChange("hora_ent_viernes_pm", v)}
+                        onSalida={(v) => handleChange("hora_sal_viernes", v)}
+                        required={false}
+                    />
                 </div>
 
-                {/* Fin de Semana */}
-                <div style={{ marginBottom: "20px", padding: "15px", backgroundColor: "#dbeafe", borderRadius: "8px" }}>
-                    <h4 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
+                <div className="mb-5 rounded-lg border border-gray-200 bg-white p-4">
+                    <h4 className="mb-3 text-sm font-semibold text-gray-700">
                         Fin de Semana (Sábado y Domingo)
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Entrada
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_ent_fds}
-                                onChange={(e) => handleChange("hora_ent_fds", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", color: "#666" }}>
-                                Salida
-                            </label>
-                            <input
-                                type="time"
-                                value={horario.hora_sal_fds}
-                                onChange={(e) => handleChange("hora_sal_fds", e.target.value)}
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    border: "1px solid #ddd",
-                                    borderRadius: "6px",
-                                    fontSize: "14px"
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <TimePair
+                        entrada={horario.hora_ent_fds}
+                        salida={horario.hora_sal_fds}
+                        onEntrada={(v) => handleChange("hora_ent_fds", v)}
+                        onSalida={(v) => handleChange("hora_sal_fds", v)}
+                    />
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{
-                            padding: "8px 16px",
-                            background: "#ddd",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: "pointer",
-                            fontWeight: "500"
-                        }}
+                        className="w-full sm:w-auto rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        style={{
-                            padding: "8px 16px",
-                            background: "#f59e0b",
-                            color: "#fff",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: "pointer",
-                            fontWeight: "500"
-                        }}
+                        className="w-full sm:w-auto rounded-lg px-4 py-2 text-sm font-medium text-white brand-bg brand-bg-hover transition-colors"
                     >
                         Guardar
                     </button>

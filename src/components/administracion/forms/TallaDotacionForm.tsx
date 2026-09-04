@@ -39,7 +39,7 @@ export const TallaDotacionForm = React.memo(({
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="app-form-grid-2">
       <FormSelect
         label="Género"
         value={formData.genero}

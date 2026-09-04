@@ -169,7 +169,7 @@ const ChartTotalVendido = memo(function ChartTotalVendido({
 
 const SedeCards = memo(function SedeCards({ sede }: { sede: JefeTallerSedeItem }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="app-kpi-grid">
       <DashboardKpiCard
         label="Total Vendido"
         value={`$${formatCurrency(sede.totalVenta)}`}
@@ -324,7 +324,7 @@ function DashboardJefeTallerInner({ data }: { data: DashboardJefeTallerType }) {
           diaFestivo={data.dia_festivo}
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="app-kpi-grid">
         <DashboardKpiCard
           label="Total Vendido"
           value={`$${formatCurrency(data.total_ventas)}`}

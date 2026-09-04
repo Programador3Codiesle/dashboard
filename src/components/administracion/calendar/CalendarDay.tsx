@@ -44,7 +44,7 @@ export const CalendarDay = React.memo(({
   return (
     <div
       className={`
-        aspect-square p-2 rounded-xl border-2 transition-all flex flex-col min-h-0
+        aspect-square p-1 sm:p-2 rounded-xl border-2 transition-all flex flex-col min-h-0
         ${isPast
           ? "bg-gray-100 border-gray-200 text-gray-400"
           : "bg-white border-gray-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
@@ -53,7 +53,7 @@ export const CalendarDay = React.memo(({
         ${hasAusentismos ? "bg-[var(--color-primary)]/5 border-[var(--color-primary)]/40" : ""}
       `}
     >
-      <div className="text-sm font-medium text-gray-900 flex-shrink-0">{date.split("-")[2]}</div>
+      <div className="text-xs sm:text-sm font-medium text-gray-900 flex-shrink-0">{date.split("-")[2]}</div>
       <div className="mt-1 flex-1 min-h-0 overflow-auto space-y-0.5">
         {ausentismos.map((a) => (
           <button

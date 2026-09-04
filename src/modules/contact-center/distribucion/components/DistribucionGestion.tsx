@@ -134,14 +134,15 @@ export function DistribucionGestion() {
       />
     ) : (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm text-sm text-gray-600">
+      <div className="app-section-card w-full min-w-0 text-sm text-gray-600">
         Distribución para mes <strong>{matriz.mes}</strong> / año <strong>{matriz.anio}</strong>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto space-y-6">
+      <div className="app-section-card w-full min-w-0 space-y-6">
         <div>
           <h3 className="font-semibold text-gray-800 mb-2">Asignación agente × bodega</h3>
-          <table className="min-w-full text-xs border">
+          <div className="app-table-scroll">
+          <table className="w-full min-w-[720px] text-xs border">
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-2 py-2 text-left sticky left-0 bg-gray-50">Agente</th>
@@ -181,11 +182,13 @@ export function DistribucionGestion() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         <div>
           <h3 className="font-semibold text-gray-800 mb-2">Porcentaje de distribución (%)</h3>
-          <table className="min-w-full text-xs border">
+          <div className="app-table-scroll">
+          <table className="w-full min-w-[720px] text-xs border">
             <thead>
               <tr className="bg-gray-50">
                 <th className="px-2 py-2 text-left sticky left-0 bg-gray-50">Agente</th>
@@ -220,11 +223,13 @@ export function DistribucionGestion() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         <div>
           <h3 className="font-semibold text-gray-800 mb-2">Totales por bodega</h3>
-          <table className="min-w-full text-xs border">
+          <div className="app-table-scroll">
+          <table className="w-full min-w-[480px] text-xs border">
             <thead>
               <tr className="bg-gray-50">
                 {totales.map((t) => (
@@ -247,6 +252,7 @@ export function DistribucionGestion() {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

@@ -87,71 +87,65 @@ export function InformeObsoletosGestion() {
       description={REPUESTOS_COPY.informeObsoletos.description}
     >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr>
-              {['Categoría', 'Filtro', 'Rango', ''].map((h) => (
-                <th key={h} className="px-3 py-2 text-left">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {FILTROS.map((f) => (
-              <tr key={f.id} className="border-t">
-                <td className="px-3 py-2">{f.label}</td>
-                <td className="px-3 py-2">
-                  <select
-                    className={inputClass}
-                    value={filtros[f.id].categoria}
-                    onChange={(e) =>
-                      setFiltros((prev) => ({
-                        ...prev,
-                        [f.id]: { ...prev[f.id], categoria: e.target.value as '' | '1' | '2' },
-                      }))
-                    }
-                  >
-                    <option value="">Seleccione</option>
-                    <option value="1">MAYOR QUE &gt;</option>
-                    <option value="2">MENOR QUE &lt;</option>
-                  </select>
-                </td>
-                <td className="px-3 py-2">
-                  <input
-                    type="number"
-                    className={inputClass}
-                    value={filtros[f.id].rango}
-                    onChange={(e) =>
-                      setFiltros((prev) => ({
-                        ...prev,
-                        [f.id]: { ...prev[f.id], rango: e.target.value },
-                      }))
-                    }
-                  />
-                </td>
-                <td className="px-3 py-2">
-                  <button
-                    type="button"
-                    className={btnPrimaryClass}
-                    onClick={() => consultar.mutate(f.id)}
-                    disabled={consultar.isPending}
-                  >
-                    Generar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-3">
+        {FILTROS.map((f) => (
+          <div
+            key={f.id}
+            className="rounded-2xl border border-gray-100 bg-white p-3 sm:p-4 shadow-sm"
+          >
+            <p className="mb-3 text-sm font-semibold text-gray-800">{f.label}</p>
+            <div className="app-form-grid-3 items-end">
+              <div>
+                <label className="text-xs font-medium text-gray-600">Filtro</label>
+                <select
+                  className={`${inputClass} mt-1`}
+                  value={filtros[f.id].categoria}
+                  onChange={(e) =>
+                    setFiltros((prev) => ({
+                      ...prev,
+                      [f.id]: { ...prev[f.id], categoria: e.target.value as '' | '1' | '2' },
+                    }))
+                  }
+                >
+                  <option value="">Seleccione</option>
+                  <option value="1">MAYOR QUE &gt;</option>
+                  <option value="2">MENOR QUE &lt;</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Rango</label>
+                <input
+                  type="number"
+                  className={`${inputClass} mt-1`}
+                  value={filtros[f.id].rango}
+                  onChange={(e) =>
+                    setFiltros((prev) => ({
+                      ...prev,
+                      [f.id]: { ...prev[f.id], rango: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <button
+                type="button"
+                className={btnPrimaryClass}
+                onClick={() => consultar.mutate(f.id)}
+                disabled={consultar.isPending}
+              >
+                Generar
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {rows.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-3">
+        <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm space-y-3">
           <button type="button" className={btnPrimaryClass} onClick={exportarExcel}>
             Generar Excel
           </button>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[960px] text-xs">
               <thead className="bg-gray-50">
                 <tr>
                   {['Código', 'Descripción', 'Bodega', 'Stock', 'Costo', 'Meses', 'PVP', 'Margen %', 'Descuento %'].map((h) => (

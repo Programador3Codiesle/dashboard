@@ -11,7 +11,5 @@ export const EV_INGRESAR_BTN =
 export const EV_INPUT =
   "rounded-lg border brand-border-active bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]";
 
-export const EV_DETAIL_TABLE = "w-full text-sm";
-export const EV_DETAIL_CELL = "py-1.5 px-3 sm:px-4 align-middle text-center";
 export const EV_DETAIL_LABEL = "text-gray-500 font-medium";
 export const EV_DETAIL_VALUE = "text-gray-900";

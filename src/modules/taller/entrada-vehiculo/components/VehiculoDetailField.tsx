@@ -1,18 +1,23 @@
 "use client";
 
-import { EV_DETAIL_CELL, EV_DETAIL_LABEL, EV_DETAIL_VALUE } from "../utils/entrada-vehiculo.styles";
+import type { ReactNode } from "react";
+import { EV_DETAIL_LABEL, EV_DETAIL_VALUE } from "../utils/entrada-vehiculo.styles";
 
 interface VehiculoDetailFieldProps {
   label: string;
-  value: React.ReactNode;
-  colSpan?: number;
+  value: ReactNode;
+  className?: string;
 }
 
-export function VehiculoDetailField({ label, value, colSpan }: VehiculoDetailFieldProps) {
+export function VehiculoDetailField({
+  label,
+  value,
+  className = "",
+}: VehiculoDetailFieldProps) {
   return (
-    <td className={EV_DETAIL_CELL} colSpan={colSpan}>
+    <div className={`min-w-0 py-1 ${className}`}>
       <span className={EV_DETAIL_LABEL}>{label}: </span>
-      <span className={EV_DETAIL_VALUE}>{value}</span>
-    </td>
+      <span className={`${EV_DETAIL_VALUE} break-words`}>{value}</span>
+    </div>
   );
 }

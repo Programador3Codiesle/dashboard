@@ -11,7 +11,7 @@ interface SedesSummaryCardsProps {
 
 export function SedesSummaryCards({ totales }: SedesSummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="app-kpi-grid">
       {totales.map((item) => (
         <div
           key={item.sede}

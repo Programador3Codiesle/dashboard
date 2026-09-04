@@ -229,14 +229,14 @@ export function ComisionesJefesGestion() {
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">Comisiones jefes</h1>
+          <h1 className="app-title-xl brand-text">Comisiones jefes</h1>
           <EmpresaBadge />
         </div>
         <p className="text-gray-500 mt-1">Migración completa del flujo legacy a Next.js + NestJS.</p>
       </div>
 
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Mes</label>
             <input type="month" className={NOMINA_STYLES.input} value={mes} onChange={(e) => setMes(e.target.value)} />
@@ -245,18 +245,18 @@ export function ComisionesJefesGestion() {
             type="button"
             onClick={onBuscar}
             disabled={listarMutation.isPending}
-            className="inline-flex items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-primary-dark) transition-colors disabled:opacity-60"
           >
             <Search size={16} className="mr-2" />{' '}
             {listarMutation.isPending ? 'Generando...' : 'Generar nómina'}
           </button>
-          <button type="button" onClick={() => setIsValoresOpen(true)} className="inline-flex items-center justify-center rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white">
+          <button type="button" onClick={() => setIsValoresOpen(true)} className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors">
             <Settings size={16} className="mr-2" /> Ingresar valores
           </button>
           <button
             type="button"
             onClick={onExportarExcel}
-            className="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
           >
             <FileSpreadsheet size={16} className="mr-2" /> Exportar Excel
           </button>
@@ -273,8 +273,8 @@ export function ComisionesJefesGestion() {
           </div>
         )}
         {!listarMutation.isPending && rows.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[1600px] divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">Cedula</th>
@@ -330,26 +330,27 @@ export function ComisionesJefesGestion() {
       {isDetalleOpen && (
         <div className="fixed inset-0 z-120 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsDetalleOpen(false)} />
-          <div className="relative z-10 w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-linear-to-r from-slate-50 to-white">
-              <h2 className="text-xl font-bold brand-text tracking-tight">{titleDetalle}</h2>
-              <div className="flex gap-2">
-                <button type="button" onClick={onExportarDetalle} className="inline-flex items-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">
+          <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex flex-col gap-3 border-b border-gray-200 bg-linear-to-r from-slate-50 to-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <h2 className="text-lg font-bold tracking-tight brand-text sm:text-xl">{titleDetalle}</h2>
+              <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
+                <button type="button" onClick={onExportarDetalle} className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors">
                   <FileSpreadsheet size={14} className="mr-1.5" /> Exportar detalle
                 </button>
-                <button type="button" onClick={() => setIsDetalleOpen(false)} className="p-2 rounded-lg hover:bg-gray-100">
+                <button type="button" onClick={() => setIsDetalleOpen(false)} className="self-end rounded-lg p-2 hover:bg-gray-100 sm:self-auto">
                   <X size={18} />
                 </button>
               </div>
             </div>
-            <div className="p-3 sm:p-4 md:p-6 overflow-x-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
               {detalleRows.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center">
                   <p className="text-sm font-medium text-gray-700">Sin detalle disponible</p>
                   <p className="text-xs text-gray-500 mt-1">No se encontraron movimientos para este jefe y sede.</p>
                 </div>
               ) : (
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <div className="app-table-scroll">
+                <table className="w-full min-w-[720px] divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-3 py-2 text-center font-semibold">NIT</th>
@@ -371,6 +372,7 @@ export function ComisionesJefesGestion() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           </div>
@@ -386,9 +388,9 @@ export function ComisionesJefesGestion() {
               setIsValoresOpen(false);
             }}
           />
-          <div className="relative z-10 w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold brand-text tracking-tight">Ingresar valores comisiones jefes</h2>
+          <div className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-gray-200 px-4 py-4 sm:px-6">
+              <h2 className="text-lg font-bold tracking-tight brand-text sm:text-xl">Ingresar valores comisiones jefes</h2>
               <button
                 type="button"
                 onClick={() => {
@@ -400,8 +402,8 @@ export function ComisionesJefesGestion() {
                 <X size={18} />
               </button>
             </div>
-            <div className="p-3 sm:p-4 md:p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3 sm:p-4 md:p-6">
+              <div className="app-form-grid-3">
                 <div>
                   <label className="text-xs font-medium text-gray-600">Sede</label>
                   <select
@@ -467,11 +469,11 @@ export function ComisionesJefesGestion() {
                 </label>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="flex flex-col-reverse gap-2 border-t border-gray-200 px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
               <button
                 type="button"
                 disabled={isBusyValores}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                className="w-full sm:w-auto rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors disabled:opacity-60"
                 onClick={() => {
                   if (!jefeNit || !sede) {
                     showError('Debes seleccionar sede y jefe.');
@@ -485,7 +487,7 @@ export function ComisionesJefesGestion() {
               <button
                 type="button"
                 disabled={isBusyValores || !puedeActualizar}
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                className="w-full sm:w-auto rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-60"
                 onClick={() => actualizarMutation.mutate()}
               >
                 {actualizarMutation.isPending ? 'Actualizando...' : 'Actualizar'}

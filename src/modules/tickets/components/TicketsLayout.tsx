@@ -31,19 +31,21 @@ export function TicketsLayout({ children }: { children: ReactNode }) {
         description={TICKETS_COPY.subtitle}
         className="min-w-0"
         actions={
+          <div className="w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setOpenNew(true)}
-            className="flex items-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="flex w-full sm:w-auto justify-center items-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             <Plus size={18} />
             <span>{TICKETS_COPY.nuevoTicket}</span>
           </button>
+          </div>
         }
       />
 
-      <div className="border-b border-gray-200 overflow-x-auto">
-        <nav className="-mb-px flex min-w-max space-x-6 sm:space-x-8" aria-label="Tabs">
+      <div className="app-tabs-scroll border-b border-gray-200">
+        <nav className="-mb-px flex min-w-max gap-4 sm:gap-8" aria-label="Tabs">
           {tabs.map((tab) => {
             const isActive = pathname.startsWith(tab.href);
             return (

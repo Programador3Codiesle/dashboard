@@ -14,7 +14,6 @@ interface ModalDetalleRetornoProps {
 export function ModalDetalleRetorno({
   open,
   detalle,
-  ordenOrigen: _ordenOrigen,
   onClose,
   onGestionar,
 }: ModalDetalleRetornoProps) {
@@ -36,7 +35,7 @@ export function ModalDetalleRetorno({
           aria-modal="true"
         >
           <div className="p-4 sm:p-6 border-b border-gray-200">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Placa</label>
                 <input readOnly value={cliente.placa} className="w-full rounded-lg border px-3 py-2 text-sm bg-gray-50" />
@@ -57,8 +56,8 @@ export function ModalDetalleRetorno({
           </div>
 
           <div className="p-4 sm:p-6 space-y-6">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
+            <div className="app-table-scroll">
+              <table className="w-full min-w-[640px] text-sm border-collapse">
                 <thead>
                   <tr>
                     <th colSpan={5} className="text-center py-2 font-semibold bg-gray-50 border">
@@ -87,8 +86,8 @@ export function ModalDetalleRetorno({
               </table>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
+            <div className="app-table-scroll">
+              <table className="w-full min-w-[640px] text-sm border-collapse">
                 <thead>
                   <tr>
                     <th colSpan={4} className="text-center py-2 font-semibold bg-gray-50 border">

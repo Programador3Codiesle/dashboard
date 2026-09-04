@@ -93,9 +93,9 @@ export function RelacionMargenMaterialesColoristaGestion() {
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Relación margen materiales - Colorista
-        </h1>
+          <h1 className="app-title-xl brand-text">
+            Relación margen materiales - Colorista
+          </h1>
           <EmpresaBadge />
         </div>
         <p className="text-gray-500 mt-1">
@@ -104,7 +104,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
       </div>
 
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Fecha</label>
             <input
@@ -132,7 +132,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
             type="button"
             onClick={onGenerar}
             disabled={cargarMutation.isPending}
-            className="inline-flex items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-primary-dark) transition-colors disabled:opacity-60"
           >
             <Search size={16} className="mr-2" />
             {cargarMutation.isPending ? 'Generando...' : 'Generar'}
@@ -140,7 +140,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
           <button
             type="button"
             onClick={onExportar}
-            className="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+            className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
           >
             <FileSpreadsheet size={16} className="mr-2" />
             Descargar Excel
@@ -169,8 +169,8 @@ export function RelacionMargenMaterialesColoristaGestion() {
         )}
 
         {!cargarMutation.isPending && rows.length > 0 && (
-          <div className="overflow-auto rounded-xl border border-gray-100 max-h-120">
-            <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+          <div className="app-table-scroll">
+            <table className="w-full min-w-[880px] divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">Año</th>

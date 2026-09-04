@@ -172,11 +172,11 @@ export function ControlVehiculosGestion() {
         />
       ) : null}
 
-      <div className="flex justify-end">
+      <div className="flex">
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg"
+          className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg"
         >
           <Plus size={18} />
           <span>Registrar Salida</span>
@@ -207,8 +207,8 @@ export function ControlVehiculosGestion() {
           </div>
         ) : (
           <>
-            <div>
-              <table className="w-full table-fixed">
+            <div className="app-table-scroll">
+              <table className="w-full min-w-[1400px]">
                 <thead className="border-b border-gray-200 bg-gray-50 text-xs">
                   <tr>
                     <th className="wrap-break-word px-2 py-3 text-left font-semibold text-gray-700">

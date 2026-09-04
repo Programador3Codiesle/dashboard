@@ -118,7 +118,7 @@ export function Ventas1a1Gestion() {
     >
 
       <div className="w-full max-w-6xl bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-600">Año</label>
             <input
@@ -186,8 +186,8 @@ export function Ventas1a1Gestion() {
         )}
 
         {!informeLoading && rows.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+          <div className="app-table-scroll">
+            <table className="min-w-[720px] w-full divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">#</th>

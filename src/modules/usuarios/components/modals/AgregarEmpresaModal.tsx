@@ -68,17 +68,17 @@ export default function AgregarEmpresaModal({ open, usuario, onClose, onSave, em
                     </p>
                 </div>
 
-                <div className="flex justify-end gap-2.5">
+                <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-200 rounded-md border-none cursor-pointer font-medium text-gray-700 hover:bg-gray-300 transition-colors"
+                        className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-md border-none cursor-pointer font-medium text-gray-700 hover:bg-gray-300 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="px-4 py-2 text-white rounded-md border-none font-medium transition-all brand-bg brand-bg-hover cursor-pointer"
+                        className="w-full sm:w-auto px-4 py-2 text-white rounded-md border-none font-medium transition-all brand-bg brand-bg-hover cursor-pointer"
                     >
                         Guardar
                     </button>

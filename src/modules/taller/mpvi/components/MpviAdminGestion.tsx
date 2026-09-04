@@ -26,13 +26,13 @@ export function MpviAdminGestion() {
       title={TALLER_COPY.mpviAdmin.title}
       description={TALLER_COPY.mpviAdmin.description}
     >
-      <div className="flex flex-wrap gap-2 border-b pb-2">
+      <div className="app-tabs-scroll gap-2 border-b pb-2">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t.id
                 ? "brand-bg text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"

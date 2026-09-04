@@ -22,7 +22,7 @@ function DashboardComprasInner({ data }: { data: DashboardComprasType }) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Resumen solicitudes
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="app-kpi-grid-3">
           <DashboardKpiCard
             label="Solicitudes pendientes"
             value={data.solicitudes_pendientes}

@@ -88,18 +88,18 @@ export default function ReasignarTicketModal({
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={loading || !encargadoId}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? 'Guardando...' : 'Reasignar'}
           </button>

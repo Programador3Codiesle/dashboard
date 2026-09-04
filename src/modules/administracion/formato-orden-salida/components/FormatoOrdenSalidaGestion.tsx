@@ -200,7 +200,7 @@ export function FormatoOrdenSalidaGestion() {
         onSubmit={handleSubmit}
         className="bg-white rounded-3xl shadow-lg border border-gray-100/80 p-3 sm:p-4 md:p-6 md:p-8 space-y-8"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="app-form-grid-3">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Fecha
@@ -257,7 +257,7 @@ export function FormatoOrdenSalidaGestion() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="app-filter-grid gap-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Jefe autoriza
@@ -387,11 +387,11 @@ export function FormatoOrdenSalidaGestion() {
           />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex">
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center px-8 py-2.5 rounded-full brand-btn text-sm font-semibold shadow-md hover:opacity-90 focus:outline-none brand-focus-ring disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center px-8 py-2.5 rounded-full brand-btn text-sm font-semibold shadow-md hover:opacity-90 focus:outline-none brand-focus-ring disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Guardar

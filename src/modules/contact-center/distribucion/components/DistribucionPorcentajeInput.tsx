@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useCallback, useState } from 'react';
-import { inputClass } from '@/modules/contact-center/shared/constants/ui';
 
 type Props = {
   agente: number;
@@ -37,7 +36,7 @@ export const DistribucionPorcentajeInput = memo(function DistribucionPorcentajeI
       type="number"
       min={0}
       max={100}
-      className={`${inputClass} w-16 text-center`}
+      className="w-16 rounded-lg border border-gray-300 bg-white px-1 py-1 text-center text-sm focus:outline-none brand-focus-ring disabled:bg-gray-100"
       value={local}
       disabled={!asignado}
       onChange={(e) => setLocal(e.target.value)}

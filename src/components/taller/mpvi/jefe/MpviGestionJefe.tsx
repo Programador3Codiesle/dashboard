@@ -54,9 +54,9 @@ function TablaServicio({
   );
 
   return (
-    <div className="mt-6 overflow-x-auto">
+    <div className="mt-6 app-table-scroll">
       <h4 className="font-semibold text-gray-800 mb-2">{titulo}</h4>
-      <table className="min-w-full text-sm border rounded-lg">
+      <table className="min-w-[960px] w-full text-sm border rounded-lg">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-2 py-2 border-b">Cod. Op.</th>
@@ -251,8 +251,8 @@ export function MpviGestionJefe({
       )}
 
       <div className="brand-card-surface rounded-2xl border brand-border-active brand-card-elevated p-4 sm:p-6 transition-all">
-        <div className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[200px]">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-stretch sm:items-end">
+          <div className="w-full sm:flex-1 sm:min-w-[200px]">
             <label className="block text-sm font-medium mb-1">Id cotización</label>
             <input
               type="number"
@@ -264,13 +264,14 @@ export function MpviGestionJefe({
             />
           </div>
           {!initialIdCotizacion && (
-            <Button type="button" className="brand-btn" onClick={handleGestionar}>
+            <Button type="button" className="brand-btn w-full sm:w-auto" onClick={handleGestionar}>
               Gestionar
             </Button>
           )}
           <Button
             type="button"
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={() => idCotizacion && abrirPdf(idCotizacion, 0)}
             disabled={!idCotizacion}
           >
@@ -279,6 +280,7 @@ export function MpviGestionJefe({
           <Button
             type="button"
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={() => idCotizacion && abrirPdf(idCotizacion, 1)}
             disabled={!idCotizacion}
           >
@@ -287,6 +289,7 @@ export function MpviGestionJefe({
           <Button
             type="button"
             variant="secondary"
+            className="w-full sm:w-auto"
             onClick={() => idCotizacion && abrirPdf(idCotizacion, 2)}
             disabled={!idCotizacion}
           >
@@ -322,7 +325,7 @@ export function MpviGestionJefe({
 
             <hr className="my-4" />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="app-form-grid-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Correo</label>
                 <input
@@ -354,10 +357,10 @@ export function MpviGestionJefe({
               />
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3">
               <Button
                 type="button"
-                className="brand-btn"
+                className="brand-btn w-full sm:w-auto"
                 disabled={guardarServicio.isPending}
                 onClick={() => handleGuardar(2)}
               >
@@ -365,7 +368,7 @@ export function MpviGestionJefe({
               </Button>
               <Button
                 type="button"
-                className="brand-btn"
+                className="brand-btn w-full sm:w-auto"
                 disabled={guardarServicio.isPending}
                 onClick={() => handleGuardar(1)}
               >

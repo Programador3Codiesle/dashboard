@@ -7,9 +7,5 @@ export function IndicadoresQueryError({ message }: { message: string }) {
 }
 
 export function IndicadoresLoading({ message }: { message: string }) {
-  return (
-    <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
-      {message}
-    </p>
-  );
+  return <p className="app-section-card text-sm text-gray-500">{message}</p>;
 }

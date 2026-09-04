@@ -287,7 +287,7 @@ export function ControlVehicularGestion() {
     >
     <div className="space-y-6">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">Fecha inicio</label>
             <input
@@ -334,13 +334,13 @@ export function ControlVehicularGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-between gap-3 items-center pt-1 border-t border-gray-100">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between sm:items-center pt-1 border-t border-gray-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               onClick={handleAplicarFiltros}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               <span>Aplicar filtro</span>
@@ -348,7 +348,7 @@ export function ControlVehicularGestion() {
             <button
               type="button"
               onClick={handleLimpiarFiltros}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500 text-red-600 text-sm font-medium bg-white hover:bg-red-50 transition-colors"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl border border-red-500 text-red-600 text-sm font-medium bg-white hover:bg-red-50 transition-colors"
             >
               Limpiar filtro
             </button>
@@ -356,7 +356,7 @@ export function ControlVehicularGestion() {
               type="button"
               onClick={handleExportar}
               disabled={loading || exporting}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-sm font-medium bg-white hover:bg-emerald-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-sm font-medium bg-white hover:bg-emerald-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {exporting && <Loader2 size={16} className="animate-spin" />}
               <span>{exporting ? "Generando Excel…" : "Generar reporte"}</span>
@@ -410,7 +410,7 @@ export function ControlVehicularGestion() {
         </div>
 
         <div className="app-table-scroll">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[1100px] text-sm">
             <thead className="brand-bg border-b border-(--color-primary-dark)] text-sm">
               <tr>
                 <th className="text-left py-3 px-4 font-semibold text-white whitespace-nowrap">

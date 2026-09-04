@@ -37,15 +37,15 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                Optimiza tus procesos <br />
-                en  
-                <span className="ml-3 gradient-text">
-                POSTVENTA 
+              <h2 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+                Optimiza tus procesos
+                <span className="mt-1 block sm:mt-0 sm:ml-0 sm:inline">
+                  {" "}
+                  en <span className="gradient-text">POSTVENTA</span>
                 </span>
               </h2>
 
-              <p className="text-xl text-gray-600 max-w-lg mx-auto lg:mx-0">
+              <p className="mx-auto max-w-lg text-base text-gray-600 sm:text-xl lg:mx-0">
                 Accede a las herramientas diseñadas para asesoría de servicio, garantías,
                 citas, CRM técnico y gestión operativa del área postventa de Chevrolet.
               </p>

@@ -184,12 +184,12 @@ export function ChecklistCarroGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={handleFiltrar}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             <span>Filtrar</span>
@@ -475,7 +475,7 @@ export function ChecklistCarroGestion() {
             No se ha seleccionado ningún registro.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="app-form-grid-3">
             {["_SUV", "_PICKUP", "_SEDAN"].map((suffix, idx) => (
               <div key={suffix} className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="px-3 py-2 text-xs font-medium text-gray-600 border-b border-gray-100">

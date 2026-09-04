@@ -23,7 +23,7 @@ function DashboardInformeMtoInner({ data }: { data: DashboardInformeMtoType }) {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Mantenimiento correctivo
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="app-kpi-grid-3">
             <DashboardKpiCard label="Pendientes" value={data.pendientes} />
             <DashboardKpiCard label="En proceso" value={data.proceso} />
             <DashboardKpiCard label="Finalizadas" value={data.finalizadas} />
@@ -33,7 +33,7 @@ function DashboardInformeMtoInner({ data }: { data: DashboardInformeMtoType }) {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Mantenimiento preventivo (hoy)
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="app-kpi-grid-3">
             <DashboardKpiCard label="Pendientes" value={data.pendientesPre} />
             <DashboardKpiCard label="En proceso" value={data.procesoPre} />
             <DashboardKpiCard label="Finalizadas" value={data.finalizadasPre} />

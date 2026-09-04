@@ -33,7 +33,7 @@ export default function DetalleAusentismoCalendarioModal({
             </span>
             Fecha y horario
           </h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div>
               <span className="text-gray-500">Fecha</span>
               <p className="font-medium text-gray-900">{ausentismo.fecha}</p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
@@ -9,6 +9,7 @@ import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPage
 import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
 import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
 import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { AuditoriaTableCard } from '@/modules/auditoria/shared/components/AuditoriaTableCard';
 import { BODEGAS_AUDITORIA_BASE } from '@/modules/auditoria/shared/constants/bodegas';
 import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
 import {
@@ -64,50 +65,52 @@ export function OrdenesDiariasGestion() {
       description={AUDITORIA_COPY.ordenesDiarias.description}
       backLabel={AUDITORIA_COPY.backLabel}
     >
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label htmlFor="aud-od-fecha" className="text-sm">
-          Fecha
-          <input
-            id="aud-od-fecha"
-            type="date"
-            max={todayYmd()}
-            className={inputClass}
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
-          />
-        </label>
-        <label htmlFor="aud-od-bodega" className="min-w-[220px] text-sm">
-          Bodega
-          <select
-            id="aud-od-bodega"
-            className={inputClass}
-            value={bodega}
-            onChange={(e) => setBodega(e.target.value)}
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3 items-end">
+          <label htmlFor="aud-od-fecha" className="w-full min-w-0 text-sm">
+            Fecha
+            <input
+              id="aud-od-fecha"
+              type="date"
+              max={todayYmd()}
+              className={inputClass}
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </label>
+          <label htmlFor="aud-od-bodega" className="w-full min-w-0 text-sm">
+            Bodega
+            <select
+              id="aud-od-bodega"
+              className={inputClass}
+              value={bodega}
+              onChange={(e) => setBodega(e.target.value)}
+            >
+              <option value="">Seleccione...</option>
+              {BODEGAS_AUDITORIA_BASE.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={listQuery.isFetching}
+            onClick={() => {
+              if (!fecha || !bodega) {
+                showError('Seleccione fecha y bodega');
+                return;
+              }
+              setApplied({ fecha, bodega });
+              setPage(1);
+            }}
           >
-            <option value="">Seleccione...</option>
-            {BODEGAS_AUDITORIA_BASE.map((b) => (
-              <option key={b.value} value={b.value}>
-                {b.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className={btnPrimaryClass}
-          disabled={listQuery.isFetching}
-          onClick={() => {
-            if (!fecha || !bodega) {
-              showError('Seleccione fecha y bodega');
-              return;
-            }
-            setApplied({ fecha, bodega });
-            setPage(1);
-          }}
-        >
-          <Search className="h-4 w-4" />
-          {listQuery.isFetching ? 'Buscando...' : 'Buscar'}
-        </button>
+            <Search className="h-4 w-4" />
+            {listQuery.isFetching ? 'Buscando...' : 'Buscar'}
+          </button>
+        </div>
       </div>
 
       {listQuery.isError ? (
@@ -119,9 +122,20 @@ export function OrdenesDiariasGestion() {
         />
       ) : null}
 
-      <TableCard>
-        <table className="min-w-full text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <AuditoriaTableCard
+        footer={
+          <AuditoriaPager
+            total={total}
+            page={safePage}
+            totalPages={totalPages}
+            onChange={onPage}
+            inicio={inicio}
+            fin={fin}
+          />
+        }
+      >
+        <table className="w-full min-w-[840px] text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               {[
                 'NOMBRES',
@@ -165,24 +179,8 @@ export function OrdenesDiariasGestion() {
             )}
           </tbody>
         </table>
-        <AuditoriaPager
-          total={total}
-          page={safePage}
-          totalPages={totalPages}
-          onChange={onPage}
-          inicio={inicio}
-          fin={fin}
-        />
-      </TableCard>
+      </AuditoriaTableCard>
     </AuditoriaPageFrame>
-  );
-}
-
-function TableCard({ children }: { children: ReactNode }) {
-  return (
-    <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-      {children}
-    </div>
   );
 }
 

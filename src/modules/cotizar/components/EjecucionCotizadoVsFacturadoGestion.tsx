@@ -13,7 +13,7 @@ import {
 } from "@/modules/cotizador/hooks/useEjecucionCotizadoVsFacturado";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 const BODEGAS = [
   { value: null, label: "Todas" },
@@ -76,25 +76,18 @@ export function EjecucionCotizadoVsFacturadoGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Ejecución Cotizado vs Facturado
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Analiza cómo se ejecutan las cotizaciones frente a lo realmente facturado, por rango de fechas y bodega.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Ejecución Cotizado vs Facturado"
+        description="Analiza cómo se ejecutan las cotizaciones frente a lo realmente facturado, por rango de fechas y bodega."
+      />
 
       {/* Filtros y resumen */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 space-y-4"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Desde
@@ -150,7 +143,7 @@ export function EjecucionCotizadoVsFacturadoGestion() {
         </div>
 
         {/* Cards de resumen */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+        <div className="app-kpi-grid pt-2">
           <div className="rounded-xl border border-gray-100 brand-bg-light px-4 py-3">
             <p className="text-xs brand-text uppercase tracking-wide">Total</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">
@@ -178,8 +171,8 @@ export function EjecucionCotizadoVsFacturadoGestion() {
         </div>
 
         {/* Totales valores */}
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="mt-4 app-table-scroll">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-center py-2 px-3">Total agendado</th>
@@ -224,7 +217,7 @@ export function EjecucionCotizadoVsFacturadoGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-3"
       >
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <PieChart size={18} className="text-[var(--color-primary)]" />
             <h2 className="text-lg font-semibold text-gray-900">Cotizado a Facturado</h2>
@@ -239,7 +232,7 @@ export function EjecucionCotizadoVsFacturadoGestion() {
           </div>
         )}
         <div className="app-table-scroll">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-center py-2 px-3">Id</th>
@@ -296,7 +289,7 @@ export function EjecucionCotizadoVsFacturadoGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-3"
       >
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <PieChart size={18} className="text-[var(--color-primary)]" />
             <h2 className="text-lg font-semibold text-gray-900">Facturado a Cotizado</h2>
@@ -311,7 +304,7 @@ export function EjecucionCotizadoVsFacturadoGestion() {
           </div>
         )}
         <div className="app-table-scroll">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="text-center py-2 px-3">Id</th>

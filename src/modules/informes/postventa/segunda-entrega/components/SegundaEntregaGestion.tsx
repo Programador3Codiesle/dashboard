@@ -28,7 +28,7 @@ function formatearFechaMostrar(iso: string): string {
 
 const tablaShell =
   "bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden";
-const tablaScroll = "max-h-[min(70vh,480px)] overflow-auto";
+const tablaScroll = "app-table-scroll max-h-[min(70vh,480px)]";
 const thBase =
   "px-3 py-2.5 text-center text-xs font-semibold text-white whitespace-nowrap border-b border-white/15";
 const tdBase =
@@ -98,7 +98,7 @@ export function SegundaEntregaGestion() {
     <div className="space-y-6 overflow-x-hidden">
 
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">
               Fecha inicial
@@ -123,12 +123,12 @@ export function SegundaEntregaGestion() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={handleBuscar}
             disabled={isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isPending && <Loader2 size={16} className="animate-spin" />}
             <span>Buscar</span>

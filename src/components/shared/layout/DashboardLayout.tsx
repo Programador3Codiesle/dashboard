@@ -14,22 +14,22 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false); // ✨ NUEVO: Controla el estado colapsado/expandido
 
-  // Detectar si es móvil
+  // Detectar móvil solo al cruzar el breakpoint (no en cada píxel de resize).
   useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 1024;
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const apply = () => {
+      const mobile = mq.matches;
       setIsMobile(mobile);
       if (!mobile) {
-        setShowSidebar(false); // En desktop, no mostrar overlay
+        setShowSidebar(false);
       } else {
-        setIsCollapsed(false); // En mobile, asegurar que no esté colapsado (usará el estado `showSidebar`)
+        setIsCollapsed(false);
       }
     };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => window.removeEventListener('resize', checkMobile);
+
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
   }, []);
 
   // Redirigir al login solo cuando la verificación de sesión haya terminado y no esté autenticado
@@ -82,7 +82,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   }
 
   // Ancho del margen en desktop (lg:ml-X)
-  const desktopMargin = isCollapsed ? 'lg:ml-20' : 'lg:ml-80';
+  const desktopMargin = isCollapsed ? "lg:ml-20" : "lg:ml-80 2xl:ml-88";
 
   const needsEmpresa = isAuthenticated && user && user.empresa == null;
 
@@ -110,7 +110,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         />
         
         <main className="flex-1 min-w-0 min-h-0 border-l-2 border-[var(--color-primary)]/20">
-          <div className="app-page-container py-3 sm:py-4 md:py-6 xl:py-8">
+          <div className="app-page-container">
             {children}
           </div>
         </main>

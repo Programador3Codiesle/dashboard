@@ -105,7 +105,7 @@ export function IndicadorChecklistPesvGestion() {
       ) : null}
 
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">
               Fecha inicial
@@ -158,7 +158,7 @@ export function IndicadorChecklistPesvGestion() {
             type="button"
             onClick={handleGenerar}
             disabled={isFetching || !hasDates}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>{isFetching ? 'Consultando...' : 'Generar'}</span>

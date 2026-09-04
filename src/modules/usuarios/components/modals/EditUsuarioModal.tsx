@@ -25,107 +25,70 @@ export default function EditUsuarioModal({ open, usuario, onClose, onSave, perfi
 
     return (
         <Modal open={open} onClose={onClose} title={`Editar Perfil - ${usuario?.nombre}`} width="500px">
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: "20px" }}>
-                    <label style={{ display: "block", marginBottom: "10px", fontSize: "14px", fontWeight: "500" }}>
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                    <label className="mb-2.5 block text-sm font-medium text-gray-700">
                         Perfil actual:
                     </label>
                     {perfilActual ? (
-                        <div style={{
-                            padding: "12px",
-                            backgroundColor: "#f0fdf4",
-                            border: "1px solid #86efac",
-                            borderRadius: "6px",
-                            marginBottom: "15px"
-                        }}>
-                            <span style={{ fontSize: "14px", fontWeight: "600", color: "#059669" }}>
+                        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3">
+                            <span className="text-sm font-semibold text-green-700">
                                 {perfilActual.nombre}
                             </span>
                         </div>
                     ) : (
-                        <div style={{
-                            padding: "12px",
-                            backgroundColor: "#f3f4f6",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "6px",
-                            marginBottom: "15px"
-                        }}>
-                            <span style={{ fontSize: "14px", color: "#6b7280" }}>
+                        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-100 p-3">
+                            <span className="text-sm text-gray-500">
                                 Sin perfil asignado
                             </span>
                         </div>
                     )}
                 </div>
 
-                <div style={{ marginBottom: "20px" }}>
-                    <label style={{ display: "block", marginBottom: "10px", fontSize: "14px", fontWeight: "500" }}>
+                <div>
+                    <label className="mb-2.5 block text-sm font-medium text-gray-700">
                         Seleccionar nuevo perfil:
                     </label>
-                    <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                        {perfilesDisponibles.map((perfil) => (
+                    <div className="max-h-[300px] overflow-y-auto pr-1">
+                        {perfilesDisponibles.map((perfil) => {
+                            const selected = selectedPerfil === perfil.id;
+                            return (
                             <label
                                 key={perfil.id}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    padding: "12px",
-                                    marginBottom: "8px",
-                                    border: "2px solid",
-                                    borderColor: selectedPerfil === perfil.id ? "#f59e0b" : "#ddd",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    backgroundColor: selectedPerfil === perfil.id ? "#fef3c7" : "#fff",
-                                    transition: "all 0.2s"
-                                }}
+                                className={`mb-2 flex cursor-pointer items-center rounded-lg border-2 p-3 transition-all ${
+                                    selected
+                                        ? "brand-border brand-bg-light"
+                                        : "border-gray-200 bg-white hover:border-gray-300"
+                                }`}
                             >
                                 <input
                                     type="radio"
                                     name="perfil"
-                                    checked={selectedPerfil === perfil.id}
+                                    checked={selected}
                                     onChange={() => setSelectedPerfil(perfil.id)}
-                                    style={{
-                                        marginRight: "12px",
-                                        width: "18px",
-                                        height: "18px",
-                                        cursor: "pointer"
-                                    }}
+                                    className="mr-3 h-[18px] w-[18px] cursor-pointer accent-[var(--color-primary)]"
                                 />
-                                <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                                <span className="text-sm font-medium">
                                     {perfil.nombre}
                                 </span>
                             </label>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{
-                            padding: "8px 16px",
-                            background: "#ddd",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: "pointer",
-                            fontWeight: "500"
-                        }}
+                        className="w-full sm:w-auto rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
                         disabled={!selectedPerfil}
-                        style={{
-                            padding: "8px 16px",
-                            background: !selectedPerfil ? "#ccc" : "#f59e0b",
-                            color: "#fff",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: !selectedPerfil ? "not-allowed" : "pointer",
-                            fontWeight: "500",
-                            opacity: !selectedPerfil ? 0.6 : 1
-                        }}
+                        className="w-full sm:w-auto rounded-lg px-4 py-2 text-sm font-medium text-white brand-bg brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Guardar
                     </button>

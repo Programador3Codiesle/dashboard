@@ -60,7 +60,7 @@ const MpviDatosClienteForm = memo(
     }, [defaultNombre, defaultCelular]);
 
     return (
-      <form ref={formRef} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <form ref={formRef} className="app-form-grid-3">
         <div>
           <label className="block text-sm font-medium mb-1">Nombre cliente *</label>
           <input name="nombre" type="text" className={INPUT_CLASS} defaultValue={defaultNombre} />
@@ -118,7 +118,7 @@ const MpviCamposGuardadoForm = memo(
           onGuardar();
         }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div>
             <label className="block text-sm font-medium mb-1">Correo cliente *</label>
             <input
@@ -313,8 +313,8 @@ const MpviSubsistemasClasificacion = memo(
     return (
       <>
         <hr className="my-4" />
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border rounded-lg">
+        <div className="app-table-scroll">
+          <table className="min-w-[560px] w-full text-sm border rounded-lg">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 py-2">Subsistema</th>
@@ -409,9 +409,9 @@ const TablaCotizacionTecnico = memo(function TablaCotizacionTecnico({
   );
 
   return (
-    <div className="mt-6 overflow-x-auto">
+    <div className="mt-6 app-table-scroll">
       <h4 className="font-semibold text-gray-800 mb-2">{titulo}</h4>
-      <table className="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+      <table className="min-w-[960px] w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-2 py-2 border-b text-center">Operación</th>
@@ -716,7 +716,7 @@ export function MpviGestionTecnico() {
   return (
     <div className="space-y-4">
       <div className="brand-card-surface rounded-2xl border brand-border-active brand-card-elevated p-4 sm:p-6 transition-all">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className="block text-sm font-medium mb-1">Bodega *</label>
             <select

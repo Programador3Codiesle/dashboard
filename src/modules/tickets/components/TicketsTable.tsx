@@ -24,7 +24,7 @@ export function TicketsPrioridadBadge({ prioridad }: { prioridad: Prioridad }) {
           ? 'bg-red-100 text-red-700 border border-red-200'
           : prioridad === 'media'
             ? 'brand-badge border border-[var(--color-primary)]'
-            : 'bg-blue-100 text-blue-700 border border-blue-200'
+            : 'bg-gray-100 text-gray-700 border border-gray-200'
       }`}
     >
       {prioridad}
@@ -81,13 +81,13 @@ export function TicketsTable({
               {HEADERS.map((header) => (
                 <th
                   key={header}
-                  className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider"
+                  className="py-3 px-3 sm:py-5 sm:px-6 text-xs sm:text-sm font-bold text-white uppercase tracking-wider"
                 >
                   {header}
                 </th>
               ))}
               {showActions ? (
-                <th className="py-5 px-6  text-sm font-bold text-white uppercase tracking-wider">
+                <th className="py-3 px-3 sm:py-5 sm:px-6 text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                   Acciones
                 </th>
               ) : null}
@@ -101,35 +101,35 @@ export function TicketsTable({
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                 } hover:brand-bg-light hover:shadow-sm text-center`}
               >
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   <span className="text-sm font-bold text-gray-900">
                     #{ticket.id}
                   </span>
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   {renderEstado(ticket)}
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   <TicketsPrioridadBadge prioridad={ticket.prioridad} />
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-700">
                     {ticket.tipoSoporte}
                   </span>
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   {renderUsuario(ticket)}
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   {renderEncargado(ticket)}
                 </td>
-                <td className="py-5 px-6 whitespace-nowrap">
+                <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   <span className="text-sm text-gray-600">
                     {new Date(ticket.fechaCreacion).toLocaleDateString()}
                   </span>
                 </td>
                 {showActions ? (
-                  <td className="py-5 px-6 whitespace-nowrap">
+                  <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                     {renderAcciones?.(ticket)}
                   </td>
                 ) : null}

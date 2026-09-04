@@ -35,7 +35,7 @@ export function FormatosNominaGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-3xl border border-gray-100/80 bg-white p-3 shadow-lg sm:p-4 md:p-6 md:p-8"
       >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="app-kpi-grid-3">
           {FORMATOS_NOMINA.map((formato) => {
             const url = buildUrl(formato.file);
             return (
@@ -56,11 +56,11 @@ export function FormatosNominaGestion() {
                     </p>
                   </div>
                 </div>
-                <div className="mt-auto flex flex-wrap gap-2">
+                <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
                     onClick={() => setFormatoSeleccionado(formato)}
-                    className="inline-flex items-center rounded-full brand-bg px-3 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-90 md:text-sm"
+                    className="inline-flex w-full sm:w-auto justify-center items-center rounded-full brand-bg px-3 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-90 md:text-sm"
                   >
                     <Eye className="mr-1.5 h-4 w-4" />
                     Visualizar
@@ -69,7 +69,7 @@ export function FormatosNominaGestion() {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 md:text-sm"
+                    className="inline-flex w-full sm:w-auto justify-center items-center rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 md:text-sm"
                   >
                     <Download className="mr-1.5 h-4 w-4" />
                     Descargar

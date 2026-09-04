@@ -19,7 +19,7 @@ export function MantenimientoFileField({
     <div className="space-y-1.5">
       <p className="text-sm font-medium text-gray-700">{label}</p>
       <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-3 transition-colors hover:border-[var(--color-warning)] hover:bg-[var(--color-warning-soft)]">
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-(--color-primary) text-white">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md brand-bg text-white">
           <Upload className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">

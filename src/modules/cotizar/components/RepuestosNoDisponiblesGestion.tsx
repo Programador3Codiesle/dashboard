@@ -9,7 +9,7 @@ import { CalendarRange, Search, AlertTriangle, Package } from "lucide-react";
 import { useRepuestosNoDisponibles } from "@/modules/cotizador/hooks/useRepuestosNoDisponibles";
 import { usePagination } from "@/components/shared/ui/hooks/usePagination";
 import { Pagination } from "@/components/shared/ui/Pagination";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 const BODEGAS = [
   { value: null as number | null, label: "Seleccione una opción" },
@@ -64,24 +64,17 @@ export function RepuestosNoDisponiblesGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Repuestos no disponibles
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Repuestos de cotización con unidades disponibles en 0 en el rango de fechas seleccionado.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Repuestos no disponibles"
+        description="Repuestos de cotización con unidades disponibles en 0 en el rango de fechas seleccionado."
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 space-y-4"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div className="app-filter-grid-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Bodega
@@ -135,12 +128,12 @@ export function RepuestosNoDisponiblesGestion() {
               />
             </div>
           </div>
-          <div className="flex items-end gap-2">
+          <div className="flex items-end">
             <button
               type="button"
               onClick={handleBuscar}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
             >
               <Search size={18} />
               Buscar
@@ -169,7 +162,7 @@ export function RepuestosNoDisponiblesGestion() {
         transition={{ delay: 0.05 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-3 sm:px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <Package size={20} className="text-amber-500" />
             Repuestos con 0 unidades disponibles
@@ -179,7 +172,7 @@ export function RepuestosNoDisponiblesGestion() {
           )}
         </div>
         <div className="app-table-scroll">
-          <table className="w-full text-sm text-left">
+          <table className="w-full min-w-[560px] text-sm text-left">
             <thead className="bg-gray-50 text-gray-600 uppercase tracking-wider">
               <tr>
                 <th scope="col" className="px-5 py-3 font-medium">

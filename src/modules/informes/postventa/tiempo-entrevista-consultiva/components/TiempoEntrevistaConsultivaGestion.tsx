@@ -131,7 +131,7 @@ export function TiempoEntrevistaConsultivaGestion() {
     >
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="app-form-grid-3 items-end">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
               Fecha inicial
@@ -180,8 +180,8 @@ export function TiempoEntrevistaConsultivaGestion() {
             </p>
           )}
           {!loadingResumen && resumen && resumen.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+            <div className="app-table-scroll">
+              <table className="min-w-[960px] w-full divide-y divide-gray-200 text-xs md:text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 py-2 text-center font-semibold">
@@ -292,8 +292,8 @@ export function TiempoEntrevistaConsultivaGestion() {
             !loadingDetalle &&
             detalle &&
             detalle.length > 0 && (
-              <div className="overflow-x-auto rounded-xl border border-gray-100">
-                <table className="min-w-full divide-y divide-gray-200 text-xs md:text-sm">
+              <div className="app-table-scroll">
+                <table className="min-w-[960px] w-full divide-y divide-gray-200 text-xs md:text-sm">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-3 py-2 text-center font-semibold">

@@ -22,7 +22,7 @@ import {
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { getErrorMessage } from "@/modules/cotizar/utils/get-error-message";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 export function CotizarLivianosGestion() {
   const { blocked } = useCotizarPageGuard(COTIZAR_LIVIANOS_SUBMENU_ID);
@@ -485,24 +485,17 @@ export function CotizarLivianosGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Cotizador Livianos
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Busca un vehículo por placa, selecciona la revisión y genera el detalle base de la cotización para livianos.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Cotizador Livianos"
+        description="Busca un vehículo por placa, selecciona la revisión y genera el detalle base de la cotización para livianos."
+      />
 
       {/* Fila de búsqueda por placa */}
       <motion.form
         onSubmit={handleBuscarVehiculo}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 flex flex-col md:flex-row md:items-end gap-4"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-end gap-4"
       >
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -519,7 +512,7 @@ export function CotizarLivianosGestion() {
         <button
           type="submit"
           disabled={loadingVehiculo || !placaBusqueda.trim()}
-          className="inline-flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Search size={18} />
           <span>{loadingVehiculo ? "Buscando..." : "Buscar"}</span>
@@ -548,7 +541,7 @@ export function CotizarLivianosGestion() {
           <h2 className="text-xl font-semibold text-gray-900">
             Datos del vehículo
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="app-form-grid-3 text-sm">
             <div>
               <p className="text-gray-500">Cliente</p>
               <p className="font-medium text-gray-900">{vehiculo.cliente}</p>
@@ -590,7 +583,7 @@ export function CotizarLivianosGestion() {
           </div>
 
           {/* Prepagado y tipo de mantenimiento */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-3 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Prepagado
@@ -617,7 +610,7 @@ export function CotizarLivianosGestion() {
                 <option value="1">MTTO A LA MEDIDA</option>
               </select>
             </div>
-            <div className="flex items-end justify-end">
+            <div className="flex items-end">
               <button
                 type="button"
                 onClick={() => {
@@ -627,7 +620,7 @@ export function CotizarLivianosGestion() {
                   setPosibleRetornoObs("");
                   setOpenPosibleRetorno(true);
                 }}
-                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium border border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white transition-colors shadow-sm"
+                className="inline-flex w-full sm:w-auto items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium border border-(--color-primary) text-(--color-primary) hover:bg-(--color-primary) hover:text-white transition-colors shadow-sm"
               >
                 POSIBLE RETORNO
               </button>
@@ -635,7 +628,7 @@ export function CotizarLivianosGestion() {
           </div>
 
           {/* Selección de bodega y revisión */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-2 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Bodega
@@ -681,7 +674,7 @@ export function CotizarLivianosGestion() {
           </div>
 
           {/* Datos adicionales de la cotización */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-3 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Teléfono cliente
@@ -720,8 +713,8 @@ export function CotizarLivianosGestion() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-            <div className="md:col-span-2">
+          <div className="app-form-grid-3 pt-4">
+            <div className="xl:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Observaciones
               </label>
@@ -763,7 +756,7 @@ export function CotizarLivianosGestion() {
           </div>
 
           {/* Adicionales */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-3 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Adicional
@@ -823,7 +816,7 @@ export function CotizarLivianosGestion() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-6"
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-xl font-semibold text-gray-900">
               Detalle de cotización (repuestos y mano de obra)
             </h2>
@@ -855,7 +848,7 @@ export function CotizarLivianosGestion() {
 
           {/* Repuestos */}
           <div className="app-table-scroll">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b-2 border-(--color-primary)">
                   <th className="text-left py-2 px-3">Código</th>
@@ -911,7 +904,7 @@ export function CotizarLivianosGestion() {
 
           {/* Mano de obra */}
           <div className="app-table-scroll">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b-2 border-(--color-primary)">
                   <th className="text-left py-2 px-3">Operación</th>
@@ -985,7 +978,7 @@ export function CotizarLivianosGestion() {
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">MANO DE OBRA</p>
                 <div className="app-table-scroll">
-                  <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full min-w-[640px] text-sm border border-gray-200 rounded-lg overflow-hidden">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
                         <th className="text-left py-2 px-3">Operación</th>
@@ -1046,7 +1039,7 @@ export function CotizarLivianosGestion() {
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">Repuestos del adicional</p>
                     <div className="app-table-scroll">
-                      <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full min-w-[640px] text-sm border border-gray-200 rounded-lg overflow-hidden">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-200 text-center">
                             <th className="py-2 px-3 text-left">Código</th>
@@ -1133,7 +1126,7 @@ export function CotizarLivianosGestion() {
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-gray-700">Mano de obra del adicional</p>
                     <div className="app-table-scroll">
-                      <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+                      <table className="w-full min-w-[640px] text-sm border border-gray-200 rounded-lg overflow-hidden">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-200 text-center">
                             <th className="py-2 px-3 text-left">Operación</th>
@@ -1212,11 +1205,11 @@ export function CotizarLivianosGestion() {
                   </div>
                 )}
 
-                <div className="flex justify-end gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-2">
                   <button
                     type="button"
                     onClick={handleAgregarAdicionalSeleccionados}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium brand-bg brand-bg-hover text-white"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium brand-bg brand-bg-hover text-white"
                   >
                     Agregar seleccionados
                   </button>
@@ -1235,7 +1228,7 @@ export function CotizarLivianosGestion() {
                   setAdicionalRepuestosSeleccionados({});
                   setAdicionalManoSeleccionados({});
                 }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cerrar
               </button>

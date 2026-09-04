@@ -12,7 +12,7 @@ export function InformesHub() {
       items={INFORMES_ROOT_HUB_ITEMS}
       variant="border"
       titleClassName="app-title-xl brand-text"
-      gridClassName="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5"
+      gridClassName="app-hub-grid-2"
       filter={{ permission: 'submenu' }}
       emptyWhenFiltered
     />

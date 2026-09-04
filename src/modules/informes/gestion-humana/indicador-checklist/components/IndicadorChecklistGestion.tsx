@@ -85,7 +85,7 @@ export function IndicadorChecklistGestion() {
       backLabel={INFORMES_COPY.backGh}
     >
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">
               Checklist

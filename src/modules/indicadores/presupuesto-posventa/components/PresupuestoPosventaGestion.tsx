@@ -7,7 +7,7 @@ import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { IndicadoresPageFrame } from '@/modules/indicadores/components/IndicadoresPageFrame';
 import { INDICADORES_COPY } from '@/modules/indicadores/constants';
 import {
-  DualProgressBar,
+  BreakdownTable,
   ProgressCard,
   formatMoney,
 } from '@/modules/indicadores/presupuesto-posventa/components/ProgressCard';
@@ -35,11 +35,13 @@ function KpiBox({
   accent: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
       <span className={`h-10 w-10 shrink-0 rounded-lg ${accent}`} />
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-lg font-semibold text-gray-900">{formatMoney(value)}</p>
+        <p className="break-all text-base font-semibold tabular-nums text-gray-900 sm:text-lg">
+          {formatMoney(value)}
+        </p>
       </div>
     </div>
   );
@@ -47,55 +49,26 @@ function KpiBox({
 
 function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
   return (
-    <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
-      <div className="text-center">
-        <p className="text-3xl font-bold brand-text sm:text-4xl">
-          {formatMoney(data.totalVendido)}
-        </p>
-        <p className="mt-1 text-sm text-gray-500">Total vendido posventa</p>
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-          <span>Meta a cumplir a día de hoy</span>
-          <span>
-            <span className="font-medium text-[var(--color-info)]">
-              {formatMoney(data.totalVendido)}
-            </span>
-            {' / '}
-            <span className="font-medium text-[var(--color-danger)]">
-              {formatMoney(data.metaHoy)}
-            </span>
-          </span>
-        </div>
-        <DualProgressBar
-          pctFilled={data.porcentajeHoy}
-          pctRest={data.porcentajeHoyRestante}
-          filledClass="bg-[var(--color-info)]"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-          <span>Meta a cumplir al mes</span>
-          <span>
-            <span className="font-medium text-[var(--color-success)]">
-              {formatMoney(data.totalVendido)}
-            </span>
-            {' / '}
-            <span className="font-medium text-[var(--color-danger)]">
-              {formatMoney(data.metaMes)}
-            </span>
-          </span>
-        </div>
-        <DualProgressBar
-          pctFilled={data.porcentajeMes}
-          pctRest={data.porcentajeMesRestante}
-          filledClass="bg-[var(--color-success)]"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <ProgressCard
+      titulo="vendido posventa"
+      totalDia={data.totalVendido}
+      metaHoy={data.metaHoy}
+      metaMes={data.metaMes}
+      porcentajeHoy={data.porcentajeHoy}
+      porcentajeHoyRestante={data.porcentajeHoyRestante}
+      porcentajeMes={data.porcentajeMes}
+      porcentajeMesRestante={data.porcentajeMesRestante}
+      footer={
+        <Link
+          href="/dashboard/indicadores/presupuesto-posventa/sedes"
+          className="inline-flex items-center gap-1 text-sm font-medium brand-text hover:underline"
+        >
+          Más detalles
+          <ChevronRight className="h-4 w-4" />
+        </Link>
+      }
+    >
+      <div className="app-kpi-grid">
         <KpiBox
           label="Mano de Obra"
           value={data.manoObra}
@@ -113,17 +86,7 @@ function ConsolidadoView({ data }: { data: PresupuestoConsolidado }) {
           accent="bg-gray-500"
         />
       </div>
-
-      <div className="border-t border-gray-100 pt-4 text-center">
-        <Link
-          href="/dashboard/indicadores/presupuesto-posventa/sedes"
-          className="inline-flex items-center gap-1 text-sm font-medium brand-text hover:underline"
-        >
-          Más detalles
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </div>
+    </ProgressCard>
   );
 }
 
@@ -148,28 +111,13 @@ function SedeCardPerfil({ sede }: { sede: PresupuestoSede }) {
         </Link>
       }
     >
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-center text-sm">
-          <thead>
-            <tr className="border-b text-gray-600">
-              <th className="px-2 py-2">TOT</th>
-              <th className="px-2 py-2">MO</th>
-              <th className="px-2 py-2">REP</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="px-2 py-2 font-medium">{formatMoney(sede.tot)}</td>
-              <td className="px-2 py-2 font-medium">
-                {formatMoney(sede.manoObra)}
-              </td>
-              <td className="px-2 py-2 font-medium">
-                {formatMoney(sede.repuestos)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <BreakdownTable
+        columns={[
+          { label: 'TOT', value: sede.tot },
+          { label: 'MO', value: sede.manoObra },
+          { label: 'REP', value: sede.repuestos },
+        ]}
+      />
     </ProgressCard>
   );
 }
@@ -192,6 +140,8 @@ export function PresupuestoPosventaGestion() {
     <IndicadoresPageFrame
       title={INDICADORES_COPY.presupuesto.title}
       description={INDICADORES_COPY.presupuesto.description}
+      backHref="/dashboard/indicadores"
+      backLabel="← Volver a Indicadores"
     >
       {query.isLoading ? (
         <IndicadoresLoading message="Cargando indicadores..." />
@@ -203,7 +153,7 @@ export function PresupuestoPosventaGestion() {
         <ConsolidadoView data={query.data} />
       ) : query.data.sedes.length === 0 ? (
         <div className="space-y-4">
-          <p className="rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
+          <p className="app-section-card text-sm text-gray-500">
             No hay sedes asignadas a tu perfil para este indicador.
           </p>
           <Link
@@ -215,7 +165,7 @@ export function PresupuestoPosventaGestion() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
           {query.data.sedes.map((sede) => (
             <SedeCardPerfil key={sede.sede} sede={sede} />
           ))}

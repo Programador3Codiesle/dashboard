@@ -41,8 +41,8 @@ function ModalHistorialOtComponent({
           {loading ? (
             <EstadoTallerLoading message="Cargando historial..." compact />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="app-table-scroll">
+              <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 text-left text-gray-500">
                     <th className="py-2 pr-3">Orden N</th>

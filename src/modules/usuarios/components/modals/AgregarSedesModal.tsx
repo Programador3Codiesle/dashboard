@@ -1,15 +1,13 @@
 'use client';
 import Modal from "@/components/shared/ui/Modal";
 import { AgregarSedesModalProps } from "@/modules/usuarios/types";
-import { USUARIOS_SEDE_ACTIVA_COLOR } from "@/modules/usuarios/constants";
 import { Check, X } from "lucide-react";
 import ConfirmModal from "@/components/shared/ui/ConfirmModal";
 import { useState } from "react";
 
 export default function AgregarSedesModal({ open, usuario, onClose, onAsignar, onEliminar, sedesDisponibles, sedesUsuario }: AgregarSedesModalProps) {
     const [sedeAEliminar, setSedeAEliminar] = useState<string | null>(null);
-    
-    // Obtener IDs de sedes del usuario
+
     const sedesUsuarioIds = sedesUsuario.map(s => s.id);
 
     const handleToggleSede = (sedeId: string) => {
@@ -35,90 +33,63 @@ export default function AgregarSedesModal({ open, usuario, onClose, onAsignar, o
     return (
         <Modal open={open} onClose={onClose} title={`Gestionar Sedes - ${usuario?.nombre}`} width="600px">
             <div>
-                <p style={{ marginBottom: "20px", fontSize: "14px", color: "#666" }}>
+                <p className="mb-5 text-sm text-gray-500">
                     Haz clic en una sede para activarla o desactivarla:
                 </p>
 
-                <div style={{ marginBottom: "20px", maxHeight: "400px", overflowY: "auto" }}>
+                <div className="mb-5 max-h-[400px] overflow-y-auto">
                     {sedesDisponibles.map((sede) => {
                         const isActiva = sedesUsuarioIds.includes(sede.id.toString());
                         return (
-                            <div
+                            <button
                                 key={sede.id}
+                                type="button"
                                 onClick={() => handleToggleSede(sede.id.toString())}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    padding: "14px",
-                                    marginBottom: "10px",
-                                    border: `2px solid ${isActiva ? "#10b981" : "#ddd"}`,
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                    backgroundColor: isActiva ? "#f0fdf4" : "#fff",
-                                    transition: "all 0.2s"
-                                }}
+                                className={`mb-2.5 flex w-full flex-col gap-2 rounded-lg border-2 p-3.5 text-left transition-all sm:flex-row sm:items-center sm:justify-between ${
+                                    isActiva
+                                        ? "border-green-500 bg-green-50"
+                                        : "border-gray-200 bg-white hover:border-gray-300"
+                                }`}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                    <div style={{
-                                        width: "24px",
-                                        height: "24px",
-                                        borderRadius: "50%",
-                                        backgroundColor: isActiva ? "#10b981" : "#e5e7eb",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "#fff",
-                                        fontSize: "12px",
-                                        fontWeight: "600"
-                                    }}>
-                                        {isActiva ? <Check size={14} /> : <X size={14} />}
-                                    </div>
-                                    <span style={{ fontSize: "14px", fontWeight: "500", color: isActiva ? USUARIOS_SEDE_ACTIVA_COLOR : "#374151" }}>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <span
+                                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${
+                                            isActiva ? "bg-green-500" : "bg-gray-200"
+                                        }`}
+                                    >
+                                        {isActiva ? <Check size={14} /> : <X size={14} className="text-gray-500" />}
+                                    </span>
+                                    <span className={`truncate text-sm font-medium ${isActiva ? "text-green-700" : "text-gray-700"}`}>
                                         {sede.nombre}
                                     </span>
                                 </div>
-                                <span style={{
-                                    fontSize: "12px",
-                                    fontWeight: "600",
-                                    padding: "4px 12px",
-                                    borderRadius: "12px",
-                                    backgroundColor: isActiva ? "#d1fae5" : "#f3f4f6",
-                                    color: isActiva ? "#065f46" : "#6b7280"
-                                }}>
+                                <span
+                                    className={`self-start rounded-full px-3 py-1 text-xs font-semibold sm:self-auto ${
+                                        isActiva
+                                            ? "bg-green-100 text-green-800"
+                                            : "bg-gray-100 text-gray-500"
+                                    }`}
+                                >
                                     {isActiva ? "Activa" : "Inactiva"}
                                 </span>
-                            </div>
+                            </button>
                         );
                     })}
                 </div>
 
-                <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center", 
-                    marginBottom: "15px",
-                    padding: "12px",
-                    backgroundColor: "#f9fafb",
-                    borderRadius: "8px"
-                }}>
-                    <span style={{ fontSize: "14px", color: "#666" }}>
-                        Sedes activas: <strong style={{ color: USUARIOS_SEDE_ACTIVA_COLOR }}>{sedesUsuarioIds.length}</strong> / {sedesDisponibles.length}
+                <div className="mb-4 rounded-lg bg-gray-50 p-3">
+                    <span className="text-sm text-gray-500">
+                        Sedes activas:{" "}
+                        <strong className="text-green-700">{sedesUsuarioIds.length}</strong>
+                        {" "}/ {sedesDisponibles.length}
                     </span>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <div className="flex justify-end">
                     <button
                         type="button"
                         onClick={onClose}
-                        style={{
-                            padding: "8px 16px",
-                            background: "#ddd",
-                            borderRadius: "6px",
-                            border: "none",
-                            cursor: "pointer",
-                            fontWeight: "500"
-                        }}
+                        className="w-full sm:w-auto rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 transition-colors"
                     >
                         Cerrar
                     </button>

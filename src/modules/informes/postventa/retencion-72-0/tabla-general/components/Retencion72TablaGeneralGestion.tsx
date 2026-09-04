@@ -54,8 +54,8 @@ export function Retencion72TablaGeneralGestion() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="overflow-auto max-h-[70vh] border rounded">
-              <table className="min-w-full text-xs">
+            <div className="app-table-scroll max-h-[70vh]">
+              <table className="min-w-[960px] w-full text-xs">
                 <thead className="sticky top-0 bg-slate-100 z-10">
                   <tr>
                     {columns.map((col) => (

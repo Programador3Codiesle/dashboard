@@ -180,18 +180,20 @@ export function NuevoAusentismoGestion() {
           </div>
         ) : null}
 
-        <div className="mb-2 grid grid-cols-7 gap-2">
+        <div className="app-table-scroll">
+          <div className="min-w-[640px]">
+        <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-2">
           {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
             <div
               key={day}
-              className="py-2 text-center font-semibold text-gray-700"
+              className="py-2 text-center text-xs font-semibold text-gray-700 sm:text-sm"
             >
               {day}
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {days.map((date, index) => (
             <CalendarDay
               key={date || `empty-${index}`}
@@ -202,6 +204,8 @@ export function NuevoAusentismoGestion() {
               onVerDetalle={setDetalleAbierto}
             />
           ))}
+        </div>
+          </div>
         </div>
       </motion.div>
 

@@ -169,7 +169,7 @@ export function InventarioObsoletosGestion() {
     >
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
       <div className="app-table-scroll">
-        <table className="min-w-full text-xs md:text-sm border border-gray-100 rounded-lg">
+        <table className="w-full min-w-[640px] text-xs md:text-sm">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 py-2 text-center font-semibold">Tipo</th>
@@ -234,7 +234,7 @@ export function InventarioObsoletosGestion() {
         width="min(96vw, 1400px)"
       >
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p className="text-xs md:text-sm text-gray-500">
               Nuevo PVP total simulado:{' '}
               <span className="font-semibold">{formatCantidadCo(totalNuevoPvp)}</span>
@@ -242,7 +242,7 @@ export function InventarioObsoletosGestion() {
             <button
               type="button"
               onClick={exportarExcel}
-              className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:opacity-90"
             >
               Generar Excel
             </button>
@@ -260,8 +260,8 @@ export function InventarioObsoletosGestion() {
             <p className="text-sm text-gray-500">No hay detalle para mostrar.</p>
           ) : (
             <>
-            <div className="overflow-x-auto rounded-xl border border-gray-100 max-h-[65vh]">
-              <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
+            <div className="app-table-scroll">
+              <table className="w-full min-w-[1600px] divide-y divide-gray-200 text-[11px] md:text-xs">
                 <thead className="bg-gray-50">
                   <tr>
                     {['#', 'CODIGO', 'DESCRIPCION', 'LINEA', 'BODEGA', 'COSTO', 'CANTIDAD', 'COSTO TOTAL', 'MESES', 'VENTA ANTES IVA', 'MARGEN', 'ACUMULADO', 'DESCUENTO', 'NUEVO PVP', 'NUEVO MARGEN'].map((h) => (

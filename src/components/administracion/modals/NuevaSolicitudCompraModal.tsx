@@ -93,7 +93,7 @@ const NuevaSolicitudCompraModalComponent = ({
   return (
     <Modal open={open} onClose={onClose} title="Nueva Solicitud de Compra" width="700px" maxWidthClassName="max-w-[95vw] sm:max-w-[90vw] md:max-w-[860px]">
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 p-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>
               Área que solicita la compra <span className="text-red-500">*</span>

@@ -121,7 +121,8 @@ export function OrdenCompraGestion() {
       description={REPUESTOS_COPY.ordenCompra.description}
     >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-wrap gap-3 items-end">
+      <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm space-y-3">
+        <div className="app-form-grid-2">
         <div>
           <label className="text-sm text-gray-600">Desde</label>
           <input type="date" className={inputClass} value={fechaIni} onChange={(e) => setFechaIni(e.target.value)} />
@@ -130,6 +131,8 @@ export function OrdenCompraGestion() {
           <label className="text-sm text-gray-600">Hasta</label>
           <input type="date" className={inputClass} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
         </div>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           className={btnPrimaryClass}
@@ -144,7 +147,7 @@ export function OrdenCompraGestion() {
         </button>
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
+          className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors"
           onClick={exportarExcel}
         >
           Excel
@@ -153,7 +156,7 @@ export function OrdenCompraGestion() {
           <>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-xl brand-bg px-4 py-2 text-sm font-semibold text-white shadow-sm brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl brand-bg px-4 py-2 text-sm font-semibold text-white shadow-sm brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!seleccionados.length}
               onClick={() => autorizar.mutate()}
             >
@@ -161,7 +164,7 @@ export function OrdenCompraGestion() {
             </button>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!seleccionados.length}
               onClick={() => denegar.mutate()}
             >
@@ -176,9 +179,10 @@ export function OrdenCompraGestion() {
             Cargando datos...
           </div>
         )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="app-kpi-grid-3">
         {[
           { label: 'Presupuesto', value: data?.presupuesto ?? 0 },
           { label: 'Compras realizadas', value: data?.compras ?? 0 },
@@ -191,8 +195,8 @@ export function OrdenCompraGestion() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto max-h-[65vh]">
-        <table className="min-w-full text-[11px]">
+      <div className="app-table-scroll">
+        <table className="w-full min-w-[1800px] text-[11px]">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
               {['Fecha', 'Bodega', 'N° OC', 'Auth', 'Notas', 'Código', 'Repuesto', 'Cant', 'Costo und', 'Costo total', 'Girón', 'Chevropartes', 'Barranca', 'Rosita', 'Villa', 'Dieselco Cúcuta', 'Stock seg.'].map((h) => (

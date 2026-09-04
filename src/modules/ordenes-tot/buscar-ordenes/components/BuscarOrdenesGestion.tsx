@@ -45,13 +45,11 @@ function PorteriaCard({
   extraFields?: ReactNode;
 }) {
   return (
-    <div
-      className={`overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm ${accentClass}`}
-    >
+    <div className={`min-w-0 overflow-hidden rounded-xl border border-gray-200/70 bg-white shadow-sm ${accentClass}`}>
       <div className="border-b border-gray-100 px-4 py-3">
-        <h3 className="text-base font-bold text-gray-900">{title}</h3>
+        <h3 className="break-words text-base font-bold text-gray-900">{title}</h3>
       </div>
-      <div className="space-y-1 px-4 py-3 text-sm text-gray-700">
+      <div className="min-w-0 space-y-1 px-4 py-3 text-sm text-gray-700">
         <p>
           AUTORIZA: <strong>{item.nombres || '—'}</strong>
         </p>
@@ -141,8 +139,8 @@ export function BuscarOrdenesGestion() {
       title={ORDENES_TOT_COPY.buscarOrdenes.title}
       description={ORDENES_TOT_COPY.buscarOrdenes.description}
     >
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="app-section-card min-w-0 space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
             Vehículos
           </h3>
@@ -176,7 +174,7 @@ export function BuscarOrdenesGestion() {
             )}
         </section>
 
-        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <section className="app-section-card min-w-0 space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">TOT</h3>
           {totQuery.isLoading && <p className="text-sm text-gray-500">Cargando...</p>}
           {totQuery.isError && (
@@ -220,7 +218,7 @@ export function BuscarOrdenesGestion() {
             )}
         </section>
 
-        <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <section className="app-section-card min-w-0 space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
             Órdenes Generales
           </h3>

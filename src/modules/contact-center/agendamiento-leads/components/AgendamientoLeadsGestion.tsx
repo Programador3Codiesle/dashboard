@@ -174,8 +174,8 @@ export function AgendamientoLeadsGestion() {
     >
     <div className="space-y-4">
       {esAdmin && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="app-section-card w-full min-w-0 space-y-4">
+          <div className="app-filter-grid">
             <div>
               <label htmlFor="cc-leads-tipo" className="text-sm font-medium text-gray-700">Tipo de LEADS</label>
               <select
@@ -224,7 +224,7 @@ export function AgendamientoLeadsGestion() {
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               className={btnPrimaryClass}
@@ -250,7 +250,7 @@ export function AgendamientoLeadsGestion() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
+      <div className="app-section-card w-full min-w-0">
         {listarQuery.isLoading || !sesionLista ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
         ) : listarQuery.isError ? (
@@ -259,8 +259,9 @@ export function AgendamientoLeadsGestion() {
           />
         ) : (
           <>
-            <table className="min-w-full text-xs">
-              <thead className="bg-gray-800 text-white">
+            <div className="app-table-scroll">
+            <table className="w-full min-w-[1080px] text-xs">
+              <thead className="brand-bg text-white">
                 <tr>
                   {[
                     'Id LEAD', 'Documento', 'Nombre', 'Campaña', 'Fecha Ingreso',
@@ -356,6 +357,7 @@ export function AgendamientoLeadsGestion() {
                 )}
               </tbody>
             </table>
+            </div>
             {items.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination
@@ -381,7 +383,7 @@ export function AgendamientoLeadsGestion() {
               <option key={a.id} value={a.id}>{a.nombre}</option>
             ))}
           </select>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" className={btnSecondaryClass} onClick={() => setModalAsignar(false)}>
               Cancelar
             </button>
@@ -441,7 +443,7 @@ export function AgendamientoLeadsGestion() {
               </select>
             </div>
           )}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" className={btnSecondaryClass} onClick={() => setModalGestion(false)}>
               Cancelar
             </button>

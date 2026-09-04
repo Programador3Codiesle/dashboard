@@ -133,7 +133,7 @@ function AgregarSubsistemaForm({ guardar }: { guardar: GuardarElementoMutation }
 
   return (
     <CatalogoCard title="Agregar Subsistema">
-      <form noValidate onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <form noValidate onSubmit={handleSubmit} className="app-form-grid-3 gap-3">
         <CatalogoSelect
           id="sistema-bd"
           name="sub_id_sistema"
@@ -193,7 +193,7 @@ function AgregarVehiculoForm({ guardar }: { guardar: GuardarElementoMutation }) 
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+        className="app-form-grid-3 gap-3"
       >
         <CatalogoSelect
           id="subsistema-vh"
@@ -272,7 +272,7 @@ function AgregarManoObraForm({ guardar }: { guardar: GuardarElementoMutation }) 
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+        className="app-filter-grid gap-3"
       >
         <CatalogoSelect
           id="subsistema-mo"
@@ -350,7 +350,7 @@ function AgregarRepuestoForm({ guardar }: { guardar: GuardarElementoMutation }) 
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+        className="app-filter-grid gap-3"
       >
         <CatalogoSelect
           id="subsistema-rep"
@@ -416,7 +416,7 @@ function AgregarReferenciaForm({ guardar }: { guardar: GuardarElementoMutation }
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+        className="app-filter-grid gap-3"
       >
         <CatalogoSelect
           id="repuesto-ref"

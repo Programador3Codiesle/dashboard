@@ -84,7 +84,7 @@ export default function NuevoAusentismoModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>Hora Inicio Ausentismo <span className="text-red-500">*</span></label>
             <input
@@ -107,7 +107,7 @@ export default function NuevoAusentismoModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>Área donde labora <span className="text-red-500">*</span></label>
             <div className="relative mt-1">

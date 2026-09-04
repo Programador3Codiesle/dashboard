@@ -102,7 +102,7 @@ export default function SolicitudTiempoSuplementarioModal({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>Hora de inicio jornada adicional <span className="text-red-500">*</span></label>
             <input
@@ -125,7 +125,7 @@ export default function SolicitudTiempoSuplementarioModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <div>
             <label className={labelClass}>Área donde labora <span className="text-red-500">*</span></label>
             <div className="relative mt-1">

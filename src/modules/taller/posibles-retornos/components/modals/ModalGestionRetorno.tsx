@@ -290,7 +290,7 @@ function ModalGestionRetornoForm({
 
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700">COSTOS</label>
-              <div className="grid grid-cols-2 gap-3 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <span className="text-sm text-gray-600">REPUESTOS</span>
                 <input
                   type="number"

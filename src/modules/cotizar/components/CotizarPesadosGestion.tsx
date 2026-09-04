@@ -8,7 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { cotizadorPesadosService } from "@/modules/cotizador/services/cotizador-pesados.service";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { getErrorMessage } from "@/modules/cotizar/utils/get-error-message";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 export function CotizarPesadosGestion() {
   const [placaBusqueda, setPlacaBusqueda] = useState("");
@@ -139,24 +139,17 @@ export function CotizarPesadosGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Cotizador Pesados
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Cotiza mantenimiento para vehículos pesados por grupo (ACDelco / GM) usando la misma lógica del módulo legacy.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Cotizador Pesados"
+        description="Cotiza mantenimiento para vehículos pesados por grupo (ACDelco / GM) usando la misma lógica del módulo legacy."
+      />
 
       {/* Búsqueda por placa */}
       <motion.form
         onSubmit={handleBuscarVehiculo}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 flex flex-col md:flex-row md:items-end gap-4"
+        className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-end gap-4"
       >
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -173,7 +166,7 @@ export function CotizarPesadosGestion() {
         <button
           type="submit"
           disabled={loadingInfo || !placaBusqueda.trim()}
-          className="inline-flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Search size={18} />
           <span>{loadingInfo ? "Buscando..." : "Buscar"}</span>
@@ -190,7 +183,7 @@ export function CotizarPesadosGestion() {
           <h2 className="text-xl font-semibold text-gray-900">
             Datos del vehículo
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="app-form-grid-3 text-sm">
             <div>
               <p className="text-gray-500">Cliente</p>
               <p className="font-medium text-gray-900">{info.vehiculo?.cliente}</p>
@@ -228,7 +221,7 @@ export function CotizarPesadosGestion() {
           </div>
 
           {/* Selección de bodega, revisión y año */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-3 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Bodega
@@ -284,7 +277,7 @@ export function CotizarPesadosGestion() {
           </div>
 
           {/* Datos adicionales de contacto */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="app-form-grid-3 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Teléfono cliente
@@ -324,8 +317,8 @@ export function CotizarPesadosGestion() {
           </div>
 
           {/* Comentarios y botón cargar mantenimiento */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-            <div className="md:col-span-2">
+          <div className="app-form-grid-3 pt-4">
+            <div className="xl:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Comentarios
               </label>
@@ -358,7 +351,7 @@ export function CotizarPesadosGestion() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-6"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="app-form-grid-2 gap-6">
             {(mantenimiento.grupos ?? []).map((g) => {
               const totales = totalPorGrupo[g.grupo] || {
                 totalRepuestos: 0,
@@ -441,7 +434,7 @@ export function CotizarPesadosGestion() {
                 !yearModel ||
                 !grupoSeleccionado
               }
-              className="inline-flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Save size={18} />
               <span>{guardarMutation.isPending ? "Guardando..." : "Guardar cotización"}</span>

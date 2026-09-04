@@ -140,7 +140,7 @@ export function DesempenoEmpleadoDetalleGestion() {
       </div>
 
       {detailQuery.isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-kpi-grid-3">
           <div className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
           <div className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
           <div className="h-24 rounded-2xl bg-gray-100 animate-pulse" />
@@ -158,7 +158,7 @@ export function DesempenoEmpleadoDetalleGestion() {
       {!detailQuery.isLoading && !detailQuery.isError && detalle && (
         <>
           <section className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="app-kpi-grid-3">
               <article className="rounded-xl border border-gray-100 bg-gray-50/60 p-3">
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                   <span>Empleado</span>
@@ -216,7 +216,7 @@ export function DesempenoEmpleadoDetalleGestion() {
           </section>
 
           <section className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            <div className="app-kpi-grid">
               <div className="rounded-xl border border-gray-100 p-3 bg-gray-50/60">
                 <p className="text-xs text-gray-500 mb-1">Empleado</p>
                 <p className="text-sm font-semibold text-gray-900">{detalle.empleado}</p>
@@ -243,7 +243,7 @@ export function DesempenoEmpleadoDetalleGestion() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="app-kpi-grid-3">
               <article className="rounded-2xl border border-gray-100 p-4 bg-white">
                 <div className="flex items-center gap-2 text-gray-600 text-sm">
                   <User2 size={16} className="brand-text" />

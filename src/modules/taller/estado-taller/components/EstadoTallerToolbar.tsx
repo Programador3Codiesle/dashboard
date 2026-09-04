@@ -28,7 +28,7 @@ export function EstadoTallerToolbar({
     <div className="space-y-3">
       <div className={`${ET_CARD} p-4`}>
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div className="min-w-[220px]">
+          <div className="w-full sm:max-w-sm">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Selecciona una bodega
             </label>
@@ -73,7 +73,7 @@ export function EstadoTallerToolbar({
         <button
           type="button"
           onClick={onExportarExcel}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700"
         >
           <FileSpreadsheet className="w-4 h-4" />
           Descargar Excel

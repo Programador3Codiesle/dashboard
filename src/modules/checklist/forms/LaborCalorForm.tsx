@@ -78,6 +78,76 @@ function Section({
   );
 }
 
+function ParticipanteBlock({
+  n,
+  form,
+  setField,
+}: {
+  n: 1 | 2;
+  form: Record<string, string>;
+  setField: (field: string, value: string) => void;
+}) {
+  const nombre = n === 1 ? 'nombre_pa_1' : 'nombre_pa_2';
+  const cedula = n === 1 ? 'cedula_pa_1' : 'cedula_pa_2';
+  const arl = n === 1 ? 'arl_pa_1' : 'arl_pa_2';
+  const eps = n === 1 ? 'eps_pa_1' : 'eps_pa_2';
+  const afp = n === 1 ? 'afp_pa_1' : 'afp_pa_2';
+
+  return (
+    <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+      <h3 className="text-sm font-semibold text-gray-800">Participante {n}</h3>
+      <div className="app-form-grid-2">
+        <ChecklistField id={`chk-nombre-pa-${n}`} label="Nombre" className="md:col-span-2">
+          <input
+            id={`chk-nombre-pa-${n}`}
+            aria-label={`Nombre participante ${n}`}
+            className={inputClass}
+            value={form[nombre]}
+            onChange={(e) => setField(nombre, e.target.value.toUpperCase())}
+          />
+        </ChecklistField>
+        <ChecklistField id={`chk-cedula-pa-${n}`} label="Cédula">
+          <input
+            id={`chk-cedula-pa-${n}`}
+            aria-label={`Cédula participante ${n}`}
+            className={inputClass}
+            type="number"
+            value={form[cedula]}
+            onChange={(e) => setField(cedula, e.target.value)}
+          />
+        </ChecklistField>
+        <ChecklistField id={`chk-arl-pa-${n}`} label="ARL">
+          <input
+            id={`chk-arl-pa-${n}`}
+            aria-label={`ARL participante ${n}`}
+            className={inputClass}
+            value={form[arl]}
+            onChange={(e) => setField(arl, e.target.value)}
+          />
+        </ChecklistField>
+        <ChecklistField id={`chk-eps-pa-${n}`} label="EPS">
+          <input
+            id={`chk-eps-pa-${n}`}
+            aria-label={`EPS participante ${n}`}
+            className={inputClass}
+            value={form[eps]}
+            onChange={(e) => setField(eps, e.target.value)}
+          />
+        </ChecklistField>
+        <ChecklistField id={`chk-afp-pa-${n}`} label="AFP">
+          <input
+            id={`chk-afp-pa-${n}`}
+            aria-label={`AFP participante ${n}`}
+            className={inputClass}
+            value={form[afp]}
+            onChange={(e) => setField(afp, e.target.value)}
+          />
+        </ChecklistField>
+      </div>
+    </div>
+  );
+}
+
 export function LaborCalorForm() {
   const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(buildInitial);
@@ -106,16 +176,16 @@ export function LaborCalorForm() {
     <div className="space-y-4">
       <ChecklistBreadcrumb current={CHECKLIST_COPY.trabajoCalienteBreadcrumb} />
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-        <h1 className="mb-4 text-center text-lg font-bold">{CHECKLIST_COPY.trabajoCalienteTitulo}</h1>
+      <div className="app-section-card w-full min-w-0">
+        <h1 className="app-title-xl brand-text mb-4 text-center">{CHECKLIST_COPY.trabajoCalienteTitulo}</h1>
 
-        <form onSubmit={onSubmit} className="mx-auto max-w-5xl space-y-4 rounded-xl border p-4">
+        <form onSubmit={onSubmit} className="mx-auto w-full min-w-0 max-w-5xl space-y-4">
           <ChecklistFormHeader
             tituloFormulario="PERMISO DE TRABAJO EN CALIENTE"
             codigoDocumento="CÓDIGO: GH-SST-F | Formato de permiso y checklist"
           />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="app-form-grid-2">
             <ChecklistField id="chk-area-trabajo" label="Área de trabajo">
               <input
                 id="chk-area-trabajo"
@@ -155,114 +225,15 @@ export function LaborCalorForm() {
             </ChecklistField>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full border text-xs">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border px-2 py-1" colSpan={2}>
-                    Participante 1
-                  </th>
-                  <th className="border px-2 py-1">Cédula</th>
-                  <th className="border px-2 py-1">ARL</th>
-                  <th className="border px-2 py-1">EPS</th>
-                  <th className="border px-2 py-1">AFP</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border px-2 py-1" colSpan={2}>
-                    <input
-                      aria-label="Nombre participante 1"
-                      className={inputClass}
-                      value={form.nombre_pa_1}
-                      onChange={(e) => setField('nombre_pa_1', e.target.value.toUpperCase())}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="Cédula participante 1"
-                      className={inputClass}
-                      type="number"
-                      value={form.cedula_pa_1}
-                      onChange={(e) => setField('cedula_pa_1', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="ARL participante 1"
-                      className={inputClass}
-                      value={form.arl_pa_1}
-                      onChange={(e) => setField('arl_pa_1', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="EPS participante 1"
-                      className={inputClass}
-                      value={form.eps_pa_1}
-                      onChange={(e) => setField('eps_pa_1', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="AFP participante 1"
-                      className={inputClass}
-                      value={form.afp_pa_1}
-                      onChange={(e) => setField('afp_pa_1', e.target.value)}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border px-2 py-1" colSpan={2}>
-                    <input
-                      aria-label="Nombre participante 2"
-                      className={inputClass}
-                      value={form.nombre_pa_2}
-                      onChange={(e) => setField('nombre_pa_2', e.target.value.toUpperCase())}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="Cédula participante 2"
-                      className={inputClass}
-                      type="number"
-                      value={form.cedula_pa_2}
-                      onChange={(e) => setField('cedula_pa_2', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="ARL participante 2"
-                      className={inputClass}
-                      value={form.arl_pa_2}
-                      onChange={(e) => setField('arl_pa_2', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="EPS participante 2"
-                      className={inputClass}
-                      value={form.eps_pa_2}
-                      onChange={(e) => setField('eps_pa_2', e.target.value)}
-                    />
-                  </td>
-                  <td className="border px-2 py-1">
-                    <input
-                      aria-label="AFP participante 2"
-                      className={inputClass}
-                      value={form.afp_pa_2}
-                      onChange={(e) => setField('afp_pa_2', e.target.value)}
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            <ParticipanteBlock n={1} form={form} setField={setField} />
+            <ParticipanteBlock n={2} form={form} setField={setField} />
           </div>
 
           <ChecklistField id="chk-fecha-calor" label="Fecha diligenciamiento">
             <input
               id="chk-fecha-calor"
-              className={`${inputClass} max-w-xs text-center`}
+              className={`${inputClass} w-full sm:max-w-xs text-center`}
               type="date"
               value={form.fecha}
               readOnly

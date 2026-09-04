@@ -22,6 +22,7 @@ import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/componen
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
 import {
   btnInfoClass,
+  btnSecondaryClass,
   btnSuccessClass,
   btnWarningClass,
 } from '@/modules/mantenimiento/shared/constants/ui';
@@ -198,7 +199,7 @@ export function MttoPreventivoGestion() {
       ) : null}
 
       {puedeAdmin && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
           <button
             type="button"
             className={btnSuccessClass}
@@ -225,29 +226,34 @@ export function MttoPreventivoGestion() {
         </div>
       )}
 
-      <div className="rounded-2xl border bg-white p-4 shadow-sm">
-        <FullCalendar
-          plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          locale={esLocale}
-          aspectRatio={1.8}
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,listWeek',
-          }}
-          events={events}
-          eventClick={(arg) => {
-            void openOrden(arg.event.id);
-          }}
-        />
+      <div className="app-section-card w-full min-w-0 overflow-hidden">
+        <div className="app-table-scroll border-0">
+          <div className="min-w-[640px]">
+            <FullCalendar
+              plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              locale={esLocale}
+              aspectRatio={1.8}
+              handleWindowResize
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,listWeek',
+              }}
+              events={events}
+              eventClick={(arg) => {
+                void openOrden(arg.event.id);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {orden && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
-              <div>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+            <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
+              <div className="min-w-0 pr-2">
                 <h2 className="text-lg font-semibold">Orden de Mantenimiento Preventivo</h2>
                 <p className="text-xs text-white/80">
                   {String(orden.codigo)} — {String(orden.nombre_equipo)}
@@ -362,8 +368,8 @@ export function MttoPreventivoGestion() {
               )}
 
               {Number(orden.estado) === 3 && (
-                <div className="space-y-3 rounded-xl border border-green-100 bg-green-50/40 p-4">
-                  <p className="text-sm font-semibold text-green-900">
+                <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] p-4">
+                  <p className="text-sm font-semibold text-[var(--color-success)]">
                     Cierre del mantenimiento
                   </p>
                   <div className="rounded-lg border border-gray-100 bg-white p-3">
@@ -389,7 +395,7 @@ export function MttoPreventivoGestion() {
             <div className="border-t bg-gray-50 px-5 py-3">
               <button
                 type="button"
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className={btnSecondaryClass}
                 onClick={() => setOrden(null)}
               >
                 Cerrar
@@ -414,10 +420,10 @@ export function MttoPreventivoGestion() {
       )}
 
       {modalUpload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-          <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
-              <h2 className="text-lg font-semibold">Cargar plan de mantenimiento</h2>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+          <div className="flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+            <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
+              <h2 className="min-w-0 text-lg font-semibold">Cargar plan de mantenimiento</h2>
               <button
                 type="button"
                 className="rounded-md p-1.5 hover:bg-white/15"
@@ -438,10 +444,10 @@ export function MttoPreventivoGestion() {
                 onChange={setUploadFile}
               />
             </div>
-            <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-3">
+            <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className={btnSecondaryClass}
                 onClick={() => {
                   setModalUpload(false);
                   setUploadFile(null);
@@ -527,9 +533,9 @@ function ModalReasignarPreventivo({
   const sinPeriodo = !periodoEquipo;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 backdrop-blur-[1px]">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between bg-(--color-primary) px-5 py-4 text-white">
+    <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/50 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
+      <div className="w-full max-w-md overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+        <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
           <h2 className="text-lg font-semibold">Reasignar preventivo</h2>
           <button
             type="button"
@@ -583,11 +589,11 @@ function ModalReasignarPreventivo({
             crea una nueva solicitud.
           </p>
         </div>
-        <div className="flex justify-end gap-2 border-t bg-gray-50 px-5 py-3">
+        <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             disabled={busy}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+            className={btnSecondaryClass}
             onClick={onNo}
           >
             {busy ? '…' : 'No'}

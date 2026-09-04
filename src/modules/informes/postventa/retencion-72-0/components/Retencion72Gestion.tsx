@@ -324,7 +324,7 @@ export function Retencion72Gestion() {
     >
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="app-tabs-scroll items-center gap-2 pb-1">
           <button className="px-3 py-2 rounded border brand-border text-sm" onClick={() => setVista('general')}>General</button>
           <select
             className="px-3 py-2 rounded border text-sm"
@@ -370,7 +370,7 @@ export function Retencion72Gestion() {
       <div className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6">
         <h2 className="text-sm font-semibold text-gray-800 mb-3">Resumen por tipo de vehículo(Total ventas)</h2>
         <div className="app-table-scroll">
-          <table className="min-w-full text-xs border-collapse">
+          <table className="min-w-[800px] w-full text-xs border-collapse">
             <thead>
               <tr className="bg-(--color-primary) text-white text-center">
                 <th className="px-2 py-2 align-middle">Tipo</th>
@@ -471,7 +471,7 @@ export function Retencion72Gestion() {
 
       <Modal open={modalObjetivos} onClose={() => setModalObjetivos(false)} title="Verificar objetivos" width="760px">
         <div className="app-table-scroll">
-          <table className="min-w-full text-xs">
+          <table className="min-w-[640px] w-full text-xs">
             <thead>
               <tr className="text-left border-b">
                 <th className="py-1">Tramo</th>
@@ -555,8 +555,8 @@ export function Retencion72Gestion() {
               </button>
             </div>
           </div>
-          <div className="max-h-[420px] overflow-auto border rounded">
-            <table className="min-w-full text-xs">
+          <div className="app-table-scroll max-h-[420px]">
+            <table className="min-w-[720px] w-full text-xs">
               <thead className="bg-slate-100 sticky top-0">
                 <tr>
                   <th className="px-2 py-2 text-left">Placa</th>

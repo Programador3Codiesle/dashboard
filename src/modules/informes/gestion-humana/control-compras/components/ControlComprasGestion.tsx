@@ -93,8 +93,8 @@ export function ControlComprasGestion() {
       ) : null}
 
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col w-full sm:w-auto sm:min-w-[200px] sm:max-w-xs">
+        <div className="app-filter-grid">
+          <div className="flex flex-col min-w-0">
             <label className="text-xs font-medium text-gray-600 mb-1">
               N° Orden
             </label>
@@ -111,7 +111,7 @@ export function ControlComprasGestion() {
             type="button"
             onClick={handleGenerar}
             disabled={generarDisabled}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>Generar</span>
@@ -147,7 +147,7 @@ export function ControlComprasGestion() {
         </div>
 
         <div className="app-table-scroll">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[960px] text-sm">
             <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
               <tr>
                 <th className="text-center py-3 px-4 font-semibold text-white whitespace-nowrap">

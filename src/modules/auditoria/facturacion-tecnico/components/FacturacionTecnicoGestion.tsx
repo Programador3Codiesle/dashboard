@@ -12,6 +12,7 @@ import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPage
 import { AUDITORIA_COPY } from '@/modules/auditoria/constants';
 import { AuditoriaPager } from '@/modules/auditoria/shared/components/AuditoriaPager';
 import { AuditoriaQueryError } from '@/modules/auditoria/shared/components/AuditoriaQueryError';
+import { AuditoriaTableCard } from '@/modules/auditoria/shared/components/AuditoriaTableCard';
 import { BODEGAS_FACTURACION_TECNICO } from '@/modules/auditoria/shared/constants/bodegas';
 import { auditoriaKeys } from '@/modules/auditoria/shared/constants/query-keys';
 import {
@@ -87,63 +88,65 @@ export function FacturacionTecnicoGestion() {
       description={AUDITORIA_COPY.facturacionTecnico.description}
       backLabel={AUDITORIA_COPY.backLabel}
     >
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 shadow-sm">
-        <label htmlFor="aud-ftec-bodega" className="min-w-[200px] text-sm">
-          Bodega
-          <select
-            id="aud-ftec-bodega"
-            className={inputClass}
-            value={bodega}
-            onChange={(e) => {
-              setBodega(e.target.value);
-              if (e.target.value) setTecnico('');
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3 items-end">
+          <label htmlFor="aud-ftec-bodega" className="w-full min-w-0 text-sm">
+            Bodega
+            <select
+              id="aud-ftec-bodega"
+              className={inputClass}
+              value={bodega}
+              onChange={(e) => {
+                setBodega(e.target.value);
+                if (e.target.value) setTecnico('');
+              }}
+            >
+              <option value="">Seleccione...</option>
+              {BODEGAS_FACTURACION_TECNICO.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label htmlFor="aud-ftec-tecnico" className="w-full min-w-0 text-sm">
+            Técnico
+            <select
+              id="aud-ftec-tecnico"
+              className={inputClass}
+              value={tecnico}
+              onChange={(e) => {
+                setTecnico(e.target.value);
+                if (e.target.value) setBodega('');
+              }}
+            >
+              <option value="">Seleccione...</option>
+              {(tecnicosQuery.data ?? []).map((t) => (
+                <option key={t.nit} value={t.nit}>
+                  {t.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={listQuery.isFetching}
+            onClick={() => {
+              if (!bodega && !tecnico) {
+                showError('Seleccione bodega o técnico');
+                return;
+              }
+              setApplied({
+                bodega: bodega || undefined,
+                tecnico: tecnico || undefined,
+              });
+              setPage(1);
             }}
           >
-            <option value="">Seleccione...</option>
-            {BODEGAS_FACTURACION_TECNICO.map((b) => (
-              <option key={b.value} value={b.value}>
-                {b.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label htmlFor="aud-ftec-tecnico" className="min-w-[220px] text-sm">
-          Técnico
-          <select
-            id="aud-ftec-tecnico"
-            className={inputClass}
-            value={tecnico}
-            onChange={(e) => {
-              setTecnico(e.target.value);
-              if (e.target.value) setBodega('');
-            }}
-          >
-            <option value="">Seleccione...</option>
-            {(tecnicosQuery.data ?? []).map((t) => (
-              <option key={t.nit} value={t.nit}>
-                {t.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className={btnPrimaryClass}
-          disabled={listQuery.isFetching}
-          onClick={() => {
-            if (!bodega && !tecnico) {
-              showError('Seleccione bodega o técnico');
-              return;
-            }
-            setApplied({
-              bodega: bodega || undefined,
-              tecnico: tecnico || undefined,
-            });
-            setPage(1);
-          }}
-        >
-          <Search className="h-4 w-4" /> Buscar
-        </button>
+            <Search className="h-4 w-4" /> Buscar
+          </button>
+        </div>
       </div>
 
       {listQuery.isError ? (
@@ -155,9 +158,20 @@ export function FacturacionTecnicoGestion() {
         />
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border bg-white p-4 shadow-sm">
-        <table className="min-w-full text-xs md:text-sm">
-          <thead className="bg-(--color-primary) text-white">
+      <AuditoriaTableCard
+        footer={
+          <AuditoriaPager
+            total={total}
+            page={safePage}
+            totalPages={totalPages}
+            onChange={onPage}
+            inicio={inicio}
+            fin={fin}
+          />
+        }
+      >
+        <table className="w-full min-w-[1100px] text-xs md:text-sm">
+          <thead className="brand-bg text-white">
             <tr>
               {[
                 'FECHA',
@@ -226,15 +240,7 @@ export function FacturacionTecnicoGestion() {
             )}
           </tbody>
         </table>
-        <AuditoriaPager
-          total={total}
-          page={safePage}
-          totalPages={totalPages}
-          onChange={onPage}
-          inicio={inicio}
-          fin={fin}
-        />
-      </div>
+      </AuditoriaTableCard>
     </AuditoriaPageFrame>
   );
 }

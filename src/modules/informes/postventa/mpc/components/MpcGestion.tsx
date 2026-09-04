@@ -94,8 +94,8 @@ export function MpcGestion() {
         {isLoading ? 'Cargando...' : `Total registros: ${rows.length}`}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border brand-border overflow-auto">
-        <table className="min-w-full text-xs">
+      <div className="app-table-scroll bg-white rounded-xl shadow-sm border brand-border">
+        <table className="min-w-[900px] w-full text-xs">
           <thead className="brand-bg text-white">
             <tr>
               <th className="px-2 py-2 text-left">Fecha</th>

@@ -314,7 +314,7 @@ export function AjustesValoresContablesGestion() {
             Ajuste de Valores Contabilidad
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div>
             <label className={labelClass}>Tipo</label>
             <input
@@ -370,7 +370,7 @@ export function AjustesValoresContablesGestion() {
             </h2>
           </div>
           <div className="app-table-scroll">
-            <table className="w-full">
+            <table className="w-full min-w-[1100px]">
               <thead>
                 <tr className="border-b-2 border-[var(--color-primary)]">
                   <th className="text-left py-3 px-4 font-bold text-gray-900">
@@ -515,12 +515,12 @@ export function AjustesValoresContablesGestion() {
               </tbody>
             </table>
           </div>
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex">
             <button
               type="button"
               onClick={handleActualizarValores}
               disabled={loading || documentosCerrados}
-              className="flex items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex w-full sm:w-auto items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
               <span>{loading ? 'Guardando...' : 'Actualizar'}</span>
@@ -540,7 +540,7 @@ export function AjustesValoresContablesGestion() {
           </div>
           <h2 className="text-xl font-semibold text-gray-900">Forma de Pago</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="app-form-grid-3 mb-6">
           <div>
             <label className={labelClass}>Tipo</label>
             <input
@@ -581,7 +581,7 @@ export function AjustesValoresContablesGestion() {
                 modificar.
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="app-form-grid-2">
               <div>
                 <label className={labelClass}>Forma de Pago</label>
                 <input
@@ -605,12 +605,12 @@ export function AjustesValoresContablesGestion() {
                 />
               </div>
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex">
               <button
                 type="button"
                 onClick={handleActualizarValores2}
                 disabled={loading2 || documentosCerrados2}
-                className="flex items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save size={18} />
                 <span>{loading2 ? 'Guardando...' : 'Actualizar'}</span>

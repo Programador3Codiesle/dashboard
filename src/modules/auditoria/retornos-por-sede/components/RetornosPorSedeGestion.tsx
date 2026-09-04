@@ -106,7 +106,7 @@ export function RetornosPorSedeGestion() {
           loading={isLoading}
         />
 
-        <div className="relative min-h-[400px] rounded-2xl border bg-white p-4 shadow-sm sm:p-6">
+        <div className="app-section-card relative min-h-[280px] w-full min-w-0 overflow-hidden sm:min-h-[400px]">
           {isLoading ? (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/70">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -117,7 +117,7 @@ export function RetornosPorSedeGestion() {
           ) : null}
 
           {chartData.length > 0 ? (
-            <div>
+            <div className="min-w-0 overflow-x-auto">
               <h3 className="mb-4 text-center text-lg font-semibold text-gray-800">
                 Entradas Vs. Retornos
               </h3>

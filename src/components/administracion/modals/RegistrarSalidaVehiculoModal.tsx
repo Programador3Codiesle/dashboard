@@ -74,7 +74,7 @@ export default function RegistrarSalidaVehiculoModal({
   return (
     <Modal open={open} onClose={onClose} title="Registrar Salida" width="600px">
       <form onSubmit={handleSubmit} className="space-y-5 p-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="app-form-grid-2">
           <OptimizedInput
             label="Placa"
             labelClassName={labelClass}

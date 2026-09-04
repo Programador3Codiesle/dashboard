@@ -133,7 +133,7 @@ export function NpsTecnicosGestion() {
         onSubmit={handleBuscar}
         className="bg-white rounded-xl shadow-sm border brand-border p-4 md:p-3 sm:p-4 md:p-6 space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="app-form-grid-3">
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-700">
               Origen de datos
@@ -182,11 +182,11 @@ export function NpsTecnicosGestion() {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex">
           <button
             type="submit"
             disabled={isFetching}
-            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
+            className="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
           >
             {isFetching ? 'Buscando...' : 'Buscar'}
           </button>
@@ -198,7 +198,7 @@ export function NpsTecnicosGestion() {
           Resultados
         </h2>
         <div className="app-table-scroll">
-          <table className="min-w-full text-xs border-collapse">
+          <table className="min-w-[800px] w-full text-xs border-collapse">
             <thead>
               <tr className="brand-bg text-white text-center">
                 {COLUMNAS_TABLA.map((col) => (

@@ -111,7 +111,7 @@ export const PacNpsEncuestaDetalleBlock = memo(function PacNpsEncuestaDetalleBlo
         </div>
         <div>Número de orden: {item.numero}</div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="app-kpi-grid-3">
         <div
           className={`rounded-lg text-white p-4 text-center ${npsCardClassP1(
             item.pregunta1,

@@ -107,7 +107,7 @@ export function EncuestasInternasGestion() {
       backLabel={INFORMES_COPY.backPv}
     >
       <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
+        <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
               Desde
@@ -135,7 +135,7 @@ export function EncuestasInternasGestion() {
               type="button"
               disabled={isPending}
               onClick={onGenerar}
-              className="inline-flex items-center rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary) disabled:opacity-60"
+              className="inline-flex w-full sm:w-auto justify-center items-center rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary) disabled:opacity-60"
             >
               Generar
             </button>
@@ -162,8 +162,8 @@ export function EncuestasInternasGestion() {
                 {PAGE_SIZE} por página
               </span>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="min-w-full divide-y divide-gray-200 text-[11px] md:text-xs">
+            <div className="app-table-scroll">
+              <table className="min-w-[1100px] w-full divide-y divide-gray-200 text-[11px] md:text-xs">
                 <thead className="bg-gray-50 text-center">
                   <tr>
                     <th className="px-2 py-2 font-semibold">OT</th>

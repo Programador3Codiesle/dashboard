@@ -129,8 +129,8 @@ export function AuditoriaIndexGestion() {
       description={CONTACT_CENTER_COPY.auditoria.description}
     >
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-2 items-end">
           <div>
             <label htmlFor="cc-auditoria-agente" className="text-sm font-medium text-gray-700">Seleccione el agente</label>
             <select
@@ -146,7 +146,7 @@ export function AuditoriaIndexGestion() {
               ))}
             </select>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               className={btnSuccessClass}
@@ -184,7 +184,7 @@ export function AuditoriaIndexGestion() {
       </div>
 
       {formulario && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-4">
+        <div className="app-section-card w-full min-w-0 space-y-4">
           <AuditoriaFormulario
             formulario={formulario}
             onRespuesta={handleRespuesta}
@@ -196,7 +196,7 @@ export function AuditoriaIndexGestion() {
             value={obsAuditor}
             onChange={(e) => setObsAuditor(e.target.value)}
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             {idAuditoria && (
               <button
                 type="button"

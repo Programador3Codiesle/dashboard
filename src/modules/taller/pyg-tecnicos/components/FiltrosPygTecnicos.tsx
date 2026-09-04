@@ -47,8 +47,8 @@ export function FiltrosPygTecnicos({
 
   return (
     <div className="bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-5">
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="min-w-[140px] flex-1">
+      <div className="app-filter-grid-5">
+        <div className="min-w-0">
           <label htmlFor="year_one" className="block text-xs font-semibold text-gray-600 mb-1">
             AÑO INFORME
           </label>
@@ -68,7 +68,7 @@ export function FiltrosPygTecnicos({
           </select>
         </div>
 
-        <div className="min-w-[140px] flex-1">
+        <div className="min-w-0">
           <label htmlFor="month_one" className="block text-xs font-semibold text-gray-600 mb-1">
             DESDE
           </label>
@@ -85,7 +85,7 @@ export function FiltrosPygTecnicos({
           />
         </div>
 
-        <div className="min-w-[140px] flex-1">
+        <div className="min-w-0">
           <label htmlFor="month_two" className="block text-xs font-semibold text-gray-600 mb-1">
             HASTA
           </label>
@@ -102,7 +102,7 @@ export function FiltrosPygTecnicos({
           />
         </div>
 
-        <div className="min-w-[160px] flex-1">
+        <div className="min-w-0">
           <label htmlFor="year_two" className="block text-xs font-semibold text-gray-600 mb-1">
             AÑO A COMPARAR
           </label>
@@ -122,10 +122,10 @@ export function FiltrosPygTecnicos({
           </select>
         </div>
 
-        <div className="flex flex-wrap gap-2 pb-0.5">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 pb-0.5">
           <button
             type="button"
-            className="brand-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
+            className="brand-btn inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
             onClick={onGenerar}
             disabled={loading}
           >
@@ -134,7 +134,7 @@ export function FiltrosPygTecnicos({
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 shadow-sm transition-colors disabled:opacity-50"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-green-600 hover:bg-green-700 shadow-sm transition-colors disabled:opacity-50"
             onClick={onExportExcel}
             disabled={!canExport || loading}
           >

@@ -37,8 +37,8 @@ export function FiltrosInforme({
   return (
     <div className="bg-white brand-card-elevated rounded-2xl border brand-border-active overflow-hidden">
       <div className="p-4 sm:p-5 border-b border-gray-100">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="w-auto min-w-[100px]">
+        <div className="app-filter-grid">
+          <div className="min-w-0">
             <label htmlFor="year" className="block text-xs font-semibold text-gray-600 mb-1">
               AÑO
             </label>
@@ -53,7 +53,7 @@ export function FiltrosInforme({
             />
           </div>
 
-          <div className="flex-1 min-w-[200px]" onFocus={onTecnicoFocus}>
+          <div className="min-w-0" onFocus={onTecnicoFocus}>
             <label htmlFor="tecnico" className="block text-xs font-semibold text-gray-600 mb-1">
               TÉCNICO
             </label>
@@ -72,7 +72,7 @@ export function FiltrosInforme({
             </select>
           </div>
 
-          <div className="flex-1 min-w-[200px]" onFocus={onSedeFocus}>
+          <div className="min-w-0" onFocus={onSedeFocus}>
             <label htmlFor="sede" className="block text-xs font-semibold text-gray-600 mb-1">
               SEDE
             </label>
@@ -95,7 +95,7 @@ export function FiltrosInforme({
             <button
               type="button"
               id="loadGraph"
-              className="brand-btn px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
+              className="brand-btn w-full sm:w-auto px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
               onClick={onGenerar}
               disabled={loading || !year}
             >

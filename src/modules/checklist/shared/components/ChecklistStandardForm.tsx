@@ -71,19 +71,19 @@ export function ChecklistStandardForm({ config }: Props) {
     <div className="space-y-4">
       <ChecklistBreadcrumb current={config.tituloPagina} />
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-        <h1 className="mb-4 text-center text-lg font-bold text-gray-800">{config.tituloPagina}</h1>
+      <div className="app-section-card w-full min-w-0">
+        <h1 className="app-title-xl brand-text mb-4 text-center">{config.tituloPagina}</h1>
 
         <form
           onSubmit={onSubmit}
-          className="mx-auto max-w-4xl space-y-4 rounded-xl border p-4 shadow-sm"
+          className="mx-auto w-full min-w-0 max-w-4xl space-y-4"
         >
           <ChecklistFormHeader
             tituloFormulario={config.tituloFormulario}
             codigoDocumento={config.codigoDocumento}
           />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="app-form-grid-2">
             <ChecklistField id="chk-responsable" label="Responsable">
               <input
                 id="chk-responsable"
@@ -93,7 +93,7 @@ export function ChecklistStandardForm({ config }: Props) {
                 required
               />
             </ChecklistField>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <ChecklistField id="chk-equipo" label="Equipo">
                 <input
                   id="chk-equipo"
@@ -152,7 +152,7 @@ export function ChecklistStandardForm({ config }: Props) {
           </div>
 
           <div className={checklistHeroBannerClass}>
-            <h5 className="text-lg font-bold tracking-wide">{CHECKLIST_COPY.criteriosTitulo}</h5>
+            <h5 className="text-base font-bold tracking-wide sm:text-lg">{CHECKLIST_COPY.criteriosTitulo}</h5>
             <p className="text-sm opacity-90">
               {config.notaCriterios ??
                 'Para el caso de algún ítem que no le aplique colocar NA en las casillas'}

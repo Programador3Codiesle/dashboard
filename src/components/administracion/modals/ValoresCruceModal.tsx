@@ -54,8 +54,8 @@ export default function ValoresCruceModal({
   return (
     <Modal open={open} onClose={onClose} title="Actualización Valor Cruce" width="600px">
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="app-table-scroll">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b-2 border-[var(--color-primary)] bg-gray-50">
                 <th className="text-left py-3 px-4 font-bold text-gray-900">Tipo</th>
@@ -85,18 +85,18 @@ export default function ValoresCruceModal({
           </table>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
             disabled={loading}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex w-full sm:w-auto justify-center items-center gap-2 px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             <Save size={18} />

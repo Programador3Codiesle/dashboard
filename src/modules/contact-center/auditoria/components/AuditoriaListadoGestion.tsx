@@ -147,8 +147,8 @@ export function AuditoriaListadoGestion() {
     <div className="space-y-4">
       <AuditoriaBreadcrumb current="Informe de auditoría" />
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <div className="app-section-card w-full min-w-0">
+        <div className="app-form-grid-3 items-end">
           {esAdmin && (
             <div>
               <label htmlFor="cc-listado-agente" className="text-sm font-medium text-gray-700">Seleccione el agente</label>
@@ -179,7 +179,7 @@ export function AuditoriaListadoGestion() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm overflow-x-auto">
+      <div className="app-section-card w-full min-w-0">
         {listadoQuery.isLoading ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
         ) : listadoQuery.isError || contextoQuery.isError ? (
@@ -191,7 +191,8 @@ export function AuditoriaListadoGestion() {
           />
         ) : (
           <>
-            <table className="min-w-full text-sm">
+            <div className="app-table-scroll">
+            <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   {[
@@ -219,7 +220,8 @@ export function AuditoriaListadoGestion() {
                     <td className="px-3 py-2">{a.fechaCreacion}</td>
                     <td className="px-3 py-2">{a.fechaFinalizacion ?? '-'}</td>
                     <td className="px-3 py-2">{estadoLabel[a.estado] ?? a.estado}</td>
-                    <td className="px-3 py-2 space-x-2">
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col items-center gap-1 sm:flex-row sm:justify-center sm:space-x-2">
                       {a.puedeEditar && (
                         <button
                           type="button"
@@ -238,6 +240,7 @@ export function AuditoriaListadoGestion() {
                           Ver
                         </button>
                       )}
+                      </div>
                     </td>
                     {esAdmin && (
                       <td className="px-3 py-2">
@@ -257,6 +260,7 @@ export function AuditoriaListadoGestion() {
                 ))}
               </tbody>
             </table>
+            </div>
             {items.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination

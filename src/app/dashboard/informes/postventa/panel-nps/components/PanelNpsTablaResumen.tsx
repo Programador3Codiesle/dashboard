@@ -20,8 +20,8 @@ export const PanelNpsTablaResumen = memo(function PanelNpsTablaResumen({
         Filas en color: agregado por sede. Filas claras con sangría: técnico (NPS
         propio; PA usa totales 9–10 y 0–6 de la sede, como el panel legacy).
       </p>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-xs border-collapse">
+      <div className="app-table-scroll">
+        <table className="min-w-[640px] w-full text-xs border-collapse">
           <thead>
             <tr className="text-center text-[11px]">
               <th className="px-2 py-1 bg-gray-100 text-gray-700 text-left min-w-[120px]">

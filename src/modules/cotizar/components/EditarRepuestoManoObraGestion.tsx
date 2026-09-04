@@ -11,7 +11,7 @@ import {
   useEdicionTablas,
 } from "@/modules/cotizador/hooks/useEdicionConfig";
 import type { TablaKeyEdicion } from "@/modules/cotizador/services/cotizador-edicion-config.service";
-import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
 type TipoVehiculo = "livianos" | "pesados";
 type TipoRegistro = "repuesto" | "mano";
@@ -129,18 +129,10 @@ export function EditarRepuestoManoObraGestion() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold brand-text tracking-tight">
-          Editar repuesto / mano de obra
-        </h1>
-          <EmpresaBadge />
-        </div>
-        <p className="text-gray-500 mt-1">
-          Configura filtros y campos a editar para aplicar cambios masivos sobre
-          las tablas de mantenimiento del cotizador.
-        </p>
-      </div>
+      <PageTitleRow
+        title="Editar repuesto / mano de obra"
+        description="Configura filtros y campos a editar para aplicar cambios masivos sobre las tablas de mantenimiento del cotizador."
+      />
 
       {errorTablas && (
         <div className="flex items-center gap-2 text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm">
@@ -154,9 +146,9 @@ export function EditarRepuestoManoObraGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0">
           {/* Bloque selección tipo */}
-          <div className="border-b lg:border-b-0 lg:border-r border-gray-100 p-5 space-y-4 bg-gray-50/60">
+          <div className="border-b md:border-b-0 md:border-r border-gray-100 p-4 sm:p-5 space-y-4 bg-gray-50/60">
             <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
               1. Tipo de información
             </h2>
@@ -267,7 +259,7 @@ export function EditarRepuestoManoObraGestion() {
           </div>
 
           {/* Bloque filtros */}
-          <div className="border-b lg:border-b-0 lg:border-r border-gray-100 p-5 space-y-4">
+          <div className="border-b xl:border-b-0 xl:border-r border-gray-100 p-4 sm:p-5 space-y-4">
             <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
               2. Filtros
             </h2>
@@ -333,7 +325,7 @@ export function EditarRepuestoManoObraGestion() {
           </div>
 
           {/* Bloque campos a editar */}
-          <div className="p-5 space-y-4">
+          <div className="p-4 sm:p-5 space-y-4 md:col-span-2 xl:col-span-1">
             <h2 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
               3. Campos a editar
             </h2>
@@ -345,8 +337,8 @@ export function EditarRepuestoManoObraGestion() {
             ) : (
               <div className="space-y-3">
                 {tablaConfig.columnas_editables.map((col) => (
-                  <div key={col} className="flex items-center gap-2">
-                    <div className="w-32">
+                  <div key={col} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="w-full sm:w-32 shrink-0">
                       <label className="block text-xs font-medium text-gray-600">
                         {col}
                       </label>
@@ -375,7 +367,7 @@ export function EditarRepuestoManoObraGestion() {
                       !Object.keys(campos).length ||
                       aplicarMutation.isPending
                     }
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-(--color-primary) hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:ring-offset-2 disabled:opacity-60 transition-all"
                   >
                     {aplicarMutation.isPending ? "Aplicando..." : "Aplicar edición"}
                   </button>

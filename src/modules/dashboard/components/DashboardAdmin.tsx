@@ -119,7 +119,7 @@ function DashboardAdminInner({
         diaFestivo={data.dia_festivo}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="app-kpi-grid">
         <DashboardKpiCard
           label="NPS Codiesel"
           value={`${Math.round(data.nps_int ?? 0)}%`}
@@ -147,11 +147,11 @@ function DashboardAdminInner({
           </h3>
           <div className="space-y-3">
             {grafSedes.map((s) => (
-              <div key={s.sede} className="flex items-center gap-4">
-                <span className="w-32 text-sm text-gray-600 capitalize">
+              <div key={s.sede} className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
+                <span className="w-full shrink-0 text-sm text-gray-600 capitalize sm:w-32">
                   {SEDE_LABELS[s.sede] ?? s.sede}
                 </span>
-                <div className="flex-1 h-6 rounded-md bg-gray-100 overflow-hidden">
+                <div className="h-6 min-w-0 flex-1 overflow-hidden rounded-md bg-gray-100">
                   <div
                     className="h-full rounded-md brand-bg"
                     style={{
@@ -159,7 +159,7 @@ function DashboardAdminInner({
                     }}
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-900 w-28 text-right">
+                <span className="text-sm font-medium text-gray-900 sm:w-28 sm:text-right">
                   {formatCurrency(Math.round(s.total))}
                 </span>
               </div>
@@ -218,7 +218,7 @@ function DashboardAdminInner({
               })()}
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 3xl:grid-cols-3">
             {sedesParaUi.length > 0
               ? sedesParaUi.map((sede) => (
                   <div

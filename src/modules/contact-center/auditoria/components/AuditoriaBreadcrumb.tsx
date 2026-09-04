@@ -6,12 +6,12 @@ type AuditoriaBreadcrumbProps = {
 
 export function AuditoriaBreadcrumb({ current }: AuditoriaBreadcrumbProps) {
   return (
-    <nav className="text-sm text-gray-500">
+    <nav className="flex flex-wrap items-baseline gap-x-1 gap-y-1 text-sm text-gray-500">
       <Link href="/dashboard/contact-center/auditoria" className="hover:underline">
         Auditoría
       </Link>
-      <span className="mx-2">/</span>
-      <span className="text-gray-800">{current}</span>
+      <span className="px-1">/</span>
+      <span className="min-w-0 break-words text-gray-800">{current}</span>
     </nav>
   );
 }

@@ -136,7 +136,7 @@ export function InasistenciaGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl border border-gray-100 bg-white p-3 shadow-lg sm:p-4 md:p-6"
       >
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="app-filter-grid">
           <SelectFilter
             label="Empleado"
             value={filtroEmpleado}
@@ -177,7 +177,7 @@ export function InasistenciaGestion() {
       <SearchFilter
         onSearch={setSearch}
         placeholder="Buscar por documento o nombre..."
-        className="max-w-md flex-1"
+        className="w-full max-w-md"
       />
 
       <motion.div
@@ -186,7 +186,7 @@ export function InasistenciaGestion() {
         className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
       >
         <div className="app-table-scroll">
-          <table className="w-full">
+          <table className="w-full min-w-[640px]">
             <thead className="brand-bg border-b border-(--color-primary-dark)">
               <tr>
                 <th className="px-6 py-4 text-left font-semibold text-white">

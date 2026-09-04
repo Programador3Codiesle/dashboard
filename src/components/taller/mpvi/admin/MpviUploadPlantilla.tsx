@@ -41,7 +41,7 @@ export function MpviUploadPlantilla() {
           />
         </div>
         <Button
-          className="brand-btn flex items-center gap-2"
+          className="brand-btn flex w-full sm:w-auto items-center justify-center gap-2"
           disabled={!archivo || subirPlantilla.isPending}
           onClick={handleSubmit}
         >

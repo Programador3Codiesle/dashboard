@@ -67,28 +67,28 @@ export function NpsTecnicosCargaGestion() {
       backHref="/dashboard/encuestas"
       backLabel={ENCUESTAS_COPY.npsTecnicos.backLabel}
     >
-      <div className="max-w-xl space-y-4 rounded-lg border bg-card p-6">
-        <label htmlFor="nps-tecnicos-file" className="block text-sm font-medium">
+      <div className="app-section-card w-full min-w-0 max-w-xl space-y-4">
+        <label htmlFor="nps-tecnicos-file" className="block w-full min-w-0 text-sm font-medium">
           Archivo Excel
           <input
             id="nps-tecnicos-file"
             type="file"
             accept=".xlsx,.xls"
-            className="mt-2 block w-full text-sm"
+            className="mt-2 block w-full min-w-0 text-sm"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
         {file && (
-          <p className="text-xs text-muted-foreground">Seleccionado: {file.name}</p>
+          <p className="truncate text-xs text-gray-500">Seleccionado: {file.name}</p>
         )}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             disabled={uploadMutation.isPending}
             onClick={cargar}
             className={btnPrimaryClass}
           >
-            <Upload className="mr-2 h-4 w-4" />
+            <Upload className="h-4 w-4" />
             {uploadMutation.isPending ? 'Cargando...' : 'Cargar'}
           </button>
           <button
@@ -96,7 +96,7 @@ export function NpsTecnicosCargaGestion() {
             onClick={descargarPlantilla}
             className={btnSecondaryClass}
           >
-            <Download className="mr-2 h-4 w-4" />
+            <Download className="h-4 w-4" />
             Descargar plantilla
           </button>
         </div>

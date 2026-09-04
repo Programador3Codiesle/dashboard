@@ -7,6 +7,9 @@ import { useUsuarioActions } from "@/modules/usuarios/hooks/useUsuarioActions";
 import { Loader2 } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
 
+const inputClass =
+  "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none brand-focus-ring";
+
 export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProps) {
     const { jefes, isLoading: loadingJefes, refetch: refetchJefes } = useJefesGeneral();
     const { usuarios, isLoading: loadingUsuarios } = useUsuariosJefes();
@@ -16,7 +19,6 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
     const [email, setEmail] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Recargar el listado de jefes cada vez que se abre el modal
     useEffect(() => {
         if (open) {
             refetchJefes();
@@ -24,7 +26,6 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
-    // Limpiar el formulario cuando se cierra el modal
     useEffect(() => {
         if (!open) {
             setSelectedNit("");
@@ -51,59 +52,45 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
 
     return (
         <Modal open={open} onClose={onClose} title="Gestión de Jefes" width="650px">
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "20px" }}>
-                {/* Lista de jefes actuales */}
-                <div>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "10px" }}>Jefes actuales</h3>
-                    <div style={{ maxHeight: "320px", overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: "8px" }}>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="min-w-0">
+                    <h3 className="mb-2.5 text-sm font-semibold text-gray-800">Jefes actuales</h3>
+                    <div className="max-h-80 overflow-y-auto rounded-lg border border-gray-200">
                         {loadingJefes ? (
-                            <div style={{ padding: "16px", textAlign: "center", fontSize: "14px", color: "#6b7280" }}>
+                            <div className="p-4 text-center text-sm text-gray-500">
                                 Cargando jefes...
                             </div>
                         ) : jefes.length === 0 ? (
-                            <div style={{ padding: "16px", textAlign: "center", fontSize: "14px", color: "#6b7280" }}>
+                            <div className="p-4 text-center text-sm text-gray-500">
                                 No hay jefes registrados.
                             </div>
                         ) : (
                             jefes.map((jefe) => (
                                 <div
                                     key={jefe.id}
-                                    style={{
-                                        padding: "10px 12px",
-                                        borderBottom: "1px solid #e5e7eb",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "2px",
-                                    }}
+                                    className="flex flex-col gap-0.5 border-b border-gray-200 px-3 py-2.5 last:border-b-0"
                                 >
-                                    <span style={{ fontSize: "14px", fontWeight: 600 }}>{jefe.nombre}</span>
-                                    <span style={{ fontSize: "12px", color: "#6b7280" }}>NIT: {jefe.nit}</span>
-                                    <span style={{ fontSize: "12px", color: "#6b7280" }}>{jefe.email}</span>
+                                    <span className="text-sm font-semibold">{jefe.nombre}</span>
+                                    <span className="text-xs text-gray-500">NIT: {jefe.nit}</span>
+                                    <span className="text-xs text-gray-500 break-all">{jefe.email}</span>
                                 </div>
                             ))
                         )}
                     </div>
                 </div>
 
-                {/* Formulario para crear nuevo jefe */}
-                <div>
-                    <h3 style={{ fontSize: "15px", fontWeight: 600, marginBottom: "10px" }}>Registrar nuevo jefe</h3>
-                    <form onSubmit={handleSubmit}>
-                        <div style={{ marginBottom: "12px" }}>
-                            <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>
+                <div className="min-w-0">
+                    <h3 className="mb-2.5 text-sm font-semibold text-gray-800">Registrar nuevo jefe</h3>
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                        <div>
+                            <label className="mb-1.5 block text-sm font-medium text-gray-700">
                                 Seleccionar usuario
                             </label>
                             <select
                                 value={selectedNit}
                                 onChange={(e) => setSelectedNit(e.target.value)}
                                 disabled={loadingUsuarios || usuarios.length === 0}
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 10px",
-                                    borderRadius: "6px",
-                                    border: "1px solid #d1d5db",
-                                    fontSize: "14px",
-                                }}
+                                className={inputClass}
                             >
                                 <option value="">Seleccione un usuario</option>
                                 {usuarios.map((u) => (
@@ -113,7 +100,7 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
                                 ))}
                             </select>
                             {loadingUsuarios && (
-                                <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>
+                                <p className="mt-1 text-xs text-gray-500">
                                     Cargando usuarios...
                                 </p>
                             )}
@@ -121,52 +108,27 @@ export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProp
 
                         <OptimizedInput
                             label="Correo electrónico"
-                            labelClassName="block mb-5 font-medium"
-                            containerClassName="mb-16"
+                            labelClassName="mb-1.5 block text-sm font-medium text-gray-700"
                             type="email"
                             value={email}
                             onValueChange={(val) => setEmail(val)}
                             required
-                            style={{
-                                width: "100%",
-                                padding: "8px 12px",
-                                border: "1px solid #d1d5db",
-                                borderRadius: "6px",
-                                fontSize: "14px",
-                            }}
+                            className={inputClass}
                             placeholder="correo@empresa.com"
                         />
 
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "12px" }}>
+                        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                style={{
-                                    padding: "8px 16px",
-                                    background: "#e5e7eb",
-                                    borderRadius: "6px",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontWeight: 500,
-                                }}
+                                className="w-full sm:w-auto rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 transition-colors"
                             >
                                 Cerrar
                             </button>
                             <button
                                 type="submit"
                                 disabled={!selectedNit || !email || isSubmitting}
-                                style={{
-                                    padding: "8px 16px",
-                                    background: !selectedNit || !email || isSubmitting ? "#d1d5db" : "#f59e0b",
-                                    color: "#fff",
-                                    borderRadius: "6px",
-                                    border: "none",
-                                    cursor: !selectedNit || !email || isSubmitting ? "not-allowed" : "pointer",
-                                    fontWeight: 500,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px",
-                                }}
+                                className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-white brand-bg brand-bg-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isSubmitting && <Loader2 size={14} className="animate-spin" />}
                                 Registrar jefe

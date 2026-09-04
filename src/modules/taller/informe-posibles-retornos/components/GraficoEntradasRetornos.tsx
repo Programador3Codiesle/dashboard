@@ -20,7 +20,7 @@ interface GraficoEntradasRetornosProps {
 
 export function GraficoEntradasRetornos({ data }: GraficoEntradasRetornosProps) {
   return (
-    <div className="w-full" style={{ height: 370 }}>
+    <div className="w-full h-[240px] sm:h-[320px] md:h-[370px]">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

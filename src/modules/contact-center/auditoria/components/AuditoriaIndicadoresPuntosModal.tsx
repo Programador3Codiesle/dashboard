@@ -99,8 +99,8 @@ export function AuditoriaIndicadoresPuntosModal({
         <strong>100</strong> antes de guardar.
       </p>
 
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="min-w-full text-sm">
+      <div className="app-table-scroll border rounded-lg">
+        <table className="w-full min-w-[400px] text-sm">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 py-2 text-left">#</th>
@@ -143,7 +143,7 @@ export function AuditoriaIndicadoresPuntosModal({
         </table>
       </div>
 
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button type="button" className={btnSecondaryClass} onClick={onClose}>
           Cancelar
         </button>
