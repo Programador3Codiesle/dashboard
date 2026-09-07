@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Users } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
-import * as XLSX from "xlsx";
+import { getXlsx } from "@/utils/export-xlsx";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import {
   informeHorarioService,
@@ -76,11 +76,13 @@ export function IngresoEmpleadosGestion() {
     }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!rows.length) {
       showInfo("No hay datos para exportar.");
       return;
     }
+
+    const XLSX = await getXlsx();
 
     const excelRows = rows.map((r) => ({
       CC: r.documento,

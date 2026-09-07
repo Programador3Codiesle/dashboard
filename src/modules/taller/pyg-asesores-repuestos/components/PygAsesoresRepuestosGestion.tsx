@@ -71,12 +71,12 @@ export function PygAsesoresRepuestosGestion() {
     }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!data?.filas?.length) {
       showError("No hay datos para exportar");
       return;
     }
-    exportPygAsesoresExcel(data.filas, data.yearComparar);
+    await exportPygAsesoresExcel(data.filas, data.yearComparar);
   };
 
   if (blocked) return null;

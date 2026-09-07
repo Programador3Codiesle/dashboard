@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
 import { ContactCenterPageFrame } from '@/modules/contact-center/components/ContactCenterPageFrame';
@@ -99,7 +99,8 @@ export function InformeBaseDatosGestion() {
     [tableRows, inicio],
   );
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
+    const XLSX = await getXlsx();
     if (!tipo || tableRows.length === 0) return;
     const data = tableRows.map((vals) => {
       const obj: Record<string, string> = {};

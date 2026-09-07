@@ -19,6 +19,7 @@ import { InformesPageFrame } from '@/modules/informes/components/InformesPageFra
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants';
 import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
+import { getXlsx } from '@/utils/export-xlsx';
 
 const PAGE_SIZE = 10;
 
@@ -153,6 +154,7 @@ export function PqrNpsGestion() {
   const [estado, setEstado] = useState<EstadoPqr>('abiertos');
   const [currentPage, setCurrentPage] = useState(1);
   const [filtroTexto, setFiltroTexto] = useState('');
+  const [qDebounced, setQDebounced] = useState('');
   const [gestionItem, setGestionItem] = useState<PqrNpsItem | null>(null);
   const [crearPqrOpen, setCrearPqrOpen] = useState(false);
   const [verbalizacionItem, setVerbalizacionItem] = useState<PqrNpsItem | null>(null);
@@ -161,12 +163,23 @@ export function PqrNpsGestion() {
     texto: '',
   });
   const [tituloComentarioModal, setTituloComentarioModal] = useState('Comentario del cliente');
+  const [exportando, setExportando] = useState(false);
   const { showError, showSuccess, showInfo } = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<PqrNpsItem[], Error>({
-    queryKey: informesKeys.pv.pqrNps(estado),
-    queryFn: () => pqrNpsService.listar(estado),
+  useEffect(() => {
+    const timer = setTimeout(() => setQDebounced(filtroTexto.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [filtroTexto]);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: informesKeys.pv.pqrNps(`${estado}|${currentPage}|${qDebounced}`),
+    queryFn: () =>
+      pqrNpsService.listar(estado, {
+        pagina: currentPage,
+        limite: PAGE_SIZE,
+        q: qDebounced || undefined,
+      }),
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -200,12 +213,9 @@ export function PqrNpsGestion() {
   });
 
   const cerrarCrearPqrModal = useCallback(() => setCrearPqrOpen(false), []);
-  const guardarCrearPqr = useCallback(
-    (payload: CrearPqrPayload) => {
-      crearPqr.mutate(payload);
-    },
-    [crearPqr.mutate],
-  );
+  const guardarCrearPqr = (payload: CrearPqrPayload) => {
+    crearPqr.mutate(payload);
+  };
 
   const crearVerbalizacion = useMutation({
     mutationFn: (payload: VerbalizacionPayload) => pqrNpsService.crearVerbalizacion(payload),
@@ -261,7 +271,7 @@ export function PqrNpsGestion() {
   });
 
   const itemsFiltrados = useMemo(() => {
-    const all = data ?? [];
+    const all = data?.items ?? [];
     const estadoPrioridad = (estadoCaso: string | null | undefined) => {
       const normalizado = (estadoCaso ?? 'Gestionar').trim().toLowerCase();
       if (normalizado === 'abierto') return 0;
@@ -269,24 +279,13 @@ export function PqrNpsGestion() {
       return 2;
     };
 
-    const ordenarPorEstado = (rows: PqrNpsItem[]) =>
-      [...rows].sort((a, b) => estadoPrioridad(a.estadoCaso) - estadoPrioridad(b.estadoCaso));
-
-    if (!filtroTexto.trim()) return ordenarPorEstado(all);
-    const term = filtroTexto.trim().toLowerCase();
-    const filtrados = all.filter((row) =>
-      [row.fuente, row.sede, row.placa, row.cliente, row.tecnico, row.estadoCaso, row.tipificacionEncuesta]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(term)),
+    return [...all].sort(
+      (a, b) => estadoPrioridad(a.estadoCaso) - estadoPrioridad(b.estadoCaso),
     );
-    return ordenarPorEstado(filtrados);
-  }, [data, filtroTexto]);
+  }, [data]);
 
-  const totalPages = Math.max(1, Math.ceil(itemsFiltrados.length / PAGE_SIZE));
-  const pageItems = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return itemsFiltrados.slice(start, start + PAGE_SIZE);
-  }, [itemsFiltrados, currentPage]);
+  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
+  const pageItems = itemsFiltrados;
 
   useEffect(() => {
     if (error) {
@@ -295,28 +294,49 @@ export function PqrNpsGestion() {
   }, [error, showError]);
 
   const exportarExcel = async () => {
-    if (itemsFiltrados.length === 0) {
+    if (exportando) return;
+    if ((data?.total ?? 0) === 0 && itemsFiltrados.length === 0) {
       showInfo('No hay registros para exportar.');
       return;
     }
-    const XLSX = await import('xlsx');
-    const rows = itemsFiltrados.map((r) => ({
-      Fuente: r.fuente,
-      'Id encuesta': r.id,
-      Sede: r.sede ?? '',
-      Área: r.area ?? '',
-      Fecha: r.fecha ?? '',
-      Placa: r.placa ?? '',
-      Cliente: r.cliente ?? '',
-      Técnico: r.tecnico ?? '',
-      'Estado del caso': r.estadoCaso ?? '',
-      'Tipificación encuesta': r.tipificacionEncuesta ?? '',
-    }));
+    setExportando(true);
+    try {
+      const listado = await pqrNpsService.listarParaExportar(
+        estado,
+        qDebounced || undefined,
+      );
+      if (listado.items.length === 0) {
+        showInfo('No hay registros para exportar.');
+        return;
+      }
+      const XLSX = await getXlsx();
+      const rows = listado.items.map((r) => ({
+        Fuente: r.fuente,
+        'Id encuesta': r.id,
+        Sede: r.sede ?? '',
+        Área: r.area ?? '',
+        Fecha: r.fecha ?? '',
+        Placa: r.placa ?? '',
+        Cliente: r.cliente ?? '',
+        Técnico: r.tecnico ?? '',
+        'Estado del caso': r.estadoCaso ?? '',
+        'Tipificación encuesta': r.tipificacionEncuesta ?? '',
+      }));
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'PQR-NPS');
-    XLSX.writeFile(workbook, `pqr-nps-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'PQR-NPS');
+      XLSX.writeFile(workbook, `pqr-nps-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      if (listado.truncated) {
+        showInfo(
+          `Excel generado con los primeros ${listado.items.length} de ${listado.total} registros (tope de exportación).`,
+        );
+      }
+    } catch {
+      showError('No se pudo exportar el informe de PQR.');
+    } finally {
+      setExportando(false);
+    }
   };
 
   if (blocked) return null;
@@ -358,7 +378,7 @@ export function PqrNpsGestion() {
         </div>
 
         <div className="text-xs text-gray-500">
-          {isLoading ? 'Cargando registros...' : `Total registros: ${itemsFiltrados.length}`}
+          {isLoading ? 'Cargando registros...' : `Total registros: ${data?.total ?? 0}`}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap w-full md:w-auto md:ml-auto">
           <button type="button" onClick={() => setCrearPqrOpen(true)} className="w-full sm:w-auto px-3 py-2 text-sm rounded-md brand-btn">
@@ -367,9 +387,10 @@ export function PqrNpsGestion() {
           <button
             type="button"
             onClick={exportarExcel}
-            className="w-full sm:w-auto px-3 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+            disabled={exportando}
+            className="w-full sm:w-auto px-3 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-60"
           >
-            Exportar Excel
+            {exportando ? 'Exportando...' : 'Exportar Excel'}
           </button>
         </div>
       </div>
@@ -591,11 +612,6 @@ function GestionModal({
     ((item.estadoCaso ?? TIPICACION_PLACEHOLDER).trim().toLowerCase() ===
       TIPICACION_PLACEHOLDER.toLowerCase());
 
-  useEffect(() => {
-    if (modo !== 'sin-registro' || esGestionarActual) return;
-    setTipificacionEncuesta('');
-  }, [postVenta, modo, esGestionarActual]);
-
   const fieldClass =
     'w-full rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 focus-visible:border-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-200';
   const labelClass = 'block text-xs font-medium text-gray-600 mb-1';
@@ -685,7 +701,12 @@ function GestionModal({
             <select
               value={postVenta}
               disabled={modo === 'con-registro'}
-              onChange={(e) => setPostVenta(Number(e.target.value) as 1 | 2)}
+              onChange={(e) => {
+                setPostVenta(Number(e.target.value) as 1 | 2);
+                if (modo === 'sin-registro' && !esGestionarActual) {
+                  setTipificacionEncuesta('');
+                }
+              }}
               className={fieldClass}
             >
               <option value={1}>POSTVENTA</option>

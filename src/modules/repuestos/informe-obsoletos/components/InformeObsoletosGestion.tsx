@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useToast } from '@/components/ui/use-toast';
 import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
 import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
@@ -59,7 +59,8 @@ export function InformeObsoletosGestion() {
     onError: (e: unknown) => showError(getErrorMessage(e, 'Error al consultar')),
   });
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
+    const XLSX = await getXlsx();
     if (rows.length === 0) return;
     const data = rows.map((r) => ({
       Codigo: r.codigo,

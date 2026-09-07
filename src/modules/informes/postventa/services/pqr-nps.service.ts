@@ -90,16 +90,64 @@ export interface VehiculoPqrInfo {
   celular: string;
 }
 
+export type PqrNpsListado = {
+  items: PqrNpsItem[];
+  total: number;
+  pagina: number;
+  limite: number;
+};
+
+const EXPORT_PAGE_SIZE = 100;
+const EXPORT_MAX_ROWS = 5000;
+
 export const pqrNpsService = {
-  async listar(estado: EstadoPqr = 'abiertos'): Promise<PqrNpsItem[]> {
+  async listar(
+    estado: EstadoPqr = 'abiertos',
+    options?: { pagina?: number; limite?: number; q?: string },
+  ): Promise<PqrNpsListado> {
     const params = new URLSearchParams();
     params.append('estado', estado);
+    if (options?.pagina) params.append('pagina', String(options.pagina));
+    if (options?.limite) params.append('limite', String(options.limite));
+    if (options?.q?.trim()) params.append('q', options.q.trim());
 
-    const { data } = await apiClient.get<PqrNpsItem[]>(
+    const { data } = await apiClient.get<PqrNpsListado>(
       `/informes/postventa/pqr-nps?${params.toString()}`,
     );
 
     return data;
+  },
+
+  async listarParaExportar(
+    estado: EstadoPqr = 'abiertos',
+    q?: string,
+  ): Promise<{ items: PqrNpsItem[]; total: number; truncated: boolean }> {
+    const first = await pqrNpsService.listar(estado, {
+      pagina: 1,
+      limite: EXPORT_PAGE_SIZE,
+      q,
+    });
+    const items = [...(first.items ?? [])];
+    const total = first.total ?? items.length;
+    const maxPages = Math.ceil(EXPORT_MAX_ROWS / EXPORT_PAGE_SIZE);
+    const totalPages = Math.min(Math.ceil(total / EXPORT_PAGE_SIZE) || 1, maxPages);
+
+    for (let pagina = 2; pagina <= totalPages; pagina++) {
+      const page = await pqrNpsService.listar(estado, {
+        pagina,
+        limite: EXPORT_PAGE_SIZE,
+        q,
+      });
+      items.push(...(page.items ?? []));
+      if (items.length >= EXPORT_MAX_ROWS) break;
+    }
+
+    const clipped = items.slice(0, EXPORT_MAX_ROWS);
+    return {
+      items: clipped,
+      total,
+      truncated: clipped.length < total,
+    };
   },
 
   async obtenerGestion(fuente: string, idFuente: number): Promise<GestionPqrResponse | null> {

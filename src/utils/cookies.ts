@@ -1,41 +1,60 @@
 // Utilidades para manejar cookies (equivalente a sesiones PHP)
 
-export function setCookie(name: string, value: string, days?: number) {
-  const expires = typeof days === 'number'
-    ? `;expires=${new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString()}`
-    : '';
+import type { IUser } from '@/types/global';
 
-  document.cookie = `${name}=${value}${expires};path=/;SameSite=Lax`;
+function isHttps(): boolean {
+  return typeof window !== 'undefined' && window.location.protocol === 'https:';
+}
+
+export function setCookie(name: string, value: string, days?: number) {
+  const expires =
+    typeof days === 'number'
+      ? `;expires=${new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString()}`
+      : '';
+  const secure = isHttps() ? ';Secure' : '';
+  const encoded = encodeURIComponent(value);
+
+  document.cookie = `${name}=${encoded}${expires};path=/;SameSite=Lax${secure}`;
 }
 
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
-  
-  const nameEQ = name + "=";
+
+  const nameEQ = name + '=';
   const ca = document.cookie.split(';');
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
     while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    if (c.indexOf(nameEQ) === 0) {
+      const raw = c.substring(nameEQ.length, c.length);
+      try {
+        return decodeURIComponent(raw);
+      } catch {
+        return raw;
+      }
+    }
   }
   return null;
 }
 
 export function removeCookie(name: string) {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  const secure = isHttps() ? ';Secure' : '';
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax${secure}`;
 }
 
-export function getUser(): any | null {
+export function getUser(): IUser | null {
   const userStr = getCookie('user');
   if (!userStr) return null;
   try {
-    return JSON.parse(userStr);
+    const parsed: unknown = JSON.parse(userStr);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed as IUser;
   } catch {
     return null;
   }
 }
 
-export function setUser(user: any, remember: boolean = true) {
+export function setUser(user: IUser, remember: boolean = true) {
   if (remember) {
     setCookie('user', JSON.stringify(user), 7); // 7 días
     setCookie('remember_session', '1', 7);
@@ -55,4 +74,3 @@ export function removeUser() {
 export function getRememberSession(): boolean {
   return getCookie('remember_session') === '1';
 }
-

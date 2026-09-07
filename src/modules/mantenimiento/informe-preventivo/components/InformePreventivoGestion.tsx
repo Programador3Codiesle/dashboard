@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useQuery } from '@tanstack/react-query';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
@@ -59,7 +59,8 @@ export function InformePreventivoGestion() {
   );
   const onPage = useCallback((p: number) => setPage(p), []);
 
-  function exportExcel() {
+  async function exportExcel() {
+    const XLSX = await getXlsx();
     const data = rows.map((r) => ({
       CODIGO: r.codigo_equipo,
       EQUIPO: r.nombre_equipo,

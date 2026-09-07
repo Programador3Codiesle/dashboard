@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, Wrench, X } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -140,7 +140,8 @@ export function MttoCorrectivoGestion() {
     }
   }
 
-  function exportExcel() {
+  async function exportExcel() {
+    const XLSX = await getXlsx();
     const ws = XLSX.utils.json_to_sheet(
       sortedRows.map((r) => ({
         Id: r.id_solicitud,

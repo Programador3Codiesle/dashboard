@@ -155,7 +155,7 @@ function HeaderComponent({
                   exit={{ opacity: 0, y: -10 }}
                 >
                   {(formattedFullName || rolEtiqueta) && (
-                    <div className="border-b border-gray-100 px-4 py-2">
+                    <div className="border-b border-gray-100 px-4 py-2 sm:hidden">
                       {formattedFullName ? (
                         <p className="break-words text-sm font-semibold text-gray-900">
                           {formattedFullName}

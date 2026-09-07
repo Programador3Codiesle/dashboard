@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import { getXlsx } from "@/utils/export-xlsx";
 import type { FilaInformeTecnico } from "../types";
 
 function formatInteger(value: number): string {
@@ -12,10 +12,11 @@ function formatDecimal(value: number): string {
   });
 }
 
-export function exportPygTecnicosExcel(
+export async function exportPygTecnicosExcel(
   filas: FilaInformeTecnico[],
   yearComparar: number,
-): void {
+): Promise<void> {
+  const XLSX = await getXlsx();
   const headers = [
     "RNK",
     "TALLER",

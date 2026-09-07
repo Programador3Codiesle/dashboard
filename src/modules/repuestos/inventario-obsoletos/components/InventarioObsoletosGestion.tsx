@@ -15,7 +15,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { Loader2 } from 'lucide-react';
 import { RepuestosPageFrame } from '@/modules/repuestos/components/RepuestosPageFrame';
 import { REPUESTOS_COPY } from '@/modules/repuestos/constants';
@@ -132,7 +132,8 @@ export function InventarioObsoletosGestion() {
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, paginaSegura]);
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
+    const XLSX = await getXlsx();
     if (rows.length === 0) {
       showInfo('No hay datos para exportar.');
       return;

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, Trash2, Wrench, X } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -100,7 +100,8 @@ export function EquiposGestion() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const showInitialLoading = loading && rows.length === 0;
 
-  function exportExcel() {
+  async function exportExcel() {
+    const XLSX = await getXlsx();
     const ws = XLSX.utils.json_to_sheet(
       rows.map((r) => ({
         Codigo: r.codigo,

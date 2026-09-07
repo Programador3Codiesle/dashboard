@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
-import * as XLSX from "xlsx";
+import { getXlsx } from "@/utils/export-xlsx";
 import ConfirmModal from "@/components/shared/ui/ConfirmModal";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { useAuth } from "@/core/auth/hooks/useAuth";
@@ -122,11 +122,12 @@ export function EstadoTallerGestion() {
     setFacturaConfirmNumero(null);
   }, []);
 
-  const handleExportarExcel = useCallback(() => {
+  const handleExportarExcel = useCallback(async () => {
     if (!panel?.ordenes.length) {
       showError("No hay datos para exportar");
       return;
     }
+    const XLSX = await getXlsx();
     const { headers, data } = exportEstadoTallerExcel(panel.ordenes, busqueda);
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const wb = XLSX.utils.book_new();
@@ -149,6 +150,12 @@ export function EstadoTallerGestion() {
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+        </div>
+      )}
+      {panel && panel.ordenes.length < panel.totalAbiertas && (
+        <div className="rounded-lg border brand-border px-4 py-3 text-sm text-gray-700">
+          Se muestran {panel.ordenes.length} de {panel.totalAbiertas} órdenes
+          abiertas (tope de carga). El Excel exporta solo las visibles.
         </div>
       )}
 

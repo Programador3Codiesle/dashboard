@@ -71,12 +71,12 @@ export function PygTecnicosGestion() {
     }
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (!data?.filas?.length) {
       showError("No hay datos para exportar");
       return;
     }
-    exportPygTecnicosExcel(data.filas, data.yearComparar);
+    await exportPygTecnicosExcel(data.filas, data.yearComparar);
   };
 
   if (blocked) return null;

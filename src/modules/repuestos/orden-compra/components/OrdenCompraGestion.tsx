@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useAuth } from '@/core/auth/hooks/useAuth';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -93,7 +93,8 @@ export function OrdenCompraGestion() {
     onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo guardar presupuesto')),
   });
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
+    const XLSX = await getXlsx();
     const rows = items.map((i) => ({
       Fecha: i.fechaOc,
       Bodega: i.bodega,

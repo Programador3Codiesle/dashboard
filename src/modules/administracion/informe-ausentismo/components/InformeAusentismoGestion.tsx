@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState, memo } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { FileSpreadsheet, Loader2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useSedesByEmpresa } from '@/modules/administracion/hooks/useSedesByEmpresa';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import {
@@ -376,6 +376,7 @@ export function InformeAusentismoGestion() {
         Estado: r.estado,
         Detalle: r.detalle,
       }));
+      const XLSX = await getXlsx();
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Ausentismo');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import * as XLSX from 'xlsx';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useQuery } from '@tanstack/react-query';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import {
@@ -70,7 +70,8 @@ export function InformeCorrectivoGestion() {
   );
   const onPage = useCallback((p: number) => setPage(p), []);
 
-  function exportExcel() {
+  async function exportExcel() {
+    const XLSX = await getXlsx();
     const data = rows.map((r) => ({
       CODIGO: r.codigo,
       EQUIPO: r.nombre_equipo,

@@ -1,14 +1,15 @@
-import * as XLSX from "xlsx";
+import { getXlsx } from "@/utils/export-xlsx";
 import type { FilaInformeAsesor } from "../types";
 
 function formatNumber(value: number): string {
   return Math.round(Number(value || 0)).toLocaleString("es-CO");
 }
 
-export function exportPygAsesoresExcel(
+export async function exportPygAsesoresExcel(
   filas: FilaInformeAsesor[],
   yearComparar: number,
-): void {
+): Promise<void> {
+  const XLSX = await getXlsx();
   const headers = [
     "RNK",
     "ASESOR DE REPUESTOS",

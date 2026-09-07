@@ -14,7 +14,7 @@ import {
 } from "@/modules/informes/postventa/format-cantidad-co";
 import { useToast } from "@/components/ui/use-toast";
 import Modal from "@/components/shared/ui/Modal";
-import * as XLSX from "xlsx";
+import { getXlsx } from "@/utils/export-xlsx";
 import { Loader2 } from "lucide-react";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from "@/modules/informes/constants";
@@ -120,11 +120,12 @@ export function InventarioObsoletosGestion() {
   }, [rows, currentPage]);
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
 
-  const exportarExcel = () => {
+  const exportarExcel = async () => {
     if (rows.length === 0) {
       showInfo("No hay datos para exportar.");
       return;
     }
+    const XLSX = await getXlsx();
     const excelRows = rows.map((r) => ({
       Rank: r.rnk,
       Codigo: r.codigo,
