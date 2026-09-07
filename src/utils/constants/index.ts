@@ -1,5 +1,5 @@
 import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck, Car, BarChart3, ClipboardList, ShieldCheck, HardHat } from "lucide-react";
-import { withNextBasePath } from "@/config/next-base-path";
+import { nextPublicAssetSrc } from "@/config/next-base-path";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -22,7 +22,7 @@ export function empresaIconSrc(empresaId?: number | null): string | null {
   const empresa = empresaId != null ? EMPRESAS.find((item) => item.id === empresaId) : null;
   if (!empresa?.icono) return null;
   // `<img>` no antepone el basePath de Next; en prod debe ser `/postventa2/iconos/...`.
-  return withNextBasePath(empresa.icono);
+  return nextPublicAssetSrc(empresa.icono);
 }
 
 export const ROUTES = [

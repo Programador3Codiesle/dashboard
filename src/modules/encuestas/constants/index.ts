@@ -34,6 +34,15 @@ export const ENCUESTAS_COPY = {
     backLabel: '← Volver a Encuestas',
     uploadError: 'Error al cargar archivo',
   },
+  satisfaccionQr: {
+    title: 'Satisfacción QR',
+    description:
+      'Carga de encuesta QR por ventanilla: taller, placa y calificación',
+    backLabel: '← Volver a Encuestas',
+    loadError: 'Error al validar la placa',
+    submitError: 'Error al Cargar La Encuesta',
+    fieldsRequired: 'Error todos los Campos deden ser completado',
+  },
   qr: {
     loadError: 'No se pudieron cargar las preguntas',
   },

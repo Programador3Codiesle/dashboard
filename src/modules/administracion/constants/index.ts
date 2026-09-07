@@ -1,3 +1,5 @@
+import { nextPublicAssetSrc } from '@/config/next-base-path';
+
 export const ADMINISTRACION_COPY = {
   hub: {
     title: 'Administración',
@@ -97,6 +99,14 @@ export const PDF_REGLAMENTO_INTERNO =
 export const PDF_INFORME_SOSTENIBILIDAD =
   '/uploads/formatos/INFORME DE SOSTENIBILIDAD CODIESEL 2024.pdf';
 
+/** PDF estático en `public/`. En prod debe ir bajo `/postventa2` o Apache (intranet.codiesel.co) responde 404. */
+export function administracionPdfSrc(relativePath: string): string {
+  const normalized = relativePath.startsWith('/')
+    ? relativePath
+    : `/${relativePath}`;
+  return nextPublicAssetSrc(normalized);
+}
+
 export const FORMATOS_NOMINA = [
   {
     id: 1,
@@ -115,7 +125,7 @@ export const FORMATOS_NOMINA = [
     id: 3,
     titulo: 'Formato solicitud de vacaciones',
     descripcion: 'Solicitud de vacaciones de acuerdo con la política interna.',
-    file: 'Formato de Solicitud de Vacaciones.pdf',
+    file: 'Formato de Solicitud de Vacaciones.PDF',
   },
   {
     id: 4,

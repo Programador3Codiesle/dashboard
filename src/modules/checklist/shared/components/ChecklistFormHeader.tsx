@@ -19,6 +19,8 @@ export function ChecklistFormHeader({ tituloFormulario, codigoDocumento }: Props
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-col items-center gap-4 bg-white px-5 py-4 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
         <div className="flex shrink-0 items-center justify-center px-2 py-1">
+          {/* PNG en public/logos; src ya incluye basePath en prod (`/postventa2`). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={logo.src}
             alt={`Logo ${logo.nombre}`}

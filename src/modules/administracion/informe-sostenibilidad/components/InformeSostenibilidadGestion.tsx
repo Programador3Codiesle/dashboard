@@ -5,6 +5,7 @@ import { FileText } from 'lucide-react';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import {
   ADMINISTRACION_COPY,
+  administracionPdfSrc,
   PDF_INFORME_SOSTENIBILIDAD,
 } from '@/modules/administracion/constants';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
@@ -16,7 +17,7 @@ export function InformeSostenibilidadGestion() {
   );
   if (blocked) return null;
 
-  const pdfUrl = encodeURI(PDF_INFORME_SOSTENIBILIDAD);
+  const pdfUrl = administracionPdfSrc(PDF_INFORME_SOSTENIBILIDAD);
 
   return (
     <AdministracionPageFrame

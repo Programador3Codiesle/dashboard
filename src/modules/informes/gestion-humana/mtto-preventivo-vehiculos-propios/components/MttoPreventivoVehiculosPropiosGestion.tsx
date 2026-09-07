@@ -15,7 +15,7 @@ import { INFORMES_COPY, INFORMES_GH_TRIMENU } from "@/modules/informes/constants
 import { informesKeys } from "@/modules/informes/shared/constants/query-keys";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
 import Modal from "@/components/shared/ui/Modal";
-import { getApiPublicUrl } from "@/config/public-env";
+import { nextPublicAssetSrc } from "@/config/next-base-path";
 
 const RUTINA_PDF_BY_PLACA: Record<string, string> = {
   WOM803: "RUTINA-N400.pdf",
@@ -78,14 +78,13 @@ export function MttoPreventivoVehiculosPropiosGestion() {
     }
   };
 
-  const baseUrl = getApiPublicUrl();
-
   const getRutinaUrl = (placa: string, rutina: string | null) => {
     const rutinaByPlaca = RUTINA_PDF_BY_PLACA[String(placa).toUpperCase()];
     const rutinaFile = rutinaByPlaca || rutina || "";
     if (!rutinaFile) return null;
-    const relativePath = `/Informes/Gestion humana/Mtto preventivo/${rutinaFile}`;
-    return `${baseUrl}${encodeURI(relativePath)}`;
+    return nextPublicAssetSrc(
+      `/Informes/Gestion humana/Mtto preventivo/${rutinaFile}`,
+    );
   };
 
   if (blocked) return null;

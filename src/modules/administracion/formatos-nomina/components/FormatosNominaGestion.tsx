@@ -6,6 +6,7 @@ import { Download, Eye, FileText, X } from 'lucide-react';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import {
   ADMINISTRACION_COPY,
+  administracionPdfSrc,
   FORMATOS_NOMINA,
 } from '@/modules/administracion/constants';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
@@ -14,7 +15,9 @@ import { FORMATOS_NOMINA_SUBMENU_ID } from '@/utils/constants';
 type Formato = (typeof FORMATOS_NOMINA)[number];
 
 function buildUrl(file: string) {
-  return `/uploads/formatos/administracion/${encodeURIComponent(file)}`;
+  return administracionPdfSrc(
+    `/uploads/formatos/administracion/${file}`,
+  );
 }
 
 export function FormatosNominaGestion() {

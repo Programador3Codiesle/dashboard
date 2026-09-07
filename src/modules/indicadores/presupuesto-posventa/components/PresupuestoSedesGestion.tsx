@@ -50,7 +50,7 @@ export function PresupuestoSedesGestion() {
           message={getErrorMessage(query.error, 'No se pudo cargar el detalle por sedes')}
         />
       ) : (
-        <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
           {sedes.map((sede) => (
             <ProgressCard
               key={sede.sede}

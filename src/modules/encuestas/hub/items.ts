@@ -44,11 +44,10 @@ export const ENCUESTAS_HUB_ITEMS: HubItem[] = [
   {
     id: 'satisfaccion-qr',
     nombre: 'Satisfacción QR',
-    descripcion: 'Encuesta pública de satisfacción para orden de salida',
-    ruta: '/encuesta-salida',
+    descripcion: 'Carga de encuesta QR por ventanilla (taller y placa)',
+    ruta: '/dashboard/encuestas/satisfaccion-qr',
     submenuId: SATISFACCION_QR_SUBMENU_ID,
     empresaId: CODIESEL_EMPRESA_ID,
     icono: QrCode,
-    external: true,
   },
 ];

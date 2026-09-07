@@ -6,4 +6,6 @@ export const encuestasKeys = {
     ['encuestas', 'satisfaccion', 'detalle', ot] as const,
   tecnicosNps: ['encuestas', 'nps-colmotores', 'tecnicos'] as const,
   preguntasQr: ['encuestas', 'qr', 'preguntas'] as const,
+  validarPlacaQr: (placa: string) =>
+    ['encuestas', 'satisfaccion-qr', 'placa', placa] as const,
 };

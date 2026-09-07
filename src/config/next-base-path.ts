@@ -39,3 +39,12 @@ export function withNextBasePath(path: string): string {
   }
   return `${base}${normalized}`;
 }
+
+/**
+ * Archivo de `public/` para `<img>`, `<iframe>` o `<a>`.
+ * Next no antepone `basePath` en esos tags; en prod queda `/postventa2/...`.
+ * `encodeURI` cubre espacios en rutas (p. ej. PDFs de informes).
+ */
+export function nextPublicAssetSrc(path: string): string {
+  return encodeURI(withNextBasePath(path));
+}

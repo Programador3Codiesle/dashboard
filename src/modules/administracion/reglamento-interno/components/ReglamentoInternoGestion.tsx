@@ -5,12 +5,13 @@ import { BookOpen, ExternalLink } from 'lucide-react';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import {
   ADMINISTRACION_COPY,
+  administracionPdfSrc,
   PDF_REGLAMENTO_INTERNO,
 } from '@/modules/administracion/constants';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
 import { REGLAMENTO_INTERNO_SUBMENU_ID } from '@/utils/constants';
 
-const pdfUrl = encodeURI(PDF_REGLAMENTO_INTERNO);
+const pdfUrl = administracionPdfSrc(PDF_REGLAMENTO_INTERNO);
 
 export function ReglamentoInternoGestion() {
   const { blocked } = useAdministracionPageGuard(REGLAMENTO_INTERNO_SUBMENU_ID);

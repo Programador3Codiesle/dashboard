@@ -128,4 +128,33 @@ export const encuestasService = {
   plantillaUrl(): string {
     return `${BASE}/nps-tecnicos/plantilla`;
   },
+
+  async validarPlacaQr(
+    placa: string,
+  ): Promise<{ ok: boolean; message: string }> {
+    const qs = new URLSearchParams({ placa });
+    const resp = await fetchWithAuth(
+      `${BASE}/satisfaccion-qr/validar-placa?${qs.toString()}`,
+    );
+    if (!resp.ok) await parseError(resp, 'Error al validar la placa');
+    return resp.json();
+  },
+
+  async responderQrVentanilla(body: {
+    bodega: string;
+    placa: string;
+    pregunta2?: string;
+    pregunta3?: string;
+    pregunta4?: string;
+    pregunta5?: string;
+    pregunta7: string;
+  }): Promise<{ ok: boolean; message: string }> {
+    const resp = await fetchWithAuth(`${BASE}/satisfaccion-qr/ventanilla`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) await parseError(resp, 'Error al Cargar La Encuesta');
+    return resp.json();
+  },
 };

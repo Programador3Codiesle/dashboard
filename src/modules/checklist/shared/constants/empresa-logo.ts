@@ -1,3 +1,4 @@
+import { nextPublicAssetSrc } from '@/config/next-base-path';
 import {
   BYD_EMPRESA_ID,
   CODIESEL_EMPRESA_ID,
@@ -26,9 +27,12 @@ export function getChecklistEmpresaLogo(empresaId?: number | null): {
 } {
   const id = toEmpresaId(empresaId);
   const empresa = EMPRESAS.find((e) => e.id === id) ?? EMPRESAS[0];
+  const relative =
+    LOGO_BY_EMPRESA[empresa.id] ?? LOGO_BY_EMPRESA[CODIESEL_EMPRESA_ID];
   return {
-    src: LOGO_BY_EMPRESA[empresa.id] ?? LOGO_BY_EMPRESA[CODIESEL_EMPRESA_ID],
+    src: nextPublicAssetSrc(relative),
     nombre: empresa.nombre,
     color: empresa.color,
   };
 }
+

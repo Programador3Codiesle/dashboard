@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
+import { withNextBasePath } from "@/config/next-base-path";
 
 const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000; // 4 horas
 const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "activo"
@@ -90,12 +91,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             // Limpiar el estado del usuario
             setUserState(null);
 
-            // Redirigir al login según el entorno
             if (typeof window !== 'undefined') {
-                const loginUrl = process.env.NODE_ENV === "production"
-                    ? "https://intranet.codiesel.co/postventa2/login/"
-                    : "/login";
-                window.location.href = loginUrl;
+                window.location.href = withNextBasePath("/login");
             }
         }
     }, [queryClient]);
