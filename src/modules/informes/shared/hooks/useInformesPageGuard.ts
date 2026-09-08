@@ -10,6 +10,8 @@ type Options = {
   trimenuId?: number;
   trimenuIdsAlternativos?: number[];
   redirectTo?: string;
+  /** false = la pantalla muestra el aviso de permiso en lugar de redirigir. */
+  redirectOnDenied?: boolean;
 };
 
 export function useInformesPageGuard(options: Options = {}) {
@@ -20,6 +22,7 @@ export function useInformesPageGuard(options: Options = {}) {
     trimenuId,
     trimenuIdsAlternativos,
     redirectTo = '/dashboard/informes',
+    redirectOnDenied = true,
   } = options;
 
   const submenus = user?.submenus_permitidos;
@@ -38,10 +41,10 @@ export function useInformesPageGuard(options: Options = {}) {
 
   useEffect(() => {
     if (!user) return;
-    if (blocked) {
+    if (blocked && redirectOnDenied) {
       router.replace(redirectTo);
     }
-  }, [user, blocked, router, redirectTo]);
+  }, [user, blocked, router, redirectTo, redirectOnDenied]);
 
   return { user, blocked };
 }

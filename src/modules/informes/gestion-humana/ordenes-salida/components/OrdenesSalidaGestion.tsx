@@ -6,23 +6,25 @@ import { Loader2 } from 'lucide-react';
 import { ordenesSalidaService, OrdenSalida } from '@/modules/informes/gestion-humana/services/ordenes-salida.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
-import { useAuth } from '@/core/auth/hooks/useAuth';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from '@/modules/informes/constants';
 import { InformesQueryError } from '@/modules/informes/shared/components/InformesQueryError';
+import { InformesSinPermiso } from '@/modules/informes/shared/components/InformesSinPermiso';
 import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
-import { getErrorMessage } from '@/modules/informes/shared/utils/parse-api-error';
+import {
+  getErrorMessage,
+  isForbiddenError,
+} from '@/modules/informes/shared/utils/parse-api-error';
 
 const PAGE_SIZE = 10;
 const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
 
 export function OrdenesSalidaGestion() {
-  const { blocked } = useInformesPageGuard({
+  const { user, blocked: sinTrimenu } = useInformesPageGuard({
     trimenuId: INFORMES_GH_TRIMENU.ordenesSalida,
-    redirectTo: '/dashboard/informes/gestion-humana',
+    redirectOnDenied: false,
   });
-  const { user } = useAuth();
   const { showError, showSuccess, showInfo } = useToast();
   const cargaInicialRef = useRef(false);
   const queryClient = useQueryClient();
@@ -41,6 +43,18 @@ export function OrdenesSalidaGestion() {
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
   const {
+    isPending: verificandoPermiso,
+    isError: errorPermiso,
+    error: errorPermisoDetalle,
+  } = useQuery({
+    queryKey: informesKeys.gh.ordenesSalida('__permiso__'),
+    queryFn: () => ordenesSalidaService.listar({}),
+    enabled: !!user && !sinTrimenu,
+    retry: false,
+    staleTime: 60 * 1000,
+  });
+
+  const {
     data = [],
     isFetching: listando,
     isError: errorListado,
@@ -51,7 +65,7 @@ export function OrdenesSalidaGestion() {
       filtrosAplicados ? JSON.stringify(filtrosAplicados) : '',
     ),
     queryFn: () => ordenesSalidaService.listar(filtrosAplicados ?? {}),
-    enabled: esModoObservacion || filtrosAplicados != null,
+    enabled: !sinTrimenu && (esModoObservacion || filtrosAplicados != null),
     retry: false,
     staleTime: 60 * 1000,
   });
@@ -67,8 +81,7 @@ export function OrdenesSalidaGestion() {
       });
     },
     onError: (error: unknown) => {
-      const message =
-        error instanceof Error ? error.message : 'Error guardando observación';
+      const message = getErrorMessage(error, 'Error guardando observación');
       showError(message);
     },
   });
@@ -86,21 +99,27 @@ export function OrdenesSalidaGestion() {
     });
   };
 
+  const sinPermiso =
+    sinTrimenu ||
+    isForbiddenError(errorPermisoDetalle) ||
+    isForbiddenError(errorListadoDetalle);
+
   useEffect(() => {
+    if (sinPermiso) return;
     if (!esModoObservacion || cargaInicialRef.current) return;
     cargaInicialRef.current = true;
     setFiltrosAplicados({
       fechaIni: undefined,
       fechaFin: undefined,
     });
-  }, [esModoObservacion]);
+  }, [esModoObservacion, sinPermiso]);
 
   useEffect(() => {
-    if (!isFetched || listando) return;
+    if (!isFetched || listando || errorListado) return;
     if (data.length === 0) {
       showInfo('No hay registros para el rango de fechas seleccionado.');
     }
-  }, [isFetched, listando, data.length, showInfo]);
+  }, [isFetched, listando, errorListado, data.length, showInfo]);
 
   const consultaSinResultados = isFetched && data.length === 0;
   const totalItems = data.length;
@@ -138,16 +157,16 @@ export function OrdenesSalidaGestion() {
     if (!data.length) return;
     const XLSX = await import('xlsx');
     const rows = data.map((r) => ({
-      'Área': r.area ?? '',
-      'Sede': r.sede ?? '',
+      Área: r.area ?? '',
+      Sede: r.sede ?? '',
       'Jefe Autorizó': r.jefeNombre,
       'Tipo Salida': r.tipoSalidaNombre,
-      'Explicación': r.explicacion,
+      Explicación: r.explicacion,
       'Fecha Orden': formatDateOnly(r.fecha_salida),
-      'Placa': r.placa ?? '',
-      'Conductor': r.conductor ?? '',
+      Placa: r.placa ?? '',
+      Conductor: r.conductor ?? '',
       'Persona salió': r.quienSale ?? '',
-      'Observación': r.observacion ?? '',
+      Observación: r.observacion ?? '',
       'Fecha Observación': formatDateOnly(r.fecha_reg_obs),
     }));
 
@@ -157,7 +176,37 @@ export function OrdenesSalidaGestion() {
     XLSX.writeFile(workbook, 'informe-ordenes-salida.xlsx');
   };
 
-  if (blocked) return null;
+  if (sinPermiso) {
+    return (
+      <InformesPageFrame
+        title={INFORMES_COPY.ordenesSalida.title}
+        description={INFORMES_COPY.ordenesSalida.description}
+        backHref="/dashboard/informes/gestion-humana"
+        backLabel={INFORMES_COPY.backGh}
+      >
+        <InformesSinPermiso
+          backHref="/dashboard/informes/gestion-humana"
+          backLabel={INFORMES_COPY.backGh}
+        />
+      </InformesPageFrame>
+    );
+  }
+
+  if (verificandoPermiso) {
+    return (
+      <InformesPageFrame
+        title={INFORMES_COPY.ordenesSalida.title}
+        description={INFORMES_COPY.ordenesSalida.description}
+        backHref="/dashboard/informes/gestion-humana"
+        backLabel={INFORMES_COPY.backGh}
+      >
+        <div className="flex min-h-[40vh] items-center justify-center gap-2 text-sm text-gray-500">
+          <Loader2 size={18} className="animate-spin" />
+          <span>Verificando permiso...</span>
+        </div>
+      </InformesPageFrame>
+    );
+  }
 
   return (
     <InformesPageFrame
@@ -166,10 +215,10 @@ export function OrdenesSalidaGestion() {
       backHref="/dashboard/informes/gestion-humana"
       backLabel={INFORMES_COPY.backGh}
     >
-      {errorListado ? (
+      {errorListado || (errorPermiso && !isForbiddenError(errorPermisoDetalle)) ? (
         <InformesQueryError
           message={getErrorMessage(
-            errorListadoDetalle,
+            errorListadoDetalle ?? errorPermisoDetalle,
             INFORMES_COPY.ordenesSalida.loadError,
           )}
         />
@@ -355,4 +404,3 @@ export function OrdenesSalidaGestion() {
     </InformesPageFrame>
   );
 }
-

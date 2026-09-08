@@ -17,6 +17,9 @@ export const INFORMES_COPY = {
   backRoot: '← Volver a Informes',
   backGh: '← Volver a Gestión Humana',
   backPv: '← Volver a Postventa',
+  noPermission: 'No tiene permiso para este informe',
+  noPermissionHint:
+    'Su usuario no está autorizado para consultar este informe.',
   infAusentismos: {
     title: 'Informe Tiempo de Ausentismos',
     description:
