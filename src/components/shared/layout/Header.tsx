@@ -113,7 +113,7 @@ function HeaderComponent({
                 </p>
               )}
               {rolEtiqueta && (
-                <span className="mt-0.5 inline-flex items-center rounded-md border border-gray-200/80 bg-linear-to-br from-gray-50 to-slate-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+                <span className="mt-0.5 inline-flex items-center rounded-full border brand-border-active brand-bg-light px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide brand-text">
                   {rolEtiqueta}
                 </span>
               )}
@@ -128,7 +128,7 @@ function HeaderComponent({
                 </p>
               )}
               {rolEtiqueta && (
-                <span className="mt-0.5 inline-flex max-w-full truncate rounded-md border border-gray-200/80 bg-gray-50/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-600">
+                <span className="mt-0.5 inline-flex max-w-full truncate rounded-full border brand-border-active brand-bg-light px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide brand-text">
                   {rolEtiqueta}
                 </span>
               )}
