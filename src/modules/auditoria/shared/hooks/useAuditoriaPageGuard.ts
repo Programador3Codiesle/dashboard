@@ -3,37 +3,30 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/core/auth/hooks/useAuth';
+import { isMissingListedPermission } from '@/utils/permission-ids';
 import { CODIESEL_EMPRESA_ID } from '@/utils/constants';
 
 export function useAuditoriaPageGuard(submenuId?: number) {
   const router = useRouter();
   const { user } = useAuth();
+  const empresaOk = user?.empresa === CODIESEL_EMPRESA_ID;
+  const missingSubmenu =
+    submenuId != null && isMissingListedPermission(user?.submenus_permitidos, submenuId);
 
   useEffect(() => {
     if (!user) return;
 
-    if (user.empresa !== CODIESEL_EMPRESA_ID) {
+    if (!empresaOk) {
       router.replace('/dashboard');
       return;
     }
 
-    if (submenuId == null) return;
-
-    const hasSubmenuPermissions = Array.isArray(user.submenus_permitidos);
-    if (!hasSubmenuPermissions) return;
-
-    const permitidos = new Set(user.submenus_permitidos);
-    if (!permitidos.has(submenuId)) {
+    if (missingSubmenu) {
       router.replace('/dashboard/auditoria');
     }
-  }, [user, router, submenuId]);
+  }, [user, router, empresaOk, missingSubmenu]);
 
-  const blocked =
-    !!user &&
-    (user.empresa !== CODIESEL_EMPRESA_ID ||
-      (submenuId != null &&
-        Array.isArray(user.submenus_permitidos) &&
-        !user.submenus_permitidos.includes(submenuId)));
+  const blocked = !!user && (!empresaOk || missingSubmenu);
 
   return { user, blocked };
 }

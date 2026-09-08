@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/core/auth/hooks/useAuth';
+import { isMissingListedPermission, toPermissionIdSet } from '@/utils/permission-ids';
 
 type Options = {
   submenuId?: number;
@@ -23,17 +24,15 @@ export function useInformesPageGuard(options: Options = {}) {
 
   const submenus = user?.submenus_permitidos;
   const trimenus = user?.trimenus_permitidos;
+  const trimenuSet = toPermissionIdSet(trimenus);
 
   const missingSubmenu =
-    submenuId != null &&
-    Array.isArray(submenus) &&
-    !submenus.includes(submenuId);
+    submenuId != null && isMissingListedPermission(submenus, submenuId);
 
   const trimenuOk =
     trimenuId == null ||
-    !Array.isArray(trimenus) ||
-    trimenus.includes(trimenuId) ||
-    (trimenuIdsAlternativos?.some((id) => trimenus.includes(id)) ?? false);
+    !isMissingListedPermission(trimenus, trimenuId) ||
+    (trimenuIdsAlternativos?.some((id) => trimenuSet.has(id)) ?? false);
 
   const blocked = !!user && (missingSubmenu || !trimenuOk);
 

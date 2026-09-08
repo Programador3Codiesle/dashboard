@@ -29,8 +29,14 @@ function getToday() {
   return `${year}-${month}-${day}`;
 }
 
-export function InasistenciaGestion() {
-  const { user, blocked } = useAdministracionPageGuard(INASISTENCIA_SUBMENU_ID);
+export function InasistenciaGestion({
+  skipPageGuard = false,
+}: {
+  skipPageGuard?: boolean;
+} = {}) {
+  const { user, blocked } = useAdministracionPageGuard(
+    skipPageGuard ? undefined : INASISTENCIA_SUBMENU_ID,
+  );
   const { showError, showSuccess } = useToast();
   const sesionLista = !!user && !blocked;
   const today = useMemo(() => getToday(), []);

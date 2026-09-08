@@ -1,6 +1,7 @@
 // Utilidades para manejar cookies (equivalente a sesiones PHP)
 
 import type { IUser } from '@/types/global';
+import { toPermissionIdList } from '@/utils/permission-ids';
 
 function isHttps(): boolean {
   return typeof window !== 'undefined' && window.location.protocol === 'https:';
@@ -48,7 +49,22 @@ export function getUser(): IUser | null {
   try {
     const parsed: unknown = JSON.parse(userStr);
     if (!parsed || typeof parsed !== 'object') return null;
-    return parsed as IUser;
+    const user = parsed as IUser;
+    return {
+      ...user,
+      empresas_asignadas: Array.isArray(user.empresas_asignadas)
+        ? toPermissionIdList(user.empresas_asignadas)
+        : user.empresas_asignadas,
+      menus_permitidos: Array.isArray(user.menus_permitidos)
+        ? toPermissionIdList(user.menus_permitidos)
+        : user.menus_permitidos,
+      submenus_permitidos: Array.isArray(user.submenus_permitidos)
+        ? toPermissionIdList(user.submenus_permitidos)
+        : user.submenus_permitidos,
+      trimenus_permitidos: Array.isArray(user.trimenus_permitidos)
+        ? toPermissionIdList(user.trimenus_permitidos)
+        : user.trimenus_permitidos,
+    };
   } catch {
     return null;
   }

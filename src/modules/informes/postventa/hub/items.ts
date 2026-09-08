@@ -125,6 +125,14 @@ export const POSTVENTA_HUB_ITEMS: HubItem[] = [
     icono: FileBarChart2,
   },
   {
+    id: 'pac',
+    nombre: INFORMES_COPY.pac.title,
+    descripcion: INFORMES_COPY.pac.description,
+    ruta: '/dashboard/informes/postventa/pac',
+    trimenuId: INFORMES_PV_TRIMENU.pac,
+    icono: FileBarChart2,
+  },
+  {
     id: 'panel-nps',
     nombre: INFORMES_COPY.panelNps.title,
     descripcion: INFORMES_COPY.panelNps.description,

@@ -1,5 +1,8 @@
 import type { IUser } from '@/types/global';
+import { toPermissionIdSet } from '@/utils/permission-ids';
 import type { HubFilterOptions, HubItem } from './types';
+
+export { toPermissionIdSet } from '@/utils/permission-ids';
 
 export function filterHubItems(
   items: HubItem[],
@@ -13,17 +16,18 @@ export function filterHubItems(
   const permission = options.permission ?? 'submenu';
 
   if (permission === 'trimenu') {
+    const mapped = items.filter((item) => typeof item.trimenuId === 'number');
     const hasPermissions = Array.isArray(user?.trimenus_permitidos);
     if (!hasPermissions) {
-      return items;
+      return mapped;
     }
 
-    const trimenusPermitidos = new Set(user?.trimenus_permitidos || []);
-    return items.filter((item) => {
-      if (typeof item.trimenuId === 'number' && trimenusPermitidos.has(item.trimenuId)) {
-        return true;
-      }
-      return item.trimenuIdsAlternativos?.some((id) => trimenusPermitidos.has(id)) ?? false;
+    const trimenusPermitidos = toPermissionIdSet(user?.trimenus_permitidos);
+    return mapped.filter((item) => {
+      const id = item.trimenuId;
+      if (typeof id !== 'number') return false;
+      if (trimenusPermitidos.has(id)) return true;
+      return item.trimenuIdsAlternativos?.some((alt) => trimenusPermitidos.has(alt)) ?? false;
     });
   }
 
@@ -37,7 +41,7 @@ export function filterHubItems(
     });
   }
 
-  const submenusPermitidos = new Set(user?.submenus_permitidos || []);
+  const submenusPermitidos = toPermissionIdSet(user?.submenus_permitidos);
   return items.filter((item) => {
     if (item.empresaId != null && user?.empresa !== item.empresaId) {
       return false;

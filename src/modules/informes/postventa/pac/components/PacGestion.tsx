@@ -9,7 +9,7 @@ import {
 } from '@/modules/informes/postventa/format-cantidad-co';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
-import { INFORMES_COPY } from '@/modules/informes/constants';
+import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants';
 import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 import { INFORMES_POSTVENTA_SUBMENU_ID } from '@/utils/constants';
@@ -17,6 +17,7 @@ import { INFORMES_POSTVENTA_SUBMENU_ID } from '@/utils/constants';
 export function PacGestion() {
   const { blocked } = useInformesPageGuard({
     submenuId: INFORMES_POSTVENTA_SUBMENU_ID,
+    trimenuId: INFORMES_PV_TRIMENU.pac,
     redirectTo: '/dashboard/informes/postventa',
   });
   const { showError } = useToast();

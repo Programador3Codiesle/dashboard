@@ -15,7 +15,7 @@ import { REPUESTOS_HUB_ITEMS } from "@/modules/repuestos/hub/items";
 import { TALLER_HUB_ITEMS } from "@/modules/taller/hub/items";
 import type { IUser } from "@/types/global";
 import { CODIESEL_EMPRESA_ID, MENU_ID_BY_ROUTE, ROUTES } from "@/utils/constants";
-import { filterHubItems } from "@/components/shared/hub/filter-hub-items";
+import { filterHubItems, toPermissionIdSet } from "@/components/shared/hub/filter-hub-items";
 import type { HubFilterOptions, HubItem } from "@/components/shared/hub/types";
 
 const SUBMENU: HubFilterOptions = { permission: "submenu" };
@@ -65,7 +65,7 @@ export function isSidebarHubVisible(path: string, user: IUser | null): boolean {
 
 export function getVisibleSidebarRoutes(user: IUser | null) {
   const hasMenuPermissions = Array.isArray(user?.menus_permitidos);
-  const menusPermitidos = new Set(user?.menus_permitidos || []);
+  const menusPermitidos = toPermissionIdSet(user?.menus_permitidos);
 
   return ROUTES.filter((route) => {
     if (route.path === "/dashboard") {

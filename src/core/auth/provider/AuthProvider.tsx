@@ -6,6 +6,7 @@ import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
 import { withNextBasePath } from "@/config/next-base-path";
+import { toPermissionIdSet } from "@/utils/permission-ids";
 
 const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000; // 4 horas
 const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "activo"
@@ -218,10 +219,18 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 perfil_postventa: response.user.perfil_postventa,
                 nom_perfil: response.user.nom_perfil,
                 nombre_usuario: response.user.nombre_usuario,
-                empresas_asignadas: response.user.empresas_asignadas || [],
-                menus_permitidos: response.user.menus_permitidos || [],
-                submenus_permitidos: response.user.submenus_permitidos || [],
-                trimenus_permitidos: response.user.trimenus_permitidos || [],
+                empresas_asignadas: Array.from(
+                    toPermissionIdSet(response.user.empresas_asignadas),
+                ),
+                menus_permitidos: Array.from(
+                    toPermissionIdSet(response.user.menus_permitidos),
+                ),
+                submenus_permitidos: Array.from(
+                    toPermissionIdSet(response.user.submenus_permitidos),
+                ),
+                trimenus_permitidos: Array.from(
+                    toPermissionIdSet(response.user.trimenus_permitidos),
+                ),
             };
 
             const normalizedUser = normalizeEmpresaSelection(userData);

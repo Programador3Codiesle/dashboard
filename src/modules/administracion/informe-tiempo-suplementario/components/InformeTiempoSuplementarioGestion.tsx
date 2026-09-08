@@ -264,9 +264,13 @@ const SearchSection = memo(function SearchSection({
   return <SearchFilter onSearch={onSearch} placeholder={placeholder} />;
 });
 
-export function InformeTiempoSuplementarioGestion() {
+export function InformeTiempoSuplementarioGestion({
+  skipPageGuard = false,
+}: {
+  skipPageGuard?: boolean;
+} = {}) {
   const { user, blocked } = useAdministracionPageGuard(
-    INFORME_TIEMPO_SUPLEMENTARIO_SUBMENU_ID,
+    skipPageGuard ? undefined : INFORME_TIEMPO_SUPLEMENTARIO_SUBMENU_ID,
   );
   const sesionLista = !!user && !blocked;
   const { showError, showSuccess } = useToast();

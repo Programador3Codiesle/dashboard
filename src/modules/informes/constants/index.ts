@@ -237,6 +237,7 @@ export const INFORMES_PV_TRIMENU = {
   segundaEntrega: 15,
   mpc: 16,
   pacNpsDetallado: 17,
+  pac: 18,
   panelNps: 19,
   npsTecnicos: 20,
   productividadTecnicos: 21,

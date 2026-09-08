@@ -3,29 +3,23 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/core/auth/hooks/useAuth";
+import { isMissingListedPermission } from "@/utils/permission-ids";
 
 export function useCotizarPageGuard(submenuId?: number) {
   const router = useRouter();
   const { user } = useAuth();
+  const missingSubmenu =
+    submenuId != null &&
+    isMissingListedPermission(user?.submenus_permitidos, submenuId);
 
   useEffect(() => {
     if (!user) return;
-    if (submenuId == null) return;
-
-    const hasSubmenuPermissions = Array.isArray(user.submenus_permitidos);
-    if (!hasSubmenuPermissions) return;
-
-    const permitidos = new Set(user.submenus_permitidos);
-    if (!permitidos.has(submenuId)) {
+    if (missingSubmenu) {
       router.replace("/dashboard/cotizar");
     }
-  }, [user, router, submenuId]);
+  }, [user, router, missingSubmenu]);
 
-  const blocked =
-    !!user &&
-    submenuId != null &&
-    Array.isArray(user.submenus_permitidos) &&
-    !user.submenus_permitidos.includes(submenuId);
+  const blocked = !!user && missingSubmenu;
 
   return { user, blocked };
 }

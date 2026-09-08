@@ -1,5 +1,5 @@
-import { InasistenciaGestion } from '@/modules/administracion/inasistencia/components/InasistenciaGestion';
+import { InformeInasistenciaGestion } from '@/modules/informes/gestion-humana/inasistencia/components/InformeInasistenciaGestion';
 
 export default function InasistenciaInformePage() {
-  return <InasistenciaGestion />;
+  return <InformeInasistenciaGestion />;
 }
