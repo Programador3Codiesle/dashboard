@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
 import { NEXT_APP_BASE_PATH_PRODUCTION } from "./src/config/next-base-path";
+import { getNextDistDir } from "./src/config/next-dist-dir";
 
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   basePath: isProd ? NEXT_APP_BASE_PATH_PRODUCTION : "",
   assetPrefix: isProd ? NEXT_APP_BASE_PATH_PRODUCTION : "",
+  distDir: getNextDistDir(),
 
   compress: true,
 

@@ -1,14 +1,14 @@
 /**
  * PM2 — frontend Next.
  *
- * NO ejecutar `npm run build` mientras este proceso sirve `.next`.
- * Orden:
- *   git pull origin main
- *   npm install          (solo si cambió package.json)
- *   pm2 stop postventa-front
- *   npm run build
- *   pm2 start postventa-front
- *   (o pm2 reload postventa-front si el proceso ya arrancó con este file)
+ * Deploy sin dejar 5 min el sitio caído:
+ *   1. git pull + npm install + npm run build:inactive  (front SIGUE en marcha)
+ *   2. pm2 stop postventa-front
+ *   3. npm run promote:front
+ *   4. pm2 start postventa-front
+ *
+ * No pongas NEXT_DIST_DIR en el .env permanente ni en este file:
+ * `next start` debe leer la carpeta `.next` (ya promocionada).
  *
  * NEXT_PUBLIC_API_URL se hornea en el build. No cambiarla entre deploys.
  */
