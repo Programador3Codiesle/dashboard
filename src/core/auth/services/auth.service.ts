@@ -1,6 +1,11 @@
 // Servicio de autenticación
 import { getApiBaseUrl } from "@/config/public-env";
 import { fetchWithAuth } from "@/utils/api";
+import type { LoginUserPayload } from "@/core/auth/map-login-user";
+import {
+  sessionAvailabilityFromHttpStatus,
+  type SessionAvailability,
+} from "@/core/auth/session-status";
 
 const API_URL = getApiBaseUrl();
 
@@ -11,17 +16,7 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
-  user: {
-    id: string;
-    nit_usuario: number;
-    perfil_postventa: string;
-    nombre_usuario: string;
-    nom_perfil?: string;
-    empresas_asignadas: number[];
-    menus_permitidos: number[];
-    submenus_permitidos: number[];
-    trimenus_permitidos: number[];
-  };
+  user: LoginUserPayload;
 }
 
 export interface LoginErrorResponse {
@@ -32,9 +27,19 @@ export interface LoginErrorResponse {
 
 export interface ProfileResponse {
   sub: string;
-  email: number;
+  email?: number;
   role: string;
+  user?: LoginUserPayload;
 }
+
+export type SessionCheck =
+  | { status: "authenticated"; profile: ProfileResponse }
+  | { status: "unauthenticated" }
+  | { status: "unavailable" };
+
+export type RefreshSessionResult = {
+  status: Exclude<SessionAvailability, "authenticated"> | "ok";
+};
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
@@ -74,25 +79,33 @@ export const authService = {
     }
   },
 
-  async getProfile(): Promise<ProfileResponse | null> {
+  async getProfile(): Promise<SessionCheck> {
     try {
       const response = await fetchWithAuth(`${API_URL}/auth/profile`, {
         method: "GET",
       });
 
-      if (!response.ok) {
-        return null;
+      const availability = sessionAvailabilityFromHttpStatus(
+        response.status,
+        response.ok,
+      );
+
+      if (availability === "authenticated") {
+        const data: ProfileResponse = await response.json();
+        return { status: "authenticated", profile: data };
       }
 
-      const data: ProfileResponse = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error al obtener perfil:", error);
-      return null;
+      if (availability === "unauthenticated") {
+        return { status: "unauthenticated" };
+      }
+
+      return { status: "unavailable" };
+    } catch {
+      return { status: "unavailable" };
     }
   },
 
-  async refreshToken(): Promise<boolean> {
+  async refreshToken(): Promise<RefreshSessionResult> {
     try {
       const response = await fetch(`${API_URL}/auth/refresh`, {
         method: "POST",
@@ -102,11 +115,20 @@ export const authService = {
         credentials: "include",
       });
 
-      return response.ok;
-    } catch (error) {
-      console.error("Error al refrescar token:", error);
-      return false;
+      if (response.ok) {
+        return { status: "ok" };
+      }
+
+      const availability = sessionAvailabilityFromHttpStatus(
+        response.status,
+        false,
+      );
+      return {
+        status:
+          availability === "unauthenticated" ? "unauthenticated" : "unavailable",
+      };
+    } catch {
+      return { status: "unavailable" };
     }
   },
 };
-

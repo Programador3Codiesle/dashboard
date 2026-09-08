@@ -4,12 +4,17 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
+import { mapLoginUser } from "../map-login-user";
 import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
 import { withNextBasePath } from "@/config/next-base-path";
-import { toPermissionIdSet } from "@/utils/permission-ids";
 
-const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000; // 4 horas
-const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutos para considerar "activo"
+const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000;
+const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000;
+const SESSION_RETRY_ATTEMPTS = 3;
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUserState] = useState<User | null>(null);
@@ -38,42 +43,59 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         };
     }, []);
 
-    // Cargar usuario de cookies al iniciar y verificar sesión con el backend
+    const applySessionUser = useCallback((next: User) => {
+        const normalizedUser = normalizeEmpresaSelection(next);
+        setUser(normalizedUser, getRememberSession());
+        setUserState(normalizedUser);
+    }, [normalizeEmpresaSelection]);
+
     useEffect(() => {
         const initializeAuth = async () => {
             const savedUser = getUser();
 
-            if (savedUser) {
-                // Verificar que la sesión sigue válida en el backend
-                try {
-                    const profile = await authService.getProfile();
-                    if (profile) {
-                        // Sesión válida, mantener el usuario
-                        const normalizedUser = normalizeEmpresaSelection(savedUser);
-                        setUser(normalizedUser, getRememberSession());
-                        setUserState(normalizedUser);
-                    } else {
-                        // Sesión expirada o inválida, limpiar
-                        removeUser();
-                        setUserState(null);
-                    }
-                } catch (error) {
-                    // Error al verificar, limpiar por seguridad
-                    removeUser();
-                    setUserState(null);
+            let check = await authService.getProfile();
+            for (let attempt = 1; attempt < SESSION_RETRY_ATTEMPTS && check.status === "unavailable"; attempt++) {
+                await sleep(500 * 2 ** (attempt - 1));
+                check = await authService.getProfile();
+            }
+
+            if (check.status === "unavailable") {
+                if (savedUser) {
+                    applySessionUser(savedUser);
                 }
+                setLoading(false);
+                return;
+            }
+
+            if (check.status === "unauthenticated") {
+                removeUser();
+                setUserState(null);
+                setLoading(false);
+                return;
+            }
+
+            const fromApi = check.profile.user
+                ? mapLoginUser(check.profile.user)
+                : null;
+            const nextUser = fromApi
+                ? {
+                    ...fromApi,
+                    empresa: savedUser?.empresa,
+                }
+                : savedUser;
+
+            if (nextUser) {
+                applySessionUser(nextUser);
             }
 
             setLoading(false);
         };
 
-        initializeAuth();
-    }, [normalizeEmpresaSelection]);
+        void initializeAuth();
+    }, [applySessionUser]);
 
-    // Definir logout antes de los useEffect que lo usan
     const logout = useCallback(async () => {
         try {
-            // Llamar al backend para invalidar el refresh token y borrar cookies HttpOnly
             await authService.logout();
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
@@ -83,13 +105,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 refreshTimeoutRef.current = null;
             }
 
-            // Borrar todas las cookies relacionadas con la sesión (lado cliente)
             removeUser();
             removeCookie('refresh_token');
 
             queryClient.clear();
 
-            // Limpiar el estado del usuario
             setUserState(null);
 
             if (typeof window !== 'undefined') {
@@ -98,19 +118,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         }
     }, [queryClient]);
 
-    // Registrar actividad del usuario (mouse, teclado, clics, scroll, focus)
     useEffect(() => {
         const updateActivity = () => {
             lastActivity.current = Date.now();
         };
 
-        // Eventos que indican actividad del usuario
         window.addEventListener("mousemove", updateActivity);
         window.addEventListener("keydown", updateActivity);
         window.addEventListener("click", updateActivity);
         window.addEventListener("scroll", updateActivity);
         window.addEventListener("focus", updateActivity);
-        window.addEventListener("touchstart", updateActivity); // Para dispositivos táctiles
+        window.addEventListener("touchstart", updateActivity);
 
         return () => {
             window.removeEventListener("mousemove", updateActivity);
@@ -122,7 +140,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         };
     }, []);
 
-    // Verificación de inactividad - cerrar sesión después de 4 horas sin actividad
     useEffect(() => {
         if (!user) return;
 
@@ -130,17 +147,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             const inactiveTime = Date.now() - lastActivity.current;
 
             if (inactiveTime > INACTIVITY_LIMIT_MS) {
-                // 4 horas sin actividad → cerrar sesión
                 logout();
             }
-        }, 60 * 1000); // Verificar cada minuto
+        }, 60 * 1000);
 
         return () => clearInterval(inactivityInterval);
     }, [user, logout]);
 
-    // Refresh preventivo solo si hay actividad reciente (últimos 30 minutos)
-    // Se ejecuta con delay aleatorio entre 13.5 y 14 minutos para distribuir las solicitudes
-    // y evitar que todos los usuarios refresquen al mismo tiempo
     useEffect(() => {
         if (!user) return;
 
@@ -164,25 +177,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 const inactiveTime = Date.now() - lastActivity.current;
 
                 if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
-                    try {
-                        const success = await authService.refreshToken();
-                        if (!success) {
-                            console.error("Refresh preventivo falló, cerrando sesión");
-                            logout();
-                            return;
-                        }
-                        scheduleNext();
-                    } catch (error) {
-                        console.error("Error en refresh preventivo:", error);
-                        if (inactiveTime < ACTIVITY_THRESHOLD_MS) {
-                            logout();
-                            return;
-                        }
-                        scheduleNext();
+                    const result = await authService.refreshToken();
+                    if (result.status === "unauthenticated") {
+                        logout();
+                        return;
                     }
-                } else {
                     scheduleNext();
+                    return;
                 }
+
+                scheduleNext();
             }, randomDelay);
         };
 
@@ -197,51 +201,26 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         };
     }, [user, logout]);
 
-    const login = async (credentials: { user: string; password: string; remember: boolean }): Promise<User> => {
+    const login = useCallback(async (credentials: { user: string; password: string; remember: boolean }): Promise<User> => {
         const nitUsuario = parseInt(credentials.user, 10);
 
         if (isNaN(nitUsuario)) {
             throw new Error("El usuario debe ser un número NIT válido");
         }
 
-        try {
-            const response = await authService.login({
-                nit_usuario: nitUsuario,
-                password: credentials.password,
-                remember: credentials.remember,
-            });
+        const response = await authService.login({
+            nit_usuario: nitUsuario,
+            password: credentials.password,
+            remember: credentials.remember,
+        });
 
-            // Crear objeto usuario (sin empresa; se elige en modal post-login)
-            const userData: User = {
-                id: response.user.id,
-                user: response.user.nit_usuario.toString(),
-                nit_usuario: response.user.nit_usuario,
-                perfil_postventa: response.user.perfil_postventa,
-                nom_perfil: response.user.nom_perfil,
-                nombre_usuario: response.user.nombre_usuario,
-                empresas_asignadas: Array.from(
-                    toPermissionIdSet(response.user.empresas_asignadas),
-                ),
-                menus_permitidos: Array.from(
-                    toPermissionIdSet(response.user.menus_permitidos),
-                ),
-                submenus_permitidos: Array.from(
-                    toPermissionIdSet(response.user.submenus_permitidos),
-                ),
-                trimenus_permitidos: Array.from(
-                    toPermissionIdSet(response.user.trimenus_permitidos),
-                ),
-            };
-
-            const normalizedUser = normalizeEmpresaSelection(userData);
-            setUser(normalizedUser, credentials.remember);
-            setUserState(normalizedUser);
-            lastActivity.current = Date.now();
-            return normalizedUser;
-        } catch (error: any) {
-            throw error;
-        }
-    };
+        const userData = mapLoginUser(response.user);
+        const normalizedUser = normalizeEmpresaSelection(userData);
+        setUser(normalizedUser, credentials.remember);
+        setUserState(normalizedUser);
+        lastActivity.current = Date.now();
+        return normalizedUser;
+    }, [normalizeEmpresaSelection]);
 
     const updateUser = useCallback((partial: Partial<User>) => {
         setUserState((prev) => {
@@ -259,7 +238,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         logout,
         updateUser,
         isAuthenticated: !!user,
-    }), [user, loading, logout, updateUser]);
+    }), [user, loading, login, logout, updateUser]);
 
     return (
         <AuthContext.Provider value={authValue}>
