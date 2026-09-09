@@ -103,7 +103,7 @@ export function ProgressCard({
   children,
 }: ProgressCardProps) {
   return (
-    <div className="app-section-card min-w-0">
+    <div data-testid="indicadores-progress-card" className="app-section-card min-w-0">
       <div className="mb-4 text-center">
         <p className="break-all text-2xl font-bold brand-text sm:text-3xl">
           {formatMoney(totalDia)}

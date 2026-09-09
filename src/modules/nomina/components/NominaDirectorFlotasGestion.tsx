@@ -93,7 +93,7 @@ export function NominaDirectorFlotasGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="nomina-director-flotas-page" className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <h1 className="app-title-xl brand-text">
@@ -109,8 +109,10 @@ export function NominaDirectorFlotasGestion() {
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Mes</label>
+            <label htmlFor="nomina-director-flotas-mes" className="text-xs font-medium text-gray-600">Mes</label>
             <input
+              id="nomina-director-flotas-mes"
+              data-testid="nomina-director-flotas-mes"
               type="month"
               className={NOMINA_STYLES.input}
               value={mes}
@@ -119,6 +121,7 @@ export function NominaDirectorFlotasGestion() {
           </div>
           <button
             type="button"
+            data-testid="nomina-director-flotas-generar"
             onClick={onGenerar}
             disabled={generarMutation.isPending}
             className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-primary-dark) transition-colors disabled:opacity-60"
@@ -179,7 +182,7 @@ export function NominaDirectorFlotasGestion() {
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
               Placas nuevas ingresadas al taller
             </h2>
-            <div className="app-table-scroll">
+            <div data-testid="nomina-director-flotas-table" className="app-table-scroll">
               <table className="w-full min-w-[640px] divide-y divide-gray-200 text-xs md:text-sm">
                 <thead className="bg-gray-50">
                   <tr>

@@ -90,7 +90,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="nomina-margen-page" className="space-y-6">
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <h1 className="app-title-xl brand-text">
@@ -106,8 +106,10 @@ export function RelacionMargenMaterialesColoristaGestion() {
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
         <div className="app-filter-grid">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Fecha</label>
+            <label htmlFor="nomina-margen-mes" className="text-xs font-medium text-gray-600">Fecha</label>
             <input
+              id="nomina-margen-mes"
+              data-testid="nomina-margen-mes"
               className={NOMINA_STYLES.input}
               type="month"
               value={mes}
@@ -117,8 +119,10 @@ export function RelacionMargenMaterialesColoristaGestion() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Sede</label>
+            <label htmlFor="nomina-margen-sede" className="text-xs font-medium text-gray-600">Sede</label>
             <select
+              id="nomina-margen-sede"
+              data-testid="nomina-margen-sede"
               className={NOMINA_STYLES.input}
               value={sede}
               onChange={(e) => setSede(e.target.value as SedeRelacionMargen | '')}
@@ -130,6 +134,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
           </div>
           <button
             type="button"
+            data-testid="nomina-margen-generar"
             onClick={onGenerar}
             disabled={cargarMutation.isPending}
             className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-primary-dark) transition-colors disabled:opacity-60"
@@ -169,7 +174,7 @@ export function RelacionMargenMaterialesColoristaGestion() {
         )}
 
         {!cargarMutation.isPending && rows.length > 0 && (
-          <div className="app-table-scroll">
+          <div data-testid="nomina-margen-table" className="app-table-scroll">
             <table className="w-full min-w-[880px] divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>

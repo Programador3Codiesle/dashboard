@@ -66,7 +66,7 @@ const TablaAusentismos = memo(function TablaAusentismos({
   onVerDetalle: (a: AusentismoInforme) => void;
 }) {
   return (
-    <div className="app-table-scroll relative">
+    <div data-testid="adm-table" className="app-table-scroll relative">
       {loading && ausentismos.length > 0 && (
         <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-b-xl">
           <div className="flex items-center gap-2 text-gray-600 bg-white px-4 py-2 rounded-lg shadow-md">
@@ -230,6 +230,7 @@ const FiltersSection = memo(function FiltersSection({
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
+          data-testid="adm-buscar"
           onClick={onBuscar}
           disabled={loading}
           className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 transition-colors"

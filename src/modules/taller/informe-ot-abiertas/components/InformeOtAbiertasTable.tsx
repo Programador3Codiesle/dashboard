@@ -72,7 +72,7 @@ function InformeOtAbiertasTableComponent({
   );
 
   return (
-    <div>
+    <div data-testid="informe-ot-table">
       <div className="app-table-scroll">
         <table className="w-full text-sm min-w-[900px]">
           <thead>

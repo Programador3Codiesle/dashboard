@@ -7,6 +7,7 @@ interface DateFilterInputProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  testId?: string;
 }
 
 /**
@@ -17,7 +18,8 @@ export const DateFilterInput = React.memo(({
   label,
   value,
   onChange,
-  className = ""
+  className = "",
+  testId,
 }: DateFilterInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +33,7 @@ export const DateFilterInput = React.memo(({
       <div className="relative">
         <input
           ref={inputRef}
+          data-testid={testId}
           type="date"
           className="block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all text-sm bg-white"
           value={value}

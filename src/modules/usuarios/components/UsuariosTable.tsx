@@ -448,7 +448,7 @@ export const UsuariosTable = memo(function UsuariosTable() {
       </div>
 
       <div className="app-table-scroll bg-white shadow-sm">
-        <table className="w-full min-w-[960px]">
+        <table data-testid="usuarios-table" className="w-full min-w-[960px]">
           <thead className="brand-bg text-white text-center">
             <tr>
               <th className="px-2 py-2 text-center text-xs sm:px-4 sm:text-sm">ID</th>

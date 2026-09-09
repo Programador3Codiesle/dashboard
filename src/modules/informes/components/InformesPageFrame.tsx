@@ -19,7 +19,7 @@ export function InformesPageFrame({
   children,
 }: Props) {
   return (
-    <div className="space-y-6">
+    <div data-testid="informes-page" className="space-y-6">
       <PageTitleRow
         title={title}
         description={description}

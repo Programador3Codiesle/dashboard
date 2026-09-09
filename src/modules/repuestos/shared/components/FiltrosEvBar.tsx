@@ -72,13 +72,20 @@ export function FiltrosEvBar({
       </select>
       <input
         type="date"
+        data-testid="repuestos-ev-fecha"
+        aria-label="Fecha de registro"
         className={inputClass}
         value={filtros.fechaRegistro}
         onChange={(e) =>
           onChange({ ...filtros, fechaRegistro: e.target.value })
         }
       />
-      <button type="button" className={btnPrimaryClass} onClick={onBuscar}>
+      <button
+        type="button"
+        data-testid="repuestos-ev-buscar"
+        className={btnPrimaryClass}
+        onClick={onBuscar}
+      >
         Buscar
       </button>
     </div>

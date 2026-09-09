@@ -98,6 +98,7 @@ export function FormatosNominaGestion() {
               </div>
               <button
                 type="button"
+                data-testid="adm-formato-cerrar"
                 onClick={() => setFormatoSeleccionado(null)}
                 className="inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                 aria-label="Cerrar"

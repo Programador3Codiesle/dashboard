@@ -99,6 +99,7 @@ export function EntregasGestion() {
             Año
             <input
               id="aud-ent-ano"
+              data-testid="aud-ent-ano"
               type="number"
               min={2022}
               max={2100}
@@ -109,6 +110,7 @@ export function EntregasGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-ent-livianos"
             onClick={() => cargar(1)}
             className={applied?.tipo === 1 ? btnToggleActiveClass : btnToggleClass}
           >

@@ -169,7 +169,7 @@ export function InventarioObsoletosGestion() {
       description={REPUESTOS_COPY.inventarioObsoletos.description}
     >
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
-      <div className="app-table-scroll">
+      <div data-testid="repuestos-inventario-table" className="app-table-scroll">
         <table className="w-full min-w-[640px] text-xs md:text-sm">
           <thead className="bg-gray-50">
             <tr>

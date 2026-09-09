@@ -18,7 +18,7 @@ export function OrdenesTotPageFrame({
   children,
 }: Props) {
   return (
-    <div className="w-full min-w-0 space-y-4 sm:space-y-6">
+    <div data-testid="ordenes-tot-page" className="w-full min-w-0 space-y-4 sm:space-y-6">
       <PageTitleRow
         title={title}
         description={description}

@@ -94,6 +94,7 @@ export default function NuevoTicketModal({
             </label>
             <div className="relative mt-1">
               <select
+                data-testid="tickets-tipo"
                 className={`${inputClass} appearance-none pr-10`}
                 value={form.tipoSoporte}
                 onChange={(e) =>
@@ -130,6 +131,7 @@ export default function NuevoTicketModal({
             </label>
             <div className="relative mt-1">
               <select
+                data-testid="tickets-sede"
                 className={`${inputClass} appearance-none pr-10`}
                 value={form.sede}
                 onChange={(e) => setForm({ ...form, sede: e.target.value })}
@@ -161,6 +163,7 @@ export default function NuevoTicketModal({
         </div>
 
         <OptimizedTextarea
+          data-testid="tickets-descripcion"
           label="Descripción del problema"
           labelClassName={labelClass}
           className={`mt-1 ${inputClass} min-h-[120px] resize-y`}
@@ -219,6 +222,7 @@ export default function NuevoTicketModal({
           </button>
           <button
             type="submit"
+            data-testid="tickets-submit"
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-white brand-bg brand-bg-hover transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
             disabled={loading}
           >

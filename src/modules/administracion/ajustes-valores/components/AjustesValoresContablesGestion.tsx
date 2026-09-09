@@ -319,6 +319,7 @@ export function AjustesValoresContablesGestion() {
             <label className={labelClass}>Tipo</label>
             <input
               type="text"
+              data-testid="adm-ajuste-tipo"
               className={inputClass}
               value={tipoAjuste1}
               onChange={(e) => setTipoAjuste1(e.target.value.toUpperCase())}
@@ -329,6 +330,7 @@ export function AjustesValoresContablesGestion() {
             <label className={labelClass}>Número</label>
             <input
               type="text"
+              data-testid="adm-ajuste-numero"
               className={inputClass}
               value={numeroAjuste1}
               onChange={(e) => setNumeroAjuste1(e.target.value)}
@@ -338,6 +340,7 @@ export function AjustesValoresContablesGestion() {
           <div className="flex items-end">
             <button
               type="button"
+              data-testid="adm-ajuste-obtener"
               onClick={handleObtenerDatos1}
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 brand-bg brand-bg-hover text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"

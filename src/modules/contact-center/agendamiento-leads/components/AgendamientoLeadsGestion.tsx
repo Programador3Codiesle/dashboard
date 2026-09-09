@@ -213,6 +213,7 @@ export function AgendamientoLeadsGestion() {
             <div className="flex items-end">
               <button
                 type="button"
+                data-testid="cc-leads-filtrar"
                 className={btnPrimaryClass}
                 onClick={() => {
                   setFiltrosAplicados({ ...filtros });

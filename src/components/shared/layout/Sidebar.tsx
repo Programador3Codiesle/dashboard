@@ -63,7 +63,7 @@ function SidebarComponent({
         )}
       </AnimatePresence>
 
-      <aside className={asideClassName}>
+      <aside data-testid="sidebar" className={asideClassName}>
         <div
           className={`flex border-b border-gray-800 bg-gray-900/50 ${
             isCollapsed && !isMobile
@@ -160,6 +160,8 @@ function SidebarComponent({
 
           <button
             type="button"
+            data-testid="sidebar-logout"
+            aria-label="Cerrar sesión"
             onClick={() => onLogout?.()}
             className={`flex w-full items-center rounded-lg border border-red-500/20 p-3 text-red-400 transition-all duration-200 hover:scale-[1.02] hover:bg-red-500/10 active:scale-[0.98] ${isCollapsed ? "justify-center p-2" : "justify-start"}`}
           >

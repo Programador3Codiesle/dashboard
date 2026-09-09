@@ -99,6 +99,7 @@ export function InformeObsoletosGestion() {
               <div>
                 <label className="text-xs font-medium text-gray-600">Filtro</label>
                 <select
+                  data-testid={`repuestos-obsoletos-categoria-${f.id}`}
                   className={`${inputClass} mt-1`}
                   value={filtros[f.id].categoria}
                   onChange={(e) =>
@@ -117,6 +118,7 @@ export function InformeObsoletosGestion() {
                 <label className="text-xs font-medium text-gray-600">Rango</label>
                 <input
                   type="number"
+                  data-testid={`repuestos-obsoletos-rango-${f.id}`}
                   className={`${inputClass} mt-1`}
                   value={filtros[f.id].rango}
                   onChange={(e) =>
@@ -129,6 +131,7 @@ export function InformeObsoletosGestion() {
               </div>
               <button
                 type="button"
+                data-testid={`repuestos-obsoletos-generar-${f.id}`}
                 className={btnPrimaryClass}
                 onClick={() => consultar.mutate(f.id)}
                 disabled={consultar.isPending}
@@ -145,7 +148,7 @@ export function InformeObsoletosGestion() {
           <button type="button" className={btnPrimaryClass} onClick={exportarExcel}>
             Generar Excel
           </button>
-          <div className="app-table-scroll">
+          <div data-testid="repuestos-obsoletos-table" className="app-table-scroll">
             <table className="w-full min-w-[960px] text-xs">
               <thead className="bg-gray-50">
                 <tr>

@@ -75,6 +75,7 @@ export function ChecklistStandardForm({ config }: Props) {
         <h1 className="app-title-xl brand-text mb-4 text-center">{config.tituloPagina}</h1>
 
         <form
+          data-testid="checklist-form"
           onSubmit={onSubmit}
           className="mx-auto w-full min-w-0 max-w-4xl space-y-4"
         >

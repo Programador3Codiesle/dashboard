@@ -208,6 +208,7 @@ export function FormatoOrdenSalidaGestion() {
             <input
               type="date"
               name="fecha_salida"
+              data-testid="adm-os-fecha"
               min={today}
               value={form.fecha_salida}
               onChange={handleChange}
@@ -222,6 +223,7 @@ export function FormatoOrdenSalidaGestion() {
             </label>
             <select
               name="area"
+              data-testid="adm-os-area"
               value={form.area}
               onChange={handleChange}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
@@ -242,6 +244,7 @@ export function FormatoOrdenSalidaGestion() {
             </label>
             <select
               name="sede"
+              data-testid="adm-os-sede"
               value={sedeValue}
               onChange={handleChange}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
@@ -264,6 +267,7 @@ export function FormatoOrdenSalidaGestion() {
             </label>
             <select
               name="jefe"
+              data-testid="adm-os-jefe"
               value={selectedJefeNit ?? ''}
               onChange={(e) => {
                 const nit = Number(e.target.value);
@@ -302,6 +306,7 @@ export function FormatoOrdenSalidaGestion() {
             <div className="relative">
               <select
                 name="tipoSalida"
+                data-testid="adm-os-tipo"
                 value={form.tipoSalida || ''}
                 onChange={handleChange}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"

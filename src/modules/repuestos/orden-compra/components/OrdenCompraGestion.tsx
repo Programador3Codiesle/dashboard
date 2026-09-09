@@ -125,17 +125,18 @@ export function OrdenCompraGestion() {
       <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm space-y-3">
         <div className="app-form-grid-2">
         <div>
-          <label className="text-sm text-gray-600">Desde</label>
-          <input type="date" className={inputClass} value={fechaIni} onChange={(e) => setFechaIni(e.target.value)} />
+          <label htmlFor="repuestos-oc-desde" className="text-sm text-gray-600">Desde</label>
+          <input id="repuestos-oc-desde" data-testid="repuestos-oc-desde" type="date" className={inputClass} value={fechaIni} onChange={(e) => setFechaIni(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm text-gray-600">Hasta</label>
-          <input type="date" className={inputClass} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
+          <label htmlFor="repuestos-oc-hasta" className="text-sm text-gray-600">Hasta</label>
+          <input id="repuestos-oc-hasta" data-testid="repuestos-oc-hasta" type="date" className={inputClass} value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
         </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           type="button"
+          data-testid="repuestos-oc-buscar"
           className={btnPrimaryClass}
           onClick={() => {
             setFiltrosAplicados({ fechaIni, fechaFin });
@@ -196,7 +197,7 @@ export function OrdenCompraGestion() {
         ))}
       </div>
 
-      <div className="app-table-scroll">
+      <div data-testid="repuestos-oc-table" className="app-table-scroll">
         <table className="w-full min-w-[1800px] text-[11px]">
           <thead className="bg-gray-50 sticky top-0">
             <tr>

@@ -199,7 +199,7 @@ export function PosiblesRetornosGestion() {
         onBuscar={handleBuscar}
       />
 
-      <div className="relative bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-6">
+        <div data-testid="posibles-retornos-listado" className="relative bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-6">
         {loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-2xl">
             <div className="flex items-center gap-2 text-gray-600 text-sm">

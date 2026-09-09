@@ -151,6 +151,7 @@ export function PanelBusqueda({
           <div className="flex gap-2 min-w-0">
             <input
               type="date"
+              data-testid="entrada-fecha"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
               className={`flex-1 min-w-0 ${EV_INPUT}`}
@@ -179,6 +180,7 @@ export function PanelBusqueda({
           <div className="flex gap-2 min-w-0">
             <input
               type="text"
+              data-testid="entrada-placa"
               value={placa}
               onChange={(e) => setPlaca(e.target.value.toUpperCase())}
               maxLength={6}

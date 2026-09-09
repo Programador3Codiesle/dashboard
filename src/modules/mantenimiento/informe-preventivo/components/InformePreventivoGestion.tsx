@@ -163,7 +163,7 @@ export function InformePreventivoGestion() {
       ) : null}
 
       <div className="app-section-card w-full min-w-0">
-        <div className="app-table-scroll">
+        <div data-testid="mtto-informe-preventivo-table" className="app-table-scroll">
         <table className="w-full min-w-[1200px] text-xs md:text-sm">
           <thead className="sticky top-0 brand-bg text-white">
             <tr>

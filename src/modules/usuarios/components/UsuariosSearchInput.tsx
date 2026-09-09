@@ -18,6 +18,7 @@ export const UsuariosSearchInput = memo(function UsuariosSearchInput({
 
   return (
     <input
+      data-testid="usuarios-search"
       className="w-full sm:max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none brand-focus-ring"
       placeholder={USUARIOS_COPY.searchPlaceholder}
       value={value}

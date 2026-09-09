@@ -484,7 +484,7 @@ export function CotizarLivianosGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="cotizar-livianos-page" className="space-y-6">
       <PageTitleRow
         title="Cotizador Livianos"
         description="Busca un vehículo por placa, selecciona la revisión y genera el detalle base de la cotización para livianos."
@@ -498,10 +498,15 @@ export function CotizarLivianosGestion() {
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-5 flex flex-col sm:flex-row sm:items-end gap-4"
       >
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="cotizar-livianos-placa"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Placa del vehículo
           </label>
           <input
+            id="cotizar-livianos-placa"
+            data-testid="cotizar-livianos-placa"
             type="text"
             value={placaBusqueda}
             onChange={(e) => setPlacaBusqueda(e.target.value.toUpperCase())}

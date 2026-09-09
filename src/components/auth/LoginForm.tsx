@@ -52,9 +52,9 @@ export const LoginForm = () => {
       }
 
       setShowEmpresaModal(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error en login:', error);
-      setErrorMsg(error?.message || "Credenciales incorrectas");
+      setErrorMsg(error instanceof Error ? error.message : "Credenciales incorrectas");
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +93,11 @@ export const LoginForm = () => {
 
         {/* Mensaje de error */}
         {errorMsg && (
-          <div className="mb-1 mt-1 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg text-sm">
+          <div
+            data-testid="login-error"
+            role="alert"
+            className="mb-1 mt-1 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg text-sm"
+          >
             {errorMsg}
           </div>
         )}
@@ -102,6 +106,7 @@ export const LoginForm = () => {
 
       {/* Formulario */}
       <motion.form
+        data-testid="login-form"
         onSubmit={handleSubmit}
         className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/60 p-8 space-y-6"
         initial={{ opacity: 0 }}
@@ -110,7 +115,7 @@ export const LoginForm = () => {
       >
         {/* Campo Email */}
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
+          <label htmlFor="user" className="text-sm font-medium text-gray-700">
             Usuario
           </label>
           <div className="relative">
@@ -119,11 +124,13 @@ export const LoginForm = () => {
             </div>
             <input
               id="user"
+              data-testid="login-user"
               type="text"
               value={user}
               onChange={(e) => setUser(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all duration-200 outline-none"
               placeholder="Usuario"
+              autoComplete="username"
               required
             />
           </div>
@@ -140,11 +147,13 @@ export const LoginForm = () => {
             </div>
             <input
               id="password"
+              data-testid="login-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all duration-200 outline-none"
               placeholder="••••••••"
+              autoComplete="current-password"
               required
             />
             <button
@@ -183,6 +192,7 @@ export const LoginForm = () => {
         {/* Botón de Login */}
         <motion.button
           type="submit"
+          data-testid="login-submit"
           disabled={isLoading}
           whileHover={{ scale: isLoading ? 1 : 1.02 }}
           whileTap={{ scale: isLoading ? 1 : 0.98 }}

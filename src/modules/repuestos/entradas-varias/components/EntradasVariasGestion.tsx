@@ -104,9 +104,11 @@ export function EntradasVariasGestion() {
     <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-sm space-y-4">
       <div className="app-filter-grid">
         <div>
-          <label className="text-sm font-medium text-gray-700">N° Orden</label>
+          <label htmlFor="repuestos-ev-orden" className="text-sm font-medium text-gray-700">N° Orden</label>
           <div className="flex flex-col gap-2 mt-1 sm:flex-row">
             <input
+              id="repuestos-ev-orden"
+              data-testid="repuestos-ev-orden"
               type="number"
               className={inputClass}
               value={nOrden}

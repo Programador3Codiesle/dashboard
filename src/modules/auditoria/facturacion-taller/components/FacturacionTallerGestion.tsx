@@ -80,6 +80,7 @@ export function FacturacionTallerGestion() {
             Bodega
             <select
               id="aud-ft-bodega"
+              data-testid="aud-ft-bodega"
               className={inputClass}
               value={bodega}
               onChange={(e) => setBodega(e.target.value)}
@@ -94,6 +95,7 @@ export function FacturacionTallerGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-ft-buscar"
             className={btnPrimaryClass}
             disabled={listQuery.isFetching}
             onClick={() => {

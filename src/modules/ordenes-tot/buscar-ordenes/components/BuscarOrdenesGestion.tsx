@@ -139,7 +139,10 @@ export function BuscarOrdenesGestion() {
       title={ORDENES_TOT_COPY.buscarOrdenes.title}
       description={ORDENES_TOT_COPY.buscarOrdenes.description}
     >
-      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3">
+      <div
+        data-testid="ot-porteria"
+        className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-3"
+      >
         <section className="app-section-card min-w-0 space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-gray-800">
             Vehículos

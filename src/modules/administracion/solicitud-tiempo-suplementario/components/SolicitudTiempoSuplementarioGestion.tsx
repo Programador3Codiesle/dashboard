@@ -204,7 +204,7 @@ export function SolicitudTiempoSuplementarioGestion() {
           </div>
         ) : null}
 
-        <div className="app-table-scroll">
+        <div data-testid="adm-calendario" className="app-table-scroll">
           <div className="min-w-[640px]">
         <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-2">
           {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (

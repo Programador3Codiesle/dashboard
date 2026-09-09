@@ -95,6 +95,7 @@ export function FiltrosInforme({
             <button
               type="button"
               id="loadGraph"
+              data-testid="informe-posibles-retornos-generar"
               className="brand-btn w-full sm:w-auto px-5 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
               onClick={onGenerar}
               disabled={loading || !year}

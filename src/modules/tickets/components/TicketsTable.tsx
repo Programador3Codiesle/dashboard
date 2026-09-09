@@ -75,7 +75,7 @@ export function TicketsTable({
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
       <div className="app-table-scroll border-0 rounded-none">
-        <table className={`${minWidthClass} w-full`}>
+        <table data-testid="tickets-table" className={`${minWidthClass} w-full`}>
           <thead>
             <tr className="brand-bg-gradient border-b-2 border-[var(--color-primary-dark)] text-center">
               {HEADERS.map((header) => (

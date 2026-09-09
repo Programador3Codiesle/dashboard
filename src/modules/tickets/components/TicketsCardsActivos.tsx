@@ -56,7 +56,10 @@ function TicketsCardsActivosComponent({
 
   if (!tickets.length)
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+      <div
+        data-testid="tickets-empty"
+        className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200"
+      >
         <div className="bg-white p-4 rounded-full shadow-sm mb-4">
           <MessageSquare className="text-gray-400" size={24} />
         </div>
@@ -67,7 +70,10 @@ function TicketsCardsActivosComponent({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+      <div
+        data-testid="tickets-cards"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6"
+      >
         {tickets.map((t) => {
           const isEnProceso = t.estado === 'en proceso';
           const estadoDisplay = isEnProceso ? 'En Proceso' : 'Activo';

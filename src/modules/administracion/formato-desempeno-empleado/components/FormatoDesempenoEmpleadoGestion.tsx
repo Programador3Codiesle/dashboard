@@ -453,7 +453,7 @@ export function FormatoDesempenoEmpleadoGestion() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   Desempeño Laboral
                 </h2>
-                <div className="app-table-scroll rounded-xl border-2 border-blue-200 shadow-sm">
+                <div data-testid="adm-desempeno-table" className="app-table-scroll rounded-xl border-2 border-blue-200 shadow-sm">
                   <table className="w-full min-w-[720px]">
                     <thead>
                       <tr className="brand-bg border-b-2 border-[var(--color-primary)]">

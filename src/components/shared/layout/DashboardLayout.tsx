@@ -58,7 +58,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   // Mostrar loading mientras se verifica la sesión (evita redirección prematura al recargar)
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      <div
+        data-testid="session-loading"
+        className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100"
+      >
         <div className="text-center p-8 animate-fade-in">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando sesión...</p>
@@ -69,7 +72,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      <div
+        data-testid="acceso-no-autorizado"
+        className="flex items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-100"
+      >
         <div className="text-center p-8 animate-fade-in">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🔒</span>
@@ -87,7 +93,10 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const needsEmpresa = isAuthenticated && user && user.empresa == null;
 
   return (
-    <div className="flex min-h-screen w-full overflow-x-hidden brand-dashboard-bg">
+    <div
+      data-testid="dashboard-shell"
+      className="flex min-h-screen w-full overflow-x-hidden brand-dashboard-bg"
+    >
       <Sidebar 
         user={user} 
         isVisible={showSidebar} 

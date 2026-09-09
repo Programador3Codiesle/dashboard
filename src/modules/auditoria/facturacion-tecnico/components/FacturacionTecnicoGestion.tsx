@@ -94,6 +94,7 @@ export function FacturacionTecnicoGestion() {
             Bodega
             <select
               id="aud-ftec-bodega"
+              data-testid="aud-ftec-bodega"
               className={inputClass}
               value={bodega}
               onChange={(e) => {
@@ -130,6 +131,7 @@ export function FacturacionTecnicoGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-ftec-buscar"
             className={btnPrimaryClass}
             disabled={listQuery.isFetching}
             onClick={() => {

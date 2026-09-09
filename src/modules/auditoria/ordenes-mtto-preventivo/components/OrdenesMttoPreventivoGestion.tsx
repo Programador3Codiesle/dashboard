@@ -70,6 +70,7 @@ export function OrdenesMttoPreventivoGestion() {
             Bodega
             <select
               id="aud-mtto-bodega"
+              data-testid="aud-mtto-bodega"
               className={inputClass}
               value={bodega}
               onChange={(e) => setBodega(e.target.value)}
@@ -84,6 +85,7 @@ export function OrdenesMttoPreventivoGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-mtto-buscar"
             className={btnPrimaryClass}
             disabled={listQuery.isFetching}
             onClick={() => {

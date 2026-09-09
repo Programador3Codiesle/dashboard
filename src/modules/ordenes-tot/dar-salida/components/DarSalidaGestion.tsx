@@ -304,6 +304,7 @@ export function DarSalidaGestion({ tipo }: Props) {
             </p>
             <button
               type="button"
+              data-testid="ot-registrar"
               className={btnPrimaryClass}
               onClick={() => setModalOpen(true)}
             >
@@ -328,7 +329,7 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <div className="app-table-scroll">
+                <div data-testid="ot-table" className="app-table-scroll">
                   <table className="w-full min-w-[640px] text-sm">
                     <thead className="brand-bg text-white">
                       <tr>
@@ -392,7 +393,7 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <div className="app-table-scroll">
+                <div data-testid="ot-table" className="app-table-scroll">
                   <table className="w-full min-w-[1100px] text-sm">
                     <thead className="brand-bg text-white">
                       <tr>
@@ -478,7 +479,7 @@ export function DarSalidaGestion({ tipo }: Props) {
               />
             ) : (
               <>
-                <div className="app-table-scroll">
+                <div data-testid="ot-table" className="app-table-scroll">
                   <table className="w-full min-w-[640px] text-sm">
                     <thead className="brand-bg text-white">
                       <tr>
@@ -551,6 +552,7 @@ export function DarSalidaGestion({ tipo }: Props) {
                   </label>
                   <input
                     id="ot-placa"
+                    data-testid="ot-placa"
                     className={inputClass}
                     value={placa}
                     onChange={(e) => setPlaca(e.target.value.toUpperCase())}
@@ -568,6 +570,7 @@ export function DarSalidaGestion({ tipo }: Props) {
                 </label>
                 <input
                   id="ot-orden"
+                  data-testid="ot-orden"
                   className={inputClass}
                   value={orden}
                   onChange={(e) => setOrden(e.target.value)}

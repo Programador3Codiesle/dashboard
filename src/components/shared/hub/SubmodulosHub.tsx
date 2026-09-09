@@ -91,7 +91,7 @@ function SubmodulosHubComponent({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div data-testid="submodulos-hub" className="space-y-4 sm:space-y-6">
       <PageTitleRow
         title={title}
         description={description}

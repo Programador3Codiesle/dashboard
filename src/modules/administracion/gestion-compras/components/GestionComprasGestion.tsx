@@ -247,7 +247,7 @@ export function GestionComprasGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
       >
-        <div className="app-table-scroll">
+        <div data-testid="adm-table" className="app-table-scroll">
           <table className="w-full min-w-[1200px]">
             <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
               <tr>

@@ -207,7 +207,7 @@ export function ControlVehiculosGestion() {
           </div>
         ) : (
           <>
-            <div className="app-table-scroll">
+            <div data-testid="adm-table" className="app-table-scroll">
               <table className="w-full min-w-[1400px]">
                 <thead className="border-b border-gray-200 bg-gray-50 text-xs">
                   <tr>

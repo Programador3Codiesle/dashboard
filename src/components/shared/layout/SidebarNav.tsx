@@ -82,7 +82,7 @@ function SidebarNavComponent({
   const shortcutLabel = isMacShortcut() ? "⌘K" : "Ctrl K";
 
   return (
-    <nav className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
+    <nav data-testid="sidebar-nav" className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
       {isCollapsed && !isMobile ? (
         <div className="mb-2 flex justify-center">
           <button

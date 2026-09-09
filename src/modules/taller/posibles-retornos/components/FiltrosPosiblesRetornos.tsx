@@ -65,6 +65,7 @@ export function FiltrosPosiblesRetornos({
           </label>
           <input
             id="filtroPlaca"
+            data-testid="posibles-retornos-placa"
             type="text"
             className={inputClass}
             placeholder="PLACA"
@@ -76,6 +77,7 @@ export function FiltrosPosiblesRetornos({
         <div className="pb-0.5">
           <button
             type="button"
+            data-testid="posibles-retornos-buscar"
             className="brand-btn inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
             onClick={onBuscar}
             disabled={loading}

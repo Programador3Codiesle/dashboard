@@ -228,7 +228,7 @@ export function MttoPreventivoGestion() {
 
       <div className="app-section-card w-full min-w-0 overflow-hidden">
         <div className="app-table-scroll border-0">
-          <div className="min-w-[640px]">
+          <div data-testid="mtto-preventivo-calendar" className="min-w-[640px]">
             <FullCalendar
               plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
               initialView="dayGridMonth"

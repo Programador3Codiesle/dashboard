@@ -53,7 +53,7 @@ export function ListaAusentismoGestion() {
           </div>
         </div>
       ) : rows.length === 0 && !query.isError ? (
-        <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-lg">
+        <div data-testid="adm-lista" className="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-lg">
           <AlertCircle className="mx-auto mb-4 brand-text" size={48} />
           <h3 className="mb-2 text-lg font-semibold text-gray-900">
             {ADMINISTRACION_COPY.listaAusentismo.empty}
@@ -63,7 +63,7 @@ export function ListaAusentismoGestion() {
           </p>
         </div>
       ) : (
-        <div className="app-kpi-grid-3">
+        <div data-testid="adm-lista" className="app-kpi-grid-3">
           {rows.map((ausentismo, index) => (
             <motion.div
               key={ausentismo.id}

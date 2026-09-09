@@ -56,7 +56,7 @@ export function InformeEvSvGestion() {
         }}
       />
 
-      <div className="app-table-scroll">
+      <div data-testid="repuestos-informe-ev-table" className="app-table-scroll">
         <table className="w-full min-w-[1400px] text-xs md:text-sm text-center">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>

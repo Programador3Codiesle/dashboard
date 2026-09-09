@@ -36,11 +36,13 @@ export const DateRangeFilter = React.memo(({
         label="Fecha Inicio"
         value={fechaInicio}
         onChange={handleFechaInicioChange}
+        testId="adm-fecha-inicio"
       />
       <DateFilterInput
         label="Fecha Final"
         value={fechaFinal}
         onChange={handleFechaFinalChange}
+        testId="adm-fecha-final"
       />
     </div>
   );

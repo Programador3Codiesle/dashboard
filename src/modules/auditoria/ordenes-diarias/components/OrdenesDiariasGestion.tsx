@@ -71,6 +71,7 @@ export function OrdenesDiariasGestion() {
             Fecha
             <input
               id="aud-od-fecha"
+              data-testid="aud-od-fecha"
               type="date"
               max={todayYmd()}
               className={inputClass}
@@ -82,6 +83,7 @@ export function OrdenesDiariasGestion() {
             Bodega
             <select
               id="aud-od-bodega"
+              data-testid="aud-od-bodega"
               className={inputClass}
               value={bodega}
               onChange={(e) => setBodega(e.target.value)}
@@ -96,6 +98,7 @@ export function OrdenesDiariasGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-od-buscar"
             className={btnPrimaryClass}
             disabled={listQuery.isFetching}
             onClick={() => {

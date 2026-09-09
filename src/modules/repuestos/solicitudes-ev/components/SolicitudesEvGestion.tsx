@@ -170,7 +170,7 @@ export function SolicitudesEvGestion() {
         }}
       />
 
-      <div className="app-table-scroll">
+      <div data-testid="repuestos-solicitudes-table" className="app-table-scroll">
         <table className="w-full min-w-[1200px] text-xs md:text-sm">
           <thead className="bg-gray-50">
             <tr>

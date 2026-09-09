@@ -113,7 +113,7 @@ export function InformeCotizacionesGestion() {
   if (blocked) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-testid="cotizar-informe-page" className="space-y-6">
       <PageTitleRow
         title="Informe de cotizaciones"
         description="Consulta las cotizaciones realizadas para livianos y pesados en un rango de fechas."
@@ -225,7 +225,7 @@ export function InformeCotizacionesGestion() {
           </div>
         )}
 
-        <div className="app-table-scroll">
+        <div data-testid="cotizar-informe-table" className="app-table-scroll">
           <table className="w-full min-w-[960px] text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">

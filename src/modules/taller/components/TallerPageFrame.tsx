@@ -11,7 +11,7 @@ export function TallerPageFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div data-testid="taller-page" className="space-y-4 sm:space-y-6">
       <PageTitleRow title={title} description={description} />
       {children}
     </div>

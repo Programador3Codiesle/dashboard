@@ -171,6 +171,7 @@ export function NpsFabricaGestion() {
             Mes
             <input
               id="aud-nps-mes"
+              data-testid="aud-nps-mes"
               type="month"
               className={inputClass}
               value={fecha}
@@ -199,6 +200,7 @@ export function NpsFabricaGestion() {
 
           <button
             type="button"
+            data-testid="aud-nps-buscar"
             className={btnPrimaryClass}
             disabled={loading}
             onClick={() => {

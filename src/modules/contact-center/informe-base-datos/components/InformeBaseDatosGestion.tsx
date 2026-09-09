@@ -129,6 +129,7 @@ export function InformeBaseDatosGestion() {
             <label htmlFor="cc-bdc-tipo" className="text-sm font-medium text-gray-700">Tipo (*)</label>
             <select
               id="cc-bdc-tipo"
+              data-testid="cc-bdc-tipo"
               className={inputClass}
               value={tipo}
               onChange={(e) => {
@@ -168,6 +169,7 @@ export function InformeBaseDatosGestion() {
         <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
+            data-testid="cc-bdc-cargar"
             className={btnPrimaryClass}
             onClick={() => consultar.mutate()}
             disabled={consultar.isPending}

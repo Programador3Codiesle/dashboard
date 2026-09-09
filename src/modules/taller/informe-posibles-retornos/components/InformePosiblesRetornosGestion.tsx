@@ -124,7 +124,10 @@ export function InformePosiblesRetornosGestion() {
         loading={isLoading}
       />
 
-      <div className="relative bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-6 min-h-[400px]">
+      <div
+        data-testid="informe-posibles-retornos-chart"
+        className="relative bg-white brand-card-elevated rounded-2xl border brand-border-active p-4 sm:p-6 min-h-[400px]"
+      >
         {isLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-2xl">
             <div className="flex items-center gap-2 text-gray-600 text-sm">

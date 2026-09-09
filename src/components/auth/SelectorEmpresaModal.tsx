@@ -39,6 +39,10 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
           onClick={onClose}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="empresa-selector-title"
+            data-testid="empresa-selector-modal"
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -52,7 +56,7 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
                   <Building2 className="w-5 h-5 text-gray-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Selecciona tu empresa</h2>
+                  <h2 id="empresa-selector-title" className="text-xl font-bold text-gray-900">Selecciona tu empresa</h2>
                   <p className="text-sm text-gray-500">Elige a cuál empresa vas a ingresar</p>
                 </div>
               </div>
@@ -61,6 +65,8 @@ export function SelectorEmpresaModal({ open, onClose, onSelect }: SelectorEmpres
               {empresasDisponibles.map((empresa, index) => (
                 <motion.button
                   key={empresa.id}
+                  type="button"
+                  data-testid={`empresa-option-${empresa.id}`}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}

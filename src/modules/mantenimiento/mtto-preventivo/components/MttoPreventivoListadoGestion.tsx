@@ -79,7 +79,7 @@ export function MttoPreventivoListadoGestion() {
       ) : null}
 
       <div className="app-section-card w-full min-w-0">
-        <div className="app-table-scroll">
+        <div data-testid="mtto-preventivo-listado-table" className="app-table-scroll">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="brand-bg text-white">
             <tr>

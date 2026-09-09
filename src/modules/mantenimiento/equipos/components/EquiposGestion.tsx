@@ -188,8 +188,11 @@ export function EquiposGestion() {
             ))}
           </select>
           <input
+            id="mtto-equipos-search"
+            data-testid="mtto-equipos-search"
             className={`${inputClass} mt-0 w-full sm:min-w-[12rem]`}
             placeholder="Buscar..."
+            aria-label="Buscar equipos"
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
@@ -225,7 +228,7 @@ export function EquiposGestion() {
       ) : null}
 
       <div className="app-section-card w-full min-w-0">
-        <div className="app-table-scroll">
+        <div data-testid="mtto-equipos-table" className="app-table-scroll">
         <table
           className={`w-full min-w-[960px] text-sm transition-opacity ${
             loading && rows.length > 0 ? 'opacity-70' : 'opacity-100'

@@ -7,7 +7,7 @@ import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
 export function UsuariosGestion() {
   return (
-    <div className="app-section-card w-full min-w-0 max-w-none">
+    <div data-testid="usuarios-module" className="app-section-card w-full min-w-0 max-w-none">
       <PageTitleRow
         title={USUARIOS_COPY.title}
         headingAs="h2"

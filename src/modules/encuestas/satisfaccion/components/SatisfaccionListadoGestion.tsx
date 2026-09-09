@@ -66,6 +66,7 @@ export function SatisfaccionListadoGestion() {
           </label>
           <input
             id="encuestas-satisfaccion-q"
+            data-testid="encuestas-satisfaccion-search"
             className={`${inputClass} pl-9`}
             placeholder={ENCUESTAS_COPY.satisfaccion.searchPlaceholder}
             value={q}
@@ -86,7 +87,10 @@ export function SatisfaccionListadoGestion() {
         />
       ) : null}
 
-      <div className="app-section-card w-full min-w-0">
+      <div
+        data-testid="encuestas-satisfaccion-table"
+        className="app-section-card w-full min-w-0"
+      >
         <div className="app-table-scroll">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="brand-bg text-white">

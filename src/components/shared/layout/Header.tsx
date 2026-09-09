@@ -138,6 +138,8 @@ function HeaderComponent({
           <div className="relative shrink-0" ref={profileWrapRef}>
             <button
               type="button"
+              data-testid="header-profile-menu"
+              aria-label="Menú de usuario"
               aria-expanded={showProfile}
               aria-haspopup="true"
               className="flex items-center justify-center rounded-xl brand-bg-gradient p-2 text-white shadow-md shadow-black/10 transition-opacity hover:scale-105 hover:opacity-90 active:scale-95 sm:p-2.5"
@@ -179,6 +181,7 @@ function HeaderComponent({
                   <div className="my-1 border-t border-gray-100" />
                   <button
                     type="button"
+                    data-testid="header-logout"
                     className="flex w-full items-center px-4 py-2 text-left text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
                     onClick={() => {
                       setShowProfile(false);

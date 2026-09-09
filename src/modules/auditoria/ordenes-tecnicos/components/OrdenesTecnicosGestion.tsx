@@ -85,6 +85,7 @@ export function OrdenesTecnicosGestion() {
             Bodega
             <select
               id="aud-ot-bodega"
+              data-testid="aud-ot-bodega"
               className={inputClass}
               value={bodega}
               onChange={(e) => {
@@ -121,6 +122,7 @@ export function OrdenesTecnicosGestion() {
           </label>
           <button
             type="button"
+            data-testid="aud-ot-buscar"
             className={btnPrimaryClass}
             disabled={listQuery.isFetching}
             onClick={() => {
