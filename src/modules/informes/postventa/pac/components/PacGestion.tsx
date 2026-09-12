@@ -34,13 +34,20 @@ export function PacGestion() {
 
   const resumen = pacData ?? {
     calificacionPac: 0,
-    npsCompany: 0,
+    npsCompany: 85,
     enc06: 0,
     enc78: 0,
     enc910: 0,
     porcen06: 0,
     porcen78: 0,
     porcen910: 0,
+    npsInterno: 0,
+    encInterno06: 0,
+    encInterno78: 0,
+    encInterno910: 0,
+    porcenInterno06: 0,
+    porcenInterno78: 0,
+    porcenInterno910: 0,
     toDia: 0,
     toMes: 0,
     porcenHoy: 0,
@@ -74,7 +81,7 @@ export function PacGestion() {
               {formatNumeroCo(resumen.calificacionPac, 2, 2)}%
             </span>
             <span className="text-xs text-gray-500">
-              / {formatNumeroCo(resumen.npsCompany, 2, 2)}% objetivo compañía
+              / {formatCantidadCo(resumen.npsCompany)}% objetivo compañía
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-3 mb-1">
@@ -141,17 +148,55 @@ export function PacGestion() {
         </div>
       </div>
 
-      {/* Inventario */}
-      <div className="bg-white rounded-xl shadow-sm border brand-border p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-          Total inventario PAC
-        </p>
-        <p className="mt-2 text-2xl font-bold text-gray-900">
-          ${formatCantidadCo(resumen.valTotalInventario)}
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Valor total del inventario de referencias considerado para el informe PAC.
-        </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            NPS Interno
+          </p>
+          <div className="mt-2 flex items-baseline space-x-2">
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {formatNumeroCo(resumen.npsInterno, 2, 2)}%
+            </span>
+            <span className="text-xs text-gray-500">
+              / {formatCantidadCo(resumen.npsCompany)}% objetivo compañía
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-3 mb-1">
+            Distribución de encuestas (0-6 / 7-8 / 9-10)
+          </p>
+          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden flex">
+            <div
+              className="bg-red-500 h-3"
+              style={{ width: `${resumen.porcenInterno06 || 0}%` }}
+            />
+            <div
+              className="bg-amber-400 h-3"
+              style={{ width: `${resumen.porcenInterno78 || 0}%` }}
+            />
+            <div
+              className="bg-emerald-500 h-3"
+              style={{ width: `${resumen.porcenInterno910 || 0}%` }}
+            />
+          </div>
+          <div className="mt-2 flex justify-between text-[11px] text-gray-600">
+            <span>0-6: {formatCantidadCo(resumen.encInterno06)}</span>
+            <span>7-8: {formatCantidadCo(resumen.encInterno78)}</span>
+            <span>9-10: {formatCantidadCo(resumen.encInterno910)}</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border brand-border p-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Total inventario PAC
+          </p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">
+            ${formatCantidadCo(resumen.valTotalInventario)}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Valor total del inventario de referencias considerado para el
+            informe PAC.
+          </p>
+        </div>
       </div>
     </InformesPageFrame>
   );

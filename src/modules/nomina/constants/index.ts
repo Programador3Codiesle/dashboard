@@ -1,7 +1,7 @@
 export const NOMINA_COPY = {
   hubTitle: "Nómina",
   hubDescription:
-    "Comisiones, director de flotas y margen de materiales del colorista.",
+    "Comisiones, director de flotas, margen del colorista y nómina de accesorios.",
 } as const;
 
 export const NOMINA_STYLES = {
@@ -13,3 +13,6 @@ export const NOMINA_STYLES = {
 
 /** Perfiles de asesor: el listado se filtra al nombre de la sesión. */
 export const PERFILES_COMISIONES_ASESORES_FILTRO_SESION = [34, 4] as const;
+
+/** PHP inf_nomina_jefe: botón “Ingresar valores”. */
+export const PERFILES_COMISIONES_JEFES_INGRESAR_VALORES = [1, 20, 21] as const;

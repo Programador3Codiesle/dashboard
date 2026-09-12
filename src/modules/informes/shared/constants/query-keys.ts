@@ -63,6 +63,10 @@ export const informesKeys = {
     mpc: ['informes', 'pv', 'mpc'] as const,
     encuestaSatisfaccion: (params: string) =>
       ['informes', 'pv', 'encuesta-satisfaccion', params] as const,
+    encuestaSatisfaccionBodegas: (empresaId: number) =>
+      ['informes', 'pv', 'encuesta-satisfaccion', 'bodegas', empresaId] as const,
+    encuestaSatisfaccionTecnicos: (bode: string) =>
+      ['informes', 'pv', 'encuesta-satisfaccion', 'tecnicos', bode] as const,
     pqrNps: (params: string) => ['informes', 'pv', 'pqr-nps', params] as const,
     pacNpsDetallado: (params: string) =>
       ['informes', 'pv', 'pac-nps-detallado', params] as const,

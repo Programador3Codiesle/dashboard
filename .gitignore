@@ -20,7 +20,11 @@
 
 # next.js
 /.next/
+/.next-a/
+/.next-b/
 /.next-build/
+/.next-slot
+/.next-pending
 /out/
 
 # production

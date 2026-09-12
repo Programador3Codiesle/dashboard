@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Activity } from "lucide-react";
+import { Activity, FileSpreadsheet, Loader2 } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { getXlsx } from "@/utils/export-xlsx";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import {
@@ -13,6 +14,11 @@ import {
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from "@/modules/informes/constants";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
+
+function formatExcelFechaHoy(): string {
+  const f = new Date();
+  return `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
+}
 
 export function InformePausasActivasGestion() {
   const { blocked } = useInformesPageGuard({
@@ -29,6 +35,7 @@ export function InformePausasActivasGestion() {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<PausaActiva[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const PAGE_SIZE = 10;
   const showInitialLoader = loading && rows.length === 0;
@@ -78,6 +85,32 @@ export function InformePausasActivasGestion() {
       setFechaDia("");
     }
   };
+
+  const handleExportar = useCallback(async () => {
+    if (rows.length === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const data = rows.map((row) => ({
+        DOCUMENTO: row.documento,
+        NOMBRE: row.nombre,
+        SEDE: row.sede,
+        AM: row.fechaAM ?? "",
+        PM: row.fechaPM ?? "",
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Pausas activas");
+      XLSX.writeFile(workbook, `Informe-Pausas-Activas-${formatExcelFechaHoy()}.xlsx`);
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [rows, showError]);
 
   if (blocked) return null;
 
@@ -139,15 +172,29 @@ export function InformePausasActivasGestion() {
             />
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleBuscar}
             disabled={loading || (!fechaDia && !fechaMes)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             <span>Buscar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || loading || rows.length === 0}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              rows.length > 0
+                ? "bg-(--color-success) text-white hover:opacity-90"
+                : "border border-gray-300 text-gray-700 bg-white"
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </motion.div>

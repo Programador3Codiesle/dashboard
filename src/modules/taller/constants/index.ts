@@ -36,6 +36,10 @@ export const TALLER_COPY = {
     title: "P&G Técnicos",
     description: "Informe de utilidades por técnico con comparación anual",
   },
+  rankingTrimestral: {
+    title: "Ranking Técnico Trimestral",
+    description: "Ventas por técnico en el trimestre (bodegas de taller Codiesel)",
+  },
   presupuesto: {
     title: "Presupuesto",
     description: "Consulta y edición de presupuesto mensual por sede y categoría",

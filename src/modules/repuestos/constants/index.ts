@@ -30,4 +30,8 @@ export const REPUESTOS_COPY = {
     title: 'Órdenes de Compra Repuestos',
     description: 'Gestión de autorización, presupuesto y stock por sede.',
   },
+  pedidosRepuestos: {
+    title: 'Pedidos de repuestos',
+    description: 'Listado de pedidos creados desde el cotizador intranet.',
+  },
 } as const;

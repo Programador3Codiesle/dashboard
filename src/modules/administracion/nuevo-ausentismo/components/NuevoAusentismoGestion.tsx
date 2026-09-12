@@ -19,6 +19,7 @@ import {
   type AusentismoCalendario,
 } from '@/modules/administracion/services/nuevo-ausentismo.service';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
+import { enHorarioLaboralAusentismo } from '@/modules/administracion/shared/utils/horario-laboral-ausentismo';
 import type { NuevoAusentismoDTO } from '@/modules/administracion/types';
 import { NUEVO_AUSENTISMO_SUBMENU_ID } from '@/utils/constants';
 
@@ -59,8 +60,8 @@ export function NuevoAusentismoGestion() {
         queryKey: administracionKeys.nuevoAusentismo(anioActual, mesActual),
       });
     },
-    onError: () => {
-      showError('Error al registrar el ausentismo');
+    onError: (error) => {
+      showError(getErrorMessage(error, 'Error al registrar el ausentismo'));
     },
   });
 
@@ -83,12 +84,16 @@ export function NuevoAusentismoGestion() {
   }, [mesActual]);
 
   const handleCrearClick = useCallback((date: string) => {
+    if (!enHorarioLaboralAusentismo()) {
+      showError(ADMINISTRACION_COPY.nuevoAusentismo.horarioLaboral);
+      return;
+    }
     const todayStr = new Date().toISOString().split('T')[0];
     if (date >= todayStr) {
       setSelectedDate(date);
       setModalOpen(true);
     }
-  }, []);
+  }, [showError]);
 
   const handleSave = async (data: NuevoAusentismoDTO) => {
     await saveMutation.mutateAsync({
@@ -216,6 +221,7 @@ export function NuevoAusentismoGestion() {
         fechaSeleccionada={selectedDate}
         resetKey={modalResetKey}
         saving={saveMutation.isPending}
+        perfilPostventa={user?.perfil_postventa}
       />
       <DetalleAusentismoCalendarioModal
         open={detalleAbierto !== null}

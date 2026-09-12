@@ -46,6 +46,9 @@ export function filterHubItems(
     if (item.empresaId != null && user?.empresa !== item.empresaId) {
       return false;
     }
+    if (item.sinSubmenu) {
+      return true;
+    }
     if (typeof item.submenuId !== 'number') {
       return false;
     }

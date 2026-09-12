@@ -135,5 +135,44 @@ test.describe("Órdenes TOT UI", () => {
     await expect(
       table.getByRole("columnheader", { name: "N° orden" }),
     ).toBeVisible();
+
+    await page.getByTestId("ot-registrar").click();
+    await expect(page.getByTestId("ot-placa")).toBeVisible();
+    await expect(page.getByTestId("ot-orden")).toBeVisible();
+    await page.getByRole("button", { name: "Cancelar" }).click();
+    await expect(page.getByTestId("ot-placa")).toBeHidden();
+  });
+
+  test("lista órdenes generales pendientes sin registrar", async ({ page }) => {
+    const hits = collectApiResponses(
+      page,
+      "/ordenes-tot/ordenes-generales/pendientes",
+      true,
+    );
+    await gotoApp(page, "/dashboard/ordenes-tot/dar-salida-ordenes");
+    await expectHeadingOrSkip(page, "Dar salida Órdenes");
+    await expect(page.getByTestId("ordenes-tot-page")).toBeVisible();
+
+    const response = await firstCollectedOrWait(
+      page,
+      hits,
+      "/ordenes-tot/ordenes-generales/pendientes",
+      true,
+    );
+    expect(
+      response.ok(),
+      `GET /ordenes-tot/ordenes-generales/pendientes → HTTP ${response.status()}`,
+    ).toBeTruthy();
+
+    const table = page.getByTestId("ot-table");
+    await expect(table).toBeVisible();
+    await expect(
+      table.getByRole("columnheader", { name: "Serial" }),
+    ).toBeVisible();
+
+    await page.getByTestId("ot-registrar").click();
+    await expect(page.getByTestId("ot-serial")).toBeVisible();
+    await page.getByRole("button", { name: "Cancelar" }).click();
+    await expect(page.getByTestId("ot-serial")).toBeHidden();
   });
 });

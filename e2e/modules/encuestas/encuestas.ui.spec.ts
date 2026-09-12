@@ -73,4 +73,17 @@ test.describe("Encuestas UI", () => {
     expect(searchResponse.ok()).toBeTruthy();
     expect(searchResponse.url()).toContain("q=");
   });
+
+  test("abre Satisfacción QR desde Encuestas", async ({ page }) => {
+    await gotoApp(page, "/dashboard/encuestas/satisfaccion-qr");
+    await expectHeadingOrSkip(page, "Satisfacción QR");
+    await expect(page.getByTestId("encuestas-page")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Enviar Respuestas" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("satisfaccion-qr-placa-estado")).toHaveCount(
+      0,
+    );
+    await expect(page.getByText("Error, La Placa No Existe")).toHaveCount(0);
+  });
 });

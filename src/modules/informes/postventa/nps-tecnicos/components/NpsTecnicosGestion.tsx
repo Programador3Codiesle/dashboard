@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import {
   NpsTecnicoRow,
   OrigenNpsTecnicos,
   SedeNpsTecnicos,
   npsTecnicosService,
 } from '@/modules/informes/postventa/services/nps-tecnicos.service';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
@@ -76,6 +78,7 @@ export function NpsTecnicosGestion() {
     mes: number;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const { showError, showInfo } = useToast();
 
@@ -119,6 +122,33 @@ export function NpsTecnicosGestion() {
     const start = (safeCurrentPage - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, safeCurrentPage]);
+
+  const handleExportar = useCallback(async () => {
+    if (rows.length === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const excelRows = rows.map((row) => ({
+        Tecnico: row.tecnico,
+        NPS: Number(row.nps.toFixed(1)),
+        'Cantidad de encuestas 0 a 6': row.enc0a6,
+        'Cantidad de encuestas 7 a 8': row.enc7a8,
+        'Cantidad de encuestas 9 a 10': row.enc9a10,
+        Mes: row.mesNombre,
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'NPS tecnicos');
+      XLSX.writeFile(workbook, 'NPS detallado por tecnico.xlsx');
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [rows, showError]);
 
   if (blocked) return null;
 
@@ -182,13 +212,28 @@ export function NpsTecnicosGestion() {
           </div>
         </div>
 
-        <div className="flex">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="submit"
             disabled={isFetching}
-            className="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
+            className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium brand-btn disabled:opacity-60"
           >
-            {isFetching ? 'Buscando...' : 'Buscar'}
+            {isFetching && <Loader2 size={16} className="animate-spin" />}
+            <span>{isFetching ? 'Buscando...' : 'Buscar'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || isFetching || rows.length === 0}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              rows.length > 0
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </form>

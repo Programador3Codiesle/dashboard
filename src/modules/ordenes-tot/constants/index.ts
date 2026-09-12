@@ -19,6 +19,10 @@ export const ORDENES_TOT_COPY = {
     title: 'Ingreso Repuestos',
     description: 'Candidatos a salida de repuestos y registro (paridad con legacy).',
   },
+  darSalidaOrdenGeneral: {
+    title: 'Dar salida Órdenes',
+    description: 'Registro de órdenes generales pendientes de confirmación en portería.',
+  },
   saveError: 'Error al guardar',
   loadError: 'Error al cargar los datos',
 } as const;

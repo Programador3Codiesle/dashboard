@@ -3,14 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DateRange } from 'react-day-picker';
-import { encuestaSatisfaccionService, EncuestaSatisfaccionResumen } from '@/modules/informes/postventa/services/encuesta-satisfaccion.service';
-import { SelectSede } from '@/shared/components/selects/select-sede';
+import {
+  encuestaSatisfaccionService,
+  EncuestaSatisfaccionResumen,
+  EncuestaSatisfaccionTecnico,
+  EncuestaSatisfaccionBodega,
+} from '@/modules/informes/postventa/services/encuesta-satisfaccion.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { formatNumeroCo } from '@/modules/informes/postventa/format-cantidad-co';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants';
 import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
+import { useAuth } from '@/core/auth/hooks/useAuth';
 
 type NivelSatisfaccion = 0 | 10 | 8 | 7 | 6;
 
@@ -19,6 +24,7 @@ const inputClass =
 const labelClass = 'text-xs font-medium text-gray-600 mb-1';
 
 export function EncuestaSatisfaccionGestion() {
+  const { user } = useAuth();
   const { blocked } = useInformesPageGuard({
     trimenuId: INFORMES_PV_TRIMENU.encuestaSatisfaccion,
     redirectTo: '/dashboard/informes/postventa',
@@ -49,6 +55,27 @@ export function EncuestaSatisfaccionGestion() {
     queryKey: informesKeys.pv.encuestaSatisfaccion(JSON.stringify(filtrosAplicados)),
     queryFn: () => encuestaSatisfaccionService.listar(filtrosAplicados!),
     enabled: filtrosAplicados != null,
+    staleTime: 60 * 1000,
+  });
+
+  const { data: bodegasCombo = [] } = useQuery<EncuestaSatisfaccionBodega[]>({
+    queryKey: informesKeys.pv.encuestaSatisfaccionBodegas(user?.empresa ?? 0),
+    queryFn: () => encuestaSatisfaccionService.listarBodegas(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const bodegaEfectiva =
+    bodega === 'todas' ||
+    bodegasCombo.length === 0 ||
+    bodegasCombo.some((opt) => opt.value === bodega)
+      ? bodega
+      : 'todas';
+  const tecnicoEfectivo = bodegaEfectiva === bodega ? tecnico : 'all';
+
+  const { data: tecnicos = [] } = useQuery<EncuestaSatisfaccionTecnico[]>({
+    queryKey: informesKeys.pv.encuestaSatisfaccionTecnicos(bodegaEfectiva),
+    queryFn: () => encuestaSatisfaccionService.listarTecnicos(bodegaEfectiva),
+    enabled: bodegaEfectiva !== 'todas',
     staleTime: 60 * 1000,
   });
 
@@ -83,8 +110,8 @@ export function EncuestaSatisfaccionGestion() {
     setFiltrosAplicados({
       fi,
       ff,
-      bode: bodega,
-      tec: tecnico,
+      bode: bodegaEfectiva,
+      tec: tecnicoEfectivo,
       cli: cliente || undefined,
       ot: orden || undefined,
       ns: nivel || 0,
@@ -132,12 +159,21 @@ export function EncuestaSatisfaccionGestion() {
 
           <div className="flex flex-col">
             <label className={labelClass}>Bodega</label>
-            <SelectSede
-              value={bodega}
-              onChange={setBodega}
-              includeTodas
+            <select
+              value={bodegaEfectiva}
+              onChange={(e) => {
+                setBodega(e.target.value);
+                setTecnico('all');
+              }}
               className={inputClass}
-            />
+            >
+              <option value="todas">Seleccione una bodega...</option>
+              {bodegasCombo.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col">
@@ -179,12 +215,19 @@ export function EncuestaSatisfaccionGestion() {
 
           <div className="flex flex-col">
             <label className={labelClass}>Técnico / Asesor</label>
-            <input
-              value={tecnico}
+            <select
+              value={tecnicoEfectivo}
               onChange={(e) => setTecnico(e.target.value)}
               className={inputClass}
-              placeholder="Por ahora escribe el NIT (legacy usa combo dinámico)"
-            />
+              disabled={bodegaEfectiva === 'todas'}
+            >
+              <option value="all">Todos</option>
+              {tecnicos.map((tec, i) => (
+                <option key={`${tec.nit}-${i}`} value={tec.nit}>
+                  {tec.nombre}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

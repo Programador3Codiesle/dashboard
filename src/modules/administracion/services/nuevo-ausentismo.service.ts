@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { parseError } from "@/modules/administracion/shared/utils/parse-api-error";
 
 const API_URL = getApiBaseUrl();
 
@@ -41,6 +42,7 @@ export interface NuevoAusentismoDTO {
   motivo: string;
   descripcionMotivo: string;
   id_empresa?: number;
+  archivoSoporte?: File;
 }
 
 type ApiMessageResponse<T = unknown> = {
@@ -63,23 +65,29 @@ export const nuevoAusentismoService = {
    * Crear nuevo ausentismo
    */
   async crearAusentismo(dto: NuevoAusentismoDTO): Promise<AusentismoCalendario> {
+    const formData = new FormData();
+    formData.append("fecha_ini", dto.fecha);
+    formData.append("hora_ini", dto.horaInicio);
+    formData.append("hora_fin", dto.horaFin);
+    formData.append("area", dto.area);
+    formData.append("cargo_emp", dto.cargo);
+    formData.append("sede", dto.sede);
+    formData.append("motivo", dto.motivo);
+    formData.append("descripcion", dto.descripcionMotivo);
+    if (dto.id_empresa != null) {
+      formData.append("id_empresa", String(dto.id_empresa));
+    }
+    if (dto.archivoSoporte) {
+      formData.append("archivo_soporte", dto.archivoSoporte);
+    }
+
     const response = await fetchWithAuth(`${API_URL}/administracion/nuevo-ausentismo`, {
       method: "POST",
-      body: JSON.stringify({
-        fecha_ini: dto.fecha,
-        hora_ini: dto.horaInicio,
-        hora_fin: dto.horaFin,
-        area: dto.area,
-        cargo_emp: dto.cargo,
-        sede: dto.sede,
-        motivo: dto.motivo,
-        descripcion: dto.descripcionMotivo,
-        id_empresa: dto.id_empresa,
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
-      throw new Error("Error al conectar con el servidor");
+      await parseError(response, "Error al conectar con el servidor");
     }
 
     const result: ApiMessageResponse<AusentismoCalendarioAPI> = await response.json();

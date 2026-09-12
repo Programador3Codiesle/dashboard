@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { segundaEntregaService, SegundaEntregaDetalle, SegundaEntregaResumen } from '@/modules/informes/postventa/services/segunda-entrega.service';
 import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants';
@@ -37,6 +38,11 @@ const tdBase =
 const inputDateClass =
   "w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none";
 
+function formatExcelFechaHoy(): string {
+  const f = new Date();
+  return `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
+}
+
 export function SegundaEntregaGestion() {
   const { blocked } = useInformesPageGuard({
     trimenuId: INFORMES_PV_TRIMENU.segundaEntrega,
@@ -53,6 +59,7 @@ export function SegundaEntregaGestion() {
     hasta: string;
   } | null>(null);
   const { showInfo, showError } = useToast();
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const {
     data,
@@ -85,6 +92,56 @@ export function SegundaEntregaGestion() {
     setRangoConsultado({ desde: fechaIni, hasta: fechaFin });
     setFiltrosAplicados({ fi: fechaIni, ff: fechaFin });
   };
+
+  const handleExportar = useCallback(async () => {
+    const resumen = data?.resumen ?? [];
+    const detalle = data?.detalle ?? [];
+    if (resumen.length === 0 && detalle.length === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const XLSX = await getXlsx();
+      const workbook = XLSX.utils.book_new();
+      if (resumen.length > 0) {
+        const wsResumen = XLSX.utils.json_to_sheet(
+          resumen.map((row) => ({
+            Año: row.anio,
+            Mes: row.mes,
+            Día: row.dia,
+            Entregas: row.entregas,
+            Agendas: row.agendas,
+          })),
+        );
+        XLSX.utils.book_append_sheet(workbook, wsResumen, 'Resumen');
+      }
+      if (detalle.length > 0) {
+        const wsDetalle = XLSX.utils.json_to_sheet(
+          detalle.map((row) => ({
+            Año: row.anio,
+            Mes: row.mes,
+            Día: row.dia,
+            Vehiculo: row.vehiculo,
+            Sede: row.sede,
+            'Agendado por': row.agendadoPor,
+          })),
+        );
+        XLSX.utils.book_append_sheet(workbook, wsDetalle, 'Detalle');
+      }
+      XLSX.writeFile(
+        workbook,
+        `Informe-Segunda-Entrega-${formatExcelFechaHoy()}.xlsx`,
+      );
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [data, showError]);
+
+  const hayDatos =
+    (data?.resumen?.length ?? 0) > 0 || (data?.detalle?.length ?? 0) > 0;
 
   if (blocked) return null;
 
@@ -123,7 +180,7 @@ export function SegundaEntregaGestion() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleBuscar}
@@ -132,6 +189,20 @@ export function SegundaEntregaGestion() {
           >
             {isPending && <Loader2 size={16} className="animate-spin" />}
             <span>Buscar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || isPending || !hayDatos}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              hayDatos
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

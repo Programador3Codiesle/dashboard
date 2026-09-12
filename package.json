@@ -7,6 +7,7 @@
     "build": "next build",
     "build:inactive": "node scripts/build-inactive.cjs",
     "promote:front": "node scripts/promote-front.cjs",
+    "cleanup:front": "node scripts/cleanup-front.cjs",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",

@@ -18,6 +18,23 @@ export interface ITicket {
   extension?: string;
 }
 
+export interface ITicketDetalle {
+  id: number;
+  tipoSoporte: string;
+  descripcion: string;
+  prioridad: string;
+  estado: string;
+  fechaCreacion: string;
+  usuarioId: number;
+  usuario: string;
+  encargado: string | null;
+  anydesk: string;
+  archivoUrl: string | null;
+  respuestas: string;
+  sede?: string;
+  extension?: string;
+}
+
 export interface CrearTicketDTO {
   tipoSoporte: string;
   anydesk?: string;

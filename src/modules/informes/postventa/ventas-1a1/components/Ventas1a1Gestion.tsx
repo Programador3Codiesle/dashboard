@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { FileSpreadsheet, Loader2 } from "lucide-react";
 import {
   ventas1a1Service,
   Ventas1a1Asesor,
@@ -11,6 +12,7 @@ import {
   formatCantidadCo,
   formatNumeroCo,
 } from "@/modules/informes/postventa/format-cantidad-co";
+import { getXlsx } from "@/utils/export-xlsx";
 import { useToast } from "@/components/ui/use-toast";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
@@ -20,6 +22,11 @@ import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInforme
 
 function getCurrentYear(): number {
   return new Date().getFullYear();
+}
+
+function formatExcelFechaHoy(): string {
+  const f = new Date();
+  return `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
 }
 
 export function Ventas1a1Gestion() {
@@ -36,6 +43,7 @@ export function Ventas1a1Gestion() {
     asesor: string | null;
   } | null>(null);
   const PAGE_SIZE = 10;
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const {
     data: asesores,
@@ -90,6 +98,39 @@ export function Ventas1a1Gestion() {
     setFiltrosAplicados(null);
     setCurrentPage(1);
   };
+
+  const handleExportar = useCallback(async () => {
+    if (rows.length === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const excelRows = rows.map((row, index) => ({
+        "#": index + 1,
+        Año: row.anio,
+        "Nit Asesor": row.nitAsesor,
+        Asesor: row.asesor,
+        "Mano de obra": Math.round(row.ventaManoObra),
+        "Venta de repuestos": Math.round(row.ventaRepuestos),
+        "Costo de repuestos": Math.round(row.costoRepuestos),
+        Utilidad: Math.round(row.utilidad),
+        Porcentaje:
+          row.porcentajeConversion !== null
+            ? Number(row.porcentajeConversion.toFixed(2))
+            : "",
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Ventas 1 a 1");
+      XLSX.writeFile(workbook, `InformeVentas1a1-${formatExcelFechaHoy()}.xlsx`);
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [rows, showError]);
 
   const totalItems = rows.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
@@ -152,9 +193,27 @@ export function Ventas1a1Gestion() {
             <button
               type="button"
               onClick={onBuscar}
-              className="inline-flex-1 w-full justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-(--color-primary-dark) transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary)"
+              disabled={informeLoading}
+              className="inline-flex w-full justify-center items-center gap-2 rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-(--color-primary-dark) transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary) disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Buscar
+              {informeLoading && <Loader2 size={16} className="animate-spin" />}
+              <span>Buscar</span>
+            </button>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleExportar}
+              disabled={loadingExport || informeLoading || rows.length === 0}
+              className={`inline-flex w-full justify-center items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition-colors focus-visible:outline-none disabled:opacity-60 disabled:cursor-not-allowed ${
+                rows.length > 0
+                  ? "bg-(--color-success) text-white hover:opacity-90"
+                  : "border border-gray-300 text-gray-700 bg-white"
+              }`}
+            >
+              {loadingExport && <Loader2 size={16} className="animate-spin" />}
+              <FileSpreadsheet size={16} />
+              <span>Exportar a Excel</span>
             </button>
           </div>
           <div className="flex gap-3">

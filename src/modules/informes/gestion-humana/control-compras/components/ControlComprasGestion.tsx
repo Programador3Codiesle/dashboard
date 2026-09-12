@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { FileSpreadsheet, Loader2, ShoppingCart } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { getXlsx } from "@/utils/export-xlsx";
 import {
   controlComprasService,
+  type ControlCompras,
 } from "@/modules/informes/gestion-humana/services/control-compras.service";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
@@ -24,6 +26,25 @@ function formatNumber(value: number | null | undefined): string {
   }).format(value);
 }
 
+function mapControlComprasToExcelRow(row: ControlCompras) {
+  return {
+    CÓDIGO: row.codigo ?? "",
+    DESCRIPCIÓN: row.descripcion ?? "",
+    CANTIDAD: row.cantidad ?? "",
+    "VALOR UNITARIO": row.valorUnitario ?? "",
+    "VALOR TOTAL": row.valorTotal ?? "",
+    CALIFICACIÓN: row.calificacionAbc ?? "-",
+    "ÚLTIMA COMPRA": row.ultimaCompra ?? "-",
+    "ÚLTIMA VENTA": row.ultimaVenta ?? "-",
+    GIRÓN: row.giron ?? "",
+    CHEVROPARTES: row.chevropartes ?? "",
+    BARRANCA: row.barranca ?? "",
+    ROSITA: row.rosita ?? "",
+    "VILLA DEL ROSARIO": row.villa ?? "",
+    SOLOCHEVROLET: row.solochevrolet ?? "",
+  };
+}
+
 export function ControlComprasGestion() {
   const PAGE_SIZE = 10;
   const { blocked } = useInformesPageGuard({
@@ -35,6 +56,7 @@ export function ControlComprasGestion() {
   const [orden, setOrden] = useState<string>("");
   const [appliedOrden, setAppliedOrden] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
   const hasAppliedSearch = appliedOrden != null;
 
   const handleGenerar = () => {
@@ -77,6 +99,35 @@ export function ControlComprasGestion() {
   const showUpdating = hasAppliedSearch && isFetching && rows.length > 0;
   const generarDisabled = !orden.trim() || isFetching;
 
+  const handleExportar = useCallback(async () => {
+    if (appliedOrden == null) {
+      showError("Genere el informe antes de exportar.");
+      return;
+    }
+    if (totalItems === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const resultado = await controlComprasService.listar({
+        orden: appliedOrden,
+        pagina: 1,
+        limite: totalItems,
+      });
+      const excelRows = resultado.items.map(mapControlComprasToExcelRow);
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Control Compras");
+      XLSX.writeFile(workbook, `Control-Compras-${appliedOrden}.xlsx`);
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [appliedOrden, totalItems, showError]);
+
   if (blocked) return null;
 
   return (
@@ -115,6 +166,20 @@ export function ControlComprasGestion() {
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>Generar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || !hasAppliedSearch || totalItems === 0 || isFetching}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              totalItems > 0
+                ? "bg-(--color-success) text-white hover:opacity-90"
+                : "border border-gray-300 text-gray-700 bg-white"
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

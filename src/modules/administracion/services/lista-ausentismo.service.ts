@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { parseError } from "@/modules/administracion/shared/utils/parse-api-error";
 
 const API_URL = getApiBaseUrl();
 
@@ -22,7 +23,7 @@ export interface AusentismoDiaActual {
   motivo: string;
   horaInicio: string;
   horaFin: string;
-  estado: "Pendiente" | "Aprobado" | "Rechazado";
+  estado: "Pendiente" | "Autorizado" | "Negado";
 }
 
 export const listaAusentismoService = {
@@ -46,10 +47,20 @@ export const listaAusentismoService = {
       horaFin: item.horaFin || "-",
       estado:
         item.autorizacion === 1
-          ? "Aprobado"
+          ? "Autorizado"
           : item.autorizacion === 2
-            ? "Rechazado"
+            ? "Negado"
             : "Pendiente",
     }));
+  },
+
+  async confirmarPorteria(id: number): Promise<void> {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/lista-ausentismo/${id}/confirmar-porteria`,
+      { method: "POST" },
+    );
+    if (!response.ok) {
+      await parseError(response, "Error al confirmar portería");
+    }
   },
 };

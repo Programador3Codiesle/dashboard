@@ -40,7 +40,7 @@ export interface FiltrosTiempoSuplementario {
 const ESTADOS: Record<number, string> = {
   0: "Pendiente",
   1: "Aprobado",
-  2: "Rechazado",
+  2: "Negado",
 };
 
 export const informeTiempoSuplementarioService = {

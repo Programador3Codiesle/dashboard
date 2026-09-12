@@ -6,6 +6,8 @@ import React, { useState, memo, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { HeaderPageTitle } from "./HeaderPageTitle";
 import { EmpresaIcon } from "@/components/shared/brand/EmpresaIcon";
+import { MiPerfilModal } from "./MiPerfilModal";
+import { formatNombre, nombreCompacto } from "@/utils/format-nombre";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -14,39 +16,6 @@ interface HeaderProps {
   nomPerfil?: string;
   empresaId?: number;
   showEmpresaIcon?: boolean;
-}
-
-function formatNombre(nombreCompleto: string): string {
-  if (!nombreCompleto) return '';
-
-  const palabras = nombreCompleto.trim().split(/\s+/).filter(p => p.length > 0);
-  if (palabras.length === 0) return nombreCompleto;
-
-  const palabrasCapitalizadas = palabras.map(palabra =>
-    palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()
-  );
-
-  if (palabrasCapitalizadas.length <= 2) {
-    return palabrasCapitalizadas.join(' ');
-  }
-
-  if (palabrasCapitalizadas.length === 3) {
-    const [apellido1, apellido2, nombre] = palabrasCapitalizadas;
-    return `${nombre} ${apellido1} ${apellido2}`;
-  }
-
-  const mitad = Math.floor(palabrasCapitalizadas.length / 2);
-  const apellidos = palabrasCapitalizadas.slice(0, mitad);
-  const nombres = palabrasCapitalizadas.slice(mitad);
-
-  return [...nombres, ...apellidos].join(' ');
-}
-
-function nombreCompacto(nombreFormateado: string): string {
-  const w = nombreFormateado.trim().split(/\s+/).filter(Boolean);
-  if (w.length <= 2) return nombreFormateado.trim();
-  if (w.length === 3) return `${w[0]} ${w[1]}`;
-  return `${w[0]} ${w[2]}`;
 }
 
 function HeaderComponent({
@@ -58,6 +27,7 @@ function HeaderComponent({
   showEmpresaIcon = false,
 }: HeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
+  const [showMiPerfil, setShowMiPerfil] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
   const empresa = empresaId != null ? EMPRESAS.find((e) => e.id === empresaId) : null;
 
@@ -170,7 +140,15 @@ function HeaderComponent({
                       ) : null}
                     </div>
                   )}
-                  <button type="button" className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-gray-50">
+                  <button
+                    type="button"
+                    data-testid="header-mi-perfil"
+                    className="flex w-full items-center px-4 py-2 text-left text-sm hover:bg-gray-50"
+                    onClick={() => {
+                      setShowProfile(false);
+                      setShowMiPerfil(true);
+                    }}
+                  >
                     <User size={16} className="mr-2 shrink-0" />
                     Mi Perfil
                   </button>
@@ -198,6 +176,7 @@ function HeaderComponent({
         </div>
       </div>
       {empresa && <div className="h-0.5 w-full brand-bg" />}
+      <MiPerfilModal open={showMiPerfil} onClose={() => setShowMiPerfil(false)} />
     </header>
   );
 }

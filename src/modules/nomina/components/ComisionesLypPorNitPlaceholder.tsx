@@ -1,8 +1,12 @@
 'use client';
 
 import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
+import { useNominaPageGuard } from '@/modules/nomina/shared/hooks/useNominaPageGuard';
 
 export function ComisionesLypPorNitPlaceholder() {
+  const { blocked } = useNominaPageGuard();
+  if (blocked) return null;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">

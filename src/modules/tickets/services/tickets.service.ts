@@ -1,4 +1,4 @@
-import { ITicket, CrearTicketDTO } from "../types";
+import { ITicket, ITicketDetalle, CrearTicketDTO } from "../types";
 import {
   mapEmpresaCodesToNames,
   mapEstadoFromApi,
@@ -249,20 +249,7 @@ export const ticketsService = {
     return true;
   },
 
-  async getTicketById(id: number): Promise<{
-    id: number;
-    tipoSoporte: string;
-    descripcion: string;
-    prioridad: string;
-    estado: string;
-    fechaCreacion: string;
-    usuarioId: number;
-    anydesk: string;
-    archivoUrl: string | null;
-    respuestas: string;
-    sede?: string;
-    extension?: string;
-  }> {
+  async getTicketById(id: number): Promise<ITicketDetalle> {
     const resp = await fetchWithAuth(`${API_URL}/tickets/${id}`, {
       method: "GET",
     });
@@ -281,6 +268,8 @@ export const ticketsService = {
       estado: data.estado,
       fechaCreacion: data.fecha_creacion,
       usuarioId: data.usuario_id,
+      usuario: data.nombre_usuario || "",
+      encargado: data.nombre_encargado || null,
       anydesk: data.anydesk || "",
       archivoUrl: data.archivo_url || null,
       respuestas: data.respuestas || "",

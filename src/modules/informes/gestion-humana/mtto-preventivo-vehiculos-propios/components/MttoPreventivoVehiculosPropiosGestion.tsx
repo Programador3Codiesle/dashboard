@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Loader2, Car, ListChecks } from "lucide-react";
+import { Loader2, Car, FileSpreadsheet, ListChecks } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { getXlsx } from "@/utils/export-xlsx";
 import {
   informeMttoPreventivoVhService,
   InformeMttoPreventivo,
   HistorialMtto,
+  ProximoMttoDTO,
 } from "@/modules/informes/gestion-humana/services/informe-mtto-preventivo-vh.service";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from "@/modules/informes/constants";
@@ -25,6 +27,42 @@ const RUTINA_PDF_BY_PLACA: Record<string, string> = {
   TTR469: "RUTINA-N300.pdf",
 };
 
+function formatExcelFechaHoy(): string {
+  const f = new Date();
+  return `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
+}
+
+function formatProximosMtto(proximos: ProximoMttoDTO[]): string {
+  if (proximos.length === 0) return "";
+  return proximos.map((pm) => `${pm.mttoKm} (${pm.fecha})`).join("; ");
+}
+
+function mapVehiculoToExcel(vh: InformeMttoPreventivo) {
+  return {
+    Placa: vh.placa,
+    Descripción: vh.descripcion,
+    "Km Actual": vh.kilometroFinal,
+    "Km Promedio": Math.round(vh.kmPromedio),
+    "Días entre Mtto": vh.diasEntreMtto,
+    "Días prox. Mtto": vh.diasProximoMtto,
+    "Próximos Mantenimientos": formatProximosMtto(vh.proximos),
+  };
+}
+
+function mapHistorialToExcel(row: HistorialMtto) {
+  return {
+    "N° Orden": row.numero_orden,
+    Bodega: row.bodega,
+    "Fecha Apertura": row.fecha_apertura,
+    "Fecha Factura": row.fecha_factura,
+    Tipo: row.tipo,
+    Número: row.numero,
+    Operación: row.operacion,
+    Descripción: row.descripcion,
+    Explicación: row.explicacion_operacion,
+  };
+}
+
 export function MttoPreventivoVehiculosPropiosGestion() {
   const { blocked } = useInformesPageGuard({
     trimenuId: INFORMES_GH_TRIMENU.mttoPreventivoVh,
@@ -37,6 +75,8 @@ export function MttoPreventivoVehiculosPropiosGestion() {
   const [placaHistorial, setPlacaHistorial] = useState<string | null>(null);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [historialPage, setHistorialPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
+  const [loadingExportHistorial, setLoadingExportHistorial] = useState(false);
 
   const HISTORIAL_PAGE_SIZE = 8;
   const historialTotalItems = historial.length;
@@ -78,6 +118,47 @@ export function MttoPreventivoVehiculosPropiosGestion() {
     }
   };
 
+  const handleExportar = useCallback(async () => {
+    if (data.length === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const rows = data.map(mapVehiculoToExcel);
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Mtto preventivo");
+      XLSX.writeFile(workbook, "Informe-Mtto-Preventivo-VH.xlsx");
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [data, showError]);
+
+  const handleExportarHistorial = useCallback(async () => {
+    if (historial.length === 0) {
+      showError("No hay historial para exportar.");
+      return;
+    }
+    setLoadingExportHistorial(true);
+    try {
+      const rows = historial.map(mapHistorialToExcel);
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Historial_Mtto");
+      const placa = placaHistorial || "vehiculo";
+      XLSX.writeFile(workbook, `Historial-Mtto-${placa}-${formatExcelFechaHoy()}.xlsx`);
+    } catch {
+      showError("No se pudo exportar el historial");
+    } finally {
+      setLoadingExportHistorial(false);
+    }
+  }, [historial, placaHistorial, showError]);
+
   const getRutinaUrl = (placa: string, rutina: string | null) => {
     const rutinaByPlaca = RUTINA_PDF_BY_PLACA[String(placa).toUpperCase()];
     const rutinaFile = rutinaByPlaca || rutina || "";
@@ -102,14 +183,30 @@ export function MttoPreventivoVehiculosPropiosGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Car size={20} className="text-(--color-primary)" />
             <h2 className="text-base font-semibold text-gray-900">Vehículos y próximos mantenimientos</h2>
           </div>
-          <span className="text-xs text-gray-500">
-            {data.length} vehículo{data.length === 1 ? "" : "s"}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">
+              {data.length} vehículo{data.length === 1 ? "" : "s"}
+            </span>
+            <button
+              type="button"
+              onClick={handleExportar}
+              disabled={loadingExport || loading || data.length === 0}
+              className={`inline-flex justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                data.length > 0
+                  ? "bg-(--color-success) text-white hover:opacity-90"
+                  : "border border-gray-300 text-gray-700 bg-white"
+              }`}
+            >
+              {loadingExport && <Loader2 size={16} className="animate-spin" />}
+              <FileSpreadsheet size={16} />
+              <span>Exportar a Excel</span>
+            </button>
+          </div>
         </div>
 
         <div className="app-table-scroll">
@@ -239,11 +336,27 @@ export function MttoPreventivoVehiculosPropiosGestion() {
                 Revise las intervenciones registradas para la placa seleccionada.
               </p>
             </div>
-            {!loadingHistorial && historialTotalItems > 0 && (
-              <div className="text-xs text-gray-600">
-                {historialTotalItems} registro{historialTotalItems === 1 ? "" : "s"} en total
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              {!loadingHistorial && historialTotalItems > 0 && (
+                <div className="text-xs text-gray-600">
+                  {historialTotalItems} registro{historialTotalItems === 1 ? "" : "s"} en total
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleExportarHistorial}
+                disabled={loadingExportHistorial || loadingHistorial || historial.length === 0}
+                className={`inline-flex justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  historial.length > 0
+                    ? "bg-(--color-success) text-white hover:opacity-90"
+                    : "border border-gray-300 text-gray-700 bg-white"
+                }`}
+              >
+                {loadingExportHistorial && <Loader2 size={16} className="animate-spin" />}
+                <FileSpreadsheet size={16} />
+                <span>Descargar Excel</span>
+              </button>
+            </div>
           </div>
 
           {loadingHistorial ? (

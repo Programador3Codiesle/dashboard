@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { FileText, Loader2 } from "lucide-react";
+import { FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { useToast } from "@/components/shared/ui/ToastContext";
+import { getXlsx } from "@/utils/export-xlsx";
 import { AusentismoInforme, informeAusentismoService } from "@/modules/administracion/services/informe-ausentismo.service";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
@@ -49,10 +51,12 @@ export function InfAusentismosGestion() {
     trimenuId: INFORMES_GH_TRIMENU.infAusentismos,
     redirectTo: "/dashboard/informes/gestion-humana",
   });
+  const { showError } = useToast();
   const [month, setMonth] = useState("");
   const [empleado, setEmpleado] = useState("");
   const [debouncedEmpleado, setDebouncedEmpleado] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
   const isEmpleadoDebouncing = empleado.trim() !== debouncedEmpleado;
 
   useEffect(() => {
@@ -105,6 +109,46 @@ export function InfAusentismosGestion() {
     setCurrentPage(1);
   };
 
+  const handleExportar = useCallback(async () => {
+    if (!range) {
+      showError("Seleccione un mes para exportar");
+      return;
+    }
+    if (totalItems === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const resultado = await informeAusentismoService.listar({
+        fechaDesde: range.desde,
+        fechaHasta: range.hasta,
+        empleado: debouncedEmpleado || undefined,
+        pagina: 1,
+        limite: totalItems,
+        soloPendientes: true,
+      });
+      const rows = resultado.items.map((r) => ({
+        Documento: r.documento,
+        Nombre: r.colaborador,
+        Motivo: r.motivo || "",
+        "Fecha Inicial": r.fechaInicio,
+        "Fecha Final": r.fechaFin,
+        "Hora Inicial": r.horaInicio,
+        "Hora Final": r.horaFin,
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tiempo ausentismos");
+      XLSX.writeFile(workbook, "Informe-Ausentismo-tiempo.xlsx");
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [range, totalItems, debouncedEmpleado, showError]);
+
   if (blocked) return null;
 
   return (
@@ -119,6 +163,7 @@ export function InfAusentismosGestion() {
           message={getErrorMessage(error, INFORMES_COPY.infAusentismos.loadError)}
         />
       ) : null}
+      <div className="space-y-3">
       <div className="app-filter-grid">
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">Mes</label>
@@ -131,15 +176,32 @@ export function InfAusentismosGestion() {
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs font-medium text-gray-600 mb-1">Empleado (documento o nombre)</label>
+            <label className="text-xs font-medium text-gray-600 mb-1">Empleado (NIT)</label>
             <input
               type="text"
               value={empleado}
               onChange={(e) => handleEmpleadoChange(e.target.value)}
-              placeholder="Opcional: filtrar por empleado"
+              placeholder="Opcional: NIT exacto"
               className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
             />
           </div>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <button
+          type="button"
+          onClick={handleExportar}
+          disabled={loadingExport || !hasMonth || totalItems === 0 || loading}
+          className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+            totalItems > 0
+              ? "bg-(--color-success) text-white hover:opacity-90"
+              : "border border-gray-300 text-gray-700 bg-white"
+          }`}
+        >
+          {loadingExport && <Loader2 size={16} className="animate-spin" />}
+          <FileSpreadsheet size={16} />
+          <span>Exportar a Excel</span>
+        </button>
+      </div>
       </div>
 
       <motion.div

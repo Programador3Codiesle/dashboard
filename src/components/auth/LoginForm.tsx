@@ -6,6 +6,9 @@ import { Eye, EyeOff, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { SelectorEmpresaModal } from './SelectorEmpresaModal';
+import { MustChangePasswordError } from '@/core/auth/must-change-password-error';
+import { ActualizarPasswordPanel } from './ActualizarPasswordPanel';
+import { RecuperarPasswordPanel } from './RecuperarPasswordPanel';
 
 export const LoginForm = () => {
   const REMEMBER_USER_KEY = 'remember_login_user';
@@ -18,6 +21,12 @@ export const LoginForm = () => {
   const { login, updateUser } = useAuth();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
+  const [view, setView] = useState<'login' | 'updatePass' | 'forgot'>('login');
+  const [pendingChange, setPendingChange] = useState<{
+    userId: string;
+    changeToken: string;
+  } | null>(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     const savedUser = localStorage.getItem(REMEMBER_USER_KEY);
@@ -31,6 +40,7 @@ export const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setSuccessMsg("");
     setIsLoading(true);
 
     try {
@@ -53,6 +63,14 @@ export const LoginForm = () => {
 
       setShowEmpresaModal(true);
     } catch (error) {
+      if (error instanceof MustChangePasswordError) {
+        setPendingChange({
+          userId: error.userId,
+          changeToken: error.changeToken,
+        });
+        setView('updatePass');
+        return;
+      }
       console.error('Error en login:', error);
       setErrorMsg(error instanceof Error ? error.message : "Credenciales incorrectas");
     } finally {
@@ -92,7 +110,7 @@ export const LoginForm = () => {
         <p className="text-gray-600">Ingresa a tu cuenta de Codiesel</p>
 
         {/* Mensaje de error */}
-        {errorMsg && (
+        {errorMsg && view === 'login' && (
           <div
             data-testid="login-error"
             role="alert"
@@ -102,9 +120,18 @@ export const LoginForm = () => {
           </div>
         )}
 
+        {successMsg && view === 'login' && (
+          <div
+            role="status"
+            className="mb-1 mt-1 bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded-lg text-sm"
+          >
+            {successMsg}
+          </div>
+        )}
+
       </div>
 
-      {/* Formulario */}
+      {view === 'login' && (
       <motion.form
         data-testid="login-form"
         onSubmit={handleSubmit}
@@ -184,8 +211,13 @@ export const LoginForm = () => {
           <button
             type="button"
             className="text-sm brand-text brand-text-hover font-medium"
+            onClick={() => {
+              setErrorMsg('');
+              setSuccessMsg('');
+              setView('forgot');
+            }}
           >
-            {/*¿Olvidaste tu contraseña? */}
+            ¿Olvidó su contraseña?
           </button>
         </div>
 
@@ -209,6 +241,31 @@ export const LoginForm = () => {
         </motion.button>
 
       </motion.form>
+      )}
+
+      {view === 'updatePass' && pendingChange && (
+        <ActualizarPasswordPanel
+          userId={pendingChange.userId}
+          changeToken={pendingChange.changeToken}
+          nit={Number.parseInt(user, 10) || undefined}
+          onSuccess={(message) => {
+            setPendingChange(null);
+            setSuccessMsg(message);
+            setPassword('');
+            setView('login');
+          }}
+          onCancel={() => {
+            setPendingChange(null);
+            setView('login');
+          }}
+        />
+      )}
+
+      {view === 'forgot' && (
+        <RecuperarPasswordPanel
+          onBack={() => setView('login')}
+        />
+      )}
 
       <SelectorEmpresaModal
         open={showEmpresaModal}

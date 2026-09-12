@@ -22,4 +22,15 @@ test.describe("Dashboard", () => {
     await expect(page.getByTestId("header-profile-menu")).toBeVisible();
     await expect(page.getByRole("link", { name: "Dashboard" })).toBeVisible();
   });
+
+  test("abre el modal Mi Perfil", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page.getByTestId("header-profile-menu")).toBeVisible();
+    await page.getByTestId("header-profile-menu").click();
+    await page.getByTestId("header-mi-perfil").click();
+    await expect(page.getByTestId("mi-perfil-modal")).toBeVisible();
+    await expect(
+      page.getByTestId("mi-perfil-modal").getByRole("heading"),
+    ).toBeVisible();
+  });
 });

@@ -3,7 +3,10 @@
 import { COMISIONES_JEFES_SUBMENU_ID } from '@/utils/constants';
 import { useNominaPageGuard } from '@/modules/nomina/shared/hooks/useNominaPageGuard';
 import { formatCurrency } from '@/modules/nomina/utils/format-currency';
-import { NOMINA_STYLES } from '@/modules/nomina/constants';
+import {
+  NOMINA_STYLES,
+  PERFILES_COMISIONES_JEFES_INGRESAR_VALORES,
+} from '@/modules/nomina/constants';
 
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
@@ -28,7 +31,10 @@ const sedes = [
 ];
 
 export function ComisionesJefesGestion() {
-  const { blocked } = useNominaPageGuard(COMISIONES_JEFES_SUBMENU_ID);
+  const { blocked, user } = useNominaPageGuard(COMISIONES_JEFES_SUBMENU_ID);
+  const puedeIngresarValores = (
+    PERFILES_COMISIONES_JEFES_INGRESAR_VALORES as readonly number[]
+  ).includes(Number(user?.perfil_postventa ?? 0));
 
   const { showError, showSuccess } = useToast();
   const [mes, setMes] = useState('');
@@ -251,9 +257,11 @@ export function ComisionesJefesGestion() {
             <Search size={16} className="mr-2" />{' '}
             {listarMutation.isPending ? 'Generando...' : 'Generar nómina'}
           </button>
-          <button type="button" onClick={() => setIsValoresOpen(true)} className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors">
-            <Settings size={16} className="mr-2" /> Ingresar valores
-          </button>
+          {puedeIngresarValores ? (
+            <button type="button" onClick={() => setIsValoresOpen(true)} className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors">
+              <Settings size={16} className="mr-2" /> Ingresar valores
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onExportarExcel}
@@ -380,7 +388,7 @@ export function ComisionesJefesGestion() {
         </div>
       )}
 
-      {isValoresOpen && (
+      {isValoresOpen && puedeIngresarValores && (
         <div className="fixed inset-0 z-120 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/60"

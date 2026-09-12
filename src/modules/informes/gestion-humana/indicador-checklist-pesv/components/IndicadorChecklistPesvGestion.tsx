@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
+import { getXlsx } from '@/utils/export-xlsx';
 import { checklistPesvService, TipoChecklistPesv } from '@/modules/informes/gestion-humana/services/checklist-pesv.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -26,6 +27,7 @@ export function IndicadorChecklistPesvGestion() {
   const [tipo, setTipo] = useState<TipoChecklistPesv>('carro');
   const [placa, setPlaca] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
   const [filtrosAplicados, setFiltrosAplicados] = useState<{
     tipo: TipoChecklistPesv;
     placa?: string;
@@ -85,6 +87,29 @@ export function IndicadorChecklistPesvGestion() {
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
   const hasDates = Boolean(fechaIni && fechaFin);
+
+  const handleExportar = useCallback(async () => {
+    if (data.length === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const rows = data.map((row) => ({
+        Placa: row.placa,
+        'N° Registros': row.numRegistros,
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Indicador CheckList PESV');
+      XLSX.writeFile(workbook, 'Indicador CheckList PESV.xlsx');
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [data, showError]);
 
   if (blocked) return null;
 
@@ -153,7 +178,7 @@ export function IndicadorChecklistPesvGestion() {
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleGenerar}
@@ -162,6 +187,20 @@ export function IndicadorChecklistPesvGestion() {
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>{isFetching ? 'Consultando...' : 'Generar'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || isFetching || data.length === 0}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              data.length > 0
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

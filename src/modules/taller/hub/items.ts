@@ -6,6 +6,7 @@ import {
   Headphones,
   RotateCcw,
   Settings,
+  Trophy,
   TrendingUp,
   Wallet,
   Wrench,
@@ -22,6 +23,7 @@ import {
   PRESUPUESTO_SUBMENU_ID,
   PYG_ASESORES_REPUESTOS_SUBMENU_ID,
   PYG_TECNICOS_SUBMENU_ID,
+  RANKING_TECNICOS_TRIMESTRAL_SUBMENU_ID,
 } from '@/utils/constants';
 
 export const TALLER_HUB_ITEMS: HubItem[] = [
@@ -74,6 +76,15 @@ export const TALLER_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/taller/pyg-tecnicos',
     submenuId: PYG_TECNICOS_SUBMENU_ID,
     icono: TrendingUp,
+  },
+  {
+    id: 'ranking-trimestral',
+    nombre: 'Ranking Técnico Trimestral',
+    descripcion: 'Ventas por técnico en el trimestre seleccionado',
+    ruta: '/dashboard/taller/ranking-trimestral',
+    submenuId: RANKING_TECNICOS_TRIMESTRAL_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
+    icono: Trophy,
   },
   {
     id: 'presupuesto',

@@ -7,6 +7,8 @@ import { AusentismoDiaActual } from '@/modules/administracion/services/lista-aus
 interface AusentismoCardProps {
   ausentismo: AusentismoDiaActual;
   index: number;
+  confirming?: boolean;
+  onConfirmar?: (id: number) => void;
 }
 
 /**
@@ -15,12 +17,13 @@ interface AusentismoCardProps {
  */
 export const AusentismoCard = React.memo(({
   ausentismo,
-  index
+  confirming = false,
+  onConfirmar,
 }: AusentismoCardProps) => {
   const estadoClasses =
-    ausentismo.estado === "Aprobado"
+    ausentismo.estado === "Autorizado"
       ? "bg-green-100 text-green-700 border-green-200"
-      : ausentismo.estado === "Rechazado"
+      : ausentismo.estado === "Negado"
         ? "bg-red-100 text-red-700 border-red-200"
         : "bg-amber-100 text-amber-700 border-amber-200";
 
@@ -56,11 +59,29 @@ export const AusentismoCard = React.memo(({
           <p className="font-medium text-gray-900">Motivo:</p>
           <p className="text-gray-700">{ausentismo.motivo}</p>
         </div>
+        {ausentismo.estado === "Autorizado" ? (
+          <button
+            type="button"
+            disabled={confirming}
+            onClick={() => onConfirmar?.(ausentismo.id)}
+            className="mt-4 w-full rounded-xl brand-bg px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {confirming ? "Confirmando..." : "Confirmar"}
+          </button>
+        ) : (
+          <p className="mt-4 text-sm text-amber-700">
+            El ausentismo no ha sido aprobado
+          </p>
+        )}
       </div>
     </div>
   );
 }, (prevProps, nextProps) => {
-  return prevProps.ausentismo.id === nextProps.ausentismo.id;
+  return (
+    prevProps.ausentismo.id === nextProps.ausentismo.id &&
+    prevProps.ausentismo.estado === nextProps.ausentismo.estado &&
+    prevProps.confirming === nextProps.confirming
+  );
 });
 
 AusentismoCard.displayName = 'AusentismoCard';

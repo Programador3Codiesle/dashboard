@@ -30,6 +30,7 @@ const TicketsTableMisTickets = memo(function TicketsTableMisTickets({
       <TicketsTable
         tickets={tickets}
         loading={loading}
+        verDetalle
         minWidthClass="min-w-[980px]"
         loadingUi={
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-pulse">

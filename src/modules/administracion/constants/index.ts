@@ -76,6 +76,8 @@ export const ADMINISTRACION_COPY = {
     title: 'Nuevo Ausentismo',
     description: 'Registro de nuevos ausentismos',
     loadError: 'Error al cargar los ausentismos',
+    horarioLaboral:
+      'No se puede crear ausentismos en horarios no laborales',
   },
   solicitudTiempoSuplementario: {
     title: 'Solicitud Tiempo Suplementario',
@@ -186,19 +188,58 @@ export function getSedesByEmpresa(empresaId: number | undefined): string[] {
   return SEDES_POR_EMPRESA[empresaId] ?? [];
 }
 
-export const MOTIVOS_PERMISO = [
-  'Cumpleaños',
-  'Cita Medica/Odontologica DEL TRABAJADOR',
-  'Licencias(Paternidad o Luto)',
-  'Grave Calamidad Domestica Comprobada',
-  'Reunion o capacitacion programada por la Empresa',
-  'Permiso no Remunerado con descuento de nomina',
-  'Personal',
-  'Estudio',
-  'Dia de la familia',
-  'Grado o matrimonio del trabajador',
-  'Jurado votacion',
+export const MOTIVOS_PERMISO: { value: string; label: string }[] = [
+  { value: 'Cumpleaños', label: 'Cumpleaños' },
+  {
+    value: 'Cita Medica/Odontológica DEL TRABAJADOR',
+    label: 'Cita Medica/Odontológica DEL TRABAJADOR',
+  },
+  {
+    value: 'Licencias(Paternidad o Luto)',
+    label: 'Licencias(Paternidad o Luto)',
+  },
+  {
+    value: 'Calamidad Doméstica',
+    label: 'Grave Calamidad Doméstica Comprobada',
+  },
+  {
+    value: 'Reunión o capacitación',
+    label: 'Reunión o capacitación programada por la Empresa',
+  },
+  {
+    value: 'Permiso no remunerado con descuento de nomina',
+    label: 'Permiso no remunerado con descuento de nómina',
+  },
+  { value: 'Personal', label: 'Personal' },
+  { value: 'Estudio', label: 'Estudio' },
+  { value: 'Dia de la familia', label: 'Día de la familia' },
+  {
+    value: 'Grado o matrimonio del trabajador',
+    label: 'Grado o matrimonio del trabajador',
+  },
+  { value: 'Compensatorio Votantes', label: 'Compensatorio Votantes' },
+  {
+    value: 'Compensatorio Jurado de Votación',
+    label: 'Compensatorio Jurado de Votación',
+  },
 ];
+
+export const MOTIVO_COMPENSATORIO_VENTAS = {
+  value: 'Compensatorio (Indicar en descripción la fecha que laboró)',
+  label: 'Compensatorio (Indicar en descripción la fecha que laboró)',
+};
+
+export const MOTIVOS_ADJUNTO_AUSENTISMO = [
+  'Compensatorio Jurado de Votación',
+  'Compensatorio Votantes',
+  'Cita Medica/Odontológica DEL TRABAJADOR',
+  'Estudio',
+  'Calamidad Doméstica',
+] as const;
+
+export function motivoRequiereAdjunto(motivo: string): boolean {
+  return (MOTIVOS_ADJUNTO_AUSENTISMO as readonly string[]).includes(motivo);
+}
 
 export const AREAS_INFORME_AUSENTISMO = [
   'Administracion',

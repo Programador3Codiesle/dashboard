@@ -89,6 +89,21 @@ test.describe("Órdenes TOT API", () => {
     expect(Array.isArray(body)).toBeTruthy();
   });
 
+  test("GET /ordenes-tot/ordenes-generales/pendientes con sesión", async ({
+    request,
+  }) => {
+    const response = await apiRequest(
+      request,
+      "/ordenes-tot/ordenes-generales/pendientes",
+    );
+    await expectApiOkOrSkip(
+      response.status(),
+      "GET /ordenes-tot/ordenes-generales/pendientes",
+    );
+    const body = await response.json();
+    expect(Array.isArray(body)).toBeTruthy();
+  });
+
   test("GET /ordenes-tot/validar-orden con sesión", async ({ request }) => {
     const response = await apiRequest(
       request,

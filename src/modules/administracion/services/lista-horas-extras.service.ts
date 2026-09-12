@@ -22,7 +22,7 @@ export interface HorasExtrasDiaActual {
   horaInicio: string;
   horaFin: string;
   descripcion: string;
-  estado: "Pendiente" | "Aprobado" | "Rechazado";
+  estado: "Pendiente" | "Aprobado" | "Negado";
 }
 
 export const listaHorasExtrasService = {
@@ -48,7 +48,7 @@ export const listaHorasExtrasService = {
         item.autorizacion === 1
           ? "Aprobado"
           : item.autorizacion === 2
-            ? "Rechazado"
+            ? "Negado"
             : "Pendiente",
     }));
   },

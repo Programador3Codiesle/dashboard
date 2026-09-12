@@ -31,7 +31,7 @@ const CODIESEL_SUBMENU: HubFilterOptions = {
  */
 export const SIDEBAR_HUB_ACCESS: Record<string, { items: HubItem[]; filter: HubFilterOptions }> = {
   "/dashboard/administracion": { items: ADMINISTRACION_HUB_ITEMS, filter: SUBMENU },
-  "/dashboard/nomina": { items: NOMINA_HUB_ITEMS, filter: SUBMENU },
+  "/dashboard/nomina": { items: NOMINA_HUB_ITEMS, filter: CODIESEL_SUBMENU },
   "/dashboard/cotizar": { items: COTIZAR_HUB_ITEMS, filter: SUBMENU },
   "/dashboard/informes": { items: INFORMES_ROOT_HUB_ITEMS, filter: SUBMENU },
   "/dashboard/taller": { items: TALLER_HUB_ITEMS, filter: SUBMENU },

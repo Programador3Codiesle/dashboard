@@ -1,5 +1,6 @@
 import {
   CarFront,
+  Clipboard,
   ClipboardList,
   Package,
   Search,
@@ -8,6 +9,7 @@ import type { HubItem } from '@/components/shared/hub/types';
 import {
   BUSCAR_ORDENES_SUBMENU_ID,
   CODIESEL_EMPRESA_ID,
+  DAR_SALIDA_ORDEN_GENERAL_SUBMENU_ID,
   DAR_SALIDA_TOT_SUBMENU_ID,
   DAR_SALIDA_VEHICULOS_SUBMENU_ID,
   INGRESO_REPUESTOS_SUBMENU_ID,
@@ -40,6 +42,15 @@ export const ORDENES_TOT_HUB_ITEMS: HubItem[] = [
     submenuId: DAR_SALIDA_TOT_SUBMENU_ID,
     empresaId: CODIESEL_EMPRESA_ID,
     icono: ClipboardList,
+  },
+  {
+    id: 'dar-salida-ordenes',
+    nombre: 'Dar salida Órdenes',
+    descripcion: 'Registro de órdenes generales pendientes de portería',
+    ruta: '/dashboard/ordenes-tot/dar-salida-ordenes',
+    submenuId: DAR_SALIDA_ORDEN_GENERAL_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
+    icono: Clipboard,
   },
   {
     id: 'ingreso-repuestos',

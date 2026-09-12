@@ -10,6 +10,8 @@ export interface HubItem {
   icono: LucideIcon;
   color?: string;
   submenuId?: number;
+  /** Visible sin id_submenu (legado sin fila en postv_submenu). */
+  sinSubmenu?: boolean;
   trimenuId?: number;
   trimenuIdsAlternativos?: number[];
   empresaId?: number;

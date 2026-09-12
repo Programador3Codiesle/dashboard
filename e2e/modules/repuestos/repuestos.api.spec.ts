@@ -127,6 +127,29 @@ test.describe("Repuestos API", () => {
     expect(Array.isArray(body.items)).toBeTruthy();
   });
 
+  test("GET /repuestos/pedidos-repuestos con sesión", async ({ request }) => {
+    const response = await apiRequest(request, "/repuestos/pedidos-repuestos");
+    await expectApiOkOrSkip(
+      response.status(),
+      "GET /repuestos/pedidos-repuestos",
+    );
+    const body = await response.json();
+    expect(Array.isArray(body)).toBeTruthy();
+  });
+
+  test("GET /repuestos/pedidos-repuestos?q= con sesión", async ({ request }) => {
+    const response = await apiRequest(
+      request,
+      "/repuestos/pedidos-repuestos?q=1",
+    );
+    await expectApiOkOrSkip(
+      response.status(),
+      "GET /repuestos/pedidos-repuestos?q=1",
+    );
+    const body = await response.json();
+    expect(Array.isArray(body)).toBeTruthy();
+  });
+
   test.describe("sin sesión", () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -137,6 +160,13 @@ test.describe("Repuestos API", () => {
         request,
         "/repuestos/solicitudes-ev/bodegas",
       );
+      expect(response.status()).toBe(401);
+    });
+
+    test("GET /repuestos/pedidos-repuestos exige autenticación", async ({
+      request,
+    }) => {
+      const response = await apiRequest(request, "/repuestos/pedidos-repuestos");
       expect(response.status()).toBe(401);
     });
   });

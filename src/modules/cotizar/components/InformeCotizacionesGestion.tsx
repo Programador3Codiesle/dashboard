@@ -4,9 +4,10 @@ import { INFORME_COTIZACIONES_SUBMENU_ID } from '@/utils/constants';
 import { useCotizarPageGuard } from '@/modules/cotizar/shared/hooks/useCotizarPageGuard';
 import { defaultDateRangeMonthsBack } from '@/modules/cotizar/constants';
 import { getErrorMessage } from '@/modules/cotizar/utils/get-error-message';
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarRange, FileText, Mail, Truck } from "lucide-react";
+import { CalendarRange, FileSpreadsheet, FileText, Loader2, Mail, Truck } from "lucide-react";
+import { getXlsx } from "@/utils/export-xlsx";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useInformeCotizaciones } from "@/modules/cotizador/hooks/useInformeCotizaciones";
@@ -20,6 +21,15 @@ import { Pagination } from "@/components/shared/ui/Pagination";
 import { getApiBaseUrl } from "@/config/public-env";
 import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
+function formatFechaCotizacion(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso || "-";
+  return parsed.toLocaleString("es-CO", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
 export function InformeCotizacionesGestion() {
   const { blocked } = useCotizarPageGuard(INFORME_COTIZACIONES_SUBMENU_ID);
   const defaults = useMemo(() => defaultDateRangeMonthsBack(1), []);
@@ -28,6 +38,7 @@ export function InformeCotizacionesGestion() {
   const [dateEnd, setDateEnd] = useState<string>(defaults.end);
   const [emailLoadingId, setEmailLoadingId] = useState<number | null>(null);
   const [agendaLoadingId, setAgendaLoadingId] = useState<number | null>(null);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const { user } = useAuth();
   const { cotizaciones, loading, error, refetch } = useInformeCotizaciones(tipo, dateStart, dateEnd);
@@ -109,6 +120,34 @@ export function InformeCotizacionesGestion() {
     () => filtered.slice(startIndex, endIndex),
     [filtered, startIndex, endIndex],
   );
+
+  const handleExportar = useCallback(async () => {
+    if (loading || filtered.length === 0) return;
+    setLoadingExport(true);
+    try {
+      const rows = filtered.map((c) => ({
+        ID: c.id_cotizacion,
+        Asesor: c.asesor || "-",
+        Placa: c.placa,
+        Clase: c.clase,
+        Modelo: c.des_modelo,
+        Km: c.kilometraje_cliente != null ? c.kilometraje_cliente : "-",
+        Revisión: c.revision != null ? c.revision : "-",
+        Bodega: c.NomBodega || "-",
+        Estado: c.estado === 1 ? "AGENDADA" : "SIN AGENDAR",
+        Fecha: formatFechaCotizacion(c.fecha_creacion),
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Cotizaciones");
+      XLSX.writeFile(workbook, "Cotizaciones.xlsx");
+    } catch {
+      showError("No se pudo exportar el informe de cotizaciones.");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [filtered, loading, showError]);
 
   if (blocked) return null;
 
@@ -214,9 +253,26 @@ export function InformeCotizacionesGestion() {
           <h2 className="text-lg font-semibold text-gray-900">
             {tipo === "livianos" ? "Cotizaciones livianos" : "Cotizaciones pesados"}
           </h2>
-          {loading && (
-            <span className="text-xs text-gray-500">Cargando cotizaciones...</span>
-          )}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {loading && (
+              <span className="text-xs text-gray-500">Cargando cotizaciones...</span>
+            )}
+            <button
+              type="button"
+              data-testid="cotizar-informe-excel"
+              onClick={() => void handleExportar()}
+              disabled={loadingExport || loading || filtered.length === 0}
+              className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                filtered.length > 0
+                  ? "bg-(--color-success) text-white hover:opacity-90"
+                  : "border border-gray-300 text-gray-700 bg-white"
+              }`}
+            >
+              {loadingExport && <Loader2 size={16} className="animate-spin" />}
+              <FileSpreadsheet size={16} />
+              <span>Exportar a Excel</span>
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -279,10 +335,7 @@ export function InformeCotizacionesGestion() {
                       </span>
                     </td>
                     <td className="py-2 px-3">
-                      {new Date(c.fecha_creacion).toLocaleString("es-CO", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
+                      {formatFechaCotizacion(c.fecha_creacion)}
                     </td>
                     <td className="py-2 px-3 text-center">
                       <button

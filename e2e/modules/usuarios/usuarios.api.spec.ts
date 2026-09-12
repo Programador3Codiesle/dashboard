@@ -10,6 +10,19 @@ test.describe("Usuarios API", () => {
     expect(Array.isArray(body.items) || Array.isArray(body)).toBeTruthy();
   });
 
+  test("GET /usuarios/mi-perfil con sesión", async ({ request }) => {
+    const response = await apiRequest(request, "/usuarios/mi-perfil");
+    await expectApiOkOrSkip(response.status(), "GET /usuarios/mi-perfil");
+    const body = (await response.json()) as {
+      nit?: string | null;
+      jefes?: unknown[];
+      tallas?: { talla_camisa?: string | null };
+    };
+    expect(body).toHaveProperty("nit");
+    expect(Array.isArray(body.jefes)).toBeTruthy();
+    expect(body.tallas).toHaveProperty("talla_camisa");
+  });
+
   test("GET /usuarios?search filtra por NIT de prueba", async ({ request }) => {
     const { nit } = getE2eConfig();
     const response = await apiRequest(
@@ -24,6 +37,11 @@ test.describe("Usuarios API", () => {
 
     test("GET /usuarios exige autenticación", async ({ request }) => {
       const response = await apiRequest(request, "/usuarios?page=1&limit=10");
+      expect(response.status()).toBe(401);
+    });
+
+    test("GET /usuarios/mi-perfil exige autenticación", async ({ request }) => {
+      const response = await apiRequest(request, "/usuarios/mi-perfil");
       expect(response.status()).toBe(401);
     });
   });

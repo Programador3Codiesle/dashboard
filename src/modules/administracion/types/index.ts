@@ -469,6 +469,7 @@ export interface NuevoAusentismoDTO {
   motivo: string;
   descripcionMotivo: string;
   id_empresa?: number;
+  archivoSoporte?: File;
 }
 
 // ========== TIEMPO SUPLEMENTARIO ==========

@@ -2,7 +2,7 @@ export const INFORMES_COPY = {
   hub: {
     title: 'Informes',
     description:
-      'Accede a los informes de Gestión Humana y Postventa con una experiencia moderna y unificada.',
+      'Accede a los informes de Gestión Humana y Postventa, y a la carga QR por taller.',
   },
   ghHub: {
     title: 'Informes - Gestión Humana',
@@ -13,6 +13,11 @@ export const INFORMES_COPY = {
     title: 'Informes - Postventa',
     description:
       'Visualiza los principales informes operativos y de satisfacción del módulo de Postventa.',
+  },
+  qrTaller: {
+    title: 'Informes QR taller',
+    description:
+      'Carga de encuesta QR por ventanilla: taller, placa y calificación.',
   },
   backRoot: '← Volver a Informes',
   backGh: '← Volver a Gestión Humana',

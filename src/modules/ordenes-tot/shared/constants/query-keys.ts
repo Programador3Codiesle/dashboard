@@ -9,5 +9,6 @@ export const ordenesTotKeys = {
     ['ordenes-tot', 'listado-tot', estado, page] as const,
   listadoTotAll: ['ordenes-tot', 'listado-tot'] as const,
   repuestosCandidatos: ['ordenes-tot', 'repuestos-candidatos'] as const,
+  ordenesGeneralesPendientes: ['ordenes-tot', 'ordenes-generales-pendientes'] as const,
   validarOrden: (orden: string) => ['ordenes-tot', 'validar-orden', orden] as const,
 };

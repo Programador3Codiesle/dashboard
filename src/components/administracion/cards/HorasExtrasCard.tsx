@@ -15,12 +15,11 @@ interface HorasExtrasCardProps {
  */
 export const HorasExtrasCard = React.memo(({
   horasExtras,
-  index
 }: HorasExtrasCardProps) => {
   const estadoClasses =
     horasExtras.estado === "Aprobado"
       ? "bg-green-100 text-green-700"
-      : horasExtras.estado === "Rechazado"
+      : horasExtras.estado === "Negado"
         ? "bg-red-100 text-red-700"
         : "bg-amber-100 text-amber-700";
 

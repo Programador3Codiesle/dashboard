@@ -2,6 +2,17 @@ export function formatCurrency(value: number): string {
   return Math.round(Number(value || 0)).toLocaleString("es-CO");
 }
 
+export function formatNumberEs(value: number, fractionDigits = 0): string {
+  return Number(value || 0).toLocaleString("es-CO", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+}
+
+export function formatMoneyEs(value: number, fractionDigits = 0): string {
+  return `$ ${formatNumberEs(value, fractionDigits)}`;
+}
+
 export function formatPercent(value: number): string {
   return `${Number(value ?? 0).toFixed(2)}%`;
 }

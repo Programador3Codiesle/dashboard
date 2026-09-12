@@ -97,6 +97,9 @@ export const PYG_TECNICOS_SUBMENU_ID = 173;
 /** Submenú Presupuesto (Taller, id_menu = 4) — solo Codiesel */
 export const PRESUPUESTO_SUBMENU_ID = 186;
 
+/** Submenú Ranking Técnico Trimestral (Taller, id_menu = 4) */
+export const RANKING_TECNICOS_TRIMESTRAL_SUBMENU_ID = 72;
+
 /** Empresa Codiesel */
 export const CODIESEL_EMPRESA_ID = 1 as const;
 export const DIESELCO_EMPRESA_ID = 2 as const;
@@ -164,6 +167,8 @@ export const DAR_SALIDA_VEHICULOS_SUBMENU_ID = 11;
 export const BUSCAR_ORDENES_SUBMENU_ID = 12;
 export const DAR_SALIDA_TOT_SUBMENU_ID = 16;
 export const INGRESO_REPUESTOS_SUBMENU_ID = 17;
+/** Dar salida Órdenes (orden general) — postv_submenu.id_submenu = 20 */
+export const DAR_SALIDA_ORDEN_GENERAL_SUBMENU_ID = 20;
 
 /** Menú Indicadores (id_menu = 2) — solo Codiesel / Chevrolet */
 export const INDICADORES_MENU_ID = 2 as const;
@@ -207,7 +212,7 @@ export const EJECUCION_COTIZADO_VS_FACTURADO_SUBMENU_ID = 110;
 export const ADICIONALES_LIVIANOS_SUBMENU_ID = 118;
 export const EDITAR_REPUESTO_MANO_OBRA_SUBMENU_ID = 196;
 
-/** Menú Nómina (id_menu = 3) */
+/** Menú Nómina (id_menu = 3) — solo Codiesel */
 export const NOMINA_MENU_ID = 3 as const;
 
 /** Submenús Nómina (id_menu = 3) */
@@ -217,6 +222,8 @@ export const COMISIONES_TECNICOS_SUBMENU_ID = 77;
 export const COMISIONES_JEFES_SUBMENU_ID = 78;
 export const NOMINA_DIRECTOR_FLOTAS_SUBMENU_ID = 122;
 export const RELACION_MARGEN_MATERIALES_COLORISTA_SUBMENU_ID = 185;
+/** Submenú Nomina Accesorios (`nomina/nomina_accesorios_principal`) */
+export const NOMINA_ACCESORIOS_SUBMENU_ID = 197;
 
 /** Menú Mantenimiento (id_menu = 41) — solo Codiesel */
 export const MANTENIMIENTO_MENU_ID = 41 as const;
@@ -232,6 +239,9 @@ export const INFORME_PREVENTIVO_SUBMENU_ID = 97;
 export const INFORMES_MENU_ID = 5 as const;
 export const INFORMES_GESTION_HUMANA_SUBMENU_ID = 135 as const;
 export const INFORMES_POSTVENTA_SUBMENU_ID = 137 as const;
+
+/** Submenú Informes QR taller (Informes, id_menu = 5) — solo Codiesel */
+export const INFORME_QR_TALLER_SUBMENU_ID = 74;
 
 /** Menú Administración (id_menu = 11) — multiempresa */
 export const ADMINISTRACION_MENU_ID = 11 as const;

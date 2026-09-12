@@ -195,4 +195,58 @@ test.describe("Repuestos UI", () => {
       table.getByRole("columnheader", { name: "N° OC" }),
     ).toBeVisible();
   });
+
+  test("lista pedidos de repuestos intranet (solo lectura)", async ({
+    page,
+  }) => {
+    const hits = collectApiResponses(
+      page,
+      "/repuestos/pedidos-repuestos",
+      true,
+    );
+
+    await gotoApp(page, "/dashboard/repuestos/pedidos");
+    await expectHeadingOrSkip(page, "Pedidos de repuestos");
+    await expect(page.getByTestId("repuestos-page")).toBeVisible();
+
+    const response = await firstCollectedOrWait(
+      page,
+      hits,
+      "/repuestos/pedidos-repuestos",
+      true,
+    );
+    expect(
+      response.ok(),
+      `GET /repuestos/pedidos-repuestos → HTTP ${response.status()}`,
+    ).toBeTruthy();
+
+    const table = page.getByTestId("repuestos-pedidos-table");
+    await expect(table).toBeVisible();
+    await expect(
+      table.getByRole("columnheader", { name: "Número" }),
+    ).toBeVisible();
+
+    await page.getByTestId("repuestos-pedidos-buscar").fill("intranet");
+    await page.getByTestId("repuestos-pedidos-buscar-btn").click();
+
+    const busqueda = await page.waitForResponse(
+      (resp) => {
+        if (resp.request().method() !== "GET") return false;
+        try {
+          const url = new URL(resp.url());
+          return (
+            url.pathname === "/repuestos/pedidos-repuestos" &&
+            url.searchParams.get("q") === "intranet"
+          );
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 40_000 },
+    );
+    expect(
+      busqueda.ok(),
+      `GET /repuestos/pedidos-repuestos?q=intranet → HTTP ${busqueda.status()}`,
+    ).toBeTruthy();
+  });
 });

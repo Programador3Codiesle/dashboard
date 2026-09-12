@@ -46,6 +46,7 @@ test.describe("Cotizar UI", () => {
         .getByTestId("cotizar-informe-table")
         .getByRole("columnheader", { name: "ID" }),
     ).toBeVisible();
+    await expect(page.getByTestId("cotizar-informe-excel")).toBeVisible();
   });
 
   test("abre Cotizador Livianos sin crear cotización", async ({ page }) => {

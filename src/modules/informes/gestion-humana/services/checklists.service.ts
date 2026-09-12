@@ -6,8 +6,7 @@ export type TipoChecklistEquipo =
   | 2 // Elevadores
   | 3 // Tijera
   | 4 // Hidráulicos
-  | 5 // Pórtico
-  | 6; // Cabina de pintura
+  | 5; // Pórtico
 
 export interface FiltrosChecklistEquipo {
   op: TipoChecklistEquipo;

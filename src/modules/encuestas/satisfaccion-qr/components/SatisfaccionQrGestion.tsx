@@ -5,6 +5,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { EncuestasPageFrame } from '@/modules/encuestas/components/EncuestasPageFrame';
 import { ENCUESTAS_COPY } from '@/modules/encuestas/constants';
+import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
+import { INFORMES_COPY } from '@/modules/informes/constants';
 import { encuestasKeys } from '@/modules/encuestas/shared/constants/query-keys';
 import {
   btnWarningClass,
@@ -84,8 +86,16 @@ function SiNoButtons({
   );
 }
 
-export function SatisfaccionQrGestion() {
-  const { user, blocked } = useEncuestasPageGuard(SATISFACCION_QR_SUBMENU_ID);
+export function SatisfaccionQrGestion({
+  submenuId = SATISFACCION_QR_SUBMENU_ID,
+  redirectTo = '/dashboard/encuestas',
+  frame = 'encuestas',
+}: {
+  submenuId?: number;
+  redirectTo?: string;
+  frame?: 'encuestas' | 'informes';
+}) {
+  const { user, blocked } = useEncuestasPageGuard(submenuId, { redirectTo });
   const sesionLista = !!user && !blocked;
 
   const [bodega, setBodega] = useState('0');
@@ -100,20 +110,32 @@ export function SatisfaccionQrGestion() {
     null,
   );
 
+  const placaNormalizada = placa.trim().toUpperCase();
+
   useEffect(() => {
-    const t = setTimeout(() => setPlacaDebounced(placa.trim().toUpperCase()), 300);
+    const t = setTimeout(() => setPlacaDebounced(placaNormalizada), 300);
     return () => clearTimeout(t);
-  }, [placa]);
+  }, [placaNormalizada]);
 
   const placaQuery = useQuery({
     queryKey: encuestasKeys.validarPlacaQr(placaDebounced),
     queryFn: () => encuestasService.validarPlacaQr(placaDebounced),
-    enabled: sesionLista,
+    enabled: sesionLista && placaDebounced.length > 0,
     ...transactionalQueryOptions,
   });
 
-  const placaOk = placaQuery.data?.ok === true;
-  const placaMsg = placaQuery.data?.message ?? '';
+  const placaOk =
+    placaNormalizada.length > 0 &&
+    placaDebounced === placaNormalizada &&
+    placaQuery.data?.ok === true;
+  const placaEstado =
+    placaNormalizada.length === 0
+      ? null
+      : placaQuery.isFetching
+        ? 'Validando placa...'
+        : placaDebounced === placaNormalizada
+          ? (placaQuery.data?.message ?? null)
+          : null;
 
   const submitMutation = useMutation({
     mutationFn: () =>
@@ -161,13 +183,19 @@ export function SatisfaccionQrGestion() {
 
   if (blocked) return null;
 
-  return (
-    <EncuestasPageFrame
-      title={ENCUESTAS_COPY.satisfaccionQr.title}
-      description={ENCUESTAS_COPY.satisfaccionQr.description}
-      backHref="/dashboard/encuestas"
-      backLabel={ENCUESTAS_COPY.satisfaccionQr.backLabel}
-    >
+  const esInformes = frame === 'informes';
+  const title = esInformes
+    ? INFORMES_COPY.qrTaller.title
+    : ENCUESTAS_COPY.satisfaccionQr.title;
+  const description = esInformes
+    ? INFORMES_COPY.qrTaller.description
+    : ENCUESTAS_COPY.satisfaccionQr.description;
+  const backHref = esInformes ? '/dashboard/informes' : '/dashboard/encuestas';
+  const backLabel = esInformes
+    ? INFORMES_COPY.backRoot
+    : ENCUESTAS_COPY.satisfaccionQr.backLabel;
+
+  const contenido = (
       <div className="app-section-card w-full min-w-0 space-y-6">
         <h2 className="text-center text-lg font-semibold text-gray-900">
           Encuesta de satisfacción CODIESEL SA
@@ -207,18 +235,24 @@ export function SatisfaccionQrGestion() {
           <label className="w-full min-w-0 text-sm">
             Ingrese La Placa
             <input
+              data-testid="satisfaccion-qr-placa"
               className={`mt-1 ${inputClass} uppercase`}
               placeholder="Ingresa Tu Placa"
               value={placa}
               onChange={(e) => setPlaca(e.target.value.toUpperCase())}
             />
-            <span
-              className={`mt-1 block text-xs font-semibold ${
-                placaOk ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
-              }`}
-            >
-              {placaQuery.isFetching ? 'Validando placa...' : placaMsg}
-            </span>
+            {placaEstado ? (
+              <span
+                data-testid="satisfaccion-qr-placa-estado"
+                className={`mt-1 block text-xs font-semibold ${
+                  placaOk
+                    ? 'text-[var(--color-success)]'
+                    : 'text-[var(--color-danger)]'
+                }`}
+              >
+                {placaEstado}
+              </span>
+            ) : null}
           </label>
         </div>
 
@@ -262,6 +296,19 @@ export function SatisfaccionQrGestion() {
           </button>
         </div>
       </div>
+  );
+
+  if (esInformes) {
+    return (
+      <InformesPageFrame title={title} description={description} backHref={backHref} backLabel={backLabel}>
+        {contenido}
+      </InformesPageFrame>
+    );
+  }
+
+  return (
+    <EncuestasPageFrame title={title} description={description} backHref={backHref} backLabel={backLabel}>
+      {contenido}
     </EncuestasPageFrame>
   );
 }

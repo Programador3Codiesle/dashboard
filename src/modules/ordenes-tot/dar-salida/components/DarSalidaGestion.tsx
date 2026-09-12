@@ -53,7 +53,7 @@ const COPY_BY_TIPO = {
 const BTN_REGISTRAR: Record<DarSalidaTipo, string> = {
   vehiculo: 'Dar salida vehículo',
   tot: 'Dar salida TOT',
-  repuesto: 'Registrar',
+  repuesto: 'Dar salida repuesto',
 };
 
 function totRowClass(item: TotListadoItem): string {
@@ -92,7 +92,7 @@ function TablaPaginadaFooter({
 
 export function DarSalidaGestion({ tipo }: Props) {
   const { user, blocked } = useOrdenesTotPageGuard(SUBMENU_BY_TIPO[tipo]);
-  const { showError, showSuccess, showInfo } = useToast();
+  const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
   const sesionLista = !!user && !blocked;
   const copy = COPY_BY_TIPO[tipo];
@@ -214,6 +214,23 @@ export function DarSalidaGestion({ tipo }: Props) {
       showError(getErrorMessage(e, 'No se pudo registrar el vehículo')),
   });
 
+  const crearRepuesto = useMutation({
+    mutationFn: () =>
+      ordenesTotService.crearRepuesto({
+        placa: placa.trim(),
+        orden: orden.trim(),
+      }),
+    onSuccess: () => {
+      showSuccess('Repuesto registrado para salida');
+      queryClient.invalidateQueries({
+        queryKey: ordenesTotKeys.repuestosCandidatos,
+      });
+      closeModal();
+    },
+    onError: (e: unknown) =>
+      showError(getErrorMessage(e, 'No se pudo registrar el repuesto')),
+  });
+
   const crearTot = useMutation({
     mutationFn: () =>
       ordenesTotService.crearTot({
@@ -254,17 +271,19 @@ export function DarSalidaGestion({ tipo }: Props) {
       showError(getErrorMessage(e, 'No se pudo generar el recibo')),
   });
 
-  const submitting = crearVehiculo.isPending || crearTot.isPending;
+  const submitting =
+    crearVehiculo.isPending || crearTot.isPending || crearRepuesto.isPending;
   const modalTitle = useMemo(() => `Registrar ${tipo} para Salida`, [tipo]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (tipo === 'vehiculo') {
+    if (tipo === 'vehiculo' || tipo === 'repuesto') {
       if (!placa.trim() || !orden.trim()) {
         showError('Placa y orden son obligatorias');
         return;
       }
-      crearVehiculo.mutate();
+      if (tipo === 'vehiculo') crearVehiculo.mutate();
+      else crearRepuesto.mutate();
       return;
     }
     if (tipo === 'tot') {
@@ -274,6 +293,12 @@ export function DarSalidaGestion({ tipo }: Props) {
       }
       crearTot.mutate();
     }
+  };
+
+  const openRegistroRepuesto = (item?: { placa: string; numero: string }) => {
+    setPlaca(item?.placa ?? '');
+    setOrden(item?.numero ?? '');
+    setModalOpen(true);
   };
 
   const inicioRango = totalItems === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
@@ -300,13 +325,15 @@ export function DarSalidaGestion({ tipo }: Props) {
               {tipo === 'tot' &&
                 'Registre salidas TOT, imprima recibos y marque reingresos.'}
               {tipo === 'repuesto' &&
-                'Consulte candidatos a salida de repuestos por orden.'}
+                'Consulte candidatos y registre placa y orden para dar salida de repuestos.'}
             </p>
             <button
               type="button"
               data-testid="ot-registrar"
               className={btnPrimaryClass}
-              onClick={() => setModalOpen(true)}
+              onClick={() =>
+                tipo === 'repuesto' ? openRegistroRepuesto() : setModalOpen(true)
+              }
             >
               Registrar
             </button>
@@ -489,12 +516,13 @@ export function DarSalidaGestion({ tipo }: Props) {
                           Bodega / descripción
                         </th>
                         <th className="px-3 py-2.5 text-left font-semibold">Fecha ingreso</th>
+                        <th className="px-3 py-2.5 text-left font-semibold">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {totalItems === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-3 py-4 text-gray-500">
+                          <td colSpan={5} className="px-3 py-4 text-gray-500">
                             No hay candidatos
                           </td>
                         </tr>
@@ -509,6 +537,20 @@ export function DarSalidaGestion({ tipo }: Props) {
                               <td className="px-3 py-2">{item.placa}</td>
                               <td className="px-3 py-2">{item.descripcion || '—'}</td>
                               <td className="px-3 py-2">{item.fechaIngreso ?? '—'}</td>
+                              <td className="px-3 py-2">
+                                <button
+                                  type="button"
+                                  className={btnSecondaryClass}
+                                  onClick={() =>
+                                    openRegistroRepuesto({
+                                      placa: item.placa,
+                                      numero: item.numero,
+                                    })
+                                  }
+                                >
+                                  Registrar
+                                </button>
+                              </td>
                             </tr>
                           ),
                         )
@@ -523,29 +565,8 @@ export function DarSalidaGestion({ tipo }: Props) {
         )}
 
         <Modal open={modalOpen} onClose={closeModal} title={modalTitle} width="480px">
-          {tipo === 'repuesto' ? (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Formulario no disponible en legacy. El registro de repuestos requería placa y
-                orden, pero el modal quedó sin campos en el sistema anterior.
-              </p>
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <button type="button" className={btnSecondaryClass} onClick={closeModal}>
-                  Cerrar
-                </button>
-                <button
-                  type="button"
-                  className={btnSuccessClass}
-                  disabled
-                  onClick={() => showInfo('Formulario incompleto en legacy')}
-                >
-                  {BTN_REGISTRAR.repuesto}
-                </button>
-              </div>
-            </div>
-          ) : (
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {tipo === 'vehiculo' && (
+              {(tipo === 'vehiculo' || tipo === 'repuesto') && (
                 <div>
                   <label htmlFor="ot-placa" className="mb-1 block text-sm font-medium text-gray-700">
                     Placa
@@ -640,7 +661,6 @@ export function DarSalidaGestion({ tipo }: Props) {
                 </button>
               </div>
             </form>
-          )}
         </Modal>
       </div>
     </OrdenesTotPageFrame>

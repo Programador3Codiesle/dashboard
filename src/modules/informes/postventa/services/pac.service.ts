@@ -9,6 +9,13 @@ export interface PacResumen {
   porcen06: number;
   porcen78: number;
   porcen910: number;
+  npsInterno: number;
+  encInterno06: number;
+  encInterno78: number;
+  encInterno910: number;
+  porcenInterno06: number;
+  porcenInterno78: number;
+  porcenInterno910: number;
   toDia: number;
   toMes: number;
   porcenHoy: number;

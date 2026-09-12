@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Loader2, Car } from "lucide-react";
+import { Loader2, Car, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { getXlsx } from "@/utils/export-xlsx";
 import {
   checklistCarroService,
   ChecklistCarro,
@@ -31,6 +32,94 @@ function formatDateOnly(value: string | null | undefined): string {
   const d = new Date(s);
   if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
   return s;
+}
+
+function formatSiNo(value: number | null | undefined): string {
+  return Number(value) === 1 ? "Sí" : "No";
+}
+
+function mapChecklistCarroToExcelRow(r: ChecklistCarro) {
+  return {
+    "Tipo Vehículo": r.tipo_vh ?? "",
+    Placa: r.placa ?? "",
+    Fecha: formatDateOnly(r.fecha),
+    Sede: r.sede ?? "",
+    Conductor: r.conductor ?? "",
+    "Doc. Conductor": r.doc_conductor ?? "",
+    "Tiene Licencia": formatSiNo(r.lic_conduccion),
+    "Categoría Licencia": r.categoria_lic ?? "",
+    "Fecha Vencimiento Licencia": formatDateOnly(r.fec_vence_lic),
+    "Observación Licencia": r.observacion_lic ?? "",
+    "Porta Documentos": formatSiNo(r.porta_documentos),
+    "Observación Documentos": r.observacion_documentos ?? "",
+    "Solicitud Prueba Ruta": formatSiNo(r.sol_prueba_ruta),
+    Asesor: r.asesor ?? "",
+    Cliente: r.nombre_cliente ?? "",
+    "Cel. Cliente": r.cel_cliente ?? "",
+    "Fecha Vencimiento Tecnicomecanica": formatDateOnly(r.fec_tecno),
+    Tecno: formatSiNo(r.tecno),
+    "Observación Tecnicomecanica": r.observacion_tecno ?? "",
+    "Fecha Vencimiento SOAT": formatDateOnly(r.fec_soat),
+    SOAT: formatSiNo(r.soat),
+    "Observación SOAT": r.observacion_soat ?? "",
+    "Direccionales Delanteras": formatSiNo(r.dir_delanteras),
+    "Observación Direccionales Delanteras": r.observacion_dir_del ?? "",
+    "Direccionales Traseras": formatSiNo(r.dir_traseras),
+    "Observación Direccionales Traseras": r.observacion_dir_tra ?? "",
+    "Luces Altas": formatSiNo(r.luces_altas),
+    "Observación Luces Altas": r.observacion_altas ?? "",
+    "Luces Bajas": formatSiNo(r.luces_bajas),
+    "Observación Luces Bajas": r.observacion_bajas ?? "",
+    Stops: formatSiNo(r.stops),
+    "Observación Stops": r.observacion_stops ?? "",
+    "Luces de Reversa": formatSiNo(r.luces_reversa),
+    "Observación Luces de Reversa": r.observacion_reversa ?? "",
+    "Luces de Parqueo": formatSiNo(r.luces_parqueo),
+    "Observación Luces de Parqueo": r.observacion_parqueo ?? "",
+    "Luces Internas": formatSiNo(r.luces_internas),
+    "Observación Luces Internas": r.observacion_internas ?? "",
+    "Limpia Parabrisas": formatSiNo(r.limpia_parabrisas),
+    "Observación Limpia Parabrisas": r.observacion_plumilla ?? "",
+    Pito: formatSiNo(r.pito),
+    "Observación Pito": r.observacion_pito ?? "",
+    "Sistema de Dirección": formatSiNo(r.sist_direccion),
+    "Observación Sistema de Dirección": r.observacion_sist_dir ?? "",
+    Cinturones: formatSiNo(r.cinturones),
+    "Observación Cinturones": r.observacion_cintu_seg ?? "",
+    Airbag: formatSiNo(r.airbag),
+    "Observación Airbag": r.observacion_airbag ?? "",
+    "Frenos Principales": formatSiNo(r.frenos_princ),
+    "Observación Frenos Principales": r.observacion_frenos_prin ?? "",
+    "Frenos Emergencia": formatSiNo(r.frenos_emergencia),
+    "Observación Frenos Emergencia": r.observacion_frenos_emerg ?? "",
+    Llantas: formatSiNo(r.llantas),
+    "Observación Llantas": r.observacion_llantas ?? "",
+    "Llanta Repuesto": formatSiNo(r.llanta_repto),
+    "Observación Llanta Repuesto": r.observacion_llanta_repto ?? "",
+    Espejos: formatSiNo(r.espejos),
+    "Observación Espejos": r.observacion_espejos ?? "",
+    "Nivel Fluidos Frenos": formatSiNo(r.nivel_fluidos_frenos),
+    "Observación Nivel Fluidos Frenos": r.observacion_fluidos_frenos ?? "",
+    "Nivel Fluidos Aceite": formatSiNo(r.nivel_fluidos_aceite),
+    "Observación Nivel Fluidos Aceite": r.observacion_fluidos_aceite ?? "",
+    "Nivel Fluidos Refrigerante": formatSiNo(r.nivel_fluidos_refrigerante),
+    "Observación Nivel Fluidos Refrigerante": r.observacion_fluidos_refrig ?? "",
+    Extintor: formatSiNo(r.extintor),
+    "Fecha Vencimiento Extintor": formatDateOnly(r.fec_extintor),
+    "Observación Extintor": r.observacion_extintor ?? "",
+    "Kit Carretera": formatSiNo(r.kit_carretera),
+    "Observación Kit Carretera": r.observacion_kit_carretera ?? "",
+    Botiquín: formatSiNo(r.botiquin),
+    "Observación Botiquín": r.observacion_botiquin ?? "",
+    "Quinta Rueda": formatSiNo(r.quinta_rueda),
+    "Observación Quinta Rueda": r.observacion_quinta_rueda ?? "",
+    Mangueras: formatSiNo(r.mangueras),
+    "Observación Mangueras": r.observacion_mangueras_aire ?? "",
+    "Nivel Combustible": r.nivel_combustible ?? "",
+    "Kilometraje Salida": r.kilometraje_salida ?? "",
+    "Kilometraje Llegada": r.kilometraje_llegada ?? "",
+    "Observación General": r.observacion_general ?? "",
+  };
 }
 
 const SEDES = [
@@ -60,6 +149,7 @@ export function ChecklistCarroGestion() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalId, setModalId] = useState<number | null>(null);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const baseImgUrl =
     "https://intranet.codiesel.co/ventas/images/log_img_novedades_check";
@@ -114,12 +204,50 @@ export function ChecklistCarroGestion() {
     setCurrentPage(1);
   };
 
+  const handleExportar = useCallback(async () => {
+    if (!hasAppliedSearch) {
+      showError("Filtre el informe antes de exportar.");
+      return;
+    }
+    if (totalItems === 0) {
+      showError("No hay datos para exportar");
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const resultado = await checklistCarroService.listar({
+        fechaIni: appliedFechaIni || undefined,
+        fechaFin: appliedFechaFin || undefined,
+        sede: appliedSede || undefined,
+        pagina: 1,
+        limite: totalItems,
+      });
+      const rows = resultado.items.map(mapChecklistCarroToExcelRow);
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "CheckList Carros");
+      XLSX.writeFile(workbook, "CheckList Carros.xlsx");
+    } catch {
+      showError("No se pudo exportar el informe");
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [
+    hasAppliedSearch,
+    totalItems,
+    appliedFechaIni,
+    appliedFechaFin,
+    appliedSede,
+    showError,
+  ]);
+
   const openImagesModal = (id: number) => {
     setModalId(id);
     setModalOpen(true);
   };
 
-  const renderSiNo = (value: number) => (value === 1 ? "Sí" : "No");
+  const renderSiNo = (value: number) => formatSiNo(value);
 
   /** Cabeceras angostas; títulos largos hacen salto de línea. */
   const th =
@@ -184,7 +312,7 @@ export function ChecklistCarroGestion() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleFiltrar}
@@ -193,6 +321,20 @@ export function ChecklistCarroGestion() {
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             <span>Filtrar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || !hasAppliedSearch || totalItems === 0 || loading}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              totalItems > 0
+                ? "bg-(--color-success) text-white hover:opacity-90"
+                : "border border-gray-300 text-gray-700 bg-white"
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

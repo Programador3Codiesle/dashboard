@@ -10,6 +10,7 @@ interface ModalProps {
     width?: string;
     maxWidthClassName?: string;
     contentClassName?: string;
+    overflowClassName?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export default React.memo(function Modal({
   width = "450px",
   maxWidthClassName = "max-w-[95vw] sm:max-w-[88vw] md:max-w-[760px] 2xl:max-w-[980px]",
   contentClassName = "",
+  overflowClassName = "overflow-y-auto",
 }: ModalProps) {
     const handleBackdropClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -44,7 +46,7 @@ export default React.memo(function Modal({
                 onClick={onClose}
             >
                 <div
-                    className={`w-full ${maxWidthClassName} rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[88vh] overflow-y-auto ${contentClassName}`}
+                    className={`w-full ${maxWidthClassName} rounded-t-2xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-2xl max-h-[88vh] ${overflowClassName} ${contentClassName}`}
                     style={{ width, backgroundColor: "#ffffff" }}
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -68,6 +70,7 @@ export default React.memo(function Modal({
     prevProps.title === nextProps.title &&
     prevProps.width === nextProps.width &&
     prevProps.contentClassName === nextProps.contentClassName &&
+    prevProps.overflowClassName === nextProps.overflowClassName &&
     prevProps.maxWidthClassName === nextProps.maxWidthClassName &&
     prevProps.onClose === nextProps.onClose &&
     prevProps.children === nextProps.children

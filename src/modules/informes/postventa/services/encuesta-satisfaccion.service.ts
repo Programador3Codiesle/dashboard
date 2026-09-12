@@ -17,6 +17,16 @@ export interface FiltrosEncuestaSatisfaccion {
   ns?: number;
 }
 
+export interface EncuestaSatisfaccionTecnico {
+  nit: string;
+  nombre: string;
+}
+
+export interface EncuestaSatisfaccionBodega {
+  value: string;
+  label: string;
+}
+
 export const encuestaSatisfaccionService = {
   async listar(
     filtros: FiltrosEncuestaSatisfaccion,
@@ -38,6 +48,22 @@ export const encuestaSatisfaccionService = {
       `/informes/postventa/encuesta-satisfaccion?${params.toString()}`,
     );
 
+    return data;
+  },
+
+  async listarBodegas(): Promise<EncuestaSatisfaccionBodega[]> {
+    const { data } = await apiClient.get<EncuestaSatisfaccionBodega[]>(
+      '/informes/postventa/encuesta-satisfaccion/bodegas',
+    );
+    return data;
+  },
+
+  async listarTecnicos(bode: string): Promise<EncuestaSatisfaccionTecnico[]> {
+    const params = new URLSearchParams();
+    params.append('bode', bode);
+    const { data } = await apiClient.get<EncuestaSatisfaccionTecnico[]>(
+      `/informes/postventa/encuesta-satisfaccion/tecnicos?${params.toString()}`,
+    );
     return data;
   },
 };

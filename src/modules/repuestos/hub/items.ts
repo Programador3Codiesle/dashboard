@@ -1,6 +1,7 @@
 import {
   ClipboardList,
   FileBarChart2,
+  ListOrdered,
   PackagePlus,
   ShoppingCart,
   TableProperties,
@@ -64,5 +65,13 @@ export const REPUESTOS_HUB_ITEMS: HubItem[] = [
     ruta: '/dashboard/repuestos/orden-compra',
     submenuId: ORDEN_COMPRA_SUBMENU_ID,
     icono: ShoppingCart,
+  },
+  {
+    id: 'pedidos-repuestos',
+    nombre: 'Pedidos de repuestos',
+    descripcion: 'Consulta de pedidos creados desde el cotizador intranet',
+    ruta: '/dashboard/repuestos/pedidos',
+    sinSubmenu: true,
+    icono: ListOrdered,
   },
 ];

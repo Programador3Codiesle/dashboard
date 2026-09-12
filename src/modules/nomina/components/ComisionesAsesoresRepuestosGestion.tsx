@@ -103,14 +103,6 @@ export function ComisionesAsesoresRepuestosGestion() {
       return;
     }
 
-    const now = new Date();
-    const anoActual = now.getFullYear();
-    const mesActual = now.getMonth() + 1;
-    if (ano === anoActual && mesNum >= mesActual) {
-      showError('No puedes seleccionar el año y mes actual o futuro.');
-      return;
-    }
-
     const perfil = Number(user?.perfil_postventa ?? 0);
     const asesorNombre = (
       PERFILES_COMISIONES_ASESORES_FILTRO_SESION as readonly number[]

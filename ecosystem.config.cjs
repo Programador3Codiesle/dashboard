@@ -1,15 +1,17 @@
 /**
- * PM2 — frontend Next.
+ * PM2 — frontend Next (blue/green `.next-a` / `.next-b`).
  *
- * Deploy sin dejar 5 min el sitio caído:
- *   1. git pull + npm install + npm run build:inactive  (front SIGUE en marcha)
- *   2. pm2 stop postventa-front
- *   3. npm run promote:front
- *   4. pm2 start postventa-front
+ * Deploy (corte = restart de Next, segundos; el build de 5 min NO tumba el sitio):
+ *   git pull origin main
+ *   npm install
+ *   npm run build:inactive
+ *   npm run promote:front
  *
- * No pongas NEXT_DIST_DIR en el .env permanente ni en este file:
- * `next start` debe leer la carpeta `.next` (ya promocionada).
+ * promote escribe `.next-slot` y hace `pm2 restart postventa-front`.
+ * Cuando el sitio responda: npm run cleanup:front
+ * Si PM2 no está en el PATH: pm2 restart postventa-front
  *
+ * No pongas NEXT_DIST_DIR en .env ni aquí: next start lee `.next-slot`.
  * NEXT_PUBLIC_API_URL se hornea en el build. No cambiarla entre deploys.
  */
 module.exports = {

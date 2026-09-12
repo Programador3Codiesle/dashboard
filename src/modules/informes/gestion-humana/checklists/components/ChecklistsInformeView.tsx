@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
+import { getXlsx } from '@/utils/export-xlsx';
 import { checklistsService, ChecklistEquipoRow, TipoChecklistEquipo } from '@/modules/informes/gestion-humana/services/checklists.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -20,7 +21,6 @@ const NOMBRES_CHECKLIST: Record<TipoChecklistEquipo, string> = {
   3: 'CheckList Tijera',
   4: 'CheckList Hidráulicos',
   5: 'CheckList Pórtico',
-  6: 'CheckList Cabina de Pintura',
 };
 
 const CABECERAS: string[][] = [
@@ -232,32 +232,6 @@ const CABECERAS: string[][] = [
     'OBS ESTABILIDAD PORTICO',
     'OBSERVACIÓN SEGUIMIENTO',
   ],
-  [
-    'RESPONSABLE',
-    'EQUIPO',
-    'CÓDIGO',
-    'SEDE',
-    'FECHA',
-    'SISTEMA DE MANDOS',
-    'OBS SISTEMA DE MANDOS',
-    'SISTEMA VENTILACIÓN Y EXTRACCIÓN',
-    'OBS SISTEMA VENTILACIÓN Y EXTRACCIÓN',
-    'ESTADO FILTROS DE CABINA',
-    'OBS ESTADO FILTROS DE CABINA',
-    'LAMPARAS Y SU PROTECCIÓN',
-    'OBS LAMPARAS Y SU PROTECCIÓN',
-    'CABINA SIN RUIDOS EXTRAÑOS',
-    'OBS CABINA SIN RUIDOS EXTRAÑOS',
-    'PUERTAS CIERRE HERMÉTICAMENTE',
-    'OBS PUERTAS CIERRE HERMÉTICAMENTE',
-    'SISTEMA ENCENDIDO SIN FUGAS',
-    'OBS SISTEMA ENCENDIDO SIN FUGAS',
-    'REJILLAS FIJAS',
-    'OBS REJILLAS FIJAS',
-    'AUSENCIA FUGAS NEUMÁTICO Y PRESIÓN',
-    'OBS AUSENCIA FUGAS NEUMÁTICO Y PRESIÓN',
-    'OBSERVACIÓN SEGUIMIENTO',
-  ],
 ];
 
 const RESPUESTAS = ['No Conforme', 'Conforme', 'No Aplica'];
@@ -269,266 +243,263 @@ function formatDateOnly(value: unknown): string {
   return text.length >= 10 ? text.slice(0, 10) : text;
 }
 
-function renderFila(op: TipoChecklistEquipo, row: ChecklistEquipoRow) {
+function siNoAplica(value: unknown): string {
+  return Number(value) === 1 ? 'Sí' : 'No Aplica';
+}
+
+function respuesta(value: unknown): string {
+  const idx = Number(value);
+  return RESPUESTAS[idx] ?? '';
+}
+
+function text(value: unknown): string {
+  if (value == null) return '';
+  return String(value);
+}
+
+function getChecklistDisplayValues(
+  op: TipoChecklistEquipo,
+  row: ChecklistEquipoRow,
+): string[] {
   switch (op) {
     case 0:
-      return (
-        <>
-          <td className="px-2 py-1">{row.area_trabajo}</td>
-          <td className="px-2 py-1">{row.proposito_trabajo}</td>
-          <td className="px-2 py-1">{row.nombre_pa_1}</td>
-          <td className="px-2 py-1">{row.cedula_pa_1}</td>
-          <td className="px-2 py-1">{row.arl_pa_1}</td>
-          <td className="px-2 py-1">{row.eps_pa_1}</td>
-          <td className="px-2 py-1">{row.afp_pa_1}</td>
-          <td className="px-2 py-1">{row.nombre_pa_2}</td>
-          <td className="px-2 py-1">{row.cedula_pa_2}</td>
-          <td className="px-2 py-1">{row.arl_pa_2}</td>
-          <td className="px-2 py-1">{row.eps_pa_2}</td>
-          <td className="px-2 py-1">{row.afp_pa_2}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{row.procedimiento_claro}</td>
-          <td className="px-2 py-1">{row.disposicion_herramientas === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.personal_calificado === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.reunion_implicados === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.area_ejecucion === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.delimitacion_area === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.guantes === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.botas === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.mascara === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.careta_esmerilar === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.gafas === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.capucha === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.delantal === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.ropa_trabajo === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.careta_soldadura === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.trabajadores_entrenados === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.epp_suficientes === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.mamparas === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.conexion_tierra === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.disposicion_extintores === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.materiales_protegidos === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.area_libre_sustancias === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.estado_equipos_usar === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.cilindros_asegurados === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.saber_apagar_fuego === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.tuberias_aisladas === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.precaucion_liberacion_gases === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.mediciones_gases === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.valvula_marcada === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.estado_cables_temporales === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.area_aseada_terminar === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.entregado_equipo_terminar === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.levantamiento_bloqueos === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.colocar_controles === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.plan_resp_emergencia === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.observado_continuamente === 1 ? 'Sí' : 'No Aplica'}</td>
-          <td className="px-2 py-1">{row.observacion_general}</td>
-        </>
-      );
+      return [
+        text(row.area_trabajo),
+        text(row.proposito_trabajo),
+        text(row.nombre_pa_1),
+        text(row.cedula_pa_1),
+        text(row.arl_pa_1),
+        text(row.eps_pa_1),
+        text(row.afp_pa_1),
+        text(row.nombre_pa_2),
+        text(row.cedula_pa_2),
+        text(row.arl_pa_2),
+        text(row.eps_pa_2),
+        text(row.afp_pa_2),
+        formatDateOnly(row.fecha),
+        text(row.procedimiento_claro),
+        siNoAplica(row.disposicion_herramientas),
+        siNoAplica(row.personal_calificado),
+        siNoAplica(row.reunion_implicados),
+        siNoAplica(row.area_ejecucion),
+        siNoAplica(row.delimitacion_area),
+        siNoAplica(row.guantes),
+        siNoAplica(row.botas),
+        siNoAplica(row.mascara),
+        siNoAplica(row.careta_esmerilar),
+        siNoAplica(row.gafas),
+        siNoAplica(row.capucha),
+        siNoAplica(row.delantal),
+        siNoAplica(row.ropa_trabajo),
+        siNoAplica(row.careta_soldadura),
+        siNoAplica(row.trabajadores_entrenados),
+        siNoAplica(row.epp_suficientes),
+        siNoAplica(row.mamparas),
+        siNoAplica(row.conexion_tierra),
+        siNoAplica(row.disposicion_extintores),
+        siNoAplica(row.materiales_protegidos),
+        siNoAplica(row.area_libre_sustancias),
+        siNoAplica(row.estado_equipos_usar),
+        siNoAplica(row.cilindros_asegurados),
+        siNoAplica(row.saber_apagar_fuego),
+        siNoAplica(row.tuberias_aisladas),
+        siNoAplica(row.precaucion_liberacion_gases),
+        siNoAplica(row.mediciones_gases),
+        siNoAplica(row.valvula_marcada),
+        siNoAplica(row.estado_cables_temporales),
+        siNoAplica(row.area_aseada_terminar),
+        siNoAplica(row.entregado_equipo_terminar),
+        siNoAplica(row.levantamiento_bloqueos),
+        siNoAplica(row.colocar_controles),
+        siNoAplica(row.plan_resp_emergencia),
+        siNoAplica(row.observado_continuamente),
+        text(row.observacion_general),
+      ];
     case 1:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.area}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_conexiones]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_conexiones}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.guaya_acero]}</td>
-          <td className="px-2 py-1">{row.observacion_guaya_acero}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.rampas_acceso]}</td>
-          <td className="px-2 py-1">{row.observacion_rampas_acceso}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.controles]}</td>
-          <td className="px-2 py-1">{row.observacion_controles}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.seguros]}</td>
-          <td className="px-2 py-1">{row.observacion_seguros}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.operacion_vacio]}</td>
-          <td className="px-2 py-1">{row.observacion_operacion_vacio}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.elevacion_maxima]}</td>
-          <td className="px-2 py-1">{row.observacion_elevacion_maxima}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sin_fugas]}</td>
-          <td className="px-2 py-1">{row.observacion_sin_fugas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.pines_altura]}</td>
-          <td className="px-2 py-1">{row.observacion_pines_altura}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_general]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_general}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sin_ruidos]}</td>
-          <td className="px-2 py-1">{row.observacion_sin_ruidos}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
+      return [
+        text(row.responsable),
+        text(row.equipo),
+        text(row.codigo),
+        text(row.area),
+        text(row.sede),
+        formatDateOnly(row.fecha),
+        respuesta(row.estado_conexiones),
+        text(row.observacion_estado_conexiones),
+        respuesta(row.guaya_acero),
+        text(row.observacion_guaya_acero),
+        respuesta(row.rampas_acceso),
+        text(row.observacion_rampas_acceso),
+        respuesta(row.controles),
+        text(row.observacion_controles),
+        respuesta(row.seguros),
+        text(row.observacion_seguros),
+        respuesta(row.operacion_vacio),
+        text(row.observacion_operacion_vacio),
+        respuesta(row.elevacion_maxima),
+        text(row.observacion_elevacion_maxima),
+        respuesta(row.sin_fugas),
+        text(row.observacion_sin_fugas),
+        respuesta(row.pines_altura),
+        text(row.observacion_pines_altura),
+        respuesta(row.estado_general),
+        text(row.observacion_estado_general),
+        respuesta(row.sin_ruidos),
+        text(row.observacion_sin_ruidos),
+        text(row.obs_seguimiento),
+      ];
     case 2:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.area}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_conexiones]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_conexiones}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_cadena]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_cadena}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.brazos_elevador]}</td>
-          <td className="px-2 py-1">{row.observacion_brazos_elevador}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.controles]}</td>
-          <td className="px-2 py-1">{row.observacion_controles}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.seguros]}</td>
-          <td className="px-2 py-1">{row.observacion_seguros}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.operacion_vacio]}</td>
-          <td className="px-2 py-1">{row.observacion_operacion_vacio}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.elevacion_maxima]}</td>
-          <td className="px-2 py-1">{row.observacion_elevacion_maxima}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sin_fugas]}</td>
-          <td className="px-2 py-1">{row.observacion_sin_fugas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.pines_altura]}</td>
-          <td className="px-2 py-1">{row.observacion_pines_altura}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.cable_acero]}</td>
-          <td className="px-2 py-1">{row.observacion_cable_acero}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.almohadillas]}</td>
-          <td className="px-2 py-1">{row.observacion_almohadillas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_general]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_general}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
+      return [
+        text(row.responsable),
+        text(row.equipo),
+        text(row.codigo),
+        text(row.area),
+        text(row.sede),
+        formatDateOnly(row.fecha),
+        respuesta(row.estado_conexiones),
+        text(row.observacion_estado_conexiones),
+        respuesta(row.estado_cadena),
+        text(row.observacion_estado_cadena),
+        respuesta(row.brazos_elevador),
+        text(row.observacion_brazos_elevador),
+        respuesta(row.controles),
+        text(row.observacion_controles),
+        respuesta(row.seguros),
+        text(row.observacion_seguros),
+        respuesta(row.operacion_vacio),
+        text(row.observacion_operacion_vacio),
+        respuesta(row.elevacion_maxima),
+        text(row.observacion_elevacion_maxima),
+        respuesta(row.sin_fugas),
+        text(row.observacion_sin_fugas),
+        respuesta(row.pines_altura),
+        text(row.observacion_pines_altura),
+        respuesta(row.cable_acero),
+        text(row.observacion_cable_acero),
+        respuesta(row.almohadillas),
+        text(row.observacion_almohadillas),
+        respuesta(row.estado_general),
+        text(row.observacion_estado_general),
+        text(row.obs_seguimiento),
+      ];
     case 3:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.area}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_conexiones]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_conexiones}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.ausencia_fugas]}</td>
-          <td className="px-2 py-1">{row.observacion_ausencia_fugas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.plataformas_elevador]}</td>
-          <td className="px-2 py-1">{row.observacion_plataformas_elevador}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.controles]}</td>
-          <td className="px-2 py-1">{row.observacion_controles}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.seguros_neumaticos]}</td>
-          <td className="px-2 py-1">{row.observacion_seguros_neumaticos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.operacion_vacio]}</td>
-          <td className="px-2 py-1">{row.observacion_operacion_vacio}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.parada_emergencia]}</td>
-          <td className="px-2 py-1">{row.observacion_parada_emergencia}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_tacos]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_tacos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_general]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_general}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sin_ruidos]}</td>
-          <td className="px-2 py-1">{row.observacion_sin_ruidos}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
+      return [
+        text(row.responsable),
+        text(row.equipo),
+        text(row.codigo),
+        text(row.area),
+        text(row.sede),
+        formatDateOnly(row.fecha),
+        respuesta(row.estado_conexiones),
+        text(row.observacion_estado_conexiones),
+        respuesta(row.ausencia_fugas),
+        text(row.observacion_ausencia_fugas),
+        respuesta(row.plataformas_elevador),
+        text(row.observacion_plataformas_elevador),
+        respuesta(row.controles),
+        text(row.observacion_controles),
+        respuesta(row.seguros_neumaticos),
+        text(row.observacion_seguros_neumaticos),
+        respuesta(row.operacion_vacio),
+        text(row.observacion_operacion_vacio),
+        respuesta(row.parada_emergencia),
+        text(row.observacion_parada_emergencia),
+        respuesta(row.estado_tacos),
+        text(row.observacion_estado_tacos),
+        respuesta(row.estado_general),
+        text(row.observacion_estado_general),
+        respuesta(row.sin_ruidos),
+        text(row.observacion_sin_ruidos),
+        text(row.obs_seguimiento),
+      ];
     case 4:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.area}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.funcionamiento_elevacion]}</td>
-          <td className="px-2 py-1">{row.observacion_funcionamiento_elevacion}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.fluidos_hidraulicos]}</td>
-          <td className="px-2 py-1">{row.observacion_fluidos_hidraulicos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.ruedas]}</td>
-          <td className="px-2 py-1">{row.observacion_ruedas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_palas]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_palas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sist_giro]}</td>
-          <td className="px-2 py-1">{row.observacion_sist_giro}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.peso_apropiado]}</td>
-          <td className="px-2 py-1">{row.observacion_peso_apropiado}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.carga_equilibrada]}</td>
-          <td className="px-2 py-1">{row.observacion_carga_equilibrada}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.dir_marcha]}</td>
-          <td className="px-2 py-1">{row.observacion_dir_marcha}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.soportes_carga]}</td>
-          <td className="px-2 py-1">{row.observacion_soportes_carga}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
+      return [
+        text(row.responsable),
+        text(row.equipo),
+        text(row.codigo),
+        text(row.area),
+        text(row.sede),
+        formatDateOnly(row.fecha),
+        respuesta(row.funcionamiento_elevacion),
+        text(row.observacion_funcionamiento_elevacion),
+        respuesta(row.fluidos_hidraulicos),
+        text(row.observacion_fluidos_hidraulicos),
+        respuesta(row.ruedas),
+        text(row.observacion_ruedas),
+        respuesta(row.estado_palas),
+        text(row.observacion_estado_palas),
+        respuesta(row.sist_giro),
+        text(row.observacion_sist_giro),
+        respuesta(row.peso_apropiado),
+        text(row.observacion_peso_apropiado),
+        respuesta(row.carga_equilibrada),
+        text(row.observacion_carga_equilibrada),
+        respuesta(row.dir_marcha),
+        text(row.observacion_dir_marcha),
+        respuesta(row.soportes_carga),
+        text(row.observacion_soportes_carga),
+        text(row.obs_seguimiento),
+      ];
     case 5:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.area_segura]}</td>
-          <td className="px-2 py-1">{row.observacion_area_segura}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.porta_epp]}</td>
-          <td className="px-2 py-1">{row.observacion_porta_epp}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.peso_apropiado]}</td>
-          <td className="px-2 py-1">{row.observacion_peso_apropiado}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.aldaba]}</td>
-          <td className="px-2 py-1">{row.observacion_aldaba}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_gancho]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_gancho}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sist_giro]}</td>
-          <td className="px-2 py-1">{row.observacion_sist_giro}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.deformacion_eslabones]}</td>
-          <td className="px-2 py-1">{row.observacion_deformacion_eslabones}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.presenta_corrosion]}</td>
-          <td className="px-2 py-1">{row.observacion_presenta_corrosion}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.engranaje_funcional]}</td>
-          <td className="px-2 py-1">{row.observacion_engranaje_funcional}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.frenos]}</td>
-          <td className="px-2 py-1">{row.observacion_frenos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.topes_desplazamiento]}</td>
-          <td className="px-2 py-1">{row.observacion_topes_desplazamiento}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.movimiento_trolley]}</td>
-          <td className="px-2 py-1">{row.observacion_movimiento_trolley}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.movilidad_llantas]}</td>
-          <td className="px-2 py-1">{row.observacion_movilidad_llantas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.libre_abolladuras]}</td>
-          <td className="px-2 py-1">{row.observacion_libre_abolladuras}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
-    case 6:
-      return (
-        <>
-          <td className="px-2 py-1">{row.responsable}</td>
-          <td className="px-2 py-1">{row.equipo}</td>
-          <td className="px-2 py-1">{row.codigo}</td>
-          <td className="px-2 py-1">{row.sede}</td>
-          <td className="px-2 py-1">{formatDateOnly(row.fecha)}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sistema_mandos]}</td>
-          <td className="px-2 py-1">{row.observacion_sistema_mandos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sistema_ventilacion]}</td>
-          <td className="px-2 py-1">{row.observacion_sistema_ventilacion}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.estado_filtros]}</td>
-          <td className="px-2 py-1">{row.observacion_estado_filtros}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.lamparas]}</td>
-          <td className="px-2 py-1">{row.observacion_lamparas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.ruidos_extranos]}</td>
-          <td className="px-2 py-1">{row.observacion_ruidos_extranos}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.cierre_hermetico]}</td>
-          <td className="px-2 py-1">{row.observacion_cierre_hermetico}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.fuga_gas]}</td>
-          <td className="px-2 py-1">{row.observacion_fuga_gas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.rejillas]}</td>
-          <td className="px-2 py-1">{row.observacion_rejillas}</td>
-          <td className="px-2 py-1">{RESPUESTAS[row.sistema_neumatico]}</td>
-          <td className="px-2 py-1">{row.observacion_sistema_neumatico}</td>
-          <td className="px-2 py-1">{row.obs_seguimiento}</td>
-        </>
-      );
+      return [
+        text(row.responsable),
+        text(row.equipo),
+        text(row.codigo),
+        text(row.sede),
+        formatDateOnly(row.fecha),
+        respuesta(row.area_segura),
+        text(row.observacion_area_segura),
+        respuesta(row.porta_epp),
+        text(row.observacion_porta_epp),
+        respuesta(row.peso_apropiado),
+        text(row.observacion_peso_apropiado),
+        respuesta(row.aldaba),
+        text(row.observacion_aldaba),
+        respuesta(row.estado_gancho),
+        text(row.observacion_estado_gancho),
+        respuesta(row.sist_giro),
+        text(row.observacion_sist_giro),
+        respuesta(row.deformacion_eslabones),
+        text(row.observacion_deformacion_eslabones),
+        respuesta(row.presenta_corrosion),
+        text(row.observacion_presenta_corrosion),
+        respuesta(row.engranaje_funcional),
+        text(row.observacion_engranaje_funcional),
+        respuesta(row.frenos),
+        text(row.observacion_frenos),
+        respuesta(row.topes_desplazamiento),
+        text(row.observacion_topes_desplazamiento),
+        respuesta(row.movimiento_trolley),
+        text(row.observacion_movimiento_trolley),
+        respuesta(row.movilidad_llantas),
+        text(row.observacion_movilidad_llantas),
+        respuesta(row.libre_abolladuras),
+        text(row.observacion_libre_abolladuras),
+        text(row.obs_seguimiento),
+      ];
     default:
-      return null;
+      return [];
   }
+}
+
+function mapChecklistRowToExcel(
+  op: TipoChecklistEquipo,
+  row: ChecklistEquipoRow,
+): Record<string, string> {
+  const headers = CABECERAS[op];
+  const values = getChecklistDisplayValues(op, row);
+  const excelRow: Record<string, string> = {};
+  headers.forEach((header, index) => {
+    excelRow[header] = values[index] ?? '';
+  });
+  return excelRow;
+}
+
+function renderFila(op: TipoChecklistEquipo, row: ChecklistEquipoRow) {
+  return getChecklistDisplayValues(op, row).map((value, index) => (
+    <td key={index} className="px-2 py-1">
+      {value}
+    </td>
+  ));
 }
 
 export function ChecklistsInformeView() {
@@ -547,6 +518,7 @@ export function ChecklistsInformeView() {
     fechaFin: string;
   } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
   const inputClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
@@ -600,6 +572,26 @@ export function ChecklistsInformeView() {
   }, [data, safeCurrentPage]);
   const columnas = CABECERAS[appliedOp];
 
+  const handleExportar = useCallback(async () => {
+    if (data.length === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const rows = data.map((row) => mapChecklistRowToExcel(appliedOp, row));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Informe CheckList');
+      XLSX.writeFile(workbook, 'Informe CheckList.xlsx');
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [data, appliedOp, showError]);
+
   if (blocked) return null;
 
   return (
@@ -652,12 +644,11 @@ export function ChecklistsInformeView() {
               <option value={3}>CheckList Tijera</option>
               <option value={4}>CheckList Hidráulicos</option>
               <option value={5}>CheckList Pórtico</option>
-              <option value={6}>CheckList Cabina de Pintura</option>
             </select>
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleFiltrar}
@@ -666,6 +657,20 @@ export function ChecklistsInformeView() {
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>{isFetching ? 'Consultando...' : 'Filtrar'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || isFetching || data.length === 0}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              data.length > 0
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

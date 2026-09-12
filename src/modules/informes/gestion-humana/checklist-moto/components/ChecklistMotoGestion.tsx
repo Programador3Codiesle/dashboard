@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { checklistMotoService } from '@/modules/informes/gestion-humana/services/checklist-moto.service';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
+import { getXlsx } from '@/utils/export-xlsx';
+import {
+  checklistMotoService,
+  type ChecklistMoto,
+} from '@/modules/informes/gestion-humana/services/checklist-moto.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
@@ -32,6 +36,108 @@ function formatDateOnly(value: string | null | undefined): string {
   return s;
 }
 
+function formatSiNo(value: number | null | undefined): string {
+  return Number(value) === 1 ? 'Sí' : 'No';
+}
+
+function mapChecklistMotoToExcelRow(row: ChecklistMoto) {
+  return {
+    Tipo: row.tipo ?? '',
+    'Doc. Propietario': row.doc_propietario ?? '',
+    'Fecha Vencimiento SOAT': formatDateOnly(row.fec_vence_seguro),
+    'Fecha Vencimiento Cert. Gases': formatDateOnly(row.fec_vence_cert_gases),
+    Sede: row.sede ?? '',
+    Placa: row.placa ?? '',
+    Modelo: row.modelo ?? '',
+    Marca: row.marca ?? '',
+    Línea: row.linea ?? '',
+    Conductor: row.conductor ?? '',
+    'Doc. Conductor': row.doc_conductor ?? '',
+    'Categoría Licencia': row.categoria_lic ?? '',
+    'Fecha Vencimiento Licencia': formatDateOnly(row.fec_vence_lic_conductor),
+    'Porta Documentos': formatSiNo(row.porta_documentos),
+    'Observación Documentos': row.observacion_documentos ?? '',
+    Fecha: formatDateOnly(row.fecha),
+    Kilometraje: row.kilometraje ?? '',
+    'Fugas Lubricantes': formatSiNo(row.fugas_lubricantes),
+    'Observación Fugas Lubricantes': row.observacion_fugas_lubricantes ?? '',
+    'Fugas Combustible': formatSiNo(row.fugas_combustible),
+    'Observación Fugas Combustible': row.observacion_fugas_combustible ?? '',
+    Exosto: formatSiNo(row.exosto),
+    'Observación Exosto': row.observacion_exosto ?? '',
+    'Estado Cadena': formatSiNo(row.estado_cadena),
+    'Observación Estado Cadena': row.observacion_estado_cadena ?? '',
+    'Estado Piñones': formatSiNo(row.estado_pinones),
+    'Observación Estado Piñones': row.observacion_estado_pinones ?? '',
+    'Estado Otro Tipo Transmisión': formatSiNo(row.estado_otra_trans),
+    'Observación Estado Otro Tipo Transmisión': row.observacion_estado_otra_trans ?? '',
+    Amortiguadores: formatSiNo(row.amortiguadores),
+    'Observación Amortiguadores': row.observacion_amortiguadores ?? '',
+    'Barra Estabilizadora': formatSiNo(row.barra_estab),
+    'Observación Barra Estabilizadora': row.observacion_barra_estab ?? '',
+    'Fugas Frenos': formatSiNo(row.fugas_frenos),
+    'Observación Fugas Frenos': row.observacion_fugas_frenos ?? '',
+    'Estado Deposito': formatSiNo(row.estado_depo),
+    'Observación Estado Deposito': row.observacion_estado_depo ?? '',
+    'Estado Pastillas': formatSiNo(row.estado_pastillas),
+    'Observación Estado Pastillas': row.observacion_estado_pastillas ?? '',
+    'Estado Guayas': formatSiNo(row.estado_guayas),
+    'Observación Estado Guayas': row.observacion_estado_guayas ?? '',
+    'Estado Farola Principal': formatSiNo(row.estado_farola_princ),
+    'Observación Estado Farola Principal': row.observacion_estado_farola_princ ?? '',
+    'Luces Direccionales': formatSiNo(row.luces_direccionales),
+    'Observación Luces Direccionales': row.observacion_luces_direccionales ?? '',
+    Pito: formatSiNo(row.pito),
+    'Observación Pito': row.observacion_pito ?? '',
+    'Luz Tacometro': formatSiNo(row.luz_tacometro),
+    'Observación Luz Tacometro': row.observacion_luz_tacometro ?? '',
+    'Indicador Velocímetro': formatSiNo(row.indicador_velocimetro),
+    'Observación Indicador Velocímetro': row.observacion_indicador_velocimetro ?? '',
+    'Indicador Combustible': formatSiNo(row.indicador_combustible),
+    'Observación Indicador Combustible': row.observacion_indicador_combustible ?? '',
+    Testigo: formatSiNo(row.testigo),
+    'Observación Testigo': row.observacion_testigo ?? '',
+    'Llanta Delantera': formatSiNo(row.llanta_del),
+    'Observación Llanta Delantera': row.observacion_llanta_del ?? '',
+    'Llanta Trasera': formatSiNo(row.llantas_tra),
+    'Observación Llanta Trasera': row.observacion_llantas_tra ?? '',
+    'Presión Aire': formatSiNo(row.presion_aire),
+    'Observación Presión Aire': row.observacion_presion_aire ?? '',
+    Cojinería: formatSiNo(row.cojineria),
+    'Observación Cojinería': row.observacion_cojineria ?? '',
+    'Guarda Barros': formatSiNo(row.guarda_barros),
+    'Observación Guarda Barros': row.observacion_guarda_barros ?? '',
+    Manubrios: formatSiNo(row.manubrios),
+    'Observación Manubrios': row.observacion_manubrios ?? '',
+    Parrilla: formatSiNo(row.parrilla),
+    'Observación Parrilla': row.observacion_parrilla ?? '',
+    Retrovisores: formatSiNo(row.retrovisores),
+    'Observación Retrovisores': row.observacion_retrovisores ?? '',
+    Latoneria: formatSiNo(row.latoneria),
+    'Observación Latoneria': row.observacion_latoneria ?? '',
+    'Kit Herramientas': formatSiNo(row.kit_herramientas),
+    'Observación Kit Herramientas': row.observacion_kit_herramientas ?? '',
+    Casco: formatSiNo(row.casco),
+    'Observación Casco': row.observacion_casco ?? '',
+    Chaleco: formatSiNo(row.chaleco),
+    'Observación Chaleco': row.observacion_chaleco ?? '',
+    Rodilleras: formatSiNo(row.rodilleras),
+    'Observación Rodilleras': row.observacion_rodilleras ?? '',
+    Impermeable: formatSiNo(row.impermeable),
+    'Observación Impermeable': row.observacion_impermeable ?? '',
+    'Botas de Seguridad': formatSiNo(row.botas_seg),
+    'Observación Botas de Seguridad': row.observacion_botas_seg ?? '',
+    'Hallazgo 1': row.hallazgo_1 ?? '',
+    'Plan de Acción 1': row.plan_accion_1 ?? '',
+    'Fecha 1': formatDateOnly(row.fecha_1),
+    'Evidencia 1': row.evidencia_1 ?? '',
+    'Hallazgo 2': row.hallazgo_2 ?? '',
+    'Plan de Acción 2': row.plan_accion_2 ?? '',
+    'Fecha 2': formatDateOnly(row.fecha_2),
+    'Evidencia 2': row.evidencia_2 ?? '',
+  };
+}
+
 export function ChecklistMotoGestion() {
   const PAGE_SIZE = 10;
   const TABLE_COL_COUNT = 93;
@@ -49,6 +155,7 @@ export function ChecklistMotoGestion() {
   const [appliedFechaIni, setAppliedFechaIni] = useState<string>('');
   const [appliedFechaFin, setAppliedFechaFin] = useState<string>('');
   const [appliedSede, setAppliedSede] = useState<string>('');
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const hasAppliedSearch = Boolean(appliedFechaIni || appliedFechaFin || appliedSede);
 
@@ -99,10 +206,48 @@ export function ChecklistMotoGestion() {
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const showInitialLoader = hasAppliedSearch && isLoading && rows.length === 0;
   const showUpdating = hasAppliedSearch && isFetching && rows.length > 0;
-  const renderSiNo = (value: number | null | undefined) => (Number(value) === 1 ? 'Sí' : 'No');
+  const renderSiNo = (value: number | null | undefined) => formatSiNo(value);
   const th = 'px-2 py-1 text-center whitespace-normal break-words leading-tight min-w-[120px]';
   const td = 'px-2 py-1 text-center align-middle whitespace-nowrap';
   const tdObs = 'px-2 py-1 text-left align-middle break-words whitespace-normal min-w-[180px]';
+
+  const handleExportar = useCallback(async () => {
+    if (!hasAppliedSearch) {
+      showError('Filtre el informe antes de exportar.');
+      return;
+    }
+    if (totalItems === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const resultado = await checklistMotoService.listar({
+        fechaIni: appliedFechaIni || undefined,
+        fechaFin: appliedFechaFin || undefined,
+        sede: appliedSede || undefined,
+        pagina: 1,
+        limite: totalItems,
+      });
+      const excelRows = resultado.items.map(mapChecklistMotoToExcelRow);
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'CheckList Motos');
+      XLSX.writeFile(workbook, 'CheckList Motos.xlsx');
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [
+    hasAppliedSearch,
+    totalItems,
+    appliedFechaIni,
+    appliedFechaFin,
+    appliedSede,
+    showError,
+  ]);
 
   useEffect(() => {
     if (!hasAppliedSearch || isFetching || currentPage !== 1) return;
@@ -174,7 +319,7 @@ export function ChecklistMotoGestion() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="button"
             onClick={handleFiltrar}
@@ -183,6 +328,20 @@ export function ChecklistMotoGestion() {
           >
             {isFetching && <Loader2 size={16} className="animate-spin" />}
             <span>Filtrar</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || !hasAppliedSearch || totalItems === 0 || isFetching}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              totalItems > 0
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
           </button>
         </div>
       </div>

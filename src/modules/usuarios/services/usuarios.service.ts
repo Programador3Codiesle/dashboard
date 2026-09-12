@@ -7,7 +7,8 @@ import {
     IPerfil,
     IHorarioApi,
     IUsuarioJefeCandidato,
-    IApiMessageResponse
+    IApiMessageResponse,
+    IMiPerfil,
 } from "../types";
 import { mapUsuarioFromApi } from "../mappers";
 import { fetchWithAuth } from "@/utils/api";
@@ -301,5 +302,13 @@ export const usuariosService = {
             method: 'DELETE',
         });
         if (!response.ok) throw new Error('Error al eliminar usuario');
-    }
+    },
+
+    async getMiPerfil(): Promise<IMiPerfil> {
+        const response = await fetchWithAuth(`${API_URL}/usuarios/mi-perfil`, {
+            method: 'GET',
+        });
+        if (!response.ok) throw new Error('Error al cargar el perfil');
+        return response.json();
+    },
 };

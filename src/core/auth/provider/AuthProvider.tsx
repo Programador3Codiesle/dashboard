@@ -205,7 +205,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         const nitUsuario = parseInt(credentials.user, 10);
 
         if (isNaN(nitUsuario)) {
-            throw new Error("El usuario debe ser un número NIT válido");
+            throw new Error("El campo usuario debe ser un numero");
         }
 
         const response = await authService.login({

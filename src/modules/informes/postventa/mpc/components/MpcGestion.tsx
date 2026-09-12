@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { mpcService, MpcRow } from '@/modules/informes/postventa/services/mpc.service';
+import { getXlsx } from '@/utils/export-xlsx';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { formatCantidadCo } from '@/modules/informes/postventa/format-cantidad-co';
@@ -12,6 +14,22 @@ import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 
 const PAGE_SIZE = 15;
+
+function formatExcelFechaHoy(): string {
+  const f = new Date();
+  return `${f.getDate()}-${f.getMonth() + 1}-${f.getFullYear()}`;
+}
+
+function formatFechaIso(fecha: string): string {
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) return fecha;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function labelCasoEspecial(row: MpcRow): string {
+  if (row.saldoMpc <= 0) return 'N/A';
+  return row.estadoCasoEspecial === 1 ? 'Sí' : 'No';
+}
 
 export function MpcGestion() {
   const { blocked } = useInformesPageGuard({
@@ -28,6 +46,7 @@ export function MpcGestion() {
 
   const [updatingPlaca, setUpdatingPlaca] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const cambiarEstadoMutation = useMutation<
     void,
@@ -71,11 +90,40 @@ export function MpcGestion() {
     return rows.slice(start, start + PAGE_SIZE);
   }, [rows, currentPage]);
 
-  const formatFecha = (fecha: string) => {
-    const parsed = new Date(fecha);
-    if (Number.isNaN(parsed.getTime())) return fecha;
-    return parsed.toISOString().slice(0, 10);
-  };
+  const formatFecha = formatFechaIso;
+
+  const handleExportar = useCallback(async () => {
+    if (rows.length === 0) {
+      showError('No hay datos para exportar');
+      return;
+    }
+    setLoadingExport(true);
+    try {
+      const excelRows = rows.map((row) => ({
+        Fecha: formatFechaIso(row.fechaRegistro),
+        Placa: row.placa,
+        Modelo: row.desModelo,
+        'Plan vendido': row.planVendido,
+        Valor: Math.round(row.valorMpc),
+        Redimido: Math.round(row.valorRedimido),
+        Saldo: Math.round(row.saldoMpc),
+        'Vendido por': row.vendidoPor,
+        'Caso especial': labelCasoEspecial(row),
+      }));
+      const XLSX = await getXlsx();
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'MPC');
+      XLSX.writeFile(
+        workbook,
+        `Informe-Mantenimiento-Prepagado-${formatExcelFechaHoy()}.xlsx`,
+      );
+    } catch {
+      showError('No se pudo exportar el informe');
+    } finally {
+      setLoadingExport(false);
+    }
+  }, [rows, showError]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -90,8 +138,24 @@ export function MpcGestion() {
       backHref="/dashboard/informes/postventa"
       backLabel={INFORMES_COPY.backPv}
     >
-      <div className="flex justify-end text-xs text-gray-500">
-        {isLoading ? 'Cargando...' : `Total registros: ${rows.length}`}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={handleExportar}
+          disabled={loadingExport || isLoading || rows.length === 0}
+          className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+            rows.length > 0
+              ? 'bg-(--color-success) text-white hover:opacity-90'
+              : 'border border-gray-300 text-gray-700 bg-white'
+          }`}
+        >
+          {loadingExport && <Loader2 size={16} className="animate-spin" />}
+          <FileSpreadsheet size={16} />
+          <span>Exportar a Excel</span>
+        </button>
+        <div className="text-xs text-gray-500 text-right">
+          {isLoading ? 'Cargando...' : `Total registros: ${rows.length}`}
+        </div>
       </div>
 
       <div className="app-table-scroll bg-white rounded-xl shadow-sm border brand-border">

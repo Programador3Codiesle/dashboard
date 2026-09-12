@@ -1,9 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { AusentismoCard } from '@/components/administracion/cards/AusentismoCard';
+import { useToast } from '@/components/shared/ui/ToastContext';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import { ADMINISTRACION_COPY } from '@/modules/administracion/constants';
@@ -18,6 +19,8 @@ export function ListaAusentismoGestion() {
   const { user, blocked } = useAdministracionPageGuard(
     LISTA_AUSENTISMO_SUBMENU_ID,
   );
+  const { showSuccess, showError } = useToast();
+  const queryClient = useQueryClient();
   const sesionLista = !!user && !blocked;
 
   const query = useQuery({
@@ -25,6 +28,21 @@ export function ListaAusentismoGestion() {
     queryFn: () => listaAusentismoService.obtenerDiaActual(),
     enabled: sesionLista,
     ...transactionalQueryOptions,
+  });
+
+  const confirmarMutation = useMutation({
+    mutationFn: (id: number) => listaAusentismoService.confirmarPorteria(id),
+    onSuccess: async () => {
+      showSuccess('Confirmación de portería registrada');
+      await queryClient.invalidateQueries({
+        queryKey: administracionKeys.listaAusentismo,
+      });
+    },
+    onError: (error) => {
+      showError(
+        getErrorMessage(error, 'Error al confirmar portería'),
+      );
+    },
   });
 
   if (blocked) return null;
@@ -71,7 +89,15 @@ export function ListaAusentismoGestion() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <AusentismoCard ausentismo={ausentismo} index={index} />
+              <AusentismoCard
+                ausentismo={ausentismo}
+                index={index}
+                confirming={
+                  confirmarMutation.isPending &&
+                  confirmarMutation.variables === ausentismo.id
+                }
+                onConfirmar={(id) => confirmarMutation.mutate(id)}
+              />
             </motion.div>
           ))}
         </div>

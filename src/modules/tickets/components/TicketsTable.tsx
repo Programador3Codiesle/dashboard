@@ -1,10 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ITicket, Prioridad } from '@/modules/tickets/types';
 import { usePagination } from '@/components/shared/ui/hooks/usePagination';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import VerTicketModal from './modals/VerTicketModal';
 
 const HEADERS = [
   'Ticket',
@@ -42,6 +43,7 @@ export function TicketsTable({
   renderUsuario,
   renderEncargado,
   renderAcciones,
+  verDetalle = false,
 }: {
   tickets: ITicket[];
   loading: boolean;
@@ -52,7 +54,9 @@ export function TicketsTable({
   renderUsuario: (ticket: ITicket) => ReactNode;
   renderEncargado: (ticket: ITicket) => ReactNode;
   renderAcciones?: (ticket: ITicket) => ReactNode;
+  verDetalle?: boolean;
 }) {
+  const [detalle, setDetalle] = useState<ITicket | null>(null);
   const { currentPage, totalPages, startIndex, endIndex, changePage } =
     usePagination(tickets.length, 5);
 
@@ -102,9 +106,20 @@ export function TicketsTable({
                 } hover:brand-bg-light hover:shadow-sm text-center`}
               >
                 <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
-                  <span className="text-sm font-bold text-gray-900">
-                    #{ticket.id}
-                  </span>
+                  {verDetalle ? (
+                    <button
+                      type="button"
+                      data-testid={`ticket-id-${ticket.id}`}
+                      className="text-sm font-bold brand-text hover:underline cursor-pointer"
+                      onClick={() => setDetalle(ticket)}
+                    >
+                      #{ticket.id}
+                    </button>
+                  ) : (
+                    <span className="text-sm font-bold text-gray-900">
+                      #{ticket.id}
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   {renderEstado(ticket)}
@@ -147,6 +162,13 @@ export function TicketsTable({
           />
         </div>
       )}
+      {verDetalle ? (
+        <VerTicketModal
+          open={detalle != null}
+          onClose={() => setDetalle(null)}
+          ticket={detalle}
+        />
+      ) : null}
     </div>
   );
 }

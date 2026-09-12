@@ -16,7 +16,7 @@ export const StatusBadge = React.memo(({ estado, className = "" }: StatusBadgePr
     if (estado === "Autorizado" || estado === "Aprobado") {
       return "bg-green-100 text-green-700";
     }
-    if (estado === "Rechazado") {
+    if (estado === "Rechazado" || estado === "Negado") {
       return "bg-red-100 text-red-700";
     }
     return "bg-yellow-100 text-yellow-700";

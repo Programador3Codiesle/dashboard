@@ -89,6 +89,22 @@ export type RepuestoCandidato = {
   fechaIngreso: string | null;
 };
 
+export type OrdenGeneralPendiente = {
+  id: number;
+  serial: string;
+  descripcion: string;
+  fechaIngreso: string | null;
+};
+
+function mapOrdenGeneral(row: Record<string, unknown>): OrdenGeneralPendiente {
+  return {
+    id: num(row, 'id_vehiculo', 'idVehiculo', 'id'),
+    serial: str(row, 'placa', 'serial'),
+    descripcion: str(row, 'contenido', 'descripcion'),
+    fechaIngreso: nullableStr(row, 'fecha_ingreso', 'fechaIngreso'),
+  };
+}
+
 export type PorteriaItem = {
   id: number;
   placa: string;
@@ -299,6 +315,25 @@ export const ordenesTotService = {
   async repuestosCandidatos(): Promise<RepuestoCandidato[]> {
     const resp = await fetchWithAuth(`${BASE}/repuestos/candidatos`);
     return parseList(resp, mapRepuesto, 'Error al cargar candidatos de repuestos');
+  },
+
+  async crearOrdenGeneral(payload: { serial: string; descripcion: string }) {
+    const resp = await fetchWithAuth(`${BASE}/ordenes-generales`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) await parseError(resp, 'No se pudo registrar la orden general');
+    return resp.json();
+  },
+
+  async ordenesGeneralesPendientes(): Promise<OrdenGeneralPendiente[]> {
+    const resp = await fetchWithAuth(`${BASE}/ordenes-generales/pendientes`);
+    return parseList(
+      resp,
+      mapOrdenGeneral,
+      'Error al cargar órdenes generales pendientes',
+    );
   },
 
   openPdfBlob,

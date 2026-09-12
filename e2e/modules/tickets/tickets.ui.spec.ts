@@ -57,6 +57,23 @@ test.describe("Tickets UI", () => {
     expect(response.ok()).toBeTruthy();
   });
 
+  test("abre el modal de detalle al clic del ID en Mis Tickets", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard/tickets/mis-tickets");
+    const table = page.getByTestId("tickets-table");
+    const empty = page.getByRole("heading", {
+      name: "Aún no has creado tickets",
+    });
+    await expect(table.or(empty)).toBeVisible();
+    if (!(await table.isVisible())) return;
+
+    await table.getByRole("button", { name: /^#/ }).first().click();
+    await expect(page.getByTestId("tickets-ver-modal")).toBeVisible();
+    await expect(page.getByText("Descripción", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cerrar" })).toBeVisible();
+  });
+
   test("crea un ticket de laboratorio con prefijo [E2E]", async ({ page }) => {
     skipUnlessDestructive();
     const marker = `[E2E] ticket ${Date.now()}`;

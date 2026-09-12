@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useMemo, useRef, useState } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevoAusentismoDTO } from "@/modules/administracion/types";
-import { AREAS_SOLICITA, MOTIVOS_PERMISO } from "@/modules/administracion/constants";
+import {
+  AREAS_SOLICITA,
+  MOTIVOS_PERMISO,
+  MOTIVO_COMPENSATORIO_VENTAS,
+  motivoRequiereAdjunto,
+} from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
@@ -14,22 +19,10 @@ interface NuevoAusentismoModalProps {
   onClose: () => void;
   onSave: (data: NuevoAusentismoDTO) => void;
   fechaSeleccionada: string;
-  /** Cambia tras guardar exitoso para reiniciar el formulario sin cerrar el modal */
   resetKey?: number;
-  /** true mientras se guarda y se envía el correo (muestra loader en el botón) */
   saving?: boolean;
+  perfilPostventa?: string | number;
 }
-
-const getInitialFormData = (fecha: string): NuevoAusentismoDTO => ({
-  fecha,
-  horaInicio: "",
-  horaFin: "",
-  area: "",
-  cargo: "",
-  sede: "",
-  motivo: "",
-  descripcionMotivo: "",
-});
 
 export default function NuevoAusentismoModal({
   open,
@@ -38,26 +31,63 @@ export default function NuevoAusentismoModal({
   fechaSeleccionada,
   resetKey = 0,
   saving = false,
+  perfilPostventa,
 }: NuevoAusentismoModalProps) {
+  return (
+    <Modal open={open} onClose={onClose} title="Nuevo Ausentismo" width="600px">
+      <NuevoAusentismoForm
+        key={`${fechaSeleccionada}-${resetKey}`}
+        onClose={onClose}
+        onSave={onSave}
+        fechaSeleccionada={fechaSeleccionada}
+        saving={saving}
+        perfilPostventa={perfilPostventa}
+      />
+    </Modal>
+  );
+}
+
+function NuevoAusentismoForm({
+  onClose,
+  onSave,
+  fechaSeleccionada,
+  saving = false,
+  perfilPostventa,
+}: {
+  onClose: () => void;
+  onSave: (data: NuevoAusentismoDTO) => void;
+  fechaSeleccionada: string;
+  saving?: boolean;
+  perfilPostventa?: string | number;
+}) {
   const sedes = useSedesByEmpresa();
-  const [formData, setFormData] = useState<NuevoAusentismoDTO>(() => getInitialFormData(fechaSeleccionada));
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState<NuevoAusentismoDTO>({
+    fecha: fechaSeleccionada,
+    horaInicio: "",
+    horaFin: "",
+    area: "",
+    cargo: "",
+    sede: "",
+    motivo: "",
+    descripcionMotivo: "",
+  });
+  const [archivo, setArchivo] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      setFormData((prev) => ({ ...prev, fecha: fechaSeleccionada }));
+  const motivos = useMemo(() => {
+    const perfil = Number(perfilPostventa);
+    if (perfil === 41 || perfil === 11) {
+      return [...MOTIVOS_PERMISO, MOTIVO_COMPENSATORIO_VENTAS];
     }
-  }, [open, fechaSeleccionada]);
+    return MOTIVOS_PERMISO;
+  }, [perfilPostventa]);
 
-  useEffect(() => {
-    if (open && resetKey > 0) {
-      setFormData(getInitialFormData(fechaSeleccionada));
-    }
-  }, [resetKey, open, fechaSeleccionada]);
+  const pideAdjunto = motivoRequiereAdjunto(formData.motivo);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    // No cerrar el modal; la página incrementa resetKey y el form se reinicia para agregar otro
+    if (pideAdjunto && !archivo) return;
+    onSave({ ...formData, archivoSoporte: archivo ?? undefined });
   };
 
   const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
@@ -65,7 +95,7 @@ export default function NuevoAusentismoModal({
   const textareaClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
 
   return (
-    <Modal open={open} onClose={onClose} title="Nuevo Ausentismo" width="600px">
+    <>
       <div className="mb-4 p-3 brand-bg-light border border-[var(--color-primary)] rounded-lg">
         <p className="text-sm text-[var(--color-primary-dark)]">
           Los ausentismos solo se podrán diligenciar máximo por un día. Si desea tomar más de un día debe hacerlo por separado.
@@ -159,17 +189,41 @@ export default function NuevoAusentismoModal({
             <select
               className={inputClass}
               value={formData.motivo}
-              onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+              onChange={(e) => {
+                const motivo = e.target.value;
+                setFormData({ ...formData, motivo });
+                if (!motivoRequiereAdjunto(motivo)) {
+                  setArchivo(null);
+                  if (fileRef.current) fileRef.current.value = "";
+                }
+              }}
               required
             >
               <option value="">Seleccione...</option>
-              {MOTIVOS_PERMISO.map((motivo) => (
-                <option key={motivo} value={motivo}>{motivo}</option>
+              {motivos.map((motivo) => (
+                <option key={motivo.value} value={motivo.value}>{motivo.label}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
         </div>
+
+        {pideAdjunto ? (
+          <div>
+            <label className={labelClass}>
+              Soporte (imagen o PDF, máx. 5 MB) <span className="text-red-500">*</span>
+            </label>
+            <input
+              ref={fileRef}
+              type="file"
+              name="archivo_soporte"
+              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,image/*,application/pdf"
+              className={inputClass.replace("appearance-none pr-10", "")}
+              onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+              required
+            />
+          </div>
+        ) : null}
 
         <OptimizedTextarea
           label="Describe el motivo del permiso"
@@ -192,7 +246,7 @@ export default function NuevoAusentismoModal({
           </button>
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || (pideAdjunto && !archivo)}
             className="px-5 py-2.5 brand-bg brand-bg-hover text-white rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-80 disabled:cursor-wait flex items-center justify-center gap-2 min-w-[120px]"
           >
             {saving ? (
@@ -206,7 +260,6 @@ export default function NuevoAusentismoModal({
           </button>
         </div>
       </form>
-    </Modal>
+    </>
   );
 }
-

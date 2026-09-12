@@ -7,7 +7,17 @@ import {
   type SessionAvailability,
 } from "@/core/auth/session-status";
 
+import { MustChangePasswordError } from "@/core/auth/must-change-password-error";
+
 const API_URL = getApiBaseUrl();
+
+function messageFromBody(body: unknown, fallback: string): string {
+  if (!body || typeof body !== "object") return fallback;
+  const msg = (body as { message?: unknown }).message;
+  if (typeof msg === "string" && msg.trim()) return msg;
+  if (Array.isArray(msg) && typeof msg[0] === "string") return msg[0];
+  return fallback;
+}
 
 export interface LoginCredentials {
   nit_usuario: number;
@@ -17,12 +27,6 @@ export interface LoginCredentials {
 
 export interface LoginResponse {
   user: LoginUserPayload;
-}
-
-export interface LoginErrorResponse {
-  message: string;
-  error: string;
-  statusCode: number;
 }
 
 export interface ProfileResponse {
@@ -56,13 +60,81 @@ export const authService = {
       }),
     });
 
+    const data: unknown = await response.json().catch(() => null);
+
     if (!response.ok) {
-      const errorData: LoginErrorResponse = await response.json();
-      throw new Error(errorData.message || "Credenciales inválidas");
+      throw new Error(messageFromBody(data, "Credenciales inválidas"));
     }
 
-    const data: LoginResponse = await response.json();
-    return data;
+    if (
+      data &&
+      typeof data === "object" &&
+      "mustChangePassword" in data &&
+      (data as { mustChangePassword?: boolean }).mustChangePassword === true
+    ) {
+      const rec = data as { userId?: unknown; changeToken?: unknown };
+      throw new MustChangePasswordError(
+        String(rec.userId ?? ""),
+        String(rec.changeToken ?? ""),
+      );
+    }
+
+    return data as LoginResponse;
+  },
+
+  async solicitarCodigoRecuperacion(nit: number): Promise<{ mail: string }> {
+    const response = await fetch(`${API_URL}/auth/recuperar-codigo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ nit }),
+    });
+    const data: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(
+        messageFromBody(
+          data,
+          "La cedula es incorrecta o no tienes correo corporativo",
+        ),
+      );
+    }
+    const mail = (data as { mail?: string }).mail;
+    if (!mail) {
+      throw new Error("La cedula es incorrecta o no tienes correo corporativo");
+    }
+    return { mail };
+  },
+
+  async validarCodigoRecuperacion(nit: number, codigo: string): Promise<void> {
+    const response = await fetch(`${API_URL}/auth/recuperar-validar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ nit, codigo }),
+    });
+    const data: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(messageFromBody(data, "El codigo es incorrecto"));
+    }
+  },
+
+  async actualizarPasswordForzado(params: {
+    userId: string;
+    changeToken: string;
+    pass1: string;
+    pass2: string;
+  }): Promise<string> {
+    const response = await fetch(`${API_URL}/auth/update-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(params),
+    });
+    const data: unknown = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(messageFromBody(data, "Problemas con los datos enviados"));
+    }
+    return messageFromBody(data, "Contraseña actualizada con exito");
   },
 
   async logout(): Promise<void> {
