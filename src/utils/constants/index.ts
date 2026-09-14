@@ -1,5 +1,25 @@
-import { LayoutDashboard, User, Ticket, Settings, FileText, FileBarChart2, Receipt, Wrench, Package, Phone, ClipboardCheck, Car, BarChart3, ClipboardList, ShieldCheck, HardHat } from "lucide-react";
+import {
+  LayoutDashboard,
+  User,
+  Ticket,
+  Settings,
+  FileText,
+  FileBarChart2,
+  Receipt,
+  Wrench,
+  Package,
+  Phone,
+  ClipboardCheck,
+  Car,
+  BarChart3,
+  ClipboardList,
+  ShieldCheck,
+  HardHat,
+  Store,
+  type LucideIcon,
+} from "lucide-react";
 import { nextPublicAssetSrc } from "@/config/next-base-path";
+import { getVentasLoginUrl } from "@/config/public-env";
 
 export type EmpresaId = 1 | 2 | 3 | 4;
 
@@ -25,7 +45,30 @@ export function empresaIconSrc(empresaId?: number | null): string | null {
   return nextPublicAssetSrc(empresa.icono);
 }
 
-export const ROUTES = [
+export type SidebarRoute = {
+  path: string;
+  name: string;
+  icon: LucideIcon;
+  /** Abre en pestaña nueva (app externa, p. ej. intranet ventas). */
+  external?: boolean;
+  /** Visible aunque no exista id_menu de posventa (legado: ítem fijo del sidebar). */
+  alwaysVisible?: boolean;
+  /** Perfiles que no ven el ítem (headerPrincipal.php: 7 y 45). */
+  hideForPerfiles?: readonly number[];
+};
+
+/** headerPrincipal.php: oculta Intranet Ventas / Actas / Chat si perfil 7 o 45. */
+export const VENTAS_SIDEBAR_HIDDEN_PERFILES = [7, 45] as const;
+
+export const ROUTES: SidebarRoute[] = [
+  {
+    path: getVentasLoginUrl(),
+    name: "Intranet Ventas",
+    icon: Store,
+    external: true,
+    alwaysVisible: true,
+    hideForPerfiles: VENTAS_SIDEBAR_HIDDEN_PERFILES,
+  },
   { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
   { path: "/dashboard/usuarios", name: "Usuarios", icon: User },
   { path: "/dashboard/tickets", name: "Tickets", icon: Ticket },

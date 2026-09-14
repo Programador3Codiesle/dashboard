@@ -54,6 +54,19 @@ export const comisionesLaminaPinturaService = {
     return response.data;
   },
 
+  async listarPorNit(
+    desde: string,
+    hasta: string,
+  ): Promise<ComisionLaminaPintura[]> {
+    const q = new URLSearchParams();
+    q.set('desde', desde);
+    q.set('hasta', hasta);
+    const response = await apiClient.get<ComisionLaminaPintura[]>(
+      `/nomina/comisiones-lamina-pintura/por-nit?${q.toString()}`,
+    );
+    return response.data;
+  },
+
   async detalle(params: {
     desde: string;
     hasta: string;

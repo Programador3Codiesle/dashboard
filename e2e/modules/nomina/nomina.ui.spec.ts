@@ -143,6 +143,33 @@ test.describe("Nómina UI", () => {
     );
   });
 
+  test("genera comisiones LYP por NIT (solo lectura)", async ({ page }) => {
+    const { start, end } = mesAnterior();
+    const path = "/nomina/comisiones-lamina-pintura/por-nit";
+    const hits = collectApiResponses(page, path, true);
+
+    await gotoApp(page, "/dashboard/nomina/comisiones-lyp-por-nit");
+    await expectHeadingOrSkip(page, "Comisiones LYP por NIT");
+    await expect(page.getByTestId("nomina-lyp-por-nit-page")).toBeVisible();
+
+    await page.getByTestId("nomina-lyp-desde").fill(start);
+    await page.getByTestId("nomina-lyp-hasta").fill(end);
+    await page.getByTestId("nomina-lyp-generar").click();
+
+    const response = await waitExactGet(page, hits, path);
+    expect(
+      response.ok(),
+      `GET ${path} → HTTP ${response.status()}`,
+    ).toBeTruthy();
+
+    await expectTablaOVacio(
+      page,
+      "nomina-lyp-table",
+      "No hay datos para el rango seleccionado.",
+      "Cédula",
+    );
+  });
+
   test("busca comisiones asesores repuestos (solo lectura)", async ({
     page,
   }) => {

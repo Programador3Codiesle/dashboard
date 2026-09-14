@@ -10,6 +10,7 @@ import { AdministracionPageFrame } from '@/modules/administracion/components/Adm
 import {
   ADMINISTRACION_COPY,
   COMPETENCIAS_TEMPLATE,
+  labelSede,
 } from '@/modules/administracion/constants';
 import { useSedesByEmpresa } from '@/modules/administracion/hooks/useSedesByEmpresa';
 import { formatoDesempenoService } from '@/modules/administracion/services/formato-desempeno.service';
@@ -217,7 +218,7 @@ const InfoGeneral = React.memo(function InfoGeneral({
             <option value="">Seleccione sede...</option>
             {sedes.map((sede) => (
               <option key={sede} value={sede}>
-                {sede}
+                {labelSede(sede)}
               </option>
             ))}
           </select>

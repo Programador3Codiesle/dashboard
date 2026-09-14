@@ -25,6 +25,27 @@ export function getApiPublicUrl(): string {
   return getApiBaseUrl();
 }
 
+const VENTAS_PROD_BASE = "https://intranet.codiesel.co/ventas";
+const VENTAS_DEV_BASE = "http://localhost:8080/ventas";
+
+/**
+ * Base de la intranet de ventas (legado PHP: `inIntranetVentas`).
+ * Override: `NEXT_PUBLIC_VENTAS_URL`. Dev: localhost:8080. Prod: intranet.codiesel.co.
+ */
+export function getVentasBaseUrl(): string {
+  const override = process.env.NEXT_PUBLIC_VENTAS_URL?.trim();
+  if (override) return normalizeBase(override);
+  if (process.env.NODE_ENV === "production") {
+    return VENTAS_PROD_BASE;
+  }
+  return VENTAS_DEV_BASE;
+}
+
+/** Login de ventas: prod `.../ventas/Login`, local `http://localhost:8080/ventas/Login`. */
+export function getVentasLoginUrl(): string {
+  return `${getVentasBaseUrl()}/Login`;
+}
+
 /**
  * Enlace del adjunto: el API decide nueva vs legado
  * (`GET /tickets/adjunto?file=`).

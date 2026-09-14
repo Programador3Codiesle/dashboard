@@ -41,7 +41,7 @@ function mapControlComprasToExcelRow(row: ControlCompras) {
     BARRANCA: row.barranca ?? "",
     ROSITA: row.rosita ?? "",
     "VILLA DEL ROSARIO": row.villa ?? "",
-    SOLOCHEVROLET: row.solochevrolet ?? "",
+    "DIESELCO CÚCUTA": row.solochevrolet ?? "",
   };
 }
 
@@ -255,7 +255,7 @@ export function ControlComprasGestion() {
                   VILLA DEL ROSARIO
                 </th>
                 <th className="text-center py-3 px-4 font-semibold text-white whitespace-nowrap">
-                  SOLOCHEVROLET
+                  DIESELCO CÚCUTA
                 </th>
               </tr>
             </thead>

@@ -19,6 +19,7 @@ import { AdministracionPageFrame } from '@/modules/administracion/components/Adm
 import {
   ADMINISTRACION_COPY,
   AREAS_SOLICITA,
+  labelSede,
 } from '@/modules/administracion/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
@@ -278,7 +279,7 @@ export function InformeTiempoSuplementarioGestion({
   const { showError, showSuccess } = useToast();
   const sedes = useSedesByEmpresa();
   const sedesOptions = useMemo(
-    () => sedes.map((sede) => ({ value: sede, label: sede })),
+    () => sedes.map((sede) => ({ value: sede, label: labelSede(sede) })),
     [sedes],
   );
   const [search, setSearch] = useState('');

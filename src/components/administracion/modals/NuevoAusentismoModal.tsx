@@ -8,6 +8,7 @@ import {
   MOTIVOS_PERMISO,
   MOTIVO_COMPENSATORIO_VENTAS,
   motivoRequiereAdjunto,
+  labelSede,
 } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown, Loader2 } from "lucide-react";
@@ -176,7 +177,7 @@ function NuevoAusentismoForm({
             >
               <option value="">Seleccione...</option>
               {sedes.map((sede) => (
-                <option key={sede} value={sede}>{sede}</option>
+                <option key={sede} value={sede}>{labelSede(sede)}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />

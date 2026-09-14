@@ -7,6 +7,7 @@ import { useToast } from "@/components/shared/ui/ToastContext";
 import { getXlsx } from "@/utils/export-xlsx";
 import { Pagination } from "@/components/shared/ui/Pagination";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
+import { labelSede } from "@/modules/administracion/constants";
 import {
   informePausasActivaseService,
   PausaActiva,
@@ -138,7 +139,7 @@ export function InformePausasActivasGestion() {
               <option value="">Todas</option>
               {sedes.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {labelSede(s)}
                 </option>
               ))}
             </select>

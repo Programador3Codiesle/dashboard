@@ -68,8 +68,12 @@ export function getVisibleSidebarRoutes(user: IUser | null) {
   const menusPermitidos = toPermissionIdSet(user?.menus_permitidos);
 
   return ROUTES.filter((route) => {
-    if (route.path === "/dashboard") {
-      return true;
+    if (route.hideForPerfiles?.includes(Number(user?.perfil_postventa))) {
+      return false;
+    }
+
+    if (route.alwaysVisible || route.path === "/dashboard") {
+      return isSidebarHubVisible(route.path, user);
     }
 
     if (hasMenuPermissions) {

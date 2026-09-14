@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { SolicitudTiempoSuplementarioDTO } from "@/modules/administracion/types";
-import { AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA, labelSede } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { OptimizedInput } from "@/components/shared/ui/OptimizedInput";
@@ -164,7 +164,7 @@ export default function SolicitudTiempoSuplementarioModal({
             >
               <option value="">Seleccione...</option>
               {sedes.map((sede) => (
-                <option key={sede} value={sede}>{sede}</option>
+                <option key={sede} value={sede}>{labelSede(sede)}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />

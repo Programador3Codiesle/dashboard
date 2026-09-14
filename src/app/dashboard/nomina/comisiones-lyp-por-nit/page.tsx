@@ -1,5 +1,5 @@
-import { ComisionesLypPorNitPlaceholder } from "@/modules/nomina/components/ComisionesLypPorNitPlaceholder";
+import { ComisionesLaminaPinturaGestion } from "@/modules/nomina/components/ComisionesLaminaPinturaGestion";
 
 export default function Page() {
-  return <ComisionesLypPorNitPlaceholder />;
+  return <ComisionesLaminaPinturaGestion variante="por-nit" />;
 }

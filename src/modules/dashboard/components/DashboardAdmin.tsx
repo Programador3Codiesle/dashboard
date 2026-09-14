@@ -12,7 +12,7 @@ const SEDE_LABELS: Record<string, string> = {
   rosita: "La Rosita",
   barranca: "Barranca",
   bocono: "Bocono",
-  solochevrolet: "Solo Chevrolet",
+  solochevrolet: "Dieselco Cúcuta",
   chevropartes: "Chevropartes",
 };
 
@@ -358,7 +358,7 @@ function DashboardAdminInner({
                   },
                   data.porcen_soloc != null && {
                     key: "solochevrolet",
-                    sede: "Solo Chevrolet",
+                    sede: "Dieselco Cúcuta",
                     porcentaje: data.porcen_soloc,
                   },
                   data.porcen_chev != null && {

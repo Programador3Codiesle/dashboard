@@ -13,7 +13,7 @@ import { useMisJefes } from '@/modules/usuarios/hooks/useJefes';
 import { useSedesByEmpresa } from '@/modules/administracion/hooks/useSedesByEmpresa';
 import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
-import { ADMINISTRACION_COPY } from '@/modules/administracion/constants';
+import { ADMINISTRACION_COPY, labelSede } from '@/modules/administracion/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
@@ -253,7 +253,7 @@ export function FormatoOrdenSalidaGestion() {
               <option value="">Seleccione sede...</option>
               {sedes.map((sede) => (
                 <option key={sede} value={sede}>
-                  {sede}
+                  {labelSede(sede)}
                 </option>
               ))}
             </select>

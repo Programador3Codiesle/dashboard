@@ -74,7 +74,10 @@ export const informeTiempoSuplementarioService = {
       horaInicio: item.hora_ini || "",
       horaFin: item.hora_fin || "",
       descripcion: item.descripcion || "",
-      estado: item.estado !== null && item.estado !== undefined ? ESTADOS[item.estado] : "Negado",
+      estado:
+        item.estado !== null && item.estado !== undefined
+          ? (ESTADOS[item.estado] ?? "Pendiente")
+          : "Pendiente",
     }));
   },
 

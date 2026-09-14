@@ -22,6 +22,7 @@ import { AdministracionPageFrame } from '@/modules/administracion/components/Adm
 import {
   ADMINISTRACION_COPY,
   AREAS_INFORME_AUSENTISMO,
+  labelSede,
 } from '@/modules/administracion/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
@@ -280,7 +281,7 @@ export function InformeAusentismoGestion() {
   const { showError } = useToast();
   const sedes = useSedesByEmpresa();
   const sedesOptions = useMemo(
-    () => sedes.map((sede) => ({ value: sede, label: sede })),
+    () => sedes.map((sede) => ({ value: sede, label: labelSede(sede) })),
     [sedes],
   );
   const [search, setSearch] = useState('');

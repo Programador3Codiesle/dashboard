@@ -24,8 +24,15 @@ function getPercentBadgeClass(value: number): string {
   return 'bg-rose-100 text-rose-800 border-rose-200';
 }
 
-export function ComisionesLaminaPinturaGestion() {
-  const { blocked } = useNominaPageGuard(COMISIONES_LAMINA_PINTURA_SUBMENU_ID);
+export function ComisionesLaminaPinturaGestion({
+  variante = 'completa',
+}: {
+  variante?: 'completa' | 'por-nit';
+}) {
+  const esPorNit = variante === 'por-nit';
+  const { blocked } = useNominaPageGuard(
+    esPorNit ? undefined : COMISIONES_LAMINA_PINTURA_SUBMENU_ID,
+  );
 
   const { showError } = useToast();
   const [desde, setDesde] = useState('');
@@ -38,6 +45,13 @@ export function ComisionesLaminaPinturaGestion() {
   const [isDetalleOpen, setIsDetalleOpen] = useState(false);
   const listarMutation = useMutation({
     mutationFn: async (params: { desde: string; hasta: string }) => {
+      if (esPorNit) {
+        const lista = await comisionesLaminaPinturaService.listarPorNit(
+          params.desde,
+          params.hasta,
+        );
+        return { lista, repGiron: { total: 0 }, repBocono: { total: 0 } };
+      }
       const [lista, repGiron, repBocono] = await Promise.all([
         comisionesLaminaPinturaService.listar(params.desde, params.hasta),
         comisionesLaminaPinturaService.totalRepuestosSede({
@@ -155,17 +169,23 @@ export function ComisionesLaminaPinturaGestion() {
   if (blocked) return null;
 
   return (
-    <div data-testid="nomina-lyp-page" className="space-y-6">
+    <div
+      data-testid={esPorNit ? 'nomina-lyp-por-nit-page' : 'nomina-lyp-page'}
+      className="space-y-6"
+    >
       <div>
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <h1 className="app-title-xl brand-text">
-            Comisiones lámina y pintura
+            {esPorNit
+              ? 'Comisiones LYP por NIT'
+              : 'Comisiones lámina y pintura'}
           </h1>
           <EmpresaBadge />
         </div>
         <p className="text-gray-500 mt-1">
-          Reporte consolidado de productividad, materiales, repuestos y comisión a
-          pagar.
+          {esPorNit
+            ? 'Consulta de su nómina de lámina y pintura para el rango seleccionado.'
+            : 'Reporte consolidado de productividad, materiales, repuestos y comisión a pagar.'}
         </p>
       </div>
 
@@ -217,6 +237,7 @@ export function ComisionesLaminaPinturaGestion() {
         </p>
       </div>
 
+      {esPorNit ? null : (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
           <p className="text-sm text-gray-500">Total Venta de Repuestos Girón</p>
@@ -231,6 +252,7 @@ export function ComisionesLaminaPinturaGestion() {
           </p>
         </div>
       </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm">
         {listarMutation.isPending && (
@@ -250,7 +272,7 @@ export function ComisionesLaminaPinturaGestion() {
 
         {!listarMutation.isPending && rows.length > 0 && (
           <div data-testid="nomina-lyp-table" className="app-table-scroll">
-            <table className="w-full min-w-[1800px] divide-y divide-gray-200 text-xs md:text-sm">
+            <table className="w-full min-w-[2100px] divide-y divide-gray-200 text-xs md:text-sm">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-center font-semibold">Cédula</th>
@@ -265,9 +287,12 @@ export function ComisionesLaminaPinturaGestion() {
                   <th className="px-3 py-2 text-center font-semibold">Internas</th>
                   <th className="px-3 py-2 text-center font-semibold">Comisión MO</th>
                   <th className="px-3 py-2 text-center font-semibold">Base Rptos</th>
+                  <th className="px-3 py-2 text-center font-semibold">% Fac Total</th>
                   <th className="px-3 py-2 text-center font-semibold">Comisión Rptos</th>
                   <th className="px-3 py-2 text-center font-semibold">Pulidas Livianos</th>
+                  <th className="px-3 py-2 text-center font-semibold">Total pulido livianos</th>
                   <th className="px-3 py-2 text-center font-semibold">Pulidas Pesados</th>
+                  <th className="px-3 py-2 text-center font-semibold">Total pulido pesado</th>
                   <th className="px-3 py-2 text-center font-semibold">Vidrios</th>
                   <th className="px-3 py-2 text-center font-semibold">Bono NPS</th>
                   <th className="px-3 py-2 text-center font-semibold">Comisión a Pagar</th>
@@ -301,9 +326,12 @@ export function ComisionesLaminaPinturaGestion() {
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.internas)}</td>
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.comisionSinInternasMo)}</td>
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.baseRepuestos)}</td>
+                    <td className="px-3 py-1.5 text-center">{formatPercent(row.porcFacTotal)}</td>
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.comisionRepuestos)}</td>
                     <td className="px-3 py-1.5 text-center">{row.pulidasLivianos}</td>
+                    <td className="px-3 py-1.5 text-right">{formatCurrency(row.totalPulidoLivianos)}</td>
                     <td className="px-3 py-1.5 text-center">{row.pulidasPesados}</td>
+                    <td className="px-3 py-1.5 text-right">{formatCurrency(row.totalPulidoPesados)}</td>
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.vidrios)}</td>
                     <td className="px-3 py-1.5 text-right">{formatCurrency(row.bonoNps)}</td>
                     <td className="px-3 py-1.5 text-right font-semibold">{formatCurrency(row.totalPagar)}</td>

@@ -1,7 +1,7 @@
 'use client';
 
 import { IUser } from "@/types/global";
-import { ChevronRight, Search, X } from "lucide-react";
+import { ChevronRight, ExternalLink, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -18,6 +18,7 @@ interface SidebarNavProps {
 }
 
 function isRouteActive(currentPath: string, routePath: string) {
+  if (/^https?:\/\//i.test(routePath)) return false;
   if (currentPath === routePath) return true;
   if (routePath === "/dashboard") return currentPath === "/dashboard";
   return currentPath.startsWith(`${routePath}/`);
@@ -198,21 +199,17 @@ function SidebarNavComponent({
 
             <div className="space-y-2">
               {filteredRoutes.map((route) => {
-                const active = isRouteActive(currentPath, route.path);
-                return (
-                  <SidebarAppLink
-                    key={route.path}
-                    href={route.path}
-                    onClick={handleNavClick}
-                    className={`
+                const active = !route.external && isRouteActive(currentPath, route.path);
+                const className = `
                       group relative flex w-full items-center rounded-xl border p-2 transition-colors duration-200
                       ${active
                         ? "brand-bg-active brand-border-active shadow-lg"
                         : "border-transparent hover:bg-gray-800/50"
                       }
                       ${isCollapsed ? "justify-center" : "justify-between px-4"}
-                    `}
-                  >
+                    `;
+                const body = (
+                  <>
                     <div className="flex min-w-0 items-center">
                       <div
                         className={`
@@ -233,18 +230,49 @@ function SidebarNavComponent({
                     {!isCollapsed && (
                       <div
                         className={`transition-opacity duration-200 ${
-                          active
+                          route.external || active
                             ? "translate-x-0 opacity-100"
                             : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
                         }`}
                       >
-                        <ChevronRight size={16} className="brand-text" />
+                        {route.external ? (
+                          <ExternalLink size={16} className="brand-text" />
+                        ) : (
+                          <ChevronRight size={16} className="brand-text" />
+                        )}
                       </div>
                     )}
 
                     {active && (
                       <div className="absolute right-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-l-full brand-bg" />
                     )}
+                  </>
+                );
+
+                if (route.external) {
+                  return (
+                    <a
+                      key={route.path}
+                      href={route.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={handleNavClick}
+                      title={`${route.name} (abre en una pestaña nueva)`}
+                      className={className}
+                    >
+                      {body}
+                    </a>
+                  );
+                }
+
+                return (
+                  <SidebarAppLink
+                    key={route.path}
+                    href={route.path}
+                    onClick={handleNavClick}
+                    className={className}
+                  >
+                    {body}
                   </SidebarAppLink>
                 );
               })}

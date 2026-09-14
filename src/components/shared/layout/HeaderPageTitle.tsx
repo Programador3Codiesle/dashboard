@@ -5,10 +5,11 @@ import { usePathname } from "next/navigation";
 import { memo, useMemo } from "react";
 
 function resolvePageTitle(currentPath: string): string {
-  const exactMatch = ROUTES.find((route) => route.path === currentPath);
+  const internalRoutes = ROUTES.filter((route) => !route.external);
+  const exactMatch = internalRoutes.find((route) => route.path === currentPath);
   if (exactMatch) return exactMatch.name;
 
-  const sortedRoutes = [...ROUTES].sort((a, b) => b.path.length - a.path.length);
+  const sortedRoutes = [...internalRoutes].sort((a, b) => b.path.length - a.path.length);
   const matchingRoute = sortedRoutes.find((route) => {
     if (route.path === "/dashboard") {
       return currentPath === "/dashboard";

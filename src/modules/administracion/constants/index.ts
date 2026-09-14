@@ -171,14 +171,23 @@ export const SEDES = [
   'Bocono',
   'Dieselco',
   'Duitama',
+  'Dieselco Duitama',
   'Cucuta',
   'Tunja',
 ];
 
 /** Sedes por empresa (id: 1 Codiesel, 2 Dieselco, 3 Mitsubishi, 4 BYD). */
 export const SEDES_POR_EMPRESA: Record<number, string[]> = {
-  1: ['Giron', 'Rosita', 'Bocono', 'Barrancabermeja', 'Chevropartes'],
-  2: ['Giron', 'Duitama', 'Cucuta'],
+  1: [
+    'Giron',
+    'Rosita',
+    'Bocono',
+    'Barrancabermeja',
+    'Chevropartes',
+    'Solochevrolet',
+    'Dieselco Duitama',
+  ],
+  2: ['Giron', 'Duitama', 'Dieselco Duitama', 'Cucuta'],
   3: ['Cucuta', 'Tunja'],
   4: ['Cucuta', 'Tunja'],
 };
@@ -186,6 +195,15 @@ export const SEDES_POR_EMPRESA: Record<number, string[]> = {
 export function getSedesByEmpresa(empresaId: number | undefined): string[] {
   if (empresaId == null) return [];
   return SEDES_POR_EMPRESA[empresaId] ?? [];
+}
+
+/** PHP: value Solochevrolet, label Dieselco Cúcuta. */
+export function labelSede(value: string): string {
+  const key = value.trim();
+  if (key.toLowerCase() === 'solochevrolet') {
+    return 'Dieselco Cúcuta';
+  }
+  return value;
 }
 
 export const MOTIVOS_PERMISO: { value: string; label: string }[] = [

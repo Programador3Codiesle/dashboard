@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import React from "react";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevaSolicitudCompraDTO, NivelUrgencia } from "@/modules/administracion/types";
-import { AREAS_SOLICITA } from "@/modules/administracion/constants";
+import { AREAS_SOLICITA, labelSede } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { usuariosService } from "@/modules/usuarios/services/usuarios.service";
 import type { IUsuario } from "@/modules/usuarios/types";
@@ -120,7 +120,7 @@ const NuevaSolicitudCompraModalComponent = ({
                 <option value="">Seleccione...</option>
                 {sedes.map((sede) => (
                   <option key={sede} value={sede}>
-                    {sede}
+                  {labelSede(sede)}
                   </option>
                 ))}
               </select>

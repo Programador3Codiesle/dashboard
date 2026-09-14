@@ -61,6 +61,22 @@ test.describe("Nómina API", () => {
     expect(Array.isArray(body)).toBeTruthy();
   });
 
+  test("GET /nomina/comisiones-lamina-pintura/por-nit con sesión", async ({
+    request,
+  }) => {
+    const { start, end } = mesAnterior();
+    const response = await apiRequest(
+      request,
+      `/nomina/comisiones-lamina-pintura/por-nit?desde=${start}&hasta=${end}`,
+    );
+    await expectApiOkOrSkip(
+      response.status(),
+      "GET /nomina/comisiones-lamina-pintura/por-nit",
+    );
+    const body = await response.json();
+    expect(Array.isArray(body)).toBeTruthy();
+  });
+
   test("GET /nomina/comisiones-asesores-repuestos con sesión", async ({
     request,
   }) => {

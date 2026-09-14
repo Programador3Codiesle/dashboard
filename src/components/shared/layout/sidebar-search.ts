@@ -61,7 +61,18 @@ export function getSidebarSearchCatalog(user: IUser | null): SidebarSearchHit[] 
   const hits: SidebarSearchHit[] = [];
 
   for (const route of getVisibleSidebarRoutes(user)) {
-    hits.push(toHit(`route:${route.path}`, route.name, route.path, route.icon, []));
+    hits.push(
+      toHit(
+        `route:${route.path}`,
+        route.name,
+        route.path,
+        route.icon,
+        [],
+        route.external
+          ? { external: true, descripcion: "Abre la app de ventas" }
+          : undefined,
+      ),
+    );
 
     if (route.path === "/dashboard/tickets") {
       for (const tab of TICKETS_TAB_ITEMS) {

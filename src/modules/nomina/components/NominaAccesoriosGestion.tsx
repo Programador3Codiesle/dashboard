@@ -56,12 +56,45 @@ function yearsForSelect(): number[] {
   return Array.from({ length: 6 }, (_, index) => current - index);
 }
 
-function toEnteroExcel(value: number | string | null): string | number {
+type ExcelCellValue = string | number;
+
+function toEnteroExcel(value: number | string | null): ExcelCellValue {
   if (value == null) return '';
   if (value === 'N/A') return 'N/A';
   const n = Number(value);
   if (Number.isNaN(n)) return String(value);
   return Math.round(n);
+}
+
+/** PHP `toDecimalExcel` + clase `num-excel-decimal` (técnicos horas / MO interna tiempo). */
+function toDecimalExcel(value: number | string | null): ExcelCellValue {
+  if (value == null) return '';
+  if (value === 'N/A') return 'N/A';
+  const n = Number(value);
+  if (Number.isNaN(n)) return String(value);
+  return Number(n.toFixed(2));
+}
+
+function aplicarFormatoDecimalColumnaC(
+  XLSX: typeof import('xlsx'),
+  ws: import('xlsx').WorkSheet,
+) {
+  if (!ws['!ref']) return;
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let row = range.s.r + 1; row <= range.e.r; row += 1) {
+    const cellRef = XLSX.utils.encode_cell({ r: row, c: 2 });
+    const cell = ws[cellRef];
+    if (!cell) continue;
+    const num =
+      typeof cell.v === 'number'
+        ? cell.v
+        : parseFloat(String(cell.v).replace(',', '.'));
+    if (Number.isNaN(num)) continue;
+    cell.t = 'n';
+    cell.v = num;
+    cell.z = '0.00';
+    delete cell.w;
+  }
 }
 
 export function NominaAccesoriosGestion() {
@@ -125,7 +158,9 @@ export function NominaAccesoriosGestion() {
       return;
     }
     const XLSX = await import('xlsx');
-    let sheetRows: Array<Record<string, string | number>> = [];
+    let sheetRows: Array<Record<string, ExcelCellValue>> = [];
+    const aplicaDecimalHoras =
+      resultado.tipo === 3 || resultado.tipo === 5;
     if (resultado.tipo === 1) {
       sheetRows = resultado.auxiliar.map((row) => ({
         Fecha: row.fecha,
@@ -156,7 +191,7 @@ export function NominaAccesoriosGestion() {
       sheetRows = resultado.tecnicos.map((row) => ({
         Fecha: row.fecha,
         Nombres: row.nombres,
-        'Total horas': toEnteroExcel(row.totalHoras),
+        'Total horas': toDecimalExcel(row.totalHoras),
         Comisión: toEnteroExcel(row.comision),
       }));
     } else if (resultado.tipo === 4) {
@@ -170,12 +205,15 @@ export function NominaAccesoriosGestion() {
       sheetRows = resultado.moInterna.map((row) => ({
         Fecha: row.fecha,
         Agencia: row.agencia,
-        Tiempo: toEnteroExcel(row.tiempo),
+        Tiempo: toDecimalExcel(row.tiempo),
         Total: toEnteroExcel(row.total),
       }));
     }
 
     const ws = XLSX.utils.json_to_sheet(sheetRows);
+    if (aplicaDecimalHoras) {
+      aplicarFormatoDecimalColumnaC(XLSX, ws);
+    }
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Nomina Accesorios');
     const mesLabel =
