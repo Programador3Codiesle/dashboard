@@ -1,10 +1,12 @@
-import Script from "next/script";
 import "./globals.css";
 import AuthProvider from "@/core/auth/provider/AuthProvider";
 import { QueryProvider } from "@/core/query/QueryProvider";
 import { ToastProvider } from "@/components/shared/ui/ToastContext";
 import { EmpresaThemeProvider } from "@/core/theme/EmpresaThemeProvider";
-import { getEmpresaFaviconBootstrapScript } from "@/core/theme/apply-empresa-favicon";
+import {
+  EMPRESA_FAVICON_LINK_ID,
+  empresaFaviconHref,
+} from "@/core/theme/apply-empresa-favicon";
 
 export const metadata = {
   title: "Codiesel - Dashboard",
@@ -22,10 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
           crossOrigin="anonymous"
         />
-        <Script
-          id="empresa-favicon-bootstrap"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: getEmpresaFaviconBootstrapScript() }}
+        <link
+          id={EMPRESA_FAVICON_LINK_ID}
+          rel="icon"
+          type="image/png"
+          href={empresaFaviconHref(1)}
         />
       </head>
       <body className="antialiased" suppressHydrationWarning>
