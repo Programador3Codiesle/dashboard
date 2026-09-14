@@ -18,19 +18,20 @@ export const TICKETS_QUERY_KEYS = {
  * - Retry automático en caso de error
  * - Invalidación vía useMutation en useTicketsActions
  */
-export function useTickets(kind: TicketsKind, page: number = 1, limit: number = 100) {
+export function useTickets(kind: TicketsKind, page: number = 1, limit?: number) {
   const queryClient = useQueryClient();
+  const resolvedLimit = limit ?? (kind === "finalizados" ? 500 : 100);
   const queryKey =
     kind === "mis"
       ? TICKETS_QUERY_KEYS[kind]
-      : [...TICKETS_QUERY_KEYS[kind], page, limit];
+      : [...TICKETS_QUERY_KEYS[kind], page, resolvedLimit];
 
   const fetchFn = async (): Promise<ITicket[]> => {
     switch (kind) {
       case "activos":
-        return ticketsService.listActivos(page, limit);
+        return ticketsService.listActivos(page, resolvedLimit);
       case "finalizados":
-        return ticketsService.listFinalizados(page, limit);
+        return ticketsService.listFinalizados(page, resolvedLimit);
       case "mis":
         return ticketsService.listMisTickets();
       default:

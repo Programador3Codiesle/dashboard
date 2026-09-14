@@ -26,35 +26,13 @@ export function getApiPublicUrl(): string {
 }
 
 /**
- * URL absoluta para adjuntos de tickets (`/uploads/tickets/...` en BD).
- * Los archivos viven en el `public` del **Nest** (dev y prod); usa `getApiPublicUrl`.
- * Si el valor guardado era una URL absoluta solo con pathname `/uploads/...`, se reescribe al API.
+ * Enlace del adjunto: el API decide nueva vs legado
+ * (`GET /tickets/adjunto?file=`).
  */
 export function resolveTicketPublicFileUrl(
   storedPath: string | null | undefined,
 ): string | null {
   if (!storedPath?.trim()) return null;
-  const s = storedPath.trim();
-
-  let path = s;
-  let suffix = "";
-  if (/^https?:\/\//i.test(s)) {
-    try {
-      const u = new URL(s);
-      path = u.pathname;
-      suffix = `${u.search}${u.hash}`;
-    } catch {
-      path = s.startsWith("/") ? s : `/${s}`;
-    }
-  } else {
-    path = s.startsWith("/") ? s : `/${s}`;
-  }
-
-  if (!path.startsWith("/uploads/")) {
-    if (/^https?:\/\//i.test(s)) return s;
-    return `${getApiPublicUrl()}${path}${suffix}`;
-  }
-
-  const base = getApiPublicUrl();
-  return `${base}${path}${suffix}`;
+  const params = new URLSearchParams({ file: storedPath.trim() });
+  return `${getApiBaseUrl()}/tickets/adjunto?${params.toString()}`;
 }

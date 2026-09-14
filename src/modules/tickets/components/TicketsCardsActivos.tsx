@@ -13,8 +13,15 @@ import { ITicket } from '@/modules/tickets/types';
 import {
   TICKETS_BADGE_ACTIVO_CLASS,
   TICKETS_BADGE_EN_PROCESO_CLASS,
+  TICKETS_BTN_REASIGNAR_ACTIVO_CLASS,
+  TICKETS_BTN_REASIGNAR_EN_PROCESO_CLASS,
+  TICKETS_BTN_RESPONDER_ACTIVO_CLASS,
+  TICKETS_BTN_RESPONDER_EN_PROCESO_CLASS,
   TICKETS_CARD_ACTIVO_CLASS,
   TICKETS_CARD_EN_PROCESO_CLASS,
+  TICKETS_ENCARGADO_ACTIVO_CLASS,
+  TICKETS_ENCARGADO_EN_PROCESO_CLASS,
+  TICKETS_PRIORIDAD_CLASS,
 } from '@/modules/tickets/constants';
 import { getNombreCorto } from '@/modules/tickets/utils/nombre-corto';
 import { toResponderTicketPayload } from '@/modules/tickets/utils/responder-payload';
@@ -88,7 +95,7 @@ function TicketsCardsActivosComponent({
             <div key={t.id} className={cardStyles}>
               <div>
                 <div
-                  className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'brand-bg' : 'brand-bg/70'}`}
+                  className={`absolute top-0 left-0 right-0 h-1 ${isEnProceso ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-success)]'}`}
                 ></div>
 
                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -101,13 +108,10 @@ function TicketsCardsActivosComponent({
                     </span>
                     {t.prioridad && (
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
-                          t.prioridad === 'alta'
-                            ? 'bg-red-50 text-red-700 border-red-100'
-                            : t.prioridad === 'media'
-                              ? 'brand-badge'
-                              : 'bg-gray-50 text-gray-700 border-gray-200'
-                        }`}
+                        className={
+                          TICKETS_PRIORIDAD_CLASS[t.prioridad] ??
+                          TICKETS_PRIORIDAD_CLASS.media
+                        }
                       >
                         {t.prioridad.charAt(0).toUpperCase() + t.prioridad.slice(1)}
                       </span>
@@ -137,12 +141,24 @@ function TicketsCardsActivosComponent({
                     </span>
                   </div>
                   {t.encargado && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg brand-bg-light brand-border border">
-                      <div className="w-2 h-2 rounded-full brand-bg"></div>
-                      <span className="text-xs font-semibold brand-text uppercase tracking-wide">
+                    <div
+                      className={
+                        isEnProceso
+                          ? TICKETS_ENCARGADO_EN_PROCESO_CLASS
+                          : TICKETS_ENCARGADO_ACTIVO_CLASS
+                      }
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${isEnProceso ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-success)]'}`}
+                      ></div>
+                      <span
+                        className={`text-xs font-semibold uppercase tracking-wide ${isEnProceso ? 'text-gray-800' : 'text-[var(--color-success)]'}`}
+                      >
                         Encargado:
                       </span>
-                      <span className="text-sm font-medium brand-text">
+                      <span
+                        className={`text-sm font-medium ${isEnProceso ? 'text-gray-900' : 'text-[var(--color-success)]'}`}
+                      >
                         {getNombreCorto(t.encargado)}
                       </span>
                     </div>
@@ -151,12 +167,16 @@ function TicketsCardsActivosComponent({
               </div>
 
               <div
-                className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-(--color-primary)' : 'border-t brand-border'}`}
+                className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 ${isEnProceso ? 'border-t border-[color-mix(in_srgb,var(--color-warning)_45%,white)]' : 'border-t border-[color-mix(in_srgb,var(--color-success)_30%,white)]'}`}
               >
                 <button
                   type="button"
                   onClick={() => handleReasignar(t)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all brand-text brand-bg-light hover:bg-(--color-primary)/20 border brand-border"
+                  className={
+                    isEnProceso
+                      ? TICKETS_BTN_REASIGNAR_EN_PROCESO_CLASS
+                      : TICKETS_BTN_REASIGNAR_ACTIVO_CLASS
+                  }
                 >
                   <ArrowRightLeft size={16} />
                   Reasignar
@@ -164,7 +184,11 @@ function TicketsCardsActivosComponent({
                 <button
                   type="button"
                   onClick={() => handleResponder(t)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all shadow-md hover:shadow-lg brand-bg brand-bg-hover"
+                  className={
+                    isEnProceso
+                      ? TICKETS_BTN_RESPONDER_EN_PROCESO_CLASS
+                      : TICKETS_BTN_RESPONDER_ACTIVO_CLASS
+                  }
                 >
                   <MessageSquare size={16} />
                   Responder

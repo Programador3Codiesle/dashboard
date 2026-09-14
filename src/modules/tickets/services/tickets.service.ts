@@ -77,7 +77,7 @@ export const ticketsService = {
     return data.map(mapActivoFromApi);
   },
 
-  async listFinalizados(page: number = 1, limit: number = 100): Promise<ITicket[]> {
+  async listFinalizados(page: number = 1, limit: number = 500): Promise<ITicket[]> {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
     const resp = await fetchWithAuth(`${API_URL}/tickets/finalizados?${params}`, {
       method: "GET",
@@ -157,7 +157,7 @@ export const ticketsService = {
       estado: "activo",
       archivo_url: dto.archivoUrl || null,
       empresa: dto.empresa || [], // Array de números, por defecto vacío
-      prioridad: dto.prioridad || "media", // String requerido, por defecto "media"
+      prioridad: dto.prioridad ?? "",
     };
 
     const resp = await fetchWithAuth(`${API_URL}/tickets`, {

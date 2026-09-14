@@ -73,6 +73,7 @@ export const empresasDisponibles = [
   { id: "4", nombre: "BYD", logo: "🔋" },
 ];
 
+/** Combo reasignar. Cristhian (1095944273) reemplaza a Andrés Gómez. */
 export const encargadosDisponibles = [
   { id: "1110602826", nombre: "Cristian Camilo Tunjano Diaz" },
   { id: "1102368016", nombre: "Edwin Manuel Ramirez Tami" },
@@ -96,13 +97,38 @@ export const COMPANY_STYLES: Record<string, string> = {
 };
 
 export const TICKETS_CARD_EN_PROCESO_CLASS =
-  "group relative bg-gradient-to-br from-[var(--color-primary-light)] via-white to-[var(--color-primary-light)] p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[var(--color-primary)] hover:shadow-xl hover:border-[var(--color-primary-hover)] transition-all duration-300 flex flex-col justify-between overflow-hidden";
+  "group relative bg-[var(--color-warning-soft)] p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[color-mix(in_srgb,var(--color-warning)_55%,white)] hover:shadow-xl hover:border-[var(--color-warning)] transition-all duration-300 flex flex-col justify-between overflow-hidden";
 
 export const TICKETS_CARD_ACTIVO_CLASS =
-  "group relative bg-white p-4 sm:p-6 rounded-2xl shadow-md border-2 brand-border hover:shadow-lg hover:border-(--color-primary) transition-all duration-300 flex flex-col justify-between overflow-hidden";
+  "group relative bg-[var(--color-success-soft)] p-4 sm:p-6 rounded-2xl shadow-md border-2 border-[color-mix(in_srgb,var(--color-success)_35%,white)] hover:shadow-lg hover:border-[var(--color-success)] transition-all duration-300 flex flex-col justify-between overflow-hidden";
 
 export const TICKETS_BADGE_EN_PROCESO_CLASS =
-  "px-3 py-1.5 rounded-full text-xs font-bold brand-bg-gradient text-white shadow-md flex items-center gap-1.5";
+  "px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--color-warning)] text-gray-900 shadow-md flex items-center gap-1.5";
 
 export const TICKETS_BADGE_ACTIVO_CLASS =
-  "px-3 py-1.5 rounded-full text-xs font-bold brand-bg-light brand-text shadow-sm flex items-center gap-1.5";
+  "px-3 py-1.5 rounded-full text-xs font-bold bg-[var(--color-success-soft)] text-[var(--color-success)] border border-[color-mix(in_srgb,var(--color-success)_35%,white)] shadow-sm flex items-center gap-1.5";
+
+export const TICKETS_PRIORIDAD_CLASS: Record<string, string> = {
+  alta: "px-2 py-0.5 rounded-full text-xs font-medium border bg-[var(--color-danger-soft)] text-[var(--color-danger)] border-[color-mix(in_srgb,var(--color-danger)_25%,white)]",
+  media:
+    "px-2 py-0.5 rounded-full text-xs font-medium border bg-[var(--color-warning-soft)] text-gray-800 border-[color-mix(in_srgb,var(--color-warning)_50%,white)]",
+  baja: "px-2 py-0.5 rounded-full text-xs font-medium border bg-[color-mix(in_srgb,var(--color-info)_12%,white)] text-[var(--color-info)] border-[color-mix(in_srgb,var(--color-info)_40%,white)]",
+};
+
+export const TICKETS_ENCARGADO_ACTIVO_CLASS =
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-[var(--color-success-soft)] border-[color-mix(in_srgb,var(--color-success)_35%,white)]";
+
+export const TICKETS_ENCARGADO_EN_PROCESO_CLASS =
+  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-[var(--color-warning-soft)] border-[color-mix(in_srgb,var(--color-warning)_50%,white)]";
+
+export const TICKETS_BTN_REASIGNAR_ACTIVO_CLASS =
+  "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-[var(--color-success)] bg-[var(--color-success-soft)] border border-[color-mix(in_srgb,var(--color-success)_40%,white)] hover:bg-[color-mix(in_srgb,var(--color-success)_16%,white)]";
+
+export const TICKETS_BTN_REASIGNAR_EN_PROCESO_CLASS =
+  "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all text-gray-800 bg-[var(--color-warning-soft)] border border-[color-mix(in_srgb,var(--color-warning)_55%,white)] hover:bg-[color-mix(in_srgb,var(--color-warning)_28%,white)]";
+
+export const TICKETS_BTN_RESPONDER_ACTIVO_CLASS =
+  "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white transition-all shadow-md hover:shadow-lg bg-[var(--color-success)] hover:bg-[var(--color-success-hover)]";
+
+export const TICKETS_BTN_RESPONDER_EN_PROCESO_CLASS =
+  "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-900 transition-all shadow-md hover:shadow-lg bg-[var(--color-warning)] hover:brightness-95";
