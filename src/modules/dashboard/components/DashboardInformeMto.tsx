@@ -24,9 +24,9 @@ function DashboardInformeMtoInner({ data }: { data: DashboardInformeMtoType }) {
             Mantenimiento correctivo
           </h3>
           <div className="app-kpi-grid-3">
-            <DashboardKpiCard label="Pendientes" value={data.pendientes} />
-            <DashboardKpiCard label="En proceso" value={data.proceso} />
-            <DashboardKpiCard label="Finalizadas" value={data.finalizadas} />
+            <DashboardKpiCard label="Pendientes" value={data.pendientes ?? 0} />
+            <DashboardKpiCard label="En proceso" value={data.proceso ?? 0} />
+            <DashboardKpiCard label="Finalizadas" value={data.finalizadas ?? 0} />
           </div>
         </div>
         <div>
@@ -34,9 +34,18 @@ function DashboardInformeMtoInner({ data }: { data: DashboardInformeMtoType }) {
             Mantenimiento preventivo (hoy)
           </h3>
           <div className="app-kpi-grid-3">
-            <DashboardKpiCard label="Pendientes" value={data.pendientesPre} />
-            <DashboardKpiCard label="En proceso" value={data.procesoPre} />
-            <DashboardKpiCard label="Finalizadas" value={data.finalizadasPre} />
+            <DashboardKpiCard
+              label="Pendientes"
+              value={data.pendientesPre ?? 0}
+            />
+            <DashboardKpiCard
+              label="En proceso"
+              value={data.procesoPre ?? 0}
+            />
+            <DashboardKpiCard
+              label="Finalizadas"
+              value={data.finalizadasPre ?? 0}
+            />
           </div>
         </div>
       </div>

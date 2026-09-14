@@ -25,15 +25,15 @@ function DashboardComprasInner({ data }: { data: DashboardComprasType }) {
         <div className="app-kpi-grid-3">
           <DashboardKpiCard
             label="Solicitudes pendientes"
-            value={data.solicitudes_pendientes}
+            value={data.solicitudes_pendientes ?? 0}
           />
           <DashboardKpiCard
             label="Solicitudes en proceso"
-            value={data.solicitudes_proceso}
+            value={data.solicitudes_proceso ?? 0}
           />
           <DashboardKpiCard
             label="Solicitudes finalizadas"
-            value={data.solicitudes_finalizadas}
+            value={data.solicitudes_finalizadas ?? 0}
           />
         </div>
       </div>
