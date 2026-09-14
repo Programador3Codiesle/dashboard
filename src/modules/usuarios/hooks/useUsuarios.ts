@@ -11,6 +11,8 @@ type UsuariosListado = Omit<IUsuariosPaginatedResponseAPI, 'items'> & {
 // Query key para usuarios
 export const USUARIOS_QUERY_KEY = ['usuarios'] as const;
 
+const EMPTY_USUARIOS: IUsuario[] = [];
+
 /**
  * Hook optimizado con React Query para gestión de usuarios
  * - Caché automática de 5 minutos
@@ -40,8 +42,8 @@ export const useUsuarios = (
     placeholderData: (previousData) => previousData,
   });
 
-  const usuarios = data?.items || [];
-  const total = data?.total || 0;
+  const usuarios = data?.items ?? EMPTY_USUARIOS;
+  const total = data?.total ?? 0;
   const totalPages = data?.totalPages || 1;
 
   // Función para actualizar el cache manualmente (para optimistic updates)

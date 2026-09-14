@@ -1,5 +1,5 @@
 import { filterHubItems } from "@/components/shared/hub/filter-hub-items";
-import type { HubItem } from "@/components/shared/hub/types";
+import type { HubNavItem } from "@/components/shared/hub/types";
 import {
   puedeVerTodosLosTickets,
   TICKETS_TAB_ITEMS,
@@ -40,7 +40,7 @@ function toHit(
   ruta: string,
   icono: LucideIcon,
   crumbs: string[],
-  extra?: Pick<HubItem, "descripcion" | "external">,
+  extra?: Pick<HubNavItem, "descripcion" | "external">,
 ): SidebarSearchHit {
   const descripcion = extra?.descripcion;
   return {
@@ -80,7 +80,7 @@ export function getSidebarSearchCatalog(user: IUser | null): SidebarSearchHit[] 
     const visibleItems = filterHubItems(hub.items, user, hub.filter);
     for (const item of visibleItems) {
       hits.push(
-        toHit(`hub:${route.path}:${item.id}`, item.nombre, item.ruta, item.icono, [route.name], item),
+        toHit(`hub:${route.path}:${item.id}`, item.nombre, item.ruta, route.icon, [route.name], item),
       );
 
       const nested = SIDEBAR_NESTED_HUBS[item.ruta];
@@ -93,7 +93,7 @@ export function getSidebarSearchCatalog(user: IUser | null): SidebarSearchHit[] 
             `hub:${item.ruta}:${child.id}`,
             child.nombre,
             child.ruta,
-            child.icono,
+            route.icon,
             [route.name, item.nombre],
             child,
           ),

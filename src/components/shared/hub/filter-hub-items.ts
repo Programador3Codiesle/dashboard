@@ -1,14 +1,14 @@
 import type { IUser } from '@/types/global';
 import { toPermissionIdSet } from '@/utils/permission-ids';
-import type { HubFilterOptions, HubItem } from './types';
+import type { HubFilterOptions, HubNavItem } from './types';
 
 export { toPermissionIdSet } from '@/utils/permission-ids';
 
-export function filterHubItems(
-  items: HubItem[],
+export function filterHubItems<T extends HubNavItem>(
+  items: T[],
   user: IUser | null,
   options: HubFilterOptions = {},
-): HubItem[] {
+): T[] {
   if (options.requiredEmpresaId != null && user?.empresa !== options.requiredEmpresaId) {
     return [];
   }

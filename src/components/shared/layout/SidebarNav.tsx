@@ -4,7 +4,7 @@ import { IUser } from "@/types/global";
 import { ChevronRight, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getVisibleSidebarRoutes } from "./sidebar-hub-access";
 import { getSidebarSearchCatalog, searchSidebarCatalog } from "./sidebar-search";
 import type { SidebarSearchHit } from "./sidebar-search";
@@ -28,6 +28,37 @@ function isMacShortcut() {
   return /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
 }
 
+/** Prefetch al hover/focus: no disparar los 15 módulos cuando monta el menú. */
+function SidebarAppLink({
+  href,
+  className,
+  onClick,
+  children,
+}: {
+  href: string;
+  className: string;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  const prefetch = useCallback(() => {
+    router.prefetch(href);
+  }, [href, router]);
+
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      onClick={onClick}
+      onMouseEnter={prefetch}
+      onFocus={prefetch}
+      className={className}
+    >
+      {children}
+    </Link>
+  );
+}
+
 function SidebarNavComponent({
   user,
   isCollapsed,
@@ -37,7 +68,6 @@ function SidebarNavComponent({
 }: SidebarNavProps) {
   const currentPath = usePathname();
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingFocusRef = useRef(false);
@@ -130,7 +160,7 @@ function SidebarNavComponent({
               placeholder="Buscar módulos..."
               autoComplete="off"
               spellCheck={false}
-              className="w-full rounded-xl border border-gray-700/80 bg-gray-800/70 py-2.5 pl-10 pr-16 text-sm text-white placeholder:text-gray-500 outline-none transition-all focus:border-[var(--color-primary)] focus:bg-gray-800 focus:ring-2 focus:ring-[var(--color-primary)]/25"
+              className="w-full rounded-xl border border-gray-700/80 bg-gray-800/70 py-2.5 pl-10 pr-16 text-sm text-white placeholder:text-gray-500 outline-none transition-colors focus:border-[var(--color-primary)] focus:bg-gray-800 focus:ring-2 focus:ring-[var(--color-primary)]/25"
             />
             {isSearching ? (
               <button
@@ -161,66 +191,63 @@ function SidebarNavComponent({
         ) : (
           <>
             <p
-              className={`mb-4 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 transition-all duration-300 ${isCollapsed ? "h-0 p-0 opacity-0" : "h-auto p-4 opacity-100"}`}
+              className={`mb-4 px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 transition-opacity duration-200 ${isCollapsed ? "h-0 p-0 opacity-0" : "h-auto p-4 opacity-100"}`}
             >
               Navegación Principal
             </p>
 
             <div className="space-y-2">
-              {filteredRoutes.map((route) => (
-                <Link
-                  key={route.path}
-                  href={route.path}
-                  prefetch
-                  onClick={handleNavClick}
-                  onMouseEnter={() => setIsHovered(route.path)}
-                  onMouseLeave={() => setIsHovered(null)}
-                  className={`
-                    relative flex w-full items-center rounded-xl border p-2 transition-all duration-300
-                    ${isRouteActive(currentPath, route.path)
-                      ? "brand-bg-active brand-border-active shadow-lg"
-                      : "border-transparent hover:bg-gray-800/50"
-                    }
-                    ${isCollapsed ? "justify-center" : "justify-between px-4"}
-                  `}
-                >
-                  <div className="flex min-w-0 items-center">
-                    <div
-                      className={`
-                        mr-0 shrink-0 rounded-lg p-2 transition-colors
-                        ${isCollapsed ? "mr-0" : "mr-3"}
-                        ${isRouteActive(currentPath, route.path)
-                          ? "brand-bg text-white"
-                          : "bg-gray-800 brand-text"
-                        }
-                      `}
-                    >
-                      <route.icon size={18} />
+              {filteredRoutes.map((route) => {
+                const active = isRouteActive(currentPath, route.path);
+                return (
+                  <SidebarAppLink
+                    key={route.path}
+                    href={route.path}
+                    onClick={handleNavClick}
+                    className={`
+                      group relative flex w-full items-center rounded-xl border p-2 transition-colors duration-200
+                      ${active
+                        ? "brand-bg-active brand-border-active shadow-lg"
+                        : "border-transparent hover:bg-gray-800/50"
+                      }
+                      ${isCollapsed ? "justify-center" : "justify-between px-4"}
+                    `}
+                  >
+                    <div className="flex min-w-0 items-center">
+                      <div
+                        className={`
+                          mr-0 shrink-0 rounded-lg p-2 transition-colors
+                          ${isCollapsed ? "mr-0" : "mr-3"}
+                          ${active ? "brand-bg text-white" : "bg-gray-800 brand-text"}
+                        `}
+                      >
+                        <route.icon size={18} />
+                      </div>
+                      <span
+                        className={`truncate overflow-hidden whitespace-nowrap font-medium transition-[width,opacity] duration-200 ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+                      >
+                        {route.name}
+                      </span>
                     </div>
-                    <span
-                      className={`truncate overflow-hidden whitespace-nowrap font-medium transition-all duration-300 ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
-                    >
-                      {route.name}
-                    </span>
-                  </div>
 
-                  {!isCollapsed && (
-                    <div
-                      className={`transition-all duration-200 ${
-                        isHovered === route.path || isRouteActive(currentPath, route.path)
-                          ? "translate-x-0 opacity-100"
-                          : "-translate-x-1 opacity-0"
-                      }`}
-                    >
-                      <ChevronRight size={16} className="brand-text" />
-                    </div>
-                  )}
+                    {!isCollapsed && (
+                      <div
+                        className={`transition-opacity duration-200 ${
+                          active
+                            ? "translate-x-0 opacity-100"
+                            : "-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                        }`}
+                      >
+                        <ChevronRight size={16} className="brand-text" />
+                      </div>
+                    )}
 
-                  {isRouteActive(currentPath, route.path) && (
-                    <div className="absolute right-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-l-full brand-bg" />
-                  )}
-                </Link>
-              ))}
+                    {active && (
+                      <div className="absolute right-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-l-full brand-bg" />
+                    )}
+                  </SidebarAppLink>
+                );
+              })}
             </div>
           </>
         )}
@@ -263,7 +290,7 @@ function SearchResults({
         const Icon = hit.icono;
         const active = currentPath === hit.ruta;
         const className = `
-          group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all
+          group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors duration-200
           ${active
             ? "brand-bg-active brand-border-active shadow-lg"
             : "border-transparent hover:bg-gray-800/70"
@@ -310,15 +337,14 @@ function SearchResults({
         }
 
         return (
-          <Link
+          <SidebarAppLink
             key={hit.id}
             href={hit.ruta}
-            prefetch
             onClick={onNavigate}
             className={className}
           >
             {body}
-          </Link>
+          </SidebarAppLink>
         );
       })}
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useDashboard } from "../hooks/useDashboard";
@@ -10,14 +11,6 @@ import {
   DASHBOARD_COPY,
   DASHBOARD_STYLES,
 } from "../constants";
-import { DashboardJefeTaller } from "./DashboardJefeTaller";
-import { DashboardTecnicos } from "./DashboardTecnicos";
-import { DashboardAdmin } from "./DashboardAdmin";
-import { DashboardAgenteCC } from "./DashboardAgenteCC";
-import { DashboardGerencia } from "./DashboardGerencia";
-import { DashboardCompras } from "./DashboardCompras";
-import { DashboardAsesorRep } from "./DashboardAsesorRep";
-import { DashboardInformeMto } from "./DashboardInformeMto";
 import { DashboardEmpty } from "./DashboardEmpty";
 import type {
   DashboardJefeTaller as DJT,
@@ -29,6 +22,49 @@ import type {
   DashboardAsesorRep as DAR,
   DashboardInformeMto as DIM,
 } from "../types";
+
+function DashboardViewFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-16">
+      <div className={DASHBOARD_STYLES.spinner} />
+      <p className="text-sm font-medium text-gray-600">{DASHBOARD_COPY.loading}</p>
+    </div>
+  );
+}
+
+// Un chunk por perfil: el home no debe bajar Gerencia+Taller+CC juntos.
+const DashboardJefeTaller = dynamic(
+  () => import("./DashboardJefeTaller").then((m) => m.DashboardJefeTaller),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardTecnicos = dynamic(
+  () => import("./DashboardTecnicos").then((m) => m.DashboardTecnicos),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardAdmin = dynamic(
+  () => import("./DashboardAdmin").then((m) => m.DashboardAdmin),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardAgenteCC = dynamic(
+  () => import("./DashboardAgenteCC").then((m) => m.DashboardAgenteCC),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardGerencia = dynamic(
+  () => import("./DashboardGerencia").then((m) => m.DashboardGerencia),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardCompras = dynamic(
+  () => import("./DashboardCompras").then((m) => m.DashboardCompras),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardAsesorRep = dynamic(
+  () => import("./DashboardAsesorRep").then((m) => m.DashboardAsesorRep),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardInformeMto = dynamic(
+  () => import("./DashboardInformeMto").then((m) => m.DashboardInformeMto),
+  { loading: () => <DashboardViewFallback /> },
+);
 
 function DashboardShell({
   children,

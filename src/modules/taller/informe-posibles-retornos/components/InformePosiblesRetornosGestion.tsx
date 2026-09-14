@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -13,7 +14,6 @@ import type {
   GraficoSuccessResponse,
 } from "../types";
 import { FiltrosInforme } from "./FiltrosInforme";
-import { GraficoEntradasRetornos } from "./GraficoEntradasRetornos";
 import {
   CODIESEL_EMPRESA_ID,
   INFORME_POSIBLES_RETORNOS_SUBMENU_ID,
@@ -21,6 +21,20 @@ import {
 import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
 import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
 import { TALLER_COPY } from "@/modules/taller/constants";
+
+// Recharts es pesado; se baja al pintar el gráfico, no con los filtros.
+const GraficoEntradasRetornos = dynamic(
+  () =>
+    import("./GraficoEntradasRetornos").then((m) => m.GraficoEntradasRetornos),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[240px] items-center justify-center text-sm text-gray-400 sm:h-[320px] md:h-[370px]">
+        Cargando gráfico...
+      </div>
+    ),
+  },
+);
 
 function toChartData(response: GraficoSuccessResponse): GraficoChartPoint[] {
   return response.entradas.map((point, index) => ({

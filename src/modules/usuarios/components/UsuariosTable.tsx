@@ -33,16 +33,11 @@ const AgregarEmpresaModal = dynamic(() => import("./modals/AgregarEmpresaModal")
 
 import { IUsuario, HorarioData } from "../types";
 import { Edit, MapPin, UserCheck, Clock, Building2, Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 
 export const UsuariosTable = memo(function UsuariosTable() {
-  const [mounted, setMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const {
     usuarios,
@@ -404,7 +399,7 @@ export const UsuariosTable = memo(function UsuariosTable() {
     [closeDropdown],
   );
 
-  if (!mounted || isLoading)
+  if (isLoading)
     return (
       <div className="py-10 flex flex-col items-center justify-center gap-3">
         <div className="animate-spin rounded-full h-9 w-9 border-2 border-(--color-primary) border-t-transparent mx-auto" />
@@ -531,50 +526,60 @@ export const UsuariosTable = memo(function UsuariosTable() {
         dropdownRef={dropdownRef}
       />
 
-      <EditUsuarioModal
-        open={editModalOpen}
-        usuario={selectedUsuario}
-        onClose={() => setEditModalOpen(false)}
-        onSave={handleUpdatePerfil}
-        perfilesDisponibles={todosLosPerfiles}
-        perfilActual={perfilDelUsuario}
-      />
+      {editModalOpen ? (
+        <EditUsuarioModal
+          open
+          usuario={selectedUsuario}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleUpdatePerfil}
+          perfilesDisponibles={todosLosPerfiles}
+          perfilActual={perfilDelUsuario}
+        />
+      ) : null}
 
-      <AgregarSedesModal
-        open={sedesModalOpen}
-        usuario={selectedUsuario}
-        onClose={() => setSedesModalOpen(false)}
-        onAsignar={handleAsignarSede}
-        onEliminar={handleEliminarSede}
-        sedesDisponibles={todasLasSedes}
-        sedesUsuario={sedesDelUsuario}
-      />
+      {sedesModalOpen ? (
+        <AgregarSedesModal
+          open
+          usuario={selectedUsuario}
+          onClose={() => setSedesModalOpen(false)}
+          onAsignar={handleAsignarSede}
+          onEliminar={handleEliminarSede}
+          sedesDisponibles={todasLasSedes}
+          sedesUsuario={sedesDelUsuario}
+        />
+      ) : null}
 
-      <AsignarJefeModal
-        open={jefeModalOpen}
-        usuario={selectedUsuario}
-        onClose={() => setJefeModalOpen(false)}
-        onAsignar={handleAsignarJefe}
-        onEliminar={handleEliminarJefe}
-        jefesDisponibles={todosLosJefes}
-        jefesUsuario={jefesDelUsuario}
-      />
+      {jefeModalOpen ? (
+        <AsignarJefeModal
+          open
+          usuario={selectedUsuario}
+          onClose={() => setJefeModalOpen(false)}
+          onAsignar={handleAsignarJefe}
+          onEliminar={handleEliminarJefe}
+          jefesDisponibles={todosLosJefes}
+          jefesUsuario={jefesDelUsuario}
+        />
+      ) : null}
 
-      <HorarioModal
-        open={horarioModalOpen}
-        usuario={selectedUsuario}
-        onClose={() => setHorarioModalOpen(false)}
-        onSave={handleGuardarHorario}
-        horarioActual={horarioDelUsuario}
-      />
+      {horarioModalOpen ? (
+        <HorarioModal
+          open
+          usuario={selectedUsuario}
+          onClose={() => setHorarioModalOpen(false)}
+          onSave={handleGuardarHorario}
+          horarioActual={horarioDelUsuario}
+        />
+      ) : null}
 
-      <AgregarEmpresaModal
-        open={empresaModalOpen}
-        usuario={selectedUsuario}
-        onClose={() => setEmpresaModalOpen(false)}
-        onSave={handleAgregarEmpresa}
-        empresasDisponibles={empresasDisponibles}
-      />
+      {empresaModalOpen ? (
+        <AgregarEmpresaModal
+          open
+          usuario={selectedUsuario}
+          onClose={() => setEmpresaModalOpen(false)}
+          onSave={handleAgregarEmpresa}
+          empresasDisponibles={empresasDisponibles}
+        />
+      ) : null}
     </div>
   );
 });

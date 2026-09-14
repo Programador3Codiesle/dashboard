@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useDebouncedValue } from "@/components/shared/ui/hooks/useDebouncedValue";
 import { USUARIOS_COPY } from "../constants";
 
@@ -11,8 +11,13 @@ export const UsuariosSearchInput = memo(function UsuariosSearchInput({
 }) {
   const [value, setValue] = useState("");
   const debouncedValue = useDebouncedValue(value, 300);
+  const skipFirstEmit = useRef(true);
 
   useEffect(() => {
+    if (skipFirstEmit.current) {
+      skipFirstEmit.current = false;
+      return;
+    }
     onDebouncedChange(debouncedValue);
   }, [debouncedValue, onDebouncedChange]);
 

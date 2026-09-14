@@ -67,13 +67,17 @@ export const UsuariosToolbar = memo(function UsuariosToolbar() {
         </Button>
       </div>
 
-      <AgregarUsuarioModal
-        open={modalAgregarUsuario}
-        onClose={handleCloseAgregarUsuario}
-        onSave={handleGuardarUsuario}
-        perfilesDisponibles={perfiles}
-      />
-      <AgregarJefeModal open={modalAgregarJefe} onClose={handleCloseAgregarJefe} />
+      {modalAgregarUsuario ? (
+        <AgregarUsuarioModal
+          open
+          onClose={handleCloseAgregarUsuario}
+          onSave={handleGuardarUsuario}
+          perfilesDisponibles={perfiles}
+        />
+      ) : null}
+      {modalAgregarJefe ? (
+        <AgregarJefeModal open onClose={handleCloseAgregarJefe} />
+      ) : null}
     </>
   );
 });

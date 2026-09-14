@@ -11,20 +11,13 @@ const inputClass =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none brand-focus-ring";
 
 export default function AgregarJefeModal({ open, onClose }: AgregarJefeModalProps) {
-    const { jefes, isLoading: loadingJefes, refetch: refetchJefes } = useJefesGeneral();
-    const { usuarios, isLoading: loadingUsuarios } = useUsuariosJefes();
+    const { jefes, isLoading: loadingJefes } = useJefesGeneral({ enabled: open });
+    const { usuarios, isLoading: loadingUsuarios } = useUsuariosJefes({ enabled: open });
     const { crearJefeGeneral } = useUsuarioActions();
 
     const [selectedNit, setSelectedNit] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        if (open) {
-            refetchJefes();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open]);
 
     useEffect(() => {
         if (!open) {

@@ -1,21 +1,9 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { useToast } from '@/components/ui/use-toast';
 import { AuditoriaPageFrame } from '@/modules/auditoria/components/AuditoriaPageFrame';
@@ -40,11 +28,32 @@ const SEDE_LABELS: Record<string, string> = {
 };
 
 const SEDES_TEC = ['giron', 'rosita', 'barranca', 'bocono'] as const;
-const ENC_COLORS = [
-  'var(--color-danger)',
-  'var(--color-warning)',
-  'var(--color-info)',
-];
+
+const NpsFabricaSedeBarChart = dynamic(
+  () =>
+    import('./NpsFabricaCharts').then((m) => m.NpsFabricaSedeBarChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[240px] w-full items-center justify-center text-sm text-gray-400 sm:h-[320px]">
+        Cargando gráfico...
+      </div>
+    ),
+  },
+);
+
+const NpsFabricaTecnicoPieChart = dynamic(
+  () =>
+    import('./NpsFabricaCharts').then((m) => m.NpsFabricaTecnicoPieChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[220px] w-full items-center justify-center text-sm text-gray-400">
+        Cargando gráfico...
+      </div>
+    ),
+  },
+);
 
 type Modo = 'sede' | 'tecnico';
 
@@ -233,26 +242,7 @@ export function NpsFabricaGestion() {
 
       {!loading && applied?.modo === 'sede' && sedeData ? (
         <Panel title="Calificación NPS por sede">
-          <div className="h-[240px] w-full min-w-0 sm:h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartSedes}
-                margin={{ top: 16, right: 16, bottom: 8, left: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="sede" tick={{ fontSize: 12 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="calificacion"
-                  name="Calificación NPS"
-                  fill="var(--color-info)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <NpsFabricaSedeBarChart data={chartSedes} />
 
           <div className="mt-4 app-table-scroll">
             <table className="w-full min-w-[720px] text-sm">
@@ -316,30 +306,7 @@ export function NpsFabricaGestion() {
                 key={sede}
                 title={`${SEDE_LABELS[sede] ?? sede} — NPS ${nps.toFixed(1)}`}
               >
-                <div className="h-[220px] w-full min-w-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pie}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={70}
-                        label
-                      >
-                        {pie.map((_, i) => (
-                          <Cell
-                            key={pie[i].name}
-                            fill={ENC_COLORS[i % ENC_COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <NpsFabricaTecnicoPieChart data={pie} />
 
                 <div className="mt-2 app-table-scroll">
                   <table className="w-full min-w-[640px] text-xs md:text-sm">

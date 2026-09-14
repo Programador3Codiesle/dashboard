@@ -9,93 +9,17 @@ import {
   Truck,
   Wrench,
 } from 'lucide-react';
-import type { HubItem } from '@/components/shared/hub/types';
-import { CHECKLIST_EXTERNAL_URLS } from '@/modules/checklist/constants';
-import {
-  CHECKLIST_ALINEADORES_SUBMENU_ID,
-  CHECKLIST_CABINA_PINTURA_SUBMENU_ID,
-  CHECKLIST_ELEVADORES_SUBMENU_ID,
-  CHECKLIST_HIDRAULICOS_SUBMENU_ID,
-  CHECKLIST_MOTOCICLETAS_SUBMENU_ID,
-  CHECKLIST_PORTICO_SUBMENU_ID,
-  CHECKLIST_TIJERA_SUBMENU_ID,
-  CHECKLIST_TRABAJO_CALIENTE_SUBMENU_ID,
-  CHECKLIST_VEHICULO_SUBMENU_ID,
-} from '@/utils/constants';
+import { attachHubIcons } from '@/components/shared/hub/attach-hub-icons';
+import { CHECKLIST_HUB_NAV } from './nav';
 
-export const CHECKLIST_HUB_ITEMS: HubItem[] = [
-  {
-    id: 'motocicletas',
-    nombre: 'Motocicletas',
-    descripcion: 'Checklist de motocicletas (sistema ventas)',
-    ruta: CHECKLIST_EXTERNAL_URLS.motocicletas,
-    submenuId: CHECKLIST_MOTOCICLETAS_SUBMENU_ID,
-    icono: Bike,
-    external: true,
-  },
-  {
-    id: 'vehiculo',
-    nombre: 'Vehículo',
-    descripcion: 'Checklist de vehículos (sistema ventas)',
-    ruta: CHECKLIST_EXTERNAL_URLS.vehiculo,
-    submenuId: CHECKLIST_VEHICULO_SUBMENU_ID,
-    icono: Car,
-    external: true,
-  },
-  {
-    id: 'alineadores',
-    nombre: 'Alineadores',
-    descripcion: 'Inspección preoperacional del elevador del alineador',
-    ruta: '/dashboard/checklist/alineadores',
-    submenuId: CHECKLIST_ALINEADORES_SUBMENU_ID,
-    icono: AlignVerticalJustifyCenter,
-  },
-  {
-    id: 'elevadores',
-    nombre: 'Elevadores',
-    descripcion: 'Inspección preoperacional de elevadores de columna',
-    ruta: '/dashboard/checklist/elevadores',
-    submenuId: CHECKLIST_ELEVADORES_SUBMENU_ID,
-    icono: TowerControl,
-  },
-  {
-    id: 'hidraulicos',
-    nombre: 'Hidráulicos',
-    descripcion: 'Inspección preoperacional de equipos hidráulicos',
-    ruta: '/dashboard/checklist/hidraulicos',
-    submenuId: CHECKLIST_HIDRAULICOS_SUBMENU_ID,
-    icono: Wrench,
-  },
-  {
-    id: 'trabajo-caliente',
-    nombre: 'Trabajo en Caliente',
-    descripcion: 'Permiso y checklist de trabajo en caliente',
-    ruta: '/dashboard/checklist/trabajo-caliente',
-    submenuId: CHECKLIST_TRABAJO_CALIENTE_SUBMENU_ID,
-    icono: Flame,
-  },
-  {
-    id: 'portico',
-    nombre: 'Pórtico',
-    descripcion: 'Inspección preoperacional de pórtico con diferencial',
-    ruta: '/dashboard/checklist/portico',
-    submenuId: CHECKLIST_PORTICO_SUBMENU_ID,
-    icono: Truck,
-  },
-  {
-    id: 'tijera',
-    nombre: 'Tijera',
-    descripcion: 'Inspección preoperacional de elevadores tijera',
-    ruta: '/dashboard/checklist/tijera',
-    submenuId: CHECKLIST_TIJERA_SUBMENU_ID,
-    icono: Scissors,
-  },
-  {
-    id: 'cabina-pintura',
-    nombre: 'Cabina de Pintura',
-    descripcion: 'Inspección preoperacional de cabina de pintura',
-    ruta: '/dashboard/checklist/cabina-pintura',
-    submenuId: CHECKLIST_CABINA_PINTURA_SUBMENU_ID,
-    icono: Paintbrush,
-  },
-];
+export const CHECKLIST_HUB_ITEMS = attachHubIcons(CHECKLIST_HUB_NAV, {
+  'motocicletas': Bike,
+  'vehiculo': Car,
+  'alineadores': AlignVerticalJustifyCenter,
+  'elevadores': TowerControl,
+  'hidraulicos': Wrench,
+  'trabajo-caliente': Flame,
+  'portico': Truck,
+  'tijera': Scissors,
+  'cabina-pintura': Paintbrush,
+});

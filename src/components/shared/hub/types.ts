@@ -2,12 +2,12 @@ import type { LucideIcon } from 'lucide-react';
 
 export type HubPermissionMode = 'submenu' | 'trimenu';
 
-export interface HubItem {
+/** Datos del hub sin iconos Lucide — lo usa el sidebar para no arrastrar todos los módulos. */
+export interface HubNavItem {
   id: string;
   nombre: string;
   descripcion: string;
   ruta: string;
-  icono: LucideIcon;
   color?: string;
   submenuId?: number;
   /** Visible sin id_submenu (legado sin fila en postv_submenu). */
@@ -17,6 +17,10 @@ export interface HubItem {
   empresaId?: number;
   /** Si es true, abre la ruta en una pestaña nueva (enlaces externos). */
   external?: boolean;
+}
+
+export interface HubItem extends HubNavItem {
+  icono: LucideIcon;
 }
 
 export type HubCardVariant = 'gradient' | 'border';

@@ -2,12 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import listPlugin from '@fullcalendar/list';
-import interactionPlugin from '@fullcalendar/interaction';
-import esLocale from '@fullcalendar/core/locales/es';
 import { X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -33,6 +29,20 @@ import { estadoLabel } from '@/modules/mantenimiento/shared/constants/labels';
 import { PERIODOS_MTTO } from '@/modules/mantenimiento/equipos/utils/hoja-vida';
 import { MTTO_PREVENTIVO_SUBMENU_ID } from '@/utils/constants';
 import { fetchWithAuth } from '@/utils/api';
+
+// FullCalendar es pesado; no debe parsearse con filtros/modales de esta pantalla.
+const MttoPreventivoCalendar = dynamic(
+  () =>
+    import('./MttoPreventivoCalendar').then((m) => m.MttoPreventivoCalendar),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[420px] items-center justify-center text-sm text-gray-500">
+        Cargando calendario...
+      </div>
+    ),
+  },
+);
 
 export function MttoPreventivoGestion() {
   const { blocked, user } = useMantenimientoPageGuard(MTTO_PREVENTIVO_SUBMENU_ID);
@@ -229,20 +239,10 @@ export function MttoPreventivoGestion() {
       <div className="app-section-card w-full min-w-0 overflow-hidden">
         <div className="app-table-scroll border-0">
           <div data-testid="mtto-preventivo-calendar" className="min-w-[640px]">
-            <FullCalendar
-              plugins={[dayGridPlugin, listPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              locale={esLocale}
-              aspectRatio={1.8}
-              handleWindowResize
-              headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,listWeek',
-              }}
+            <MttoPreventivoCalendar
               events={events}
-              eventClick={(arg) => {
-                void openOrden(arg.event.id);
+              onEventClick={(id) => {
+                void openOrden(id);
               }}
             />
           </div>
