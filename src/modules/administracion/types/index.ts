@@ -219,7 +219,8 @@ export interface VehiculoSalida {
   conductor: string;
   pasajeros: string;
   quienAutorizo: string;
-  vehiculoRemolcado: boolean;
+  placaRemolcado: string;
+  porteria: string;
   taller: string;
   empresaNombre: string;
   fechaIngreso?: string;
@@ -246,6 +247,7 @@ export interface VehiculoSalidaAPI {
   observacion: string | null;
   placa_vh_remolcado: string | null;
   taller: string;
+  porteria: string | null;
   empresa_nombre: string;
 }
 
@@ -263,10 +265,8 @@ export interface RegistrarSalidaDTO {
   conductor: string;
   persona_autorizo: string;
   pasajeros: string;
-  porteria?: number;
-  id_empresa?: number;
   otra_marca?: string;
-  placa_vh_remolcado?: string;
+  placa_grua?: string;
 }
 
 export interface RegistrarLlegadaDTO {

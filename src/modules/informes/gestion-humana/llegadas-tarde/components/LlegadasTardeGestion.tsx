@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
   llegadasTardeService,
@@ -10,20 +10,14 @@ import {
 } from '@/modules/informes/gestion-humana/services/llegadas-tarde.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
-import { usuariosService } from '@/modules/usuarios/services/usuarios.service';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from '@/modules/informes/constants';
-import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 import { getErrorMessage } from '@/modules/informes/shared/utils/parse-api-error';
+import { InformesEmpleadoFilter } from '@/modules/informes/shared/components/InformesEmpleadoFilter';
 
 interface SedeOption {
   value: string;
-  label: string;
-}
-
-interface EmpleadoOption {
-  value: number;
   label: string;
 }
 
@@ -49,37 +43,10 @@ export function LlegadasTardeGestion() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [sede, setSede] = useState<string>('');
-  const [empleado, setEmpleado] = useState<number | undefined>(undefined);
+  const [empleado, setEmpleado] = useState('');
   const [fechaInicio, setFechaInicio] = useState<string>(today);
   const [fechaFin, setFechaFin] = useState<string>(today);
   const [currentPage, setCurrentPage] = useState(1);
-
-  const { data: usuariosResponse, isPending: empleadosCargando } = useQuery({
-    queryKey: informesKeys.gh.llegadasTarde('empleados'),
-    queryFn: () => usuariosService.getUsuarios(1, 1500),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const usuarios = useMemo(() => {
-    if (Array.isArray(usuariosResponse)) return usuariosResponse;
-    if (usuariosResponse && Array.isArray(usuariosResponse.items)) return usuariosResponse.items;
-    return [];
-  }, [usuariosResponse]);
-
-  const empleados = useMemo(() => {
-    const seen = new Set<number>();
-    const opts: EmpleadoOption[] = [];
-    for (const u of usuarios) {
-      const v = u.usuario;
-      if (!v || seen.has(v)) continue;
-      seen.add(v);
-      opts.push({
-        value: v,
-        label: u.nombre?.trim() || String(v),
-      });
-    }
-    return opts.sort((a, b) => a.label.localeCompare(b.label, 'es'));
-  }, [usuarios]);
 
   const inputClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
@@ -94,7 +61,7 @@ export function LlegadasTardeGestion() {
       }
       return llegadasTardeService.listar({
         sede: sede || undefined,
-        empleado: empleado ?? undefined,
+        empleado: empleado.trim() ? Number(empleado) : undefined,
         fechaInicio,
         fechaFin,
       });
@@ -274,35 +241,11 @@ export function LlegadasTardeGestion() {
             </select>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-xs font-medium text-gray-600 mb-1">Empleado</label>
-            <select
-              className={inputClass}
-              value={empleado != null ? String(empleado) : ''}
-              disabled={empleadosCargando || empleados.length === 0}
-              onChange={(e) => {
-                const v = e.target.value;
-                setEmpleado(v === '' ? undefined : Number(v));
-              }}
-            >
-              {empleadosCargando ? (
-                <option value="">Cargando empleados...</option>
-              ) : empleados.length === 0 ? (
-                <option value="">No hay empleados</option>
-              ) : (
-                <>
-                  <option value="">
-                    Todos
-                  </option>
-                  {empleados.map((emp) => (
-                    <option key={emp.value} value={emp.value}>
-                      {emp.label}
-                    </option>
-                  ))}
-                </>
-              )}
-            </select>
-          </div>
+          <InformesEmpleadoFilter
+            id="filtro-empleado-llegadas-tarde"
+            value={empleado}
+            onChange={setEmpleado}
+          />
 
           <div className="flex flex-col">
             <label className="text-xs font-medium text-gray-600 mb-1">Fecha inicial</label>
@@ -333,8 +276,7 @@ export function LlegadasTardeGestion() {
             disabled={
               detalleMutation.isPending ||
               !fechaInicio ||
-              !fechaFin ||
-              empleados.length === 0
+              !fechaFin
             }
             className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >

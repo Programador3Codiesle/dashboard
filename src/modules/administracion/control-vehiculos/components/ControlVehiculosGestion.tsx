@@ -3,12 +3,11 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Plus, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import RegistrarLlegadaModal from '@/components/administracion/modals/RegistrarLlegadaModal';
 import RegistrarSalidaVehiculoModal from '@/components/administracion/modals/RegistrarSalidaVehiculoModal';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { OptimizedInput } from '@/components/shared/ui/OptimizedInput';
-import { usePagination } from '@/components/shared/ui/hooks/usePagination';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import {
   catalogQueryOptions,
@@ -29,6 +28,8 @@ import type {
 } from '@/modules/administracion/types';
 import { CONTROL_VEHICULOS_SUBMENU_ID } from '@/utils/constants';
 
+const PAGE_SIZE = 10;
+
 function mapRegistroToVehiculo(item: VehiculoSalidaAPI): VehiculoSalida {
   return {
     id: item.id,
@@ -40,16 +41,20 @@ function mapRegistroToVehiculo(item: VehiculoSalidaAPI): VehiculoSalida {
     modelo: item.modelo,
     conductor: item.conductor,
     pasajeros: item.pasajeros || '',
-    quienAutorizo: item.persona_autorizo,
-    vehiculoRemolcado:
-      item.placa_vh_remolcado !== null && item.placa_vh_remolcado !== '',
-    taller: item.taller,
-    empresaNombre: item.empresa_nombre,
+    quienAutorizo: item.persona_autorizo || '',
+    placaRemolcado: item.placa_vh_remolcado || '',
+    porteria: item.porteria || '',
+    taller: item.taller || '',
+    empresaNombre: item.empresa_nombre || '',
     fechaIngreso: item.fecha_llegada || undefined,
     horaIngreso: item.hora_llegada || undefined,
-    kmIngreso: item.km_llegada || undefined,
+    kmIngreso: item.km_llegada ?? undefined,
     observacion: item.observacion || undefined,
   };
+}
+
+function viajeYaLlego(vehiculo: VehiculoSalida): boolean {
+  return vehiculo.kmIngreso != null && vehiculo.kmIngreso > 0;
 }
 
 export function ControlVehiculosGestion() {
@@ -58,17 +63,22 @@ export function ControlVehiculosGestion() {
   );
   const { showSuccess, showError } = useToast();
   const queryClient = useQueryClient();
-  const sesionLista = !!user && !blocked;
+  const empresaId = user?.empresa ?? 0;
+  const sesionLista = !!user && !blocked && empresaId > 0;
   const puedeVerObservacion =
     user?.perfil_postventa === '1' || user?.perfil_postventa === '20';
   const [search, setSearch] = useState('');
+  const [paging, setPaging] = useState({ empresaId, page: 1 });
+  const currentPage = paging.empresaId === empresaId ? paging.page : 1;
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLlegadaOpen, setModalLlegadaOpen] = useState(false);
   const [vehiculoSeleccionado, setVehiculoSeleccionado] =
     useState<VehiculoSalida | null>(null);
 
+  const queryKey = administracionKeys.controlVehiculos(empresaId);
+
   const query = useQuery({
-    queryKey: administracionKeys.controlVehiculos,
+    queryKey,
     queryFn: async () => {
       const data = await controlVehiculosService.listarRegistros();
       return data.map(mapRegistroToVehiculo);
@@ -92,27 +102,28 @@ export function ControlVehiculosGestion() {
       (item) =>
         item.placa.toLowerCase().includes(searchLower) ||
         item.conductor.toLowerCase().includes(searchLower) ||
-        item.taller.toLowerCase().includes(searchLower) ||
-        item.empresaNombre.toLowerCase().includes(searchLower),
+        (item.taller || '').toLowerCase().includes(searchLower) ||
+        (item.empresaNombre || '').toLowerCase().includes(searchLower),
     );
   }, [search, query.data]);
 
-  const { currentPage, totalPages, startIndex, endIndex, changePage } =
-    usePagination(filtered.length, 10);
-
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
   const vehiculosMostrados = useMemo(
-    () => filtered.slice(startIndex, endIndex),
-    [filtered, startIndex, endIndex],
+    () => filtered.slice(startIndex, startIndex + PAGE_SIZE),
+    [filtered, startIndex],
   );
+
+  const changePage = (page: number) => {
+    setPaging({ empresaId, page });
+  };
 
   const salidaMutation = useMutation({
     mutationFn: (data: RegistrarSalidaDTO) =>
       controlVehiculosService.registrarSalida(data),
     onSuccess: async () => {
-      showSuccess('Salida registrada correctamente');
-      await queryClient.invalidateQueries({
-        queryKey: administracionKeys.controlVehiculos,
-      });
+      showSuccess('Los datos se guardaron correctamente');
+      await queryClient.invalidateQueries({ queryKey });
     },
     onError: (error) => {
       showError(getErrorMessage(error, 'Error al registrar la salida'));
@@ -128,12 +139,10 @@ export function ControlVehiculosGestion() {
       data: RegistrarLlegadaDTO;
     }) => controlVehiculosService.registrarLlegada(id, data),
     onSuccess: async () => {
-      showSuccess('Llegada registrada correctamente');
+      showSuccess('Los datos se guardaron correctamente');
       setModalLlegadaOpen(false);
       setVehiculoSeleccionado(null);
-      await queryClient.invalidateQueries({
-        queryKey: administracionKeys.controlVehiculos,
-      });
+      await queryClient.invalidateQueries({ queryKey });
     },
     onError: (error) => {
       showError(getErrorMessage(error, 'Error al registrar la llegada'));
@@ -158,6 +167,8 @@ export function ControlVehiculosGestion() {
 
   if (blocked) return null;
 
+  const colSpan = puedeVerObservacion ? 17 : 16;
+
   return (
     <AdministracionPageFrame
       title={ADMINISTRACION_COPY.controlVehiculos.title}
@@ -176,9 +187,9 @@ export function ControlVehiculosGestion() {
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white shadow-md transition-colors hover:opacity-90 hover:shadow-lg"
+          className="flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl brand-bg px-4 py-2.5 font-medium text-white transition-colors hover:opacity-90"
         >
-          <Plus size={18} />
+          <Plus size={18} aria-hidden="true" />
           <span>Registrar Salida</span>
         </button>
       </div>
@@ -187,19 +198,24 @@ export function ControlVehiculosGestion() {
         <Search
           className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
           size={20}
+          aria-hidden="true"
         />
         <OptimizedInput
           placeholder="Buscar por placa, conductor o taller..."
-          className="w-full rounded-xl border border-gray-300 py-2.5 pr-4 pl-10 outline-none transition-all focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary)"
+          className="w-full rounded-xl border border-gray-300 py-2.5 pr-4 pl-10 outline-none transition-[border-color,box-shadow] focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary)"
           value={search}
-          onValueChange={(val) => setSearch(val)}
+          onValueChange={(val) => {
+            setSearch(val);
+            setPaging({ empresaId, page: 1 });
+          }}
+          aria-label="Buscar por placa, conductor o taller"
         />
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
+        className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
       >
         {query.isLoading ? (
           <div className="p-8 text-center text-gray-500">
@@ -270,7 +286,7 @@ export function ControlVehiculosGestion() {
                   {vehiculosMostrados.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={puedeVerObservacion ? 16 : 15}
+                        colSpan={colSpan}
                         className="py-10 text-center text-gray-500"
                       >
                         No se encontraron registros
@@ -282,16 +298,16 @@ export function ControlVehiculosGestion() {
                         key={vehiculo.id}
                         className="align-top border-b border-gray-100 text-xs hover:bg-gray-50"
                       >
-                        <td className="wrap-break-word px-2 py-3 font-semibold brand-text">
+                        <td className="wrap-break-word px-2 py-3 font-semibold brand-text uppercase">
                           {vehiculo.placa}
                         </td>
                         <td className="wrap-break-word px-2 py-3 font-medium text-gray-900">
-                          {vehiculo.empresaNombre}
+                          {vehiculo.empresaNombre || '-'}
                         </td>
                         <td className="wrap-break-word px-2 py-3">
                           {vehiculo.fechaSalida}
                         </td>
-                        <td className="wrap-break-word px-2 py-3">
+                        <td className="wrap-break-word px-2 py-3 whitespace-nowrap">
                           {vehiculo.horaSalida}
                         </td>
                         <td className="wrap-break-word px-2 py-3">
@@ -303,47 +319,46 @@ export function ControlVehiculosGestion() {
                         <td className="wrap-break-word px-2 py-3">
                           {vehiculo.modelo}
                         </td>
-                        <td className="wrap-break-word px-2 py-3">
+                        <td className="wrap-break-word px-2 py-3 lowercase">
                           {vehiculo.conductor}
                         </td>
-                        <td className="wrap-break-word px-2 py-3">
+                        <td className="wrap-break-word px-2 py-3 lowercase" title={vehiculo.pasajeros}>
                           {vehiculo.pasajeros || '-'}
                         </td>
-                        <td className="wrap-break-word px-2 py-3">
-                          {vehiculo.quienAutorizo}
+                        <td className="wrap-break-word px-2 py-3 lowercase">
+                          {vehiculo.quienAutorizo || '-'}
+                        </td>
+                        <td className="wrap-break-word px-2 py-3 lowercase">
+                          {vehiculo.placaRemolcado || '-'}
                         </td>
                         <td className="wrap-break-word px-2 py-3">
-                          {vehiculo.vehiculoRemolcado ? (
-                            <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-700">
-                              Sí
-                            </span>
-                          ) : (
-                            <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
-                              No
-                            </span>
-                          )}
-                        </td>
-                        <td className="wrap-break-word px-2 py-3">
-                          {vehiculo.taller}
+                          {vehiculo.taller || '-'}
                         </td>
                         <td className="wrap-break-word px-2 py-3">
                           {vehiculo.fechaIngreso || '-'}
                         </td>
-                        <td className="wrap-break-word px-2 py-3">
+                        <td className="wrap-break-word px-2 py-3 whitespace-nowrap">
                           {vehiculo.horaIngreso || '-'}
                         </td>
                         <td className="wrap-break-word px-2 py-3">
-                          {vehiculo.kmIngreso?.toLocaleString() || '-'}
+                          {vehiculo.kmIngreso != null
+                            ? vehiculo.kmIngreso.toLocaleString()
+                            : '-'}
                         </td>
                         <td className="px-2 py-3">
-                          <button
-                            type="button"
-                            onClick={() => handleRegistrarLlegada(vehiculo)}
-                            className="inline-flex items-center gap-1 rounded-full border border-(--color-primary-dark) brand-bg px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-md transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-95"
-                          >
-                            <CheckCircle2 size={14} className="text-white" />
-                            Reg.
-                          </button>
+                          {viajeYaLlego(vehiculo) ? (
+                            <span className="text-xs text-gray-700">
+                              {vehiculo.porteria || '-'}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleRegistrarLlegada(vehiculo)}
+                              className="inline-flex items-center rounded-md bg-green-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
+                            >
+                              Llegada
+                            </button>
+                          )}
                         </td>
                         {puedeVerObservacion ? (
                           <td className="wrap-break-word px-2 py-3 text-xs">
@@ -370,6 +385,7 @@ export function ControlVehiculosGestion() {
       </motion.div>
 
       <RegistrarSalidaVehiculoModal
+        key={modalOpen ? 'salida-open' : 'salida-closed'}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
@@ -379,6 +395,7 @@ export function ControlVehiculosGestion() {
 
       {vehiculoSeleccionado ? (
         <RegistrarLlegadaModal
+          key={vehiculoSeleccionado.id}
           open={modalLlegadaOpen}
           onClose={() => {
             setModalLlegadaOpen(false);

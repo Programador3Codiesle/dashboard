@@ -18,7 +18,10 @@ import {
   EntradaVehiculoLoadingOverlay,
 } from "./EntradaVehiculoLoading";
 import { EV_CARD } from "../utils/entrada-vehiculo.styles";
-import { ENTRADA_VEHICULO_SUBMENU_ID } from "@/utils/constants";
+import {
+  CODIESEL_EMPRESA_ID,
+  ENTRADA_VEHICULO_SUBMENU_ID,
+} from "@/utils/constants";
 import { useTallerPageGuard } from "@/modules/taller/shared/hooks/useTallerPageGuard";
 import { TallerPageFrame } from "@/modules/taller/components/TallerPageFrame";
 import { TALLER_COPY } from "@/modules/taller/constants";
@@ -33,7 +36,10 @@ function sameCalendarDay(isoOrDate: string, today: Date): boolean {
 }
 
 export function EntradaVehiculoGestion() {
-  const { blocked } = useTallerPageGuard(ENTRADA_VEHICULO_SUBMENU_ID);
+  const { blocked } = useTallerPageGuard(
+    ENTRADA_VEHICULO_SUBMENU_ID,
+    CODIESEL_EMPRESA_ID,
+  );
   const { showError } = useToast();
   const [placaBusqueda, setPlacaBusqueda] = useState<string | null>(null);
   const [fechaBusqueda, setFechaBusqueda] = useState<string | null>(null);

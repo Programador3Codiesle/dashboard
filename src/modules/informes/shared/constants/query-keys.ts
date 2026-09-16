@@ -1,5 +1,6 @@
 export const informesKeys = {
   all: ['informes'] as const,
+  empleadosCombo: ['informes', 'empleados-combo'] as const,
   gh: {
     infAusentismos: (params: string) =>
       ['informes', 'gh', 'inf-ausentismos', params] as const,
@@ -15,8 +16,8 @@ export const informesKeys = {
       ['informes', 'gh', 'indicador-pesv', params] as const,
     checklists: (params: string) =>
       ['informes', 'gh', 'checklists', params] as const,
-    ordenesSalida: (params: string) =>
-      ['informes', 'gh', 'ordenes-salida', params] as const,
+    ordenesSalida: (empresaId: number, params: string) =>
+      ['informes', 'gh', 'ordenes-salida', empresaId, params] as const,
     tallasPersonal: (params: string) =>
       ['informes', 'gh', 'tallas-personal', params] as const,
     desempenoEmpleado: (params: string) =>

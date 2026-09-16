@@ -80,6 +80,7 @@ export const TALLER_HUB_NAV: HubNavItem[] = [
     descripcion: 'Registro de ingreso al taller, citas y vehículos sin cita',
     ruta: '/dashboard/taller/entrada-vehiculo',
     submenuId: ENTRADA_VEHICULO_SUBMENU_ID,
+    empresaId: CODIESEL_EMPRESA_ID,
   },
   {
     id: 'mpvi-admin',

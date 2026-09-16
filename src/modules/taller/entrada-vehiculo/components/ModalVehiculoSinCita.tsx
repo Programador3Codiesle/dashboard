@@ -6,6 +6,7 @@ import { Portal } from "@/components/shared/ui/Portal";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import type { SedeUsuario } from "../types/entrada-vehiculo.types";
 import { EV_INPUT, EV_INGRESAR_BTN } from "../utils/entrada-vehiculo.styles";
+import { esPlacaAbc123, filtrarPlacaAbc123 } from "../utils/placa-php";
 
 interface ModalVehiculoSinCitaProps {
   open: boolean;
@@ -62,7 +63,7 @@ function ModalVehiculoSinCitaComponent({
         showError("Por favor llene todos los campos");
         return;
       }
-      if (placa.length !== 6) {
+      if (!esPlacaAbc123(placa)) {
         showError("El número de dígitos de la placa no coincide");
         return;
       }
@@ -117,7 +118,9 @@ function ModalVehiculoSinCitaComponent({
                 autoComplete="off"
                 className={`w-full ${EV_INPUT} uppercase`}
                 onInput={(e) => {
-                  e.currentTarget.value = e.currentTarget.value.toUpperCase();
+                  e.currentTarget.value = filtrarPlacaAbc123(
+                    e.currentTarget.value,
+                  );
                 }}
               />
             </div>

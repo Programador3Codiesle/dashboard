@@ -26,6 +26,7 @@ import { administracionKeys } from '@/modules/administracion/shared/constants/qu
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
 import { INFORME_TIEMPO_SUPLEMENTARIO_SUBMENU_ID } from '@/utils/constants';
+import { InformesEmpleadoFilter } from '@/modules/informes/shared/components/InformesEmpleadoFilter';
 
 const PAGE_SIZE = 10;
 
@@ -154,7 +155,6 @@ const FiltersSection = memo(function FiltersSection({
   filtroArea,
   filtroEmpleado,
   sedesOptions,
-  empleadosOptions,
   onFiltroMesChange,
   onFiltroSedeChange,
   onFiltroAreaChange,
@@ -170,7 +170,6 @@ const FiltersSection = memo(function FiltersSection({
   filtroArea: string;
   filtroEmpleado: string;
   sedesOptions: { value: string; label: string }[];
-  empleadosOptions: { value: string; label: string }[];
   onFiltroMesChange: (v: string) => void;
   onFiltroSedeChange: (v: string) => void;
   onFiltroAreaChange: (v: string) => void;
@@ -214,12 +213,10 @@ const FiltersSection = memo(function FiltersSection({
           options={AREAS_SOLICITA.map((area) => ({ value: area, label: area }))}
           placeholder="Todas"
         />
-        <SelectFilter
-          label="Seleccionar Empleado"
+        <InformesEmpleadoFilter
+          id="filtro-empleado-tiempo-suplementario"
           value={filtroEmpleado}
           onChange={onFiltroEmpleadoChange}
-          options={empleadosOptions}
-          placeholder="Todos"
         />
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
@@ -289,9 +286,6 @@ export function InformeTiempoSuplementarioGestion({
   const [filtroEmpleado, setFiltroEmpleado] = useState('');
   const [applied, setApplied] = useState<AppliedTiempo | null>(null);
   const [page, setPage] = useState(1);
-  const [empleadosOptions, setEmpleadosOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
   const [descargando, setDescargando] = useState(false);
 
   const paramsString = applied ? serializeTiempoParams(applied) : '';
@@ -315,18 +309,6 @@ export function InformeTiempoSuplementarioGestion({
 
   const tiempos = useMemo(() => query.data ?? [], [query.data]);
   const loading = query.isFetching;
-
-  useEffect(() => {
-    if (!applied) {
-      setEmpleadosOptions([]);
-      return;
-    }
-    if (!query.data || applied.empleado.trim()) return;
-    const nombres = [
-      ...new Set(query.data.map((d) => d.nombreEmpleado).filter(Boolean)),
-    ].sort();
-    setEmpleadosOptions(nombres.map((n) => ({ value: n, label: n })));
-  }, [applied, query.data]);
 
   useEffect(() => {
     if (!filtroMes) setFiltroEmpleado('');
@@ -420,7 +402,6 @@ export function InformeTiempoSuplementarioGestion({
         filtroArea={filtroArea}
         filtroEmpleado={filtroEmpleado}
         sedesOptions={sedesOptions}
-        empleadosOptions={empleadosOptions}
         onFiltroMesChange={setFiltroMes}
         onFiltroSedeChange={setFiltroSede}
         onFiltroAreaChange={setFiltroArea}

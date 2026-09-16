@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { ordenesSalidaService, OrdenSalida } from '@/modules/informes/gestion-humana/services/ordenes-salida.service';
+import {
+  ordenesSalidaService,
+  OrdenSalida,
+  FiltrosOrdenSalida,
+} from '@/modules/informes/gestion-humana/services/ordenes-salida.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { InformesPageFrame } from '@/modules/informes/components/InformesPageFrame';
@@ -16,9 +20,20 @@ import {
   getErrorMessage,
   isForbiddenError,
 } from '@/modules/informes/shared/utils/parse-api-error';
+import {
+  AREAS_FILTRO_ORDEN_SALIDA,
+  JEFES_FILTRO_ORDEN_SALIDA,
+  NITS_FILTROS_EXTRA,
+  SEDES_FILTRO_ORDEN_SALIDA,
+  TIPOS_FILTRO_ORDEN_SALIDA,
+} from '../constants';
 
 const PAGE_SIZE = 10;
 const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
+
+function nitTieneFiltrosExtra(nit: number | undefined | null): boolean {
+  return nit != null && (NITS_FILTROS_EXTRA as readonly number[]).includes(nit);
+}
 
 export function OrdenesSalidaGestion() {
   const { user, blocked: sinTrimenu } = useInformesPageGuard({
@@ -30,15 +45,24 @@ export function OrdenesSalidaGestion() {
   const queryClient = useQueryClient();
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [filtrosAplicados, setFiltrosAplicados] = useState<{
-    fechaIni?: string;
-    fechaFin?: string;
-  } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [jefe, setJefe] = useState('');
+  const [area, setArea] = useState('');
+  const [sede, setSede] = useState('');
+  const [tipoSalida, setTipoSalida] = useState('');
+  const [filtrosAplicados, setFiltrosAplicados] =
+    useState<FiltrosOrdenSalida | null>(null);
+  const [paging, setPaging] = useState({ empresaId: 0, page: 1 });
   const [observaciones, setObservaciones] = useState<Record<number, string>>({});
+  const empresaId = user?.empresa ?? 0;
+  const currentPage = paging.empresaId === empresaId ? paging.page : 1;
   const idUsuario = user?.id ? Number(user.id) : null;
-  const esModoObservacion = idUsuario != null && IDS_MODO_OBSERVACION.has(idUsuario);
+  const nitUsuario =
+    user?.nit_usuario != null ? Number(user.nit_usuario) : NaN;
+  const esModoObservacion =
+    idUsuario != null && IDS_MODO_OBSERVACION.has(idUsuario);
   const mostrarFiltros = !esModoObservacion;
+  const esFiltrosExtra = nitTieneFiltrosExtra(nitUsuario);
+  const sesionLista = !!user && !sinTrimenu && empresaId > 0;
   const inputClass =
     'border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none bg-white w-full';
 
@@ -47,9 +71,9 @@ export function OrdenesSalidaGestion() {
     isError: errorPermiso,
     error: errorPermisoDetalle,
   } = useQuery({
-    queryKey: informesKeys.gh.ordenesSalida('__permiso__'),
+    queryKey: informesKeys.gh.ordenesSalida(empresaId, '__permiso__'),
     queryFn: () => ordenesSalidaService.listar({}),
-    enabled: !!user && !sinTrimenu,
+    enabled: sesionLista,
     retry: false,
     staleTime: 60 * 1000,
   });
@@ -62,10 +86,11 @@ export function OrdenesSalidaGestion() {
     isFetched,
   } = useQuery<OrdenSalida[]>({
     queryKey: informesKeys.gh.ordenesSalida(
+      empresaId,
       filtrosAplicados ? JSON.stringify(filtrosAplicados) : '',
     ),
     queryFn: () => ordenesSalidaService.listar(filtrosAplicados ?? {}),
-    enabled: !sinTrimenu && (esModoObservacion || filtrosAplicados != null),
+    enabled: sesionLista && (esModoObservacion || filtrosAplicados != null),
     retry: false,
     staleTime: 60 * 1000,
   });
@@ -77,7 +102,7 @@ export function OrdenesSalidaGestion() {
     onSuccess: async () => {
       showSuccess('Observación guardada correctamente.');
       await queryClient.invalidateQueries({
-        queryKey: informesKeys.gh.ordenesSalida('').slice(0, 3),
+        queryKey: informesKeys.gh.ordenesSalida(empresaId, '').slice(0, 4),
       });
     },
     onError: (error: unknown) => {
@@ -92,10 +117,18 @@ export function OrdenesSalidaGestion() {
       return;
     }
     if (listando) return;
-    setCurrentPage(1);
+    setPaging({ empresaId, page: 1 });
     setFiltrosAplicados({
       fechaIni: fechaIni || undefined,
       fechaFin: fechaFin || undefined,
+      ...(esFiltrosExtra
+        ? {
+            jefe: jefe || undefined,
+            area: area || undefined,
+            sede: sede || undefined,
+            tipoSalida: tipoSalida ? Number(tipoSalida) : undefined,
+          }
+        : {}),
     });
   };
 
@@ -133,9 +166,9 @@ export function OrdenesSalidaGestion() {
 
   useEffect(() => {
     if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+      setPaging({ empresaId, page: totalPages });
     }
-  }, [currentPage, totalPages]);
+  }, [currentPage, totalPages, empresaId]);
 
   const handleChangeObs = (id: number, value: string) => {
     setObservaciones((prev) => ({ ...prev, [id]: value }));
@@ -162,7 +195,7 @@ export function OrdenesSalidaGestion() {
       'Jefe Autorizó': r.jefeNombre,
       'Tipo Salida': r.tipoSalidaNombre,
       Explicación: r.explicacion,
-      'Fecha Orden': formatDateOnly(r.fecha_salida),
+      'Fecha Orden': formatDateOnly(r.fecha_reg),
       Placa: r.placa ?? '',
       Conductor: r.conductor ?? '',
       'Persona salió': r.quienSale ?? '',
@@ -201,7 +234,7 @@ export function OrdenesSalidaGestion() {
         backLabel={INFORMES_COPY.backGh}
       >
         <div className="flex min-h-[40vh] items-center justify-center gap-2 text-sm text-gray-500">
-          <Loader2 size={18} className="animate-spin" />
+          <Loader2 size={18} className="animate-spin" aria-hidden="true" />
           <span>Verificando permiso...</span>
         </div>
       </InformesPageFrame>
@@ -225,13 +258,14 @@ export function OrdenesSalidaGestion() {
       ) : null}
 
       {mostrarFiltros && (
-        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">
+              <label htmlFor="fecha-ini-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
                 Fecha inicial
               </label>
               <input
+                id="fecha-ini-orden-salida"
                 type="date"
                 value={fechaIni}
                 onChange={(e) => setFechaIni(e.target.value)}
@@ -239,16 +273,95 @@ export function OrdenesSalidaGestion() {
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">
+              <label htmlFor="fecha-fin-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
                 Fecha final
               </label>
               <input
+                id="fecha-fin-orden-salida"
                 type="date"
                 value={fechaFin}
                 onChange={(e) => setFechaFin(e.target.value)}
                 className={inputClass}
               />
             </div>
+            {esFiltrosExtra ? (
+              <div className="flex flex-col">
+                <label htmlFor="jefe-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
+                  Jefe
+                </label>
+                <select
+                  id="jefe-orden-salida"
+                  value={jefe}
+                  onChange={(e) => setJefe(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Seleccione una opción</option>
+                  {JEFES_FILTRO_ORDEN_SALIDA.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+            {esFiltrosExtra ? (
+              <>
+                <div className="flex flex-col">
+                  <label htmlFor="area-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
+                    Área
+                  </label>
+                  <select
+                    id="area-orden-salida"
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleccione una opción</option>
+                    {AREAS_FILTRO_ORDEN_SALIDA.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col">
+                  <label htmlFor="sede-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
+                    Sede
+                  </label>
+                  <select
+                    id="sede-orden-salida"
+                    value={sede}
+                    onChange={(e) => setSede(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleccione una opción</option>
+                    {SEDES_FILTRO_ORDEN_SALIDA.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col">
+                  <label htmlFor="tipo-orden-salida" className="text-xs font-medium text-gray-600 mb-1">
+                    Tipo salida
+                  </label>
+                  <select
+                    id="tipo-orden-salida"
+                    value={tipoSalida}
+                    onChange={(e) => setTipoSalida(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Seleccione una opción</option>
+                    {TIPOS_FILTRO_ORDEN_SALIDA.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -258,7 +371,7 @@ export function OrdenesSalidaGestion() {
               disabled={listando || !fechaIni || !fechaFin}
               className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl bg-(--color-primary) text-white text-sm font-medium shadow-sm hover:bg-(--color-primary-dark) disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              {listando && <Loader2 size={16} className="animate-spin" />}
+              {listando && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
               <span>{listando ? 'Consultando...' : 'Filtrar'}</span>
             </button>
             <button
@@ -284,7 +397,7 @@ export function OrdenesSalidaGestion() {
             )}
             {showUpdating && (
               <div className="flex items-center gap-2 text-xs text-gray-500">
-                <Loader2 size={14} className="animate-spin" />
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
                 Actualizando...
               </div>
             )}
@@ -315,7 +428,7 @@ export function OrdenesSalidaGestion() {
                 <tr>
                   <td colSpan={esModoObservacion ? 9 : 11} className="px-2 py-6 text-center">
                     <div className="flex items-center justify-center gap-2 text-gray-500">
-                      <Loader2 className="animate-spin" size={18} />
+                      <Loader2 className="animate-spin" size={18} aria-hidden="true" />
                       <span>Cargando datos...</span>
                     </div>
                   </td>
@@ -353,7 +466,7 @@ export function OrdenesSalidaGestion() {
                     <td className="px-2 py-1">{row.jefeNombre}</td>
                     <td className="px-2 py-1">{row.tipoSalidaNombre}</td>
                     <td className="px-2 py-1">{row.explicacion}</td>
-                    <td className="px-2 py-1">{formatDateOnly(row.fecha_salida)}</td>
+                    <td className="px-2 py-1">{formatDateOnly(row.fecha_reg)}</td>
                     <td className="px-2 py-1">{row.placa}</td>
                     <td className="px-2 py-1">{row.conductor}</td>
                     <td className="px-2 py-1">{row.quienSale}</td>
@@ -365,6 +478,7 @@ export function OrdenesSalidaGestion() {
                           className="border rounded-md px-2 py-1 text-xs w-56 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
                           value={observaciones[row.id] ?? ''}
                           onChange={(e) => handleChangeObs(row.id, e.target.value)}
+                          aria-label={`Observación orden ${row.id}`}
                         />
                       )}
                     </td>
@@ -396,7 +510,7 @@ export function OrdenesSalidaGestion() {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onChange={setCurrentPage}
+              onChange={(page) => setPaging({ empresaId, page })}
             />
           </div>
         )}

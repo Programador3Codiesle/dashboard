@@ -8,6 +8,7 @@ export interface OrdenSalida {
   tipoSalida: number;
   explicacion: string;
   fecha_salida: string;
+  fecha_reg: string | null;
   placa: string | null;
   conductor: string | null;
   quienSale: string | null;

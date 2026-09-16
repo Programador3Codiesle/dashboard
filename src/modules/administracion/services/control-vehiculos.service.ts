@@ -1,54 +1,13 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import type {
+  ModeloVehiculo,
+  RegistrarLlegadaDTO,
+  RegistrarSalidaDTO,
+  VehiculoSalidaAPI,
+} from "@/modules/administracion/types";
 
 const API_URL = getApiBaseUrl();
-
-// ========== Tipos de respuesta de la API ==========
-
-export interface VehiculoSalidaAPI {
-  id: number;
-  fecha_salida: string;
-  hora_salida: string;
-  km_salida: number;
-  placa: string;
-  tipo_vehiculo: string;
-  modelo: string;
-  conductor: string;
-  pasajeros: string;
-  persona_autorizo: string;
-  fecha_llegada: string | null;
-  hora_llegada: string | null;
-  km_llegada: number | null;
-  observacion: string | null;
-  placa_vh_remolcado: string | null;
-  taller: string;
-  empresa_nombre: string;
-}
-
-export interface ModeloVehiculoAPI {
-  id: number;
-  descripcion: string;
-}
-
-export interface RegistrarSalidaDTO {
-  placa: string;
-  km_salida: number;
-  tipo_vehiculo: string;
-  modelo: number;
-  taller: string;
-  conductor: string;
-  persona_autorizo: string;
-  pasajeros: string;
-  porteria?: number;
-  id_empresa?: number;
-  otra_marca?: string;
-  placa_vh_remolcado?: string;
-}
-
-export interface RegistrarLlegadaDTO {
-  km_llegada: number;
-  observacion: string;
-}
 
 type ApiMessageResponse<T = unknown> = {
   status: boolean;
@@ -56,12 +15,7 @@ type ApiMessageResponse<T = unknown> = {
   data?: T;
 };
 
-// ========== Servicio ==========
-
 export const controlVehiculosService = {
-  /**
-   * Listar todos los registros de salida y llegada
-   */
   async listarRegistros(): Promise<VehiculoSalidaAPI[]> {
     const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos`, {
       method: "GET",
@@ -75,10 +29,7 @@ export const controlVehiculosService = {
     return data;
   },
 
-  /**
-   * Obtener modelos de vehículos disponibles
-   */
-  async obtenerModelos(): Promise<ModeloVehiculoAPI[]> {
+  async obtenerModelos(): Promise<ModeloVehiculo[]> {
     const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/vehiculos/modelos`, {
       method: "GET",
     });
@@ -87,13 +38,10 @@ export const controlVehiculosService = {
       throw new Error("No se pudieron cargar los modelos de vehículos");
     }
 
-    const data: ModeloVehiculoAPI[] = await response.json();
+    const data: ModeloVehiculo[] = await response.json();
     return data;
   },
 
-  /**
-   * Registrar salida de vehículo
-   */
   async registrarSalida(dto: RegistrarSalidaDTO): Promise<VehiculoSalidaAPI> {
     const body = {
       placa: dto.placa,
@@ -104,10 +52,8 @@ export const controlVehiculosService = {
       conductor: dto.conductor,
       persona_autorizo: dto.persona_autorizo,
       pasajeros: dto.pasajeros,
-      porteria: dto.porteria || 7, // Default o desde config
-      id_empresa: dto.id_empresa || 1, // Default o desde user context
-      otra_marca: dto.otra_marca || "",
-      placa_vh_remolcado: dto.placa_vh_remolcado || null,
+      otra_marca: dto.otra_marca || undefined,
+      placa_grua: dto.placa_grua || undefined,
     };
 
     const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/salida`, {
@@ -128,9 +74,6 @@ export const controlVehiculosService = {
     return data.data;
   },
 
-  /**
-   * Registrar llegada de vehículo
-   */
   async registrarLlegada(id: number, dto: RegistrarLlegadaDTO): Promise<VehiculoSalidaAPI> {
     const response = await fetchWithAuth(`${API_URL}/administracion/control-vehiculos/${id}/llegada`, {
       method: "PUT",
@@ -150,4 +93,3 @@ export const controlVehiculosService = {
     return data.data;
   },
 };
-

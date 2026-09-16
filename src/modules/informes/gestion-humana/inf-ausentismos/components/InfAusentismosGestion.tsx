@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { FileSpreadsheet, FileText, Loader2 } from "lucide-react";
@@ -14,9 +14,9 @@ import { InformesQueryError } from "@/modules/informes/shared/components/Informe
 import { informesKeys } from "@/modules/informes/shared/constants/query-keys";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
 import { getErrorMessage } from "@/modules/informes/shared/utils/parse-api-error";
+import { InformesEmpleadoFilter } from "@/modules/informes/shared/components/InformesEmpleadoFilter";
 
 const PAGE_SIZE = 10;
-const EMPLEADO_DEBOUNCE_MS = 350;
 
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
@@ -54,18 +54,8 @@ export function InfAusentismosGestion() {
   const { showError } = useToast();
   const [month, setMonth] = useState("");
   const [empleado, setEmpleado] = useState("");
-  const [debouncedEmpleado, setDebouncedEmpleado] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingExport, setLoadingExport] = useState(false);
-  const isEmpleadoDebouncing = empleado.trim() !== debouncedEmpleado;
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedEmpleado(empleado.trim());
-    }, EMPLEADO_DEBOUNCE_MS);
-
-    return () => clearTimeout(timeoutId);
-  }, [empleado]);
 
   const range = useMemo(() => getMonthRange(month), [month]);
   const { data: queryData, isFetching: loading, isError, error } = useQuery<{
@@ -73,18 +63,18 @@ export function InfAusentismosGestion() {
     total: number;
   }>({
     queryKey: informesKeys.gh.infAusentismos(
-      `${month}|${debouncedEmpleado}|${currentPage}`,
+      `${month}|${empleado}|${currentPage}`,
     ),
     queryFn: () =>
       informeAusentismoService.listar({
         fechaDesde: range!.desde,
         fechaHasta: range!.hasta,
-        empleado: debouncedEmpleado || undefined,
+        empleado: empleado.trim() || undefined,
         pagina: currentPage,
         limite: PAGE_SIZE,
         soloPendientes: true,
       }),
-    enabled: !!range && !isEmpleadoDebouncing,
+    enabled: !!range,
     retry: false,
     staleTime: 60 * 1000,
   });
@@ -123,7 +113,7 @@ export function InfAusentismosGestion() {
       const resultado = await informeAusentismoService.listar({
         fechaDesde: range.desde,
         fechaHasta: range.hasta,
-        empleado: debouncedEmpleado || undefined,
+        empleado: empleado.trim() || undefined,
         pagina: 1,
         limite: totalItems,
         soloPendientes: true,
@@ -147,7 +137,7 @@ export function InfAusentismosGestion() {
     } finally {
       setLoadingExport(false);
     }
-  }, [range, totalItems, debouncedEmpleado, showError]);
+  }, [range, totalItems, empleado, showError]);
 
   if (blocked) return null;
 
@@ -175,16 +165,11 @@ export function InfAusentismosGestion() {
               className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
             />
           </div>
-          <div className="flex flex-col">
-            <label className="text-xs font-medium text-gray-600 mb-1">Empleado (NIT)</label>
-            <input
-              type="text"
-              value={empleado}
-              onChange={(e) => handleEmpleadoChange(e.target.value)}
-              placeholder="Opcional: NIT exacto"
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
-            />
-          </div>
+          <InformesEmpleadoFilter
+            id="filtro-empleado-inf-ausentismos"
+            value={empleado}
+            onChange={handleEmpleadoChange}
+          />
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <button

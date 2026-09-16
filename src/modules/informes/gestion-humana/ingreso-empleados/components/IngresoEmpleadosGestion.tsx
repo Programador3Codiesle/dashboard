@@ -13,6 +13,7 @@ import {
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from "@/modules/informes/constants";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
+import { InformesEmpleadoFilter } from "@/modules/informes/shared/components/InformesEmpleadoFilter";
 
 const SEDES = [
   { value: "giron", label: "Girón" },
@@ -166,18 +167,11 @@ export function IngresoEmpleadosGestion() {
             />
           </div>
 
-          <div className="flex flex-col min-w-0">
-            <label className="text-xs font-medium text-gray-600 mb-1">
-              Empleado (documento)
-            </label>
-            <input
-              type="text"
-              value={empleado}
-              onChange={(e) => setEmpleado(e.target.value)}
-              placeholder="Opcional: filtrar por documento"
-              className="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
-            />
-          </div>
+          <InformesEmpleadoFilter
+            id="filtro-empleado-ingreso-empleados"
+            value={empleado}
+            onChange={setEmpleado}
+          />
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">

@@ -15,6 +15,7 @@ import {
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from "@/modules/informes/constants";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
+import { InformesEmpleadoFilter } from "@/modules/informes/shared/components/InformesEmpleadoFilter";
 
 function formatExcelFechaHoy(): string {
   const f = new Date();
@@ -144,16 +145,11 @@ export function InformePausasActivasGestion() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Empleado (documento)</label>
-            <input
-              type="text"
-              className="block w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none"
-              value={empleado}
-              onChange={(e) => setEmpleado(e.target.value)}
-              placeholder="Opcional"
-            />
-          </div>
+          <InformesEmpleadoFilter
+            id="filtro-empleado-pausas-activas"
+            value={empleado}
+            onChange={setEmpleado}
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha (día)</label>
             <input

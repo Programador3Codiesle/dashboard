@@ -11,7 +11,8 @@ export const administracionKeys = {
     'gestion-compras',
     'usuarios-gerente',
   ] as const,
-  controlVehiculos: ['administracion', 'control-vehiculos'] as const,
+  controlVehiculos: (empresaId: number) =>
+    ['administracion', 'control-vehiculos', empresaId] as const,
   modelosVehiculo: ['administracion', 'control-vehiculos', 'modelos'] as const,
   tallasDotacion: (empresaId: number) =>
     ['administracion', 'tallas-dotacion', empresaId] as const,

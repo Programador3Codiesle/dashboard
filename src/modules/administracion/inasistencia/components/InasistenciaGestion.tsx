@@ -8,7 +8,6 @@ import { DateRangeFilter } from '@/components/administracion/filters/DateRangeFi
 import { SearchFilter } from '@/components/administracion/filters/SearchFilter';
 import { InasistenciaTableRow } from '@/components/administracion/table/InasistenciaTableRow';
 import { Pagination } from '@/components/shared/ui/Pagination';
-import { SelectFilter } from '@/components/shared/ui/SelectFilter';
 import { usePagination } from '@/components/shared/ui/hooks/usePagination';
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
@@ -20,6 +19,7 @@ import { useAdministracionPageGuard } from '@/modules/administracion/shared/hook
 import { inasistenciaService } from '@/modules/administracion/services/inasistencia.service';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
 import { INASISTENCIA_SUBMENU_ID } from '@/utils/constants';
+import { InformesEmpleadoFilter } from '@/modules/informes/shared/components/InformesEmpleadoFilter';
 
 function getToday() {
   const now = new Date();
@@ -82,17 +82,6 @@ export function InasistenciaGestion({
     [filtered, startIndex, endIndex],
   );
 
-  const empleadosUnicos = useMemo(() => {
-    const seen = new Set<string>();
-    return inasistencias
-      .filter((item) => {
-        if (seen.has(item.documento)) return false;
-        seen.add(item.documento);
-        return true;
-      })
-      .map((item) => ({ value: item.documento, label: item.nombre }));
-  }, [inasistencias]);
-
   const handleDownload = useCallback(async () => {
     if (!fechaInicio || !fechaFinal) {
       showError('Seleccione fecha de inicio y fecha final para exportar');
@@ -143,12 +132,10 @@ export function InasistenciaGestion({
         className="rounded-2xl border border-gray-100 bg-white p-3 shadow-lg sm:p-4 md:p-6"
       >
         <div className="app-filter-grid">
-          <SelectFilter
-            label="Empleado"
+          <InformesEmpleadoFilter
+            id="filtro-empleado-inasistencia"
             value={filtroEmpleado}
             onChange={setFiltroEmpleado}
-            options={empleadosUnicos}
-            placeholder="Todos"
           />
           <DateRangeFilter
             fechaInicio={fechaInicio}
