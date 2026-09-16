@@ -35,10 +35,13 @@ export function GestionComprasGestion() {
   );
   const { showSuccess, showError } = useToast();
   const queryClient = useQueryClient();
-  const sesionLista = !!user && !blocked;
+  const empresaId = user?.empresa ?? 0;
+  const sesionLista = !!user && !blocked && empresaId > 0;
   const [search, setSearch] = useState('');
+  const [paging, setPaging] = useState({ empresaId, page: 1 });
+  const currentPage =
+    paging.empresaId === empresaId ? paging.page : 1;
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [descargando, setDescargando] = useState(false);
 
   const [solicitudSeleccionada, setSolicitudSeleccionada] =
@@ -53,7 +56,12 @@ export function GestionComprasGestion() {
   const [estadoActualAccion, setEstadoActualAccion] = useState<number>(1);
 
   const query = useQuery({
-    queryKey: [...administracionKeys.gestionCompras, search, currentPage],
+    queryKey: [
+      ...administracionKeys.gestionCompras,
+      empresaId,
+      search,
+      currentPage,
+    ],
     queryFn: () =>
       gestionComprasService.listarSolicitudes({
         buscar: search || undefined,
@@ -80,7 +88,7 @@ export function GestionComprasGestion() {
     onSuccess: async () => {
       showSuccess('Solicitud creada correctamente');
       setModalOpen(false);
-      setCurrentPage(1);
+      setPaging({ empresaId, page: 1 });
       await queryClient.invalidateQueries({
         queryKey: administracionKeys.gestionCompras,
       });
@@ -119,14 +127,20 @@ export function GestionComprasGestion() {
     },
   });
 
-  const changePage = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
+  const changePage = useCallback(
+    (page: number) => {
+      setPaging({ empresaId, page });
+    },
+    [empresaId],
+  );
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value);
-    setCurrentPage(1);
-  }, []);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value);
+      setPaging({ empresaId, page: 1 });
+    },
+    [empresaId],
+  );
 
   const handleSave = async (data: NuevaSolicitudCompraDTO) => {
     await crearMutation.mutateAsync(data);

@@ -353,4 +353,31 @@ export const gestionComprasService = {
 
     return response.blob();
   },
+
+  /**
+   * Combo gerente: todos los usuarios de intranet (Usuarios.php getAllUsers, sin tope).
+   */
+  async listarUsuariosGerente(): Promise<
+    Array<{ nit: string; nombres: string }>
+  > {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/gestion-compras/usuarios-gerente`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      throw new Error("Error al cargar usuarios");
+    }
+    const data: unknown = await response.json();
+    if (!Array.isArray(data)) return [];
+    return data
+      .map((row) => {
+        if (!row || typeof row !== "object") return null;
+        const item = row as { nit?: unknown; nombres?: unknown };
+        const nit = String(item.nit ?? "").trim();
+        const nombres = String(item.nombres ?? "").trim();
+        if (!nit || !nombres) return null;
+        return { nit, nombres };
+      })
+      .filter((row): row is { nit: string; nombres: string } => row != null);
+  },
 };

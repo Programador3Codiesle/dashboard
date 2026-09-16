@@ -6,6 +6,11 @@ export const administracionKeys = {
   inasistencia: (inicio: string, fin: string, empleado: string) =>
     ['administracion', 'inasistencia', inicio, fin, empleado] as const,
   gestionCompras: ['administracion', 'gestion-compras'] as const,
+  gestionComprasUsuariosGerente: [
+    'administracion',
+    'gestion-compras',
+    'usuarios-gerente',
+  ] as const,
   controlVehiculos: ['administracion', 'control-vehiculos'] as const,
   modelosVehiculo: ['administracion', 'control-vehiculos', 'modelos'] as const,
   tallasDotacion: (empresaId: number) =>

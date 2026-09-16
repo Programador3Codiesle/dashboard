@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import React from "react";
+import { GerenteAutorizaCombobox } from "@/components/administracion/forms/GerenteAutorizaCombobox";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevaSolicitudCompraDTO, NivelUrgencia } from "@/modules/administracion/types";
 import { AREAS_SOLICITA, labelSede } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
-import { usuariosService } from "@/modules/usuarios/services/usuarios.service";
-import type { IUsuario } from "@/modules/usuarios/types";
+import { useUsuariosGerenteCompra } from "@/modules/administracion/hooks/useUsuariosGerenteCompra";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { ChevronDown } from "lucide-react";
 
@@ -29,8 +29,9 @@ const NuevaSolicitudCompraModalComponent = ({
   const { user } = useAuth();
   const sedes = useSedesByEmpresa();
   const formRef = useRef<HTMLFormElement>(null);
-  const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
-  const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
+  const usuariosQuery = useUsuariosGerenteCompra(open);
+  const usuarios = usuariosQuery.data ?? [];
+  const cargandoUsuarios = open && usuariosQuery.isPending;
 
   const nombreDefault = user?.nombre_usuario || user?.name || "";
 
@@ -41,24 +42,6 @@ const NuevaSolicitudCompraModalComponent = ({
       if (nombreInput) nombreInput.value = nombreDefault;
     }
   }, [open, nombreDefault]);
-
-  useEffect(() => {
-    if (open) {
-      setCargandoUsuarios(true);
-      usuariosService
-        .getUsuarios()
-        .then((response) => {
-          const usuariosList = Array.isArray(response)
-            ? response
-            : Array.isArray(response?.items)
-              ? response.items
-              : [];
-          setUsuarios(usuariosList);
-        })
-        .catch(() => setUsuarios([]))
-        .finally(() => setCargandoUsuarios(false));
-    }
-  }, [open]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -153,17 +136,13 @@ const NuevaSolicitudCompraModalComponent = ({
             <label className={labelClass}>
               Nombre del gerente de área que autoriza la compra <span className="text-red-500">*</span>
             </label>
-            <div className="relative mt-1">
-              <select className={inputClass} name="gerenteAutoriza" required disabled={cargandoUsuarios}>
-                <option value="">Seleccione...</option>
-                {usuarios.map((u) => (
-                  <option key={u.id} value={u.nit}>
-                    {u.nombre}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-            </div>
+            <GerenteAutorizaCombobox
+              key={open ? "open" : "closed"}
+              name="gerenteAutoriza"
+              usuarios={usuarios}
+              cargando={cargandoUsuarios}
+              required
+            />
           </div>
 
           <div>
