@@ -14,6 +14,8 @@ export interface ITicket {
   encargado: string | null;
   estado: EstadoTicket;
   fechaCreacion: string; // ISO
+  /** Fecha en que se respondió / cerró. Solo llega en finalizados. */
+  fechaRespuesta?: string | null;
   sede?: string;
   extension?: string;
 }

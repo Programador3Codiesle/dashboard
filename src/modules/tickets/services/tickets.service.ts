@@ -17,6 +17,7 @@ type TicketListadoApi = {
   prioridad: string | null;
   estado: string;
   fecha_creacion: string;
+  fecha_respuesta?: string | null;
   usuario_id: number;
   nombre_usuario: string;
   nombre_encargado: string | null;
@@ -43,6 +44,7 @@ function mapListadoFromApi(raw: TicketListadoApi, empresa: string): ITicket {
     encargado: raw.nombre_encargado,
     estado: mapEstadoFromApi(raw.estado),
     fechaCreacion: raw.fecha_creacion,
+    fechaRespuesta: raw.fecha_respuesta ?? null,
     sede: raw.sede || "",
     extension: raw.extension || "",
   };

@@ -50,6 +50,7 @@ const TicketsTableFinalizados = memo(function TicketsTableFinalizados({
           {t.encargado || <span className="text-gray-400 italic">—</span>}
         </span>
       )}
+      getFecha={(t) => t.fechaRespuesta || t.fechaCreacion}
     />
   );
 });

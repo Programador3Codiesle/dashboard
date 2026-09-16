@@ -44,6 +44,7 @@ export function TicketsTable({
   renderEncargado,
   renderAcciones,
   verDetalle = false,
+  getFecha,
 }: {
   tickets: ITicket[];
   loading: boolean;
@@ -55,6 +56,7 @@ export function TicketsTable({
   renderEncargado: (ticket: ITicket) => ReactNode;
   renderAcciones?: (ticket: ITicket) => ReactNode;
   verDetalle?: boolean;
+  getFecha?: (ticket: ITicket) => string | null | undefined;
 }) {
   const [detalle, setDetalle] = useState<ITicket | null>(null);
   const { currentPage, totalPages, startIndex, endIndex, changePage } =
@@ -140,7 +142,9 @@ export function TicketsTable({
                 </td>
                 <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
                   <span className="text-sm text-gray-600">
-                    {new Date(ticket.fechaCreacion).toLocaleDateString()}
+                    {new Date(
+                      getFecha?.(ticket) || ticket.fechaCreacion,
+                    ).toLocaleDateString()}
                   </span>
                 </td>
                 {showActions ? (
