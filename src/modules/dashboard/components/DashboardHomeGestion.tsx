@@ -130,21 +130,8 @@ export function DashboardHomeGestion() {
       ? user.empresa
       : undefined;
 
-  const [sedeScope, setSedeScope] = useState<{
-    empresa?: number;
-    idsede?: number;
-  }>({ empresa: undefined, idsede: undefined });
-
-  const selectedIdsede =
-    sedeScope.empresa === empresaDashboard ? sedeScope.idsede : undefined;
-
-  if (sedeScope.empresa !== empresaDashboard) {
-    setSedeScope({ empresa: empresaDashboard, idsede: undefined });
-  }
-
   const { data, isLoading, isFetching, error } = useDashboard(user?.id, {
     enabled: allowed,
-    idsede: selectedIdsede,
     empresa: empresaDashboard,
     mes,
     ano,
@@ -164,13 +151,6 @@ export function DashboardHomeGestion() {
     settledEmpresa !== "boot" &&
     settledEmpresa !== empresaDashboard &&
     isFetching;
-
-  const onSedeChange = useCallback(
-    (idsede: number) => {
-      setSedeScope({ empresa: empresaDashboard, idsede });
-    },
-    [empresaDashboard],
-  );
 
   const wrap = (
     children: React.ReactNode,
@@ -236,19 +216,8 @@ export function DashboardHomeGestion() {
       return wrap(<DashboardGerencia data={data as DG} />);
     case "compras":
       return wrap(<DashboardCompras data={data as DC} />);
-    case "asesor_rep": {
-      const asesorData = data as DAR;
-      const sedes = asesorData.sedes;
-      const activeIdsede = selectedIdsede ?? sedes?.[0]?.idsede;
-      return wrap(
-        <DashboardAsesorRep
-          data={asesorData}
-          sedes={sedes}
-          selectedIdsede={activeIdsede}
-          onSedeChange={onSedeChange}
-        />,
-      );
-    }
+    case "asesor_rep":
+      return wrap(<DashboardAsesorRep data={data as DAR} />);
     case "informe_mto":
       return wrap(<DashboardInformeMto data={data as DIM} />);
     default:

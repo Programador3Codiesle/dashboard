@@ -23,6 +23,13 @@ import { useToast } from "@/components/shared/ui/ToastContext";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { getErrorMessage } from "@/modules/cotizar/utils/get-error-message";
 import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
+import {
+  esCategoriaMandatorio,
+  esManoObraMantenimientoBloqueada,
+  mensajeAlertaMandatorio,
+  MSG_MO_MANTENIMIENTO,
+  type AlertaChecklistLivianos,
+} from "@/modules/cotizar/utils/cotizar-livianos-checklist";
 
 export function CotizarLivianosGestion() {
   const { blocked } = useCotizarPageGuard(COTIZAR_LIVIANOS_SUBMENU_ID);
@@ -52,6 +59,8 @@ export function CotizarLivianosGestion() {
   const [adicionalModalData, setAdicionalModalData] =
     useState<AdicionalesModalResponse | null>(null);
   const [adicionalModalLoading, setAdicionalModalLoading] = useState(false);
+  const [alertaChecklist, setAlertaChecklist] =
+    useState<AlertaChecklistLivianos | null>(null);
 
   const { user } = useAuth();
 
@@ -84,6 +93,22 @@ export function CotizarLivianosGestion() {
     }
   }, [errorVehiculo, showError]);
 
+  const celularVehiculo = vehiculo?.celular ?? null;
+  const mailVehiculo = vehiculo?.mail ?? null;
+  const nitVehiculo = vehiculo?.nit ?? null;
+  const hayVehiculo = !!vehiculo;
+
+  // Legacy cargarClase: tel y mail van al value del input, no solo al placeholder.
+  useEffect(() => {
+    if (!placaConsultada || !hayVehiculo) {
+      setTelefonoCliente("");
+      setEmailCliente("");
+      return;
+    }
+    setTelefonoCliente(celularVehiculo?.toString().trim() ?? "");
+    setEmailCliente(mailVehiculo?.toString().trim() ?? "");
+  }, [placaConsultada, hayVehiculo, celularVehiculo, mailVehiculo, nitVehiculo]);
+
   // Cuando cambia la empresa seleccionada en el dashboard, reseteamos el submódulo
   useEffect(() => {
     // Reset de búsqueda y datos de cotización
@@ -104,6 +129,7 @@ export function CotizarLivianosGestion() {
     setAdicionalModalData(null);
     setAdicionalRepuestosSeleccionados({});
     setAdicionalManoSeleccionados({});
+    setAlertaChecklist(null);
   }, [user?.empresa]);
 
   // Cuando cambia el tipo de mantenimiento, reseteamos selección y tablas
@@ -118,6 +144,7 @@ export function CotizarLivianosGestion() {
     setAdicionalSeleccionado("");
     setRepuestosState([]);
     setManoObraState([]);
+    setAlertaChecklist(null);
   }, [tipoMantenimiento, vehiculo]);
 
   useEffect(() => {
@@ -172,6 +199,8 @@ export function CotizarLivianosGestion() {
     setBodegaSeleccionada(null);
     setRevisionSeleccionada(null);
     setKilometrajeCliente("");
+    setTelefonoCliente("");
+    setEmailCliente("");
   };
 
   const handleSeleccionarBodega = (value: string) => {
@@ -203,30 +232,63 @@ export function CotizarLivianosGestion() {
   const totalGeneral = totalRepuestos + totalManoObra;
 
   const handleToggleRepuesto = (seq: number) => {
+    const actual = (repuestosState ?? []).find((r) => r.seq === seq);
+    if (!actual) return;
+
+    if (
+      actual.autorizado &&
+      (actual.obligatorio || esCategoriaMandatorio(actual.categoria))
+    ) {
+      setAlertaChecklist({
+        tipo: "mandatorio",
+        seq,
+        mensaje: mensajeAlertaMandatorio(actual.categoria),
+      });
+      return;
+    }
+
     setRepuestosState((prev) =>
-      prev.map((r) => {
-        if (r.seq !== seq) return r;
-        const nextAutorizado = !r.autorizado;
-        if (r.obligatorio && !nextAutorizado) {
-          // Deferimos el toast al siguiente tick para evitar
-          // el warning de React sobre actualizar otro componente
-          // (ToastProvider) mientras se renderiza esta página.
-          setTimeout(() => {
-            showError("Este repuesto es mandatorio y no puede ser desautorizado.");
-          }, 0);
-          return r;
-        }
-        return { ...r, autorizado: nextAutorizado };
-      })
+      prev.map((r) =>
+        r.seq === seq ? { ...r, autorizado: !r.autorizado } : r,
+      ),
     );
   };
 
   const handleToggleManoObra = (operacion: string) => {
+    const actual = (manoObraState ?? []).find((m) => m.operacion === operacion);
+    if (!actual) return;
+
+    if (
+      actual.autorizado &&
+      esManoObraMantenimientoBloqueada(
+        actual.descripcion_operacion ?? "",
+        actual.operacion ?? "",
+      )
+    ) {
+      setAlertaChecklist({
+        tipo: "mo-bloqueo",
+        mensaje: MSG_MO_MANTENIMIENTO,
+      });
+      return;
+    }
+
     setManoObraState((prev) =>
       prev.map((m) =>
-        m.operacion === operacion ? { ...m, autorizado: !m.autorizado } : m
-      )
+        m.operacion === operacion ? { ...m, autorizado: !m.autorizado } : m,
+      ),
     );
+  };
+
+  const handleConfirmarAlertaChecklist = () => {
+    if (alertaChecklist?.tipo === "mandatorio") {
+      const seq = alertaChecklist.seq;
+      setRepuestosState((prev) =>
+        prev.map((r) =>
+          r.seq === seq ? { ...r, autorizado: false } : r,
+        ),
+      );
+    }
+    setAlertaChecklist(null);
   };
 
   const handleAgregarAdicionalClick = async () => {
@@ -1335,6 +1397,43 @@ export function CotizarLivianosGestion() {
                 className="px-4 py-2.5 rounded-xl text-sm font-medium brand-bg brand-bg-hover text-white disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {posibleRetornoSubmitting ? "Guardando..." : "Agregar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertaChecklist && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="alerta-checklist-titulo"
+        >
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-3 sm:p-4 md:p-6">
+            <h3
+              id="alerta-checklist-titulo"
+              className="text-lg font-semibold text-gray-900 mb-3"
+            >
+              Advertencia
+            </h3>
+            <p className="text-sm text-gray-700 mb-6">{alertaChecklist.mensaje}</p>
+            <div className="flex flex-wrap gap-3 justify-end">
+              {alertaChecklist.tipo === "mandatorio" && (
+                <button
+                  type="button"
+                  onClick={() => setAlertaChecklist(null)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleConfirmarAlertaChecklist}
+                className="px-4 py-2.5 rounded-xl text-sm font-medium brand-bg brand-bg-hover text-white"
+              >
+                Ok
               </button>
             </div>
           </div>
