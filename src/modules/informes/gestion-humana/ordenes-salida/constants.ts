@@ -2,6 +2,29 @@
 
 export const NITS_FILTROS_EXTRA = [63369607, 1098679322] as const;
 
+/** PHP `Inf_ordenSalida.php` — IDs de sesión con UI de observación (vigilantes). */
+export const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
+
+/** PHP `Inf_ordenSalida.php` — NIT genéricos de portería / vigilantes. */
+export const NITS_VIGILANTE_ORDEN_SALIDA = new Set([
+  23423443, 23423444, 23423445, 23423446,
+]);
+
+/**
+ * PHP `Inf_ordenSalida.php` `load_tabla`:
+ * `$fondo = $key->observacion != null ? '#b0f2c2' : '#fdf9c4'`
+ */
+export const COLOR_FILA_ORDEN_CON_OBS = '#b0f2c2';
+export const COLOR_FILA_ORDEN_SIN_OBS = '#fdf9c4';
+
+export function colorFondoFilaOrdenSalida(
+  observacion: string | null | undefined,
+): string {
+  return observacion != null
+    ? COLOR_FILA_ORDEN_CON_OBS
+    : COLOR_FILA_ORDEN_SIN_OBS;
+}
+
 export const JEFES_FILTRO_ORDEN_SALIDA: { value: string; label: string }[] = [
   { value: '91274670', label: 'Carlos Enrique Lozano Galvis' },
   { value: '1005157209', label: 'Johan Sebastian Garcia Plata' },

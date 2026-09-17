@@ -22,14 +22,16 @@ import {
 } from '@/modules/informes/shared/utils/parse-api-error';
 import {
   AREAS_FILTRO_ORDEN_SALIDA,
+  colorFondoFilaOrdenSalida,
+  IDS_MODO_OBSERVACION,
   JEFES_FILTRO_ORDEN_SALIDA,
   NITS_FILTROS_EXTRA,
+  NITS_VIGILANTE_ORDEN_SALIDA,
   SEDES_FILTRO_ORDEN_SALIDA,
   TIPOS_FILTRO_ORDEN_SALIDA,
 } from '../constants';
 
 const PAGE_SIZE = 10;
-const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
 
 function nitTieneFiltrosExtra(nit: number | undefined | null): boolean {
   return nit != null && (NITS_FILTROS_EXTRA as readonly number[]).includes(nit);
@@ -60,6 +62,8 @@ export function OrdenesSalidaGestion() {
     user?.nit_usuario != null ? Number(user.nit_usuario) : NaN;
   const esModoObservacion =
     idUsuario != null && IDS_MODO_OBSERVACION.has(idUsuario);
+  const esCuentaVigilante =
+    esModoObservacion || NITS_VIGILANTE_ORDEN_SALIDA.has(nitUsuario);
   const mostrarFiltros = !esModoObservacion;
   const esFiltrosExtra = nitTieneFiltrosExtra(nitUsuario);
   const sesionLista = !!user && !sinTrimenu && empresaId > 0;
@@ -161,6 +165,8 @@ export function OrdenesSalidaGestion() {
     const start = (currentPage - 1) * PAGE_SIZE;
     return data.slice(start, start + PAGE_SIZE);
   }, [data, currentPage]);
+  /** PHP vigilante: SQL sin LIMIT; el AJAX pinta el tbody completo (sin paginar). */
+  const filasVisibles = esCuentaVigilante ? data : paginatedData;
   const showInitialLoader = listando && data.length === 0;
   const showUpdating = listando && data.length > 0;
 
@@ -454,13 +460,16 @@ export function OrdenesSalidaGestion() {
                   </td>
                 </tr>
               )}
-              {paginatedData.map((row) => {
-                const fondo =
-                  row.observacion && row.observacion.trim() !== ''
-                    ? 'bg-white'
-                    : 'bg-yellow-50';
+              {filasVisibles.map((row) => {
+                const sinObservacion = row.observacion == null;
                 return (
-                  <tr key={row.id} className={`${fondo} border-t text-[11px]`}>
+                  <tr
+                    key={row.id}
+                    className="border-t text-[11px]"
+                    style={{
+                      backgroundColor: colorFondoFilaOrdenSalida(row.observacion),
+                    }}
+                  >
                     {!esModoObservacion && <td className="px-2 py-1">{row.area}</td>}
                     {!esModoObservacion && <td className="px-2 py-1">{row.sede}</td>}
                     <td className="px-2 py-1">{row.jefeNombre}</td>
@@ -471,7 +480,7 @@ export function OrdenesSalidaGestion() {
                     <td className="px-2 py-1">{row.conductor}</td>
                     <td className="px-2 py-1">{row.quienSale}</td>
                     <td className="px-2 py-1 align-top">
-                      {row.observacion || !esModoObservacion ? (
+                      {!sinObservacion || !esModoObservacion ? (
                         row.observacion
                       ) : (
                         <textarea
@@ -487,7 +496,7 @@ export function OrdenesSalidaGestion() {
                     )}
                     {esModoObservacion && (
                       <td className="px-2 py-1">
-                        {!row.observacion && (
+                        {sinObservacion && (
                         <button
                           type="button"
                           onClick={() => handleGuardarObs(row)}
@@ -505,7 +514,7 @@ export function OrdenesSalidaGestion() {
             </tbody>
           </table>
         </div>
-        {!listando && totalItems > 0 && (
+        {!esCuentaVigilante && !listando && totalItems > 0 && (
           <div className="p-4 border-t border-gray-200 flex justify-center">
             <Pagination
               currentPage={currentPage}
