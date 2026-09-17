@@ -8,6 +8,7 @@ import {
     JEFES_GENERAL_QUERY_KEY,
     USUARIOS_JEFES_QUERY_KEY,
 } from './useJefesGeneral';
+import { JEFES_QUERY_KEYS } from './useJefes';
 
 /**
  * Hook de acciones de usuario con React Query Mutations
@@ -33,6 +34,7 @@ export function useUsuarioActions() {
         onSuccess: () => {
             showSuccess('Jefe asignado correctamente');
             invalidateUsuarios();
+            queryClient.invalidateQueries({ queryKey: JEFES_QUERY_KEYS.all });
         },
         onError: (error: Error) => {
             showError(error.message || 'Error al asignar jefe');
@@ -59,6 +61,7 @@ export function useUsuarioActions() {
             invalidateUsuarios();
             queryClient.invalidateQueries({ queryKey: JEFES_GENERAL_QUERY_KEY });
             queryClient.invalidateQueries({ queryKey: USUARIOS_JEFES_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: JEFES_QUERY_KEYS.all });
         },
         onError: (error: Error) => {
             showError(error.message || 'Error al crear jefe');
@@ -152,6 +155,7 @@ export function useUsuarioActions() {
         onSuccess: () => {
             showSuccess('Usuario creado correctamente');
             invalidateUsuarios();
+            queryClient.invalidateQueries({ queryKey: USUARIOS_JEFES_QUERY_KEY });
         },
         onError: (error: Error) => {
             showError(error.message || 'Error al crear usuario');

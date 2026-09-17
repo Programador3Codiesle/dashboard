@@ -84,7 +84,7 @@ export const UsuariosTable = memo(function UsuariosTable() {
   const { sedes: todasLasSedes } = useSedes({ enabled: sedesModalOpen });
   const { perfiles: todosLosPerfiles } = usePerfiles({ enabled: editModalOpen });
   const { jefes: jefesDelUsuario, refetch: refetchJefes } = useJefesUsuario(
-    selectedUsuario?.idEmpleado,
+    selectedUsuario?.nit || selectedUsuario?.idEmpleado,
     jefeModalOpen,
   );
   const { sedes: sedesDelUsuario, refetch: refetchSedes } = useSedesUsuario(
@@ -200,8 +200,11 @@ export const UsuariosTable = memo(function UsuariosTable() {
 
   const handleAsignarJefe = useCallback(
     async (jefeId: string) => {
-      if (!selectedUsuario || !selectedUsuario.idEmpleado) return;
-      const success = await asignarJefe(selectedUsuario.idEmpleado, jefeId);
+      if (!selectedUsuario) return;
+      const claveEmpleado =
+        selectedUsuario.nit || selectedUsuario.idEmpleado;
+      if (!claveEmpleado) return;
+      const success = await asignarJefe(claveEmpleado, jefeId);
       if (success) {
         refetchJefes();
       }
@@ -211,8 +214,11 @@ export const UsuariosTable = memo(function UsuariosTable() {
 
   const handleEliminarJefe = useCallback(
     async (jefeId: string) => {
-      if (!selectedUsuario || !selectedUsuario.idEmpleado) return;
-      const success = await eliminarJefe(selectedUsuario.idEmpleado, jefeId);
+      if (!selectedUsuario) return;
+      const claveEmpleado =
+        selectedUsuario.nit || selectedUsuario.idEmpleado;
+      if (!claveEmpleado) return;
+      const success = await eliminarJefe(claveEmpleado, jefeId);
       if (success) {
         refetchJefes();
       }

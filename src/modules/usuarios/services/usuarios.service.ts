@@ -69,19 +69,25 @@ export const usuariosService = {
     async asignarJefe(idEmpleado: string, jefeId: string): Promise<IJefe> {
         const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/asignar-jefe`, {
             method: 'POST',
-            body: JSON.stringify({ jefeId }),
+            body: JSON.stringify({ jefeId: Number(jefeId) }),
         });
-        if (!response.ok) throw new Error('Error al asignar jefe');
-        return response.json();
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(data?.message || 'Error al asignar jefe');
+        }
+        return data as IJefe;
     },
 
     async eliminarJefe(idEmpleado: string, jefeId: string): Promise<IJefe> {
         const response = await fetchWithAuth(`${API_URL}/usuarios/${idEmpleado}/eliminar-jefe`, {
             method: 'DELETE',
-            body: JSON.stringify({ jefeId }),
+            body: JSON.stringify({ jefeId: Number(jefeId) }),
         });
-        if (!response.ok) throw new Error('Error al eliminar jefe');
-        return response.json();
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(data?.message || 'Error al eliminar jefe');
+        }
+        return data as IJefe;
     },
 
     // ========== SEDES ==========
@@ -146,10 +152,11 @@ export const usuariosService = {
     },
 
     // ========== HORARIO ==========
-    async getHorario(nit: string): Promise<IHorarioApi> {
+    async getHorario(nit: string): Promise<IHorarioApi | null> {
         const response = await fetchWithAuth(`${API_URL}/usuarios/${nit}/horario`, {
             method: 'GET',
         });
+        if (response.status === 404) return null;
         if (!response.ok) throw new Error('Error al cargar horario');
         return response.json();
     },
