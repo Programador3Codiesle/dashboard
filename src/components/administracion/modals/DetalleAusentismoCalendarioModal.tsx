@@ -3,17 +3,12 @@
 import Modal from "@/components/shared/ui/Modal";
 import { Calendar, FileText } from "lucide-react";
 import type { AusentismoCalendario } from "@/modules/administracion/services/nuevo-ausentismo.service";
+import { claseBadgeEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
 
 interface DetalleAusentismoCalendarioModalProps {
   open: boolean;
   onClose: () => void;
   ausentismo: AusentismoCalendario | null;
-}
-
-function getEstadoBadgeClasses(estado: string) {
-  if (estado === "Aprobado" || estado === "Autorizado") return "bg-green-100 text-green-700";
-  if (estado === "Rechazado") return "bg-red-100 text-red-700";
-  return "bg-yellow-100 text-yellow-700";
 }
 
 export default function DetalleAusentismoCalendarioModal({
@@ -41,7 +36,7 @@ export default function DetalleAusentismoCalendarioModal({
             <div>
               <span className="text-gray-500">Estado</span>
               <span
-                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getEstadoBadgeClasses(ausentismo.estado)}`}
+                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${claseBadgeEstadoAutorizacion(ausentismo.estado)}`}
               >
                 {ausentismo.estado}
               </span>

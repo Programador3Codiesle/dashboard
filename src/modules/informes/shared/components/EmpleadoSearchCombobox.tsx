@@ -18,20 +18,27 @@ function normalizar(texto: string): string {
 
 type EmpleadoSearchComboboxProps = {
   id?: string;
+  name?: string;
   empleados: EmpleadoComboOption[];
   value: string;
   onChange: (nit: string) => void;
   cargando?: boolean;
   placeholder?: string;
+  required?: boolean;
+  /** `null` oculta la opción vacía (formularios obligatorios). */
+  emptyOptionLabel?: string | null;
 };
 
 export function EmpleadoSearchCombobox({
   id,
+  name,
   empleados,
   value,
   onChange,
   cargando = false,
   placeholder = "Buscar por nombre...",
+  required = false,
+  emptyOptionLabel = "Todos los empleados",
 }: EmpleadoSearchComboboxProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
@@ -58,6 +65,8 @@ export function EmpleadoSearchCombobox({
 
   const visibles = filtrados.slice(0, MAX_VISIBLE);
   const textoMostrado = abierto || !seleccionado ? query : seleccionado.nombres;
+  const mostrarVacio = emptyOptionLabel != null;
+  const indicePrimeraOpcion = mostrarVacio ? 1 : 0;
 
   useEffect(() => {
     const onDocMouseDown = (event: MouseEvent) => {
@@ -93,20 +102,25 @@ export function EmpleadoSearchCombobox({
         aria-expanded={abierto}
         aria-controls={listId}
         aria-autocomplete="list"
+        aria-required={required}
         placeholder={cargando ? "Cargando empleados..." : placeholder}
         className={INPUT_CLASS}
         onChange={(e) => {
           setQuery(e.target.value);
           onChange("");
           setAbierto(true);
-          setActivo(e.target.value.trim() ? 1 : 0);
+          setActivo(
+            mostrarVacio && !e.target.value.trim() ? 0 : indicePrimeraOpcion,
+          );
         }}
         onFocus={() => {
           setQuery(seleccionado?.nombres ?? query);
           setAbierto(true);
         }}
         onKeyDown={(e) => {
-          const maxActivo = visibles.length;
+          const maxActivo = mostrarVacio
+            ? visibles.length
+            : Math.max(visibles.length - 1, 0);
           if (!abierto && (e.key === "ArrowDown" || e.key === "Enter")) {
             setAbierto(true);
             return;
@@ -127,11 +141,11 @@ export function EmpleadoSearchCombobox({
           }
           if (e.key === "Enter" && abierto) {
             e.preventDefault();
-            if (activo === 0) {
+            if (mostrarVacio && activo === 0) {
               seleccionar(null);
               return;
             }
-            const elegido = visibles[activo - 1];
+            const elegido = visibles[activo - indicePrimeraOpcion];
             if (elegido) seleccionar(elegido);
           }
         }}
@@ -151,26 +165,38 @@ export function EmpleadoSearchCombobox({
         size={18}
         aria-hidden="true"
       />
+      {required ? (
+        <input
+          className="sr-only"
+          tabIndex={-1}
+          name={name}
+          value={value}
+          required
+          onChange={() => undefined}
+        />
+      ) : null}
       {abierto && !cargando ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
         >
-          <li role="option" aria-selected={!value}>
-            <button
-              type="button"
-              className={`block w-full px-3 py-2 text-left text-sm ${
-                activo === 0
-                  ? "brand-bg text-white"
-                  : "text-gray-500 hover:bg-gray-50"
-              }`}
-              onMouseEnter={() => setActivo(0)}
-              onClick={() => seleccionar(null)}
-            >
-              Todos los empleados
-            </button>
-          </li>
+          {mostrarVacio ? (
+            <li role="option" aria-selected={!value}>
+              <button
+                type="button"
+                className={`block w-full px-3 py-2 text-left text-sm ${
+                  activo === 0
+                    ? "brand-bg text-white"
+                    : "text-gray-500 hover:bg-gray-50"
+                }`}
+                onMouseEnter={() => setActivo(0)}
+                onClick={() => seleccionar(null)}
+              >
+                {emptyOptionLabel}
+              </button>
+            </li>
+          ) : null}
           {visibles.length === 0 ? (
             <li className="px-3 py-2 text-sm text-gray-500">
               Sin coincidencias
@@ -185,11 +211,11 @@ export function EmpleadoSearchCombobox({
                 <button
                   type="button"
                   className={`block w-full px-3 py-2 text-left text-sm ${
-                    index + 1 === activo
+                    index + indicePrimeraOpcion === activo
                       ? "brand-bg text-white"
                       : "text-gray-800 hover:bg-gray-50"
                   }`}
-                  onMouseEnter={() => setActivo(index + 1)}
+                  onMouseEnter={() => setActivo(index + indicePrimeraOpcion)}
                   onClick={() => seleccionar(empleado)}
                 >
                   {empleado.nombres}

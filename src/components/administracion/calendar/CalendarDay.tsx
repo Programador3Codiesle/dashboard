@@ -3,6 +3,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import type { AusentismoCalendario } from '@/modules/administracion/services/nuevo-ausentismo.service';
+import { claseChipEstadoCalendario } from '@/modules/administracion/shared/utils/estado-autorizacion';
 
 export interface CalendarDayProps {
   date: string | null;
@@ -60,8 +61,8 @@ export const CalendarDay = React.memo(({
             key={a.id}
             type="button"
             onClick={(e) => handleDetalleClick(e, a)}
-            className="w-full text-left text-xs font-medium text-white bg-[var(--color-primary)] hover:opacity-90 truncate block rounded px-1 py-0.5 transition-opacity"
-            title={`${a.horaInicio} - ${a.horaFin} ${a.motivo}`}
+            className={`w-full text-left text-xs font-medium truncate block rounded px-1 py-0.5 transition-opacity ${claseChipEstadoCalendario(a.estado)}`}
+            title={`${a.horaInicio} - ${a.horaFin} ${a.motivo} (${a.estado})`}
           >
             {a.horaInicio}-{a.horaFin} {a.motivo}
           </button>
@@ -82,7 +83,14 @@ export const CalendarDay = React.memo(({
 }, (prevProps, nextProps) => {
   if (prevProps.date !== nextProps.date) return false;
   if (prevProps.ausentismos.length !== nextProps.ausentismos.length) return false;
-  if (prevProps.ausentismos.some((a, i) => a.id !== nextProps.ausentismos[i]?.id)) return false;
+  if (
+    prevProps.ausentismos.some(
+      (a, i) =>
+        a.id !== nextProps.ausentismos[i]?.id ||
+        a.estado !== nextProps.ausentismos[i]?.estado,
+    )
+  )
+    return false;
   if (prevProps.onCrear !== nextProps.onCrear || prevProps.onVerDetalle !== nextProps.onVerDetalle) return false;
   return true;
 });

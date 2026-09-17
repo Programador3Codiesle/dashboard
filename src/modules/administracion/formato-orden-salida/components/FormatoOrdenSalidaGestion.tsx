@@ -9,43 +9,44 @@ import {
   type CrearOrdenSalidaDTO,
 } from '@/modules/administracion/services/formato-orden-salida.service';
 import { useToast } from '@/components/shared/ui/ToastContext';
-import { useMisJefes } from '@/modules/usuarios/hooks/useJefes';
 import { useSedesByEmpresa } from '@/modules/administracion/hooks/useSedesByEmpresa';
 import { catalogQueryOptions } from '@/core/query/catalog-query-options';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import { ADMINISTRACION_COPY, labelSede } from '@/modules/administracion/constants';
+import { JefeAutorizaCombobox } from '@/modules/administracion/formato-orden-salida/components/JefeAutorizaCombobox';
+import {
+  AREAS_FORMATO_ORDEN_SALIDA,
+  FORMATO_OS_ACCESS_NITS,
+  comboJefesFormatoOrdenSalida,
+} from '@/modules/administracion/formato-orden-salida/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
 import { FORMATO_ORDEN_SALIDA_SUBMENU_ID } from '@/utils/constants';
 
-const AREAS = [
-  'Administración',
-  'Central de Beneficios',
-  'Vehículos Nuevos',
-  'Vehículos Usados',
-  'Repuestos',
-  'Taller Gasolina',
-  'Taller Diesel',
-  'Lamina y Pintura',
-  'Alistamiento',
-  'Contact Center',
-  'Accesorios',
-];
-
 export function FormatoOrdenSalidaGestion() {
   const { user, blocked } = useAdministracionPageGuard(
     FORMATO_ORDEN_SALIDA_SUBMENU_ID,
+    { allowedNits: FORMATO_OS_ACCESS_NITS },
   );
   const sesionLista = !!user && !blocked;
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const sedes = useSedesByEmpresa();
-  const { jefes, isLoading: loadingJefes } = useMisJefes({
-    enabled: sesionLista,
-  });
+  const nitUsuario =
+    user?.nit_usuario != null ? Number(user.nit_usuario) : Number.NaN;
+  const jefes = useMemo(() => {
+    if (!sesionLista || !Number.isFinite(nitUsuario)) return [];
+    const nombre =
+      user?.nombre_usuario?.trim() ||
+      user?.name?.trim() ||
+      String(nitUsuario);
+    return comboJefesFormatoOrdenSalida(nitUsuario, nombre);
+  }, [sesionLista, nitUsuario, user?.nombre_usuario, user?.name]);
   const { showError, showSuccess } = useToast();
   const [selectedJefeNit, setSelectedJefeNit] = useState<number | null>(null);
+  const [jefeComboKey, setJefeComboKey] = useState(0);
+  const jefeBuscable = jefes.length > 1;
   const [form, setForm] = useState<CrearOrdenSalidaDTO>({
     fecha_salida: today,
     area: '',
@@ -113,11 +114,22 @@ export function FormatoOrdenSalidaGestion() {
         id_empresa: idEmpresa,
       });
       setSelectedJefeNit(null);
+      setJefeComboKey((key) => key + 1);
     },
     onError: () => {
       showError('Ha ocurrido un error al guardar la información.');
     },
   });
+
+  const seleccionarJefe = (nit: number | null) => {
+    if (nit == null || nit <= 0) {
+      setSelectedJefeNit(null);
+      setForm((prev) => ({ ...prev, jefe: 0, tipoSalida: 0 }));
+      return;
+    }
+    setSelectedJefeNit(nit);
+    setForm((prev) => ({ ...prev, jefe: nit, tipoSalida: 0 }));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -230,9 +242,9 @@ export function FormatoOrdenSalidaGestion() {
               required
             >
               <option value="">Seleccione una opción</option>
-              {AREAS.map((area) => (
-                <option key={area} value={area}>
-                  {area}
+              {AREAS_FORMATO_ORDEN_SALIDA.map((area) => (
+                <option key={area.value} value={area.value}>
+                  {area.label}
                 </option>
               ))}
             </select>
@@ -262,41 +274,45 @@ export function FormatoOrdenSalidaGestion() {
 
         <div className="app-filter-grid gap-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label
+              htmlFor="adm-os-jefe"
+              className="block text-sm font-semibold text-gray-700 mb-1"
+            >
               Jefe autoriza
             </label>
-            <select
-              name="jefe"
-              data-testid="adm-os-jefe"
-              value={selectedJefeNit ?? ''}
-              onChange={(e) => {
-                const nit = Number(e.target.value);
-                const jefe = jefes.find((j) => j.nit && Number(j.nit) === nit);
-                if (!jefe || !jefe.nit) {
-                  setSelectedJefeNit(null);
-                  setForm((prev) => ({ ...prev, jefe: 0, tipoSalida: 0 }));
-                  return;
-                }
-                setSelectedJefeNit(nit);
-                setForm((prev) => ({ ...prev, jefe: nit, tipoSalida: 0 }));
-              }}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
-              required
-              disabled={loadingJefes}
-            >
-              <option value="">
-                {loadingJefes
-                  ? 'Cargando jefes...'
-                  : jefes.length === 0
-                    ? 'No hay jefes configurados'
-                    : 'Seleccione una opción'}
-              </option>
-              {jefes.map((jefe) => (
-                <option key={jefe.id} value={jefe.nit ?? ''}>
-                  {jefe.nombre}
-                </option>
-              ))}
-            </select>
+            {jefeBuscable ? (
+              <JefeAutorizaCombobox
+                key={jefeComboKey}
+                id="adm-os-jefe"
+                name="jefe"
+                jefes={jefes}
+                value={selectedJefeNit}
+                onChange={seleccionarJefe}
+                required
+              />
+            ) : (
+              <select
+                id="adm-os-jefe"
+                name="jefe"
+                data-testid="adm-os-jefe"
+                value={selectedJefeNit ?? ''}
+                onChange={(e) => {
+                  const nit = Number(e.target.value);
+                  seleccionarJefe(
+                    Number.isFinite(nit) && nit > 0 ? nit : null,
+                  );
+                }}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                required
+              >
+                <option value="">Seleccione una opción</option>
+                {jefes.map((jefe) => (
+                  <option key={jefe.nit} value={jefe.nit}>
+                    {jefe.nombre}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>

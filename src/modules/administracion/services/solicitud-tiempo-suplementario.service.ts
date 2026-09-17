@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { etiquetaEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
 
 const API_URL = getApiBaseUrl();
 
@@ -43,12 +44,6 @@ export interface NuevaSolicitudTiempoSuplementarioDTO {
   empleado?: number;
 }
 
-const ESTADOS: Record<number, string> = {
-  0: "Pendiente",
-  1: "Aprobado",
-  2: "Rechazado",
-};
-
 export const solicitudTiempoSuplementarioService = {
   async crearSolicitud(dto: NuevaSolicitudTiempoSuplementarioDTO): Promise<TiempoSuplementarioCalendario> {
     const response = await fetchWithAuth(`${API_URL}/administracion/solicitud-tiempo-suplementario`, {
@@ -84,7 +79,7 @@ export const solicitudTiempoSuplementarioService = {
       horaInicio: item.hora_ini || "",
       horaFin: item.hora_fin || "",
       descripcion: item.descripcion,
-      estado: ESTADOS[item.estado] || "Pendiente",
+      estado: etiquetaEstadoAutorizacion(item.estado),
     };
   },
 
@@ -107,7 +102,7 @@ export const solicitudTiempoSuplementarioService = {
       horaInicio: item.hora_ini || "",
       horaFin: item.hora_fin || "",
       descripcion: item.descripcion,
-      estado: ESTADOS[item.estado] || "Pendiente",
+      estado: etiquetaEstadoAutorizacion(item.estado),
       area: item.area,
       cargo: item.cargo_emp,
       sede: item.sede,

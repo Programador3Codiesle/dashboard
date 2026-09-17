@@ -470,6 +470,7 @@ export interface NuevoAusentismoDTO {
   descripcionMotivo: string;
   id_empresa?: number;
   archivoSoporte?: File;
+  recuperacion?: Array<{ fecha: string; horaInicio: string; horaFin: string }>;
 }
 
 // ========== TIEMPO SUPLEMENTARIO ==========

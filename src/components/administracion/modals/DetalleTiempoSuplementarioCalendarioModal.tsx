@@ -3,17 +3,12 @@
 import Modal from "@/components/shared/ui/Modal";
 import { Calendar, FileText, User } from "lucide-react";
 import type { TiempoSuplementarioCalendario } from "@/modules/administracion/services/solicitud-tiempo-suplementario.service";
+import { claseBadgeEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
 
 interface DetalleTiempoSuplementarioCalendarioModalProps {
   open: boolean;
   onClose: () => void;
   item: TiempoSuplementarioCalendario | null;
-}
-
-function getEstadoBadgeClasses(estado: string) {
-  if (estado === "Aprobado" || estado === "Autorizado") return "bg-green-100 text-green-700";
-  if (estado === "Rechazado") return "bg-red-100 text-red-700";
-  return "bg-yellow-100 text-yellow-700";
 }
 
 export default function DetalleTiempoSuplementarioCalendarioModal({
@@ -71,7 +66,7 @@ export default function DetalleTiempoSuplementarioCalendarioModal({
             <div>
               <span className="text-gray-500">Estado</span>
               <span
-                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getEstadoBadgeClasses(item.estado)}`}
+                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${claseBadgeEstadoAutorizacion(item.estado)}`}
               >
                 {item.estado}
               </span>

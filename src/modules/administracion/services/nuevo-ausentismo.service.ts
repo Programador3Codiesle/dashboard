@@ -1,6 +1,7 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
 import { parseError } from "@/modules/administracion/shared/utils/parse-api-error";
+import { etiquetaEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
 
 const API_URL = getApiBaseUrl();
 
@@ -43,19 +44,13 @@ export interface NuevoAusentismoDTO {
   descripcionMotivo: string;
   id_empresa?: number;
   archivoSoporte?: File;
+  recuperacion?: Array<{ fecha: string; horaInicio: string; horaFin: string }>;
 }
 
 type ApiMessageResponse<T = unknown> = {
   status: boolean;
   message: string;
   data?: T;
-};
-
-// Mapeo de estados de autorización
-const ESTADOS_AUTORIZACION: Record<number, string> = {
-  0: "Pendiente",
-  1: "Aprobado",
-  2: "Rechazado",
 };
 
 // ========== Servicio ==========
@@ -79,6 +74,18 @@ export const nuevoAusentismoService = {
     }
     if (dto.archivoSoporte) {
       formData.append("archivo_soporte", dto.archivoSoporte);
+    }
+    if (dto.recuperacion && dto.recuperacion.length > 0) {
+      formData.append(
+        "recuperacion",
+        JSON.stringify(
+          dto.recuperacion.map((t) => ({
+            fecha: t.fecha,
+            hora_ini: t.horaInicio,
+            hora_fin: t.horaFin,
+          })),
+        ),
+      );
     }
 
     const response = await fetchWithAuth(`${API_URL}/administracion/nuevo-ausentismo`, {
@@ -104,7 +111,7 @@ export const nuevoAusentismoService = {
       horaFin: item.hora_fin || "",
       motivo: item.motivo || "",
       descripcion: item.descripcion,
-      estado: ESTADOS_AUTORIZACION[item.autorizacion] || "Pendiente",
+      estado: etiquetaEstadoAutorizacion(item.autorizacion),
     };
   },
 
@@ -132,7 +139,33 @@ export const nuevoAusentismoService = {
       horaFin: item.hora_fin || "",
       motivo: item.motivo || "",
       descripcion: item.descripcion,
-      estado: ESTADOS_AUTORIZACION[item.autorizacion] || "Pendiente",
+      estado: etiquetaEstadoAutorizacion(item.autorizacion),
     }));
+  },
+
+  async tiempoRestante(horasAusentismo: number): Promise<{
+    texto: string;
+    requiereRecuperacion: boolean;
+  }> {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/nuevo-ausentismo/tiempo-restante?horas=${encodeURIComponent(String(horasAusentismo))}`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      await parseError(response, "Error al calcular el tiempo restante");
+    }
+    return response.json();
+  },
+
+  async esDiaHabil(fecha: string): Promise<boolean> {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/nuevo-ausentismo/dia-habil?fecha=${encodeURIComponent(fecha)}`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      await parseError(response, "Error al validar el día hábil");
+    }
+    const data: { habil?: boolean } = await response.json();
+    return Boolean(data.habil);
   },
 };

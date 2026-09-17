@@ -3,6 +3,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import type { TiempoSuplementarioCalendario } from '@/modules/administracion/services/solicitud-tiempo-suplementario.service';
+import { claseChipEstadoCalendario } from '@/modules/administracion/shared/utils/estado-autorizacion';
 
 export interface TiempoSuplementarioCalendarDayProps {
   date: string | null;
@@ -61,8 +62,8 @@ export const TiempoSuplementarioCalendarDay = React.memo(({
             key={t.id}
             type="button"
             onClick={(e) => handleDetalleClick(e, t)}
-            className="w-full text-left text-xs font-medium text-white bg-[var(--color-primary)] hover:opacity-90 truncate block rounded px-1 py-0.5 transition-opacity"
-            title={`${t.horaInicio} - ${t.horaFin}`}
+            className={`w-full text-left text-xs font-medium truncate block rounded px-1 py-0.5 transition-opacity ${claseChipEstadoCalendario(t.estado)}`}
+            title={`${t.horaInicio} - ${t.horaFin} (${t.estado})`}
           >
             {t.horaInicio}-{t.horaFin}
           </button>
@@ -83,7 +84,13 @@ export const TiempoSuplementarioCalendarDay = React.memo(({
 }, (prevProps, nextProps) => {
   if (prevProps.date !== nextProps.date) return false;
   if (prevProps.tiempos.length !== nextProps.tiempos.length) return false;
-  if (prevProps.tiempos.some((t, i) => t.id !== nextProps.tiempos[i]?.id)) return false;
+  if (
+    prevProps.tiempos.some(
+      (t, i) =>
+        t.id !== nextProps.tiempos[i]?.id || t.estado !== nextProps.tiempos[i]?.estado,
+    )
+  )
+    return false;
   if (prevProps.onCrear !== nextProps.onCrear || prevProps.onVerDetalle !== nextProps.onVerDetalle) return false;
   return true;
 });
