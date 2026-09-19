@@ -21,4 +21,6 @@ export const mantenimientoKeys = {
     ['mantenimiento', 'informe-preventivo', estado, bodega] as const,
   informeCorrectivo: (estado: string, bodega: string) =>
     ['mantenimiento', 'informe-correctivo', estado, bodega] as const,
+  informeEquipos: (desde: string, hasta: string) =>
+    ['mantenimiento', 'equipos', 'informes', desde, hasta] as const,
 };

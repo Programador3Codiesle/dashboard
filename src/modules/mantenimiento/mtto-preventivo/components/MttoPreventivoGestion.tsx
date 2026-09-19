@@ -26,7 +26,7 @@ import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
 import { getErrorMessage } from '@/modules/mantenimiento/shared/utils/parse-api-error';
 import { estadoLabel } from '@/modules/mantenimiento/shared/constants/labels';
-import { PERIODOS_MTTO } from '@/modules/mantenimiento/equipos/utils/hoja-vida';
+import { PERIODOS_MTTO, nextFechaPorPeriodo, periodoMttoLabel } from '@/modules/mantenimiento/equipos/utils/hoja-vida';
 import { MTTO_PREVENTIVO_SUBMENU_ID } from '@/utils/constants';
 import { fetchWithAuth } from '@/utils/api';
 
@@ -118,7 +118,7 @@ export function MttoPreventivoGestion() {
       showError('Observación y piezas requeridos');
       return;
     }
-    const periodoActual = String(orden?.periodo_mtto_preventivo ?? '').trim();
+    const periodoActual = periodoDeOrden(orden);
     setPeriodoSelect(periodoActual || '');
     setModalReasignar(true);
   }
@@ -126,16 +126,16 @@ export function MttoPreventivoGestion() {
   async function confirmarFinalizar(reasignar: boolean) {
     if (!orden) return;
     if (reasignar) {
-      const periodoActual = String(orden.periodo_mtto_preventivo ?? '').trim();
+      const periodoActual = periodoDeOrden(orden);
       const periodo = periodoActual || periodoSelect;
-      if (!periodo || !PERIODO_MESES[periodo]) {
+      if (!periodo || !nextFechaPorPeriodo(todayYmdLocal(), periodo)) {
         showError('Seleccione un periodo para reasignar');
         return;
       }
     }
     setFinalizando(true);
     try {
-      const periodoActual = String(orden.periodo_mtto_preventivo ?? '').trim();
+      const periodoActual = periodoDeOrden(orden);
       const res = await mantenimientoService.finalizarOrden(
         Number(orden.id_mantenimientos),
         obs,
@@ -279,7 +279,7 @@ export function MttoPreventivoGestion() {
                 <MantenimientoInfoChip label="Bodega" value={String(orden.bodega ?? '')} />
                 <MantenimientoInfoChip
                   label="Periodo mtto"
-                  value={periodoLabel(orden.periodo_mtto_preventivo)}
+                  value={periodoMttoLabel(periodoDeOrden(orden))}
                 />
                 <MantenimientoInfoChip
                   label="Responsable"
@@ -407,7 +407,7 @@ export function MttoPreventivoGestion() {
 
       {orden && modalReasignar && (
         <ModalReasignarPreventivo
-          periodoEquipo={String(orden.periodo_mtto_preventivo ?? '').trim()}
+          periodoEquipo={periodoDeOrden(orden)}
           periodoSelect={periodoSelect}
           onPeriodoChange={setPeriodoSelect}
           busy={finalizando}
@@ -471,33 +471,14 @@ export function MttoPreventivoGestion() {
   );
 }
 
-function periodoLabel(periodo: unknown) {
-  const v = String(periodo ?? '').trim();
-  if (!v) return 'No aplica';
-  return PERIODOS_MTTO.find((p) => p.value === v)?.label ?? v;
+function periodoDeOrden(orden: Record<string, unknown> | null | undefined): string {
+  if (!orden) return '';
+  return String(orden.periodo_ciclo ?? orden.periodo_mtto_preventivo ?? '').trim();
 }
-
-const PERIODO_MESES: Record<string, number> = {
-  mensual: 1,
-  trimestral: 3,
-  semestral: 6,
-  anual: 12,
-};
 
 function todayYmdLocal() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function addMonthsYmd(ymd: string, months: number): string {
-  const [y, m, d] = ymd.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  const day = date.getDate();
-  date.setDate(1);
-  date.setMonth(date.getMonth() + months);
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  date.setDate(Math.min(day, lastDay));
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function formatFechaEs(ymd: string) {
@@ -528,8 +509,9 @@ function ModalReasignarPreventivo({
   onClose: () => void;
 }) {
   const periodoEfectivo = periodoEquipo || periodoSelect;
-  const meses = PERIODO_MESES[periodoEfectivo];
-  const fechaProx = meses ? addMonthsYmd(todayYmdLocal(), meses) : '';
+  const fechaProx = periodoEfectivo
+    ? nextFechaPorPeriodo(todayYmdLocal(), periodoEfectivo)
+    : '';
   const sinPeriodo = !periodoEquipo;
 
   return (
@@ -549,8 +531,7 @@ function ModalReasignarPreventivo({
         </div>
         <div className="space-y-4 p-5">
           <p className="text-sm text-gray-700">
-            ¿Desea reasignar el mantenimiento preventivo de este equipo para el
-            próximo periodo?
+            ¿Desea reasignar este periodo de preventivo para el próximo ciclo?
           </p>
 
           {sinPeriodo ? (
@@ -563,7 +544,7 @@ function ModalReasignarPreventivo({
                 disabled={busy}
               >
                 <option value="">Seleccione periodo</option>
-                {PERIODOS_MTTO.filter((p) => p.value).map((p) => (
+                {PERIODOS_MTTO.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}
                   </option>
@@ -572,8 +553,8 @@ function ModalReasignarPreventivo({
             </label>
           ) : (
             <p className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-800">
-              Periodo del equipo:{' '}
-              <span className="font-semibold">{periodoLabel(periodoEquipo)}</span>
+              Periodo de esta OT:{' '}
+              <span className="font-semibold">{periodoMttoLabel(periodoEquipo)}</span>
             </p>
           )}
 
@@ -585,8 +566,8 @@ function ModalReasignarPreventivo({
           ) : null}
 
           <p className="text-xs text-gray-500">
-            Si elige <strong>No</strong>, la orden queda en Realizado y no se
-            crea una nueva solicitud.
+            Si elige <strong>No</strong>, la orden queda en Realizado y se
+            desactiva solo este periodo del equipo.
           </p>
         </div>
         <div className="flex flex-col-reverse gap-2 border-t bg-gray-50 px-5 py-3 sm:flex-row sm:justify-end">

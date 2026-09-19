@@ -72,6 +72,15 @@ export const mantenimientoService = {
       elementos: Array<{ orden: number; texto: string }>;
       recomendaciones: Array<{ orden: number; texto: string }>;
       mtto_operativo: Array<{ orden: number; texto: string }>;
+      periodos_mtto: Array<{
+        id: number;
+        periodo: string;
+        fecha_inicio: string;
+        descripcion: string;
+        fecha_proxima: string | null;
+        activo: boolean;
+        orden: number;
+      }>;
       historial: {
         preventivo: Array<Record<string, unknown>>;
         correctivo: Array<Record<string, unknown>>;
@@ -304,5 +313,29 @@ export const mantenimientoService = {
     const resp = await fetchWithAuth(`${BASE}/informes/correctivo?${q}`);
     if (!resp.ok) await parseError(resp, 'Error informe correctivo');
     return resp.json() as Promise<Array<Record<string, unknown>>>;
+  },
+
+  async informeEquiposPreventivo(desde: string, hasta: string) {
+    const q = new URLSearchParams({ desde, hasta });
+    const resp = await fetchWithAuth(`${BASE}/equipos/informes?${q}`);
+    if (!resp.ok) await parseError(resp, 'Error informe de equipos');
+    return resp.json() as Promise<{
+      desde: string;
+      hasta: string;
+      total: number;
+      resumen: Array<{ mes: string; label: string; total: number }>;
+      listado: Array<{
+        id_mantenimientos: number;
+        codigo: string;
+        nombre_equipo: string;
+        area: string;
+        bodega: string;
+        periodo: string | null;
+        fecha_final: string;
+        fecha_requerida: string;
+        descripcion: string;
+        asignado: string | null;
+      }>;
+    }>;
   },
 };

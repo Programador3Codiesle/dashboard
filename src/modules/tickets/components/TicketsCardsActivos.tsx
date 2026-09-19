@@ -23,6 +23,7 @@ import {
   TICKETS_ENCARGADO_EN_PROCESO_CLASS,
   TICKETS_PRIORIDAD_CLASS,
 } from '@/modules/tickets/constants';
+import { formatFechaTicket } from '@/modules/tickets/utils/fecha-ticket';
 import { getNombreCorto } from '@/modules/tickets/utils/nombre-corto';
 import { toResponderTicketPayload } from '@/modules/tickets/utils/responder-payload';
 import ReasignarTicketModal from './modals/ReasignarTicketModal';
@@ -117,9 +118,11 @@ function TicketsCardsActivosComponent({
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500 flex items-center gap-1 shrink-0">
-                    <Calendar size={12} />
-                    {new Date(t.fechaCreacion).toLocaleDateString()}
+                  <span className="text-xs text-gray-500 flex items-start gap-1 shrink-0 sm:text-right">
+                    <Calendar size={12} className="mt-0.5 shrink-0" />
+                    <span className="leading-tight tabular-nums">
+                      {formatFechaTicket(t.fechaCreacion)}
+                    </span>
                   </span>
                 </div>
 

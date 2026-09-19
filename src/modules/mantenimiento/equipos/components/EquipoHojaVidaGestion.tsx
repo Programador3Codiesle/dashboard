@@ -29,7 +29,7 @@ import {
   HojaVidaFormFields,
   type HojaVidaFormState,
 } from './HojaVidaFormFields';
-import { appendHojaVidaToForm, emptyTecnicos, emptyHidraulicos } from '../utils/hoja-vida';
+import { appendHojaVidaToForm, emptyTecnicos, emptyHidraulicos, errorPeriodosMtto, periodoMttoLabel } from '../utils/hoja-vida';
 
 type HojaVidaRes = Awaited<ReturnType<typeof mantenimientoService.getHojaVida>>;
 
@@ -59,7 +59,6 @@ function snapshotFromHoja(res: HojaVidaRes): {
       ubicacion: String(eq.ubicacion ?? ''),
       sector: String(eq.sector ?? ''),
       descripcion: String(eq.descripcion ?? ''),
-      periodo_mtto_preventivo: String(eq.periodo_mtto_preventivo ?? ''),
       dist_nombre: String(eq.dist_nombre ?? ''),
       dist_direccion: String(eq.dist_direccion ?? ''),
       dist_telefono: String(eq.dist_telefono ?? ''),
@@ -90,6 +89,12 @@ function snapshotFromHoja(res: HojaVidaRes): {
       elementos: res.elementos.map((e) => e.texto),
       recomendaciones: res.recomendaciones.map((e) => e.texto),
       mtto_operativo: res.mtto_operativo.map((e) => e.texto),
+      periodos_mtto: (res.periodos_mtto ?? []).map((p) => ({
+        id: p.id,
+        periodo: p.periodo,
+        fecha_inicio: String(p.fecha_inicio ?? '').slice(0, 10),
+        descripcion: String(p.descripcion ?? ''),
+      })),
       file: null,
     } satisfies HojaVidaFormState,
   };
@@ -224,6 +229,8 @@ export function EquipoHojaVidaGestion() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const errPeriodos = errorPeriodosMtto(hoja.periodos_mtto);
+      if (errPeriodos) throw new Error(errPeriodos);
       const form = new FormData();
       form.append('nombre_equipo', nombre);
       form.append('alias_equipo', alias);
@@ -274,7 +281,7 @@ export function EquipoHojaVidaGestion() {
   const foto =
     imgUrl(String(eq.imagen_equipo ?? '')) ||
     imgUrl(String(eq.cv_equipo ?? ''));
-  const periodo = String(eq.periodo_mtto_preventivo ?? '');
+  const periodos = data.periodos_mtto ?? [];
   const tieneDist = Boolean(
     eq.dist_nombre || eq.dist_telefono || eq.dist_direccion,
   );
@@ -432,11 +439,18 @@ export function EquipoHojaVidaGestion() {
                       <p className="text-sm text-gray-500">{String(eq.alias_equipo)}</p>
                     ) : null}
                   </div>
-                  {periodo ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--color-warning)]">
-                      <Wrench className="h-3 w-3" />
-                      Mtto {periodo}
-                    </span>
+                  {periodos.length > 0 ? (
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {periodos.map((p) => (
+                        <span
+                          key={p.id}
+                          className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--color-warning)]"
+                        >
+                          <Wrench className="h-3 w-3" />
+                          {periodoMttoLabel(p.periodo)}
+                        </span>
+                      ))}
+                    </div>
                   ) : null}
                 </div>
 
@@ -456,7 +470,6 @@ export function EquipoHojaVidaGestion() {
                       label="Sector"
                       value={String(eq.sector ?? eq.area ?? '')}
                     />
-                    <MetaRow label="Periodo" value={periodo || 'No aplica'} />
                   </div>
                 </div>
 
@@ -526,6 +539,34 @@ export function EquipoHojaVidaGestion() {
                 items={data.elementos}
                 cols={2}
               />
+              {periodos.length > 0 ? (
+                <section className="rounded-xl border border-gray-200/80 bg-white p-3.5">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Periodos de preventivo
+                  </h3>
+                  <ul className="space-y-1.5 text-[13px] text-gray-800">
+                    {periodos.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex flex-col gap-0.5 border-b border-gray-100 py-1.5 last:border-0"
+                      >
+                        <span className="whitespace-pre-wrap font-medium">
+                          {p.descripcion?.trim() || periodoMttoLabel(p.periodo)}
+                        </span>
+                        <span className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-500">
+                          <span>{periodoMttoLabel(p.periodo)}</span>
+                          <span>
+                            Próxima:{' '}
+                            {p.fecha_proxima
+                              ? String(p.fecha_proxima).slice(0, 10)
+                              : 'sin OT pendiente'}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
               <div className="grid gap-3 md:grid-cols-2">
                 <ListaCompacta
                   title="Recomendaciones de uso"

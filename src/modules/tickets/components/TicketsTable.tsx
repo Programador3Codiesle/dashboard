@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ITicket, Prioridad } from '@/modules/tickets/types';
 import { usePagination } from '@/components/shared/ui/hooks/usePagination';
 import { Pagination } from '@/components/shared/ui/Pagination';
+import { formatFechaTicket } from '@/modules/tickets/utils/fecha-ticket';
 import VerTicketModal from './modals/VerTicketModal';
 
 const HEADERS = [
@@ -14,7 +15,7 @@ const HEADERS = [
   'Soporte',
   'Usuario',
   'Encargado',
-  'Fecha',
+  'Fecha y hora',
 ] as const;
 
 export function TicketsPrioridadBadge({ prioridad }: { prioridad: Prioridad }) {
@@ -141,10 +142,10 @@ export function TicketsTable({
                   {renderEncargado(ticket)}
                 </td>
                 <td className="py-3 px-3 sm:py-5 sm:px-6 whitespace-nowrap">
-                  <span className="text-sm text-gray-600">
-                    {new Date(
+                  <span className="text-sm text-gray-600 tabular-nums">
+                    {formatFechaTicket(
                       getFecha?.(ticket) || ticket.fechaCreacion,
-                    ).toLocaleDateString()}
+                    )}
                   </span>
                 </td>
                 {showActions ? (

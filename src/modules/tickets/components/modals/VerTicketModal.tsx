@@ -17,6 +17,7 @@ import {
 import { resolveTicketPublicFileUrl } from "@/config/public-env";
 import { useTicketDetail } from "@/modules/tickets/hooks/useTicketDetail";
 import { ITicket } from "@/modules/tickets/types";
+import { formatFechaTicket } from "@/modules/tickets/utils/fecha-ticket";
 import {
   splitRespuestasTicket,
   ticketAdjuntoKind,
@@ -29,13 +30,6 @@ function estadoLabel(estado: string | undefined): string {
   if (v === "activo") return "Activo";
   if (v === "abierto") return "Abierto";
   return estado || "—";
-}
-
-function formatFecha(iso: string | undefined): string {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("es-CO");
 }
 
 export default function VerTicketModal({
@@ -124,8 +118,8 @@ export default function VerTicketModal({
               />
               <Campo
                 icon={<Calendar size={14} className="text-gray-400" />}
-                label="Fecha"
-                value={formatFecha(display.fechaCreacion)}
+                label="Fecha y hora"
+                value={formatFechaTicket(display.fechaCreacion)}
               />
               <Campo
                 icon={<FileText size={14} className="text-gray-400" />}

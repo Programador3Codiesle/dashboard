@@ -35,6 +35,11 @@ export const MANTENIMIENTO_COPY = {
     loadError: 'Error informe correctivo',
     empty: 'Sin información',
   },
+  informeEquipos: {
+    title: 'Informe de preventivos por equipo',
+    loadError: 'Error al cargar informe de equipos',
+    empty: 'Sin preventivos realizados en el rango',
+  },
   hojaVida: {
     loadError: 'Error al cargar hoja de vida',
     empty: 'Equipo no encontrado',

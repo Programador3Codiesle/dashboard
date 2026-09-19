@@ -6,6 +6,7 @@ import {
   PERIODOS_MTTO,
   type DatosHidraulicosForm,
   type DatosTecnicosForm,
+  type PeriodoMttoForm,
 } from '../utils/hoja-vida';
 
 function ListaDinamica({
@@ -65,6 +66,118 @@ function ListaDinamica({
   );
 }
 
+function ListaPeriodosMtto({
+  items,
+  onChange,
+}: {
+  items: PeriodoMttoForm[];
+  onChange: (items: PeriodoMttoForm[]) => void;
+}) {
+  const usados = new Set(items.map((p) => p.periodo).filter(Boolean));
+  const puedeAgregar = PERIODOS_MTTO.some((p) => !usados.has(p.value));
+
+  function patch(i: number, next: Partial<PeriodoMttoForm>) {
+    const copy = [...items];
+    copy[i] = { ...copy[i], ...next };
+    onChange(copy);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-semibold text-gray-800">
+          Periodos de mantenimiento preventivo
+        </p>
+        <button
+          type="button"
+          className="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          disabled={!puedeAgregar}
+          onClick={() => {
+            const libre = PERIODOS_MTTO.find((p) => !usados.has(p.value));
+            if (!libre) return;
+            onChange([
+              ...items,
+              { periodo: libre.value, fecha_inicio: '', descripcion: '' },
+            ]);
+          }}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Agregar
+        </button>
+      </div>
+      {items.length === 0 && (
+        <p className="text-xs text-gray-500">
+          Sin periodos. Al agregar uno se crea una OT pendiente con esa fecha y
+          descripción.
+        </p>
+      )}
+      <div className="space-y-2">
+        {items.map((item, i) => (
+          <div
+            key={item.id ?? `nuevo-${i}`}
+            className="rounded-lg border border-gray-100 bg-gray-50/70 p-2.5"
+          >
+            <div className="flex gap-2">
+              <span className="mt-2 w-5 shrink-0 text-xs text-gray-400">
+                {i + 1}.
+              </span>
+              <label className="min-w-0 flex-1 text-xs font-medium text-gray-600">
+                Descripción
+                <textarea
+                  className="mt-1 min-h-[40px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  rows={2}
+                  maxLength={500}
+                  placeholder="Trabajo a realizar en este periodo"
+                  value={item.descripcion}
+                  onChange={(e) => patch(i, { descripcion: e.target.value })}
+                />
+              </label>
+              <button
+                type="button"
+                className="mt-6 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
+                aria-label="Quitar periodo"
+                onClick={() => onChange(items.filter((_, j) => j !== i))}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-2 flex flex-col gap-2 pl-7 sm:flex-row">
+              <label className="min-w-0 flex-1 text-xs font-medium text-gray-600">
+                Periodo
+                <select
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm disabled:bg-gray-50"
+                  value={item.periodo}
+                  disabled={Boolean(item.id)}
+                  onChange={(e) => patch(i, { periodo: e.target.value })}
+                >
+                  {PERIODOS_MTTO.map((p) => (
+                    <option
+                      key={p.value}
+                      value={p.value}
+                      disabled={p.value !== item.periodo && usados.has(p.value)}
+                    >
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="min-w-0 flex-1 text-xs font-medium text-gray-600">
+                Fecha del primer preventivo
+                <input
+                  type="date"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  value={item.fecha_inicio}
+                  onChange={(e) => patch(i, { fecha_inicio: e.target.value })}
+                />
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export type HojaVidaFormState = {
   fabricante: string;
   modelo: string;
@@ -72,7 +185,6 @@ export type HojaVidaFormState = {
   ubicacion: string;
   sector: string;
   descripcion: string;
-  periodo_mtto_preventivo: string;
   dist_nombre: string;
   dist_direccion: string;
   dist_telefono: string;
@@ -86,6 +198,7 @@ export type HojaVidaFormState = {
   elementos: string[];
   recomendaciones: string[];
   mtto_operativo: string[];
+  periodos_mtto: PeriodoMttoForm[];
   file: File | null;
 };
 
@@ -131,26 +244,13 @@ export function HojaVidaFormFields({ value, onChange }: Props) {
             value={value.ubicacion}
             onChange={(e) => onChange({ ubicacion: e.target.value })}
           />
-          <input
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            placeholder="Sector"
-            value={value.sector}
-            onChange={(e) => onChange({ sector: e.target.value })}
-          />
-          <select
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            value={value.periodo_mtto_preventivo}
-            onChange={(e) =>
-              onChange({ periodo_mtto_preventivo: e.target.value })
-            }
-          >
-            {PERIODOS_MTTO.map((p) => (
-              <option key={p.value || 'na'} value={p.value}>
-                Periodo mtto preventivo: {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            <input
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              placeholder="Sector"
+              value={value.sector}
+              onChange={(e) => onChange({ sector: e.target.value })}
+            />
+          </div>
         <textarea
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
           rows={3}
@@ -259,6 +359,10 @@ export function HojaVidaFormFields({ value, onChange }: Props) {
         onChange={(mtto_operativo) => onChange({ mtto_operativo })}
         placeholder="Ej. Limpieza general (cada 3 meses)"
       />
+      <ListaPeriodosMtto
+        items={value.periodos_mtto}
+        onChange={(periodos_mtto) => onChange({ periodos_mtto })}
+      />
 
       <section className="space-y-3">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -315,7 +419,6 @@ export function emptyHojaVidaForm(): HojaVidaFormState {
     ubicacion: '',
     sector: '',
     descripcion: '',
-    periodo_mtto_preventivo: '',
     dist_nombre: '',
     dist_direccion: '',
     dist_telefono: '',
@@ -342,6 +445,7 @@ export function emptyHojaVidaForm(): HojaVidaFormState {
     elementos: [],
     recomendaciones: [],
     mtto_operativo: [],
+    periodos_mtto: [],
     file: null,
   };
 }

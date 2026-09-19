@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { getXlsx } from '@/utils/export-xlsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, Trash2, Wrench, X } from 'lucide-react';
+import { ClipboardList, Trash2, X } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
 import { catalogQueryOptions, transactionalQueryOptions } from '@/core/query/catalog-query-options';
@@ -16,6 +16,7 @@ import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/quer
 import {
   btnDangerClass,
   btnIconClass,
+  btnInfoClass,
   btnPrimaryClass,
   btnSecondaryClass,
   btnSuccessClass,
@@ -36,7 +37,7 @@ import {
   HojaVidaFormFields,
   type HojaVidaFormState,
 } from './HojaVidaFormFields';
-import { appendHojaVidaToForm } from '../utils/hoja-vida';
+import { appendHojaVidaToForm, errorPeriodosMtto } from '../utils/hoja-vida';
 
 type Equipo = {
   id_equipo: number;
@@ -62,7 +63,6 @@ export function EquiposGestion() {
   const [bodega, setBodega] = useState('');
   const [area, setArea] = useState('');
   const [modalNuevo, setModalNuevo] = useState(false);
-  const [modalOt, setModalOt] = useState<Equipo | null>(null);
   const [modalRetiro, setModalRetiro] = useState<Equipo | null>(null);
 
   const catalogQuery = useQuery({
@@ -201,6 +201,12 @@ export function EquiposGestion() {
           />
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Link
+            href="/dashboard/mantenimiento/equipos/informes"
+            className={btnInfoClass}
+          >
+            Informes
+          </Link>
           <button
             type="button"
             className={btnPrimaryClass}
@@ -230,13 +236,13 @@ export function EquiposGestion() {
       <div className="app-section-card w-full min-w-0">
         <div data-testid="mtto-equipos-table" className="app-table-scroll">
         <table
-          className={`w-full min-w-[960px] text-sm transition-opacity ${
+          className={`w-full min-w-[860px] text-sm transition-opacity ${
             loading && rows.length > 0 ? 'opacity-70' : 'opacity-100'
           }`}
         >
           <thead className="brand-bg text-white">
             <tr>
-              {['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Mtto', 'Hoja de vida', 'Retirar'].map(
+              {['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Hoja de vida', 'Retirar'].map(
                 (h) => (
                   <th key={h} className="px-2 py-2 text-center">
                     {h}
@@ -248,13 +254,13 @@ export function EquiposGestion() {
           <tbody>
             {showInitialLoading ? (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-gray-500">
+                <td colSpan={7} className="py-8 text-center text-gray-500">
                   Cargando...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-gray-500">
+                <td colSpan={7} className="py-8 text-center text-gray-500">
                   Sin equipos
                 </td>
               </tr>
@@ -269,17 +275,6 @@ export function EquiposGestion() {
                   <td className="px-2 py-2 text-left">{r.bodega}</td>
                   <td className="px-2 py-2 text-left">{r.area}</td>
                   <td className="px-2 py-2">{r.estado}</td>
-                  <td className="px-2 py-2">
-                    <button
-                      type="button"
-                      className={`${btnIconClass} bg-[var(--color-warning)]`}
-                      title="Orden de mantenimiento preventivo"
-                      onClick={() => setModalOt(r)}
-                    >
-                      <Wrench className="h-3.5 w-3.5" />
-                      Mtto
-                    </button>
-                  </td>
                   <td className="px-2 py-2">
                     <Link
                       href={`/dashboard/mantenimiento/equipos/${r.id_equipo}`}
@@ -325,18 +320,6 @@ export function EquiposGestion() {
             await queryClient.invalidateQueries({
               queryKey: mantenimientoKeys.all,
             });
-          }}
-          onError={(m) => showError(m)}
-        />
-      )}
-
-      {modalOt && (
-        <ModalOt
-          equipo={modalOt}
-          onClose={() => setModalOt(null)}
-          onOk={async () => {
-            setModalOt(null);
-            showSuccess('OT preventivo creada');
           }}
           onError={(m) => showError(m)}
         />
@@ -389,6 +372,11 @@ function ModalNuevoEquipo({
   async function submit() {
     if (!alias || !fam || !nom || !bod || !area) {
       onError('Complete alias, familia, nombre, bodega y área');
+      return;
+    }
+    const errPeriodos = errorPeriodosMtto(hoja.periodos_mtto);
+    if (errPeriodos) {
+      onError(errPeriodos);
       return;
     }
     setSaving(true);
@@ -507,53 +495,6 @@ function ModalNuevoEquipo({
           >
             {saving ? 'Guardando…' : 'Registrar'}
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ModalOt({
-  equipo,
-  onClose,
-  onOk,
-  onError,
-}: {
-  equipo: Equipo;
-  onClose: () => void;
-  onOk: () => void;
-  onError: (m: string) => void;
-}) {
-  const [fecha, setFecha] = useState('');
-  const [tiempo, setTiempo] = useState('1');
-  const [desc, setDesc] = useState('');
-
-  async function submit() {
-    try {
-      await mantenimientoService.ordenPreventivo(equipo.id_equipo, {
-        codigoEquipoMp: equipo.codigo,
-        f_requerida: fecha,
-        tiempo_estimado: Number(tiempo),
-        descripcionMp: desc,
-      });
-      onOk();
-    } catch (e) {
-      onError(e instanceof Error ? e.message : 'Error');
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="w-full max-w-lg space-y-3 rounded-t-2xl bg-white p-4 sm:rounded-xl">
-        <h2 className="text-center font-semibold">Orden de Mantenimiento Preventivo</h2>
-        <input className="w-full rounded border px-3 py-2 text-sm bg-gray-50" readOnly value={equipo.codigo} />
-        <input className="w-full rounded border px-3 py-2 text-sm bg-gray-50" readOnly value={equipo.nombre_equipo} />
-        <input type="date" className="w-full rounded border px-3 py-2 text-sm" value={fecha} onChange={(e) => setFecha(e.target.value)} />
-        <input type="number" min={1} className="w-full rounded border px-3 py-2 text-sm" value={tiempo} onChange={(e) => setTiempo(e.target.value)} placeholder="Horas" />
-        <textarea className="w-full rounded border px-3 py-2 text-sm" rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descripción" />
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" className={btnSecondaryClass} onClick={onClose}>Cancelar</button>
-          <button type="button" className={btnSuccessClass} onClick={submit}>Agregar</button>
         </div>
       </div>
     </div>
