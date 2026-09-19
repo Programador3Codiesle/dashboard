@@ -58,14 +58,37 @@ test.describe("Mantenimiento API", () => {
   }) => {
     const response = await apiRequest(
       request,
-      "/mantenimiento/correctivo/solicitudes",
+      "/mantenimiento/correctivo/solicitudes?page=1&limit=10",
     );
     await expectApiOkOrSkip(
       response.status(),
       "GET /mantenimiento/correctivo/solicitudes",
     );
-    const body = await response.json();
-    expect(Array.isArray(body)).toBeTruthy();
+    const body = (await response.json()) as {
+      data?: unknown;
+      total?: number;
+    };
+    expect(Array.isArray(body.data)).toBeTruthy();
+    expect(typeof body.total).toBe("number");
+  });
+
+  test("GET /mantenimiento/correctivo/catalogos con sesión", async ({
+    request,
+  }) => {
+    const response = await apiRequest(
+      request,
+      "/mantenimiento/correctivo/catalogos",
+    );
+    await expectApiOkOrSkip(
+      response.status(),
+      "GET /mantenimiento/correctivo/catalogos",
+    );
+    const body = (await response.json()) as {
+      bodegas?: unknown;
+      equipos?: unknown;
+    };
+    expect(Array.isArray(body.bodegas)).toBeTruthy();
+    expect(Array.isArray(body.equipos)).toBeTruthy();
   });
 
   test("GET /mantenimiento/correctivo/solicitudes/:id con sesión", async ({
@@ -73,14 +96,16 @@ test.describe("Mantenimiento API", () => {
   }) => {
     const listado = await apiRequest(
       request,
-      "/mantenimiento/correctivo/solicitudes",
+      "/mantenimiento/correctivo/solicitudes?page=1&limit=10",
     );
     await expectApiOkOrSkip(
       listado.status(),
       "GET /mantenimiento/correctivo/solicitudes",
     );
-    const body = (await listado.json()) as { id_solicitud?: number }[];
-    const id = body[0]?.id_solicitud;
+    const body = (await listado.json()) as {
+      data?: { id_solicitud?: number }[];
+    };
+    const id = body.data?.[0]?.id_solicitud;
     test.skip(!id, "No hay solicitudes correctivas para consultar detalle");
 
     const detalle = await apiRequest(

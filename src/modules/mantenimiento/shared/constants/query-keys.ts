@@ -12,6 +12,10 @@ export const mantenimientoKeys = {
   nombresFamilia: (codigo: string) =>
     ['mantenimiento', 'nombres-familia', codigo] as const,
   correctivo: ['mantenimiento', 'correctivo'] as const,
+  correctivoListRoot: ['mantenimiento', 'correctivo', 'list'] as const,
+  correctivoList: (page: number, limit: number) =>
+    ['mantenimiento', 'correctivo', 'list', page, limit] as const,
+  correctivoCatalogo: ['mantenimiento', 'correctivo', 'catalogo'] as const,
   solicitud: (id: number) => ['mantenimiento', 'solicitud', id] as const,
   preventivoEventos: ['mantenimiento', 'preventivo', 'eventos'] as const,
   preventivoListado: ['mantenimiento', 'preventivo', 'listado'] as const,

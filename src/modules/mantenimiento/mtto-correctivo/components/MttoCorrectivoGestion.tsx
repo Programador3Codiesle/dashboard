@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { getXlsx } from '@/utils/export-xlsx';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, Wrench, X } from 'lucide-react';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
@@ -58,6 +58,8 @@ function EvidenciaImg({
           <img
             src={url}
             alt={label}
+            loading="lazy"
+            decoding="async"
             className="max-h-40 w-full rounded-lg object-contain bg-white"
           />
           <span className="mt-1 inline-block text-xs text-[var(--color-info)] underline">
@@ -71,95 +73,99 @@ function EvidenciaImg({
   );
 }
 
+async function fetchSolicitudDetalle(
+  id: number,
+): Promise<Record<string, unknown>> {
+  const data = await mantenimientoService.getSolicitud(id);
+  if (!data || data.id_solicitud == null) {
+    throw new Error('Solicitud no encontrada');
+  }
+  return data;
+}
+
 export function MttoCorrectivoGestion() {
   const { blocked, user } = useMantenimientoPageGuard(MTTO_CORRECTIVO_SUBMENU_ID);
   const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
   const sesionLista = !!user && !blocked;
   const [modalNueva, setModalNueva] = useState(false);
-  const [detalle, setDetalle] = useState<Record<string, unknown> | null>(null);
+  const [solicitudAbierta, setSolicitudAbierta] = useState<{
+    id: number;
+    seed: Record<string, unknown> | null;
+  } | null>(null);
   const [page, setPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
 
   const perfil = Number(user?.perfil_postventa ?? 0);
   const esJefe = ![1, 20, 26, 46].includes(perfil);
   const esMantenimiento = perfil === 46 || perfil === 26;
 
   const catalogQuery = useQuery({
-    queryKey: mantenimientoKeys.catalogos,
-    queryFn: () => mantenimientoService.catalogos(),
-    enabled: sesionLista,
+    queryKey: mantenimientoKeys.correctivoCatalogo,
+    queryFn: () => mantenimientoService.catalogoCorrectivo(),
+    enabled: sesionLista && modalNueva,
     ...catalogQueryOptions,
   });
 
   const listQuery = useQuery({
-    queryKey: mantenimientoKeys.correctivo,
-    queryFn: () => mantenimientoService.listarCorrectivo(),
+    queryKey: mantenimientoKeys.correctivoList(page, PAGE_SIZE),
+    queryFn: () => mantenimientoService.listarCorrectivo(page, PAGE_SIZE),
     enabled: sesionLista,
+    placeholderData: keepPreviousData,
     ...transactionalQueryOptions,
   });
 
   const bodegas = catalogQuery.data?.bodegas ?? [];
   const equipos = catalogQuery.data?.equipos ?? [];
-  const rows = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+  const rows = listQuery.data?.data ?? [];
+  const total = listQuery.data?.total ?? 0;
 
   async function invalidateList() {
     await queryClient.invalidateQueries({
-      queryKey: mantenimientoKeys.correctivo,
+      queryKey: mantenimientoKeys.correctivoListRoot,
     });
   }
 
-  /** Pendientes por urgencia (urgente→moderada→leve), luego en proceso, finalizadas al final */
-  const sortedRows = useMemo(() => {
-    return [...rows].sort((a, b) => {
-      const ea = Number(a.estado);
-      const eb = Number(b.estado);
-      const group = (e: number) => (e === 3 ? 2 : e === 2 ? 1 : 0);
-      const ga = group(ea);
-      const gb = group(eb);
-      if (ga !== gb) return ga - gb;
-      const ua = Number(a.urgencia) || 0;
-      const ub = Number(b.urgencia) || 0;
-      if (ub !== ua) return ub - ua;
-      return Number(b.id_solicitud) - Number(a.id_solicitud);
-    });
-  }, [rows]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return sortedRows.slice(start, start + PAGE_SIZE);
-  }, [sortedRows, safePage]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const onPage = useCallback((p: number) => setPage(p), []);
 
-  async function openDetalle(id: number) {
-    try {
-      setDetalle(await mantenimientoService.getSolicitud(id));
-    } catch (e) {
-      showError(e instanceof Error ? e.message : 'Error');
+  function openDetalle(id: number) {
+    if (!Number.isFinite(id) || id <= 0) {
+      showError('Solicitud no válida');
+      return;
     }
+    const seed = rows.find((r) => Number(r.id_solicitud) === id) ?? null;
+    setSolicitudAbierta({ id, seed });
   }
 
   async function exportExcel() {
-    const XLSX = await getXlsx();
-    const ws = XLSX.utils.json_to_sheet(
-      sortedRows.map((r) => ({
-        Id: r.id_solicitud,
-        Codigo: r.codigo,
-        Solicitud: r.solicitud,
-        Estado: estadoLabel(r.estado as string, 'corr'),
-        Urgencia: urgenciaLabel(r.urgencia as string),
-        Sede: r.sede,
-        Jefe: r.nombreJ,
-        Encargado: r.nombreE,
-        Inicio: r.fecha_inicio,
-        Fin: r.fecha_finalizacion,
-        Dias: r.dias_gest,
-      })),
-    );
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Correctivo');
-    XLSX.writeFile(wb, 'Mantenimientos-correctivos.xlsx');
+    setExporting(true);
+    try {
+      const XLSX = await getXlsx();
+      const exportRows = await mantenimientoService.exportarCorrectivo();
+      const ws = XLSX.utils.json_to_sheet(
+        exportRows.map((r) => ({
+          Id: r.id_solicitud,
+          Codigo: r.codigo,
+          Solicitud: r.solicitud,
+          Estado: estadoLabel(r.estado as string, 'corr'),
+          Urgencia: urgenciaLabel(r.urgencia as string),
+          Sede: r.sede,
+          Jefe: r.nombreJ,
+          Encargado: r.nombreE,
+          Inicio: r.fecha_inicio,
+          Fin: r.fecha_finalizacion,
+          Dias: r.dias_gest,
+        })),
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Correctivo');
+      XLSX.writeFile(wb, 'Mantenimientos-correctivos.xlsx');
+    } catch (e) {
+      showError(e instanceof Error ? e.message : 'Error al exportar');
+    } finally {
+      setExporting(false);
+    }
   }
 
   if (blocked) return null;
@@ -201,9 +207,10 @@ export function MttoCorrectivoGestion() {
           <button
             type="button"
             className={btnSuccessClass}
-            onClick={exportExcel}
+            disabled={exporting}
+            onClick={() => void exportExcel()}
           >
-            Descargar Excel
+            {exporting ? 'Exportando…' : 'Descargar Excel'}
           </button>
         )}
       </div>
@@ -240,14 +247,14 @@ export function MttoCorrectivoGestion() {
                   Cargando...
                 </td>
               </tr>
-            ) : pageRows.length === 0 ? (
+            ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={12} className="py-8 text-center text-gray-500">
                   Sin solicitudes
                 </td>
               </tr>
             ) : (
-              pageRows.map((r) => {
+              rows.map((r) => {
                 const id = Number(r.id_solicitud);
                 const urg = Number(r.urgencia);
                 const estado = Number(r.estado);
@@ -284,7 +291,7 @@ export function MttoCorrectivoGestion() {
                           type="button"
                           className={`${btnIconClass} bg-[var(--color-info)]`}
                           title="Ver solicitud"
-                          onClick={() => void openDetalle(id)}
+                          onClick={() => openDetalle(id)}
                         >
                           <Eye className="h-3.5 w-3.5" />
                           Ver
@@ -298,7 +305,7 @@ export function MttoCorrectivoGestion() {
                                 ? 'Iniciar y asignar tiempo'
                                 : 'Responder / finalizar'
                             }
-                            onClick={() => void openDetalle(id)}
+                            onClick={() => openDetalle(id)}
                           >
                             <Wrench className="h-3.5 w-3.5" />
                             {estado === 1 ? 'Iniciar' : 'Finalizar'}
@@ -313,12 +320,12 @@ export function MttoCorrectivoGestion() {
           </tbody>
         </table>
         </div>
-        {rows.length > 0 && (
+        {total > 0 && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm text-gray-600">{rows.length} registros</span>
+            <span className="text-sm text-gray-600">{total} registros</span>
             {totalPages > 1 && (
               <Pagination
-                currentPage={safePage}
+                currentPage={page}
                 totalPages={totalPages}
                 onChange={onPage}
               />
@@ -331,30 +338,34 @@ export function MttoCorrectivoGestion() {
         <ModalNuevaSolicitud
           bodegas={bodegas}
           equipos={equipos}
+          catalogLoading={catalogQuery.isPending}
+          catalogError={
+            catalogQuery.isError
+              ? getErrorMessage(catalogQuery.error, 'Error al cargar catálogos')
+              : null
+          }
           onClose={() => setModalNueva(false)}
           onOk={async () => {
             setModalNueva(false);
             showSuccess('Solicitud creada');
+            setPage(1);
             await invalidateList();
           }}
           onError={(m) => showError(m)}
         />
       )}
 
-      {detalle && (
+      {solicitudAbierta ? (
         <ModalDetalleSolicitud
-          detalle={detalle}
+          key={solicitudAbierta.id}
+          id={solicitudAbierta.id}
+          seed={solicitudAbierta.seed}
           esMantenimiento={esMantenimiento}
-          onClose={() => setDetalle(null)}
-          onReloadDetalle={async () => {
-            const id = Number(detalle.id_solicitud);
-            await openDetalle(id);
-            await invalidateList();
-          }}
+          onClose={() => setSolicitudAbierta(null)}
           onError={(m) => showError(m)}
           onSuccess={(m) => showSuccess(m)}
         />
-      )}
+      ) : null}
     </MantenimientoPageFrame>
   );
 }
@@ -371,26 +382,47 @@ function urgenciaTone(u: number | string) {
 }
 
 function ModalDetalleSolicitud({
-  detalle,
+  id,
+  seed,
   esMantenimiento,
   onClose,
-  onReloadDetalle,
   onError,
   onSuccess,
 }: {
-  detalle: Record<string, unknown>;
+  id: number;
+  seed: Record<string, unknown> | null;
   esMantenimiento: boolean;
   onClose: () => void;
-  onReloadDetalle: () => Promise<void>;
   onError: (m: string) => void;
   onSuccess: (m: string) => void;
 }) {
-  const id = Number(detalle.id_solicitud);
-  const estado = Number(detalle.estado);
+  const queryClient = useQueryClient();
+  const detailQuery = useQuery({
+    queryKey: mantenimientoKeys.solicitud(id),
+    queryFn: () => fetchSolicitudDetalle(id),
+    enabled: Number.isFinite(id) && id > 0,
+    placeholderData: seed ?? undefined,
+    staleTime: 0, // modal pinta con la fila; el GET refresca con retry de Query
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+  });
+  const detalle = detailQuery.data ?? seed;
+  const estado = Number(detalle?.estado);
   const [tiempo, setTiempo] = useState('1');
   const [respuesta, setRespuesta] = useState('');
   const [fileResp, setFileResp] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+
+  async function refreshDetalle() {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: mantenimientoKeys.solicitud(id),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: mantenimientoKeys.correctivoListRoot,
+      }),
+    ]);
+  }
 
   async function handleIniciar() {
     const horas = Number(tiempo);
@@ -402,7 +434,7 @@ function ModalDetalleSolicitud({
     try {
       await mantenimientoService.iniciarSolicitud(id, horas);
       onSuccess('Solicitud iniciada (En proceso)');
-      await onReloadDetalle();
+      await refreshDetalle();
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -422,7 +454,7 @@ function ModalDetalleSolicitud({
       if (fileResp) form.append('file', fileResp);
       await mantenimientoService.finalizarSolicitud(id, form);
       onSuccess('Solicitud finalizada');
-      await onReloadDetalle();
+      await refreshDetalle();
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Error');
     } finally {
@@ -432,15 +464,17 @@ function ModalDetalleSolicitud({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 backdrop-blur-[1px] sm:items-center sm:p-4">
-      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+      <div
+        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+        data-testid="mtto-correctivo-detalle-modal"
+        aria-busy={detailQuery.isFetching}
+      >
         <div className="flex items-center justify-between brand-bg px-5 py-4 text-white">
           <div className="min-w-0 pr-2">
-            <h2 className="text-lg font-semibold">
-              Solicitud #{String(detalle.id_solicitud)}
-            </h2>
+            <h2 className="text-lg font-semibold">Solicitud #{id}</h2>
             <p className="text-xs text-white/80">
-              {String(detalle.codigo ?? 'LOCATIVO')}
-              {detalle.nombre_equipo
+              {String(detalle?.codigo ?? 'LOCATIVO')}
+              {detalle?.nombre_equipo
                 ? ` — ${String(detalle.nombre_equipo)}`
                 : ''}
             </p>
@@ -456,6 +490,25 @@ function ModalDetalleSolicitud({
         </div>
 
         <div className="space-y-4 overflow-y-auto p-5">
+          {detailQuery.isFetching ? (
+            <p className="text-xs text-gray-500">Actualizando detalle…</p>
+          ) : null}
+
+          {detailQuery.isError ? (
+            <MantenimientoQueryError
+              message={getErrorMessage(
+                detailQuery.error,
+                'Error al obtener solicitud',
+              )}
+            />
+          ) : null}
+
+          {!detalle && detailQuery.isPending ? (
+            <p className="py-6 text-center text-sm text-gray-500">
+              Cargando solicitud…
+            </p>
+          ) : detalle ? (
+            <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <MantenimientoInfoChip
               label="Estado"
@@ -516,7 +569,6 @@ function ModalDetalleSolicitud({
             </div>
           ) : null}
 
-          {/* Acciones mantenimiento — estado Pendiente */}
           {esMantenimiento && estado === 1 && (
             <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-info)_25%,white)] bg-[color-mix(in_srgb,var(--color-info)_8%,white)] p-4">
               <p className="text-sm font-semibold text-[var(--color-info)]">
@@ -543,7 +595,6 @@ function ModalDetalleSolicitud({
             </div>
           )}
 
-          {/* Acciones mantenimiento — En proceso */}
           {esMantenimiento && estado === 2 && (
             <div className="space-y-3 rounded-xl border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] p-4">
               <p className="text-sm font-semibold text-[var(--color-success)]">
@@ -575,6 +626,8 @@ function ModalDetalleSolicitud({
               </button>
             </div>
           )}
+            </>
+          ) : null}
         </div>
 
         <div className="border-t bg-gray-50 px-5 py-3">
@@ -594,12 +647,16 @@ function ModalDetalleSolicitud({
 function ModalNuevaSolicitud({
   bodegas,
   equipos,
+  catalogLoading,
+  catalogError,
   onClose,
   onOk,
   onError,
 }: {
   bodegas: Array<{ bodega: number; descripcion: string }>;
   equipos: Array<{ id_equipo: number; codigo: string; nombre_equipo: string }>;
+  catalogLoading: boolean;
+  catalogError: string | null;
   onClose: () => void;
   onOk: () => void;
   onError: (m: string) => void;
@@ -640,11 +697,18 @@ function ModalNuevaSolicitud({
           </button>
         </div>
         <div className="space-y-3 p-5">
+          {catalogError ? (
+            <MantenimientoQueryError message={catalogError} />
+          ) : null}
+          {catalogLoading ? (
+            <p className="text-sm text-gray-500">Cargando equipos y sedes…</p>
+          ) : null}
           <label className="block text-sm">
             Equipo
             <select
               className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
               value={equipoId}
+              disabled={catalogLoading}
               onChange={(e) => setEquipoId(e.target.value)}
             >
               <option value="N/A">LOCATIVO</option>
@@ -660,6 +724,7 @@ function ModalNuevaSolicitud({
             <select
               className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
               value={sede}
+              disabled={catalogLoading}
               onChange={(e) => setSede(e.target.value)}
             >
               <option value="">Seleccione una bodega</option>
@@ -715,6 +780,7 @@ function ModalNuevaSolicitud({
           <button
             type="button"
             className={btnSuccessClass}
+            disabled={catalogLoading}
             onClick={submit}
           >
             Agregar

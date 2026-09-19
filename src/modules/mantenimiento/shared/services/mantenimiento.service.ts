@@ -140,16 +140,40 @@ export const mantenimientoService = {
     return resp.json();
   },
 
-  async listarCorrectivo() {
-    const resp = await fetchWithAuth(`${BASE}/correctivo/solicitudes`);
+  async catalogoCorrectivo() {
+    const resp = await fetchWithAuth(`${BASE}/correctivo/catalogos`);
+    if (!resp.ok) await parseError(resp, 'Error al cargar catálogos');
+    return resp.json() as Promise<{
+      bodegas: Array<{ bodega: number; descripcion: string }>;
+      equipos: Array<{ id_equipo: number; codigo: string; nombre_equipo: string }>;
+    }>;
+  },
+
+  async listarCorrectivo(page: number, limit: number) {
+    const q = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    const resp = await fetchWithAuth(`${BASE}/correctivo/solicitudes?${q}`);
     if (!resp.ok) await parseError(resp, 'Error al listar solicitudes');
+    return resp.json() as Promise<{
+      data: Array<Record<string, unknown>>;
+      total: number;
+      page: number;
+      limit: number;
+    }>;
+  },
+
+  async exportarCorrectivo() {
+    const resp = await fetchWithAuth(`${BASE}/correctivo/solicitudes/export`);
+    if (!resp.ok) await parseError(resp, 'Error al exportar solicitudes');
     return resp.json() as Promise<Array<Record<string, unknown>>>;
   },
 
   async getSolicitud(id: number) {
     const resp = await fetchWithAuth(`${BASE}/correctivo/solicitudes/${id}`);
     if (!resp.ok) await parseError(resp, 'Error al obtener solicitud');
-    return resp.json();
+    return resp.json() as Promise<Record<string, unknown> | null>;
   },
 
   async crearSolicitud(form: FormData) {
