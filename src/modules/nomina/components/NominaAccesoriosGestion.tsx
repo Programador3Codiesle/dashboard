@@ -11,11 +11,13 @@ import { NOMINA_STYLES } from '@/modules/nomina/constants';
 
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { FileSpreadsheet, Search } from 'lucide-react';
+import { Eye, FileSpreadsheet, Search, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
 import {
+  NominaAccesoriosDetalleTecnicoRow,
   NominaAccesoriosResultado,
+  NominaAccesoriosTecnicoRow,
   TipoInformeNominaAccesorios,
   nominaAccesoriosService,
 } from '@/modules/nomina/services/nomina-accesorios.service';
@@ -106,6 +108,11 @@ export function NominaAccesoriosGestion() {
   const [resultado, setResultado] = useState<NominaAccesoriosResultado | null>(
     null,
   );
+  const [detalleAbierto, setDetalleAbierto] = useState(false);
+  const [detalleTitulo, setDetalleTitulo] = useState('');
+  const [detalleRows, setDetalleRows] = useState<
+    NominaAccesoriosDetalleTecnicoRow[]
+  >([]);
 
   const listarMutation = useMutation({
     mutationFn: (params: {
@@ -120,6 +127,35 @@ export function NominaAccesoriosGestion() {
       );
     },
   });
+
+  const detalleMutation = useMutation({
+    mutationFn: nominaAccesoriosService.detalleTecnico,
+    onSuccess: setDetalleRows,
+    onError: (error: unknown) => {
+      showError(
+        getApiErrorMessage(
+          error,
+          'No se pudo cargar el detalle de las comisiones.',
+        ),
+      );
+    },
+  });
+
+  const onVerDetalle = (row: NominaAccesoriosTecnicoRow) => {
+    const mesNum = Number(mes);
+    if (!row.operario) {
+      showError('No se pudo identificar al técnico.');
+      return;
+    }
+    if (!ano || !mesNum) {
+      showError('Seleccione el año y el mes.');
+      return;
+    }
+    setDetalleTitulo(`${row.nombres} — ${row.fecha}`);
+    setDetalleRows([]);
+    setDetalleAbierto(true);
+    detalleMutation.mutate({ ano, mes: mesNum, operario: row.operario });
+  };
 
   const onGenerar = () => {
     const mesNum = Number(mes);
@@ -334,9 +370,89 @@ export function NominaAccesoriosGestion() {
             </div>
           ) : (
             <div data-testid="nomina-acc-table" className="app-table-scroll">
-              <NominaAccesoriosTabla resultado={resultado} />
+              <NominaAccesoriosTabla
+                resultado={resultado}
+                onVerDetalle={onVerDetalle}
+              />
             </div>
           )}
+        </div>
+      ) : null}
+
+      {detalleAbierto ? (
+        <div className="fixed inset-0 z-120 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
+            onClick={() => setDetalleAbierto(false)}
+          />
+          <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-gray-200 bg-linear-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
+              <div>
+                <h2 className="text-lg font-bold tracking-tight brand-text sm:text-xl">
+                  Detalle de comisiones
+                </h2>
+                <p className="text-sm text-gray-500">{detalleTitulo}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetalleAbierto(false)}
+                className="p-2 rounded-lg hover:bg-gray-100"
+                aria-label="Cerrar detalle"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+              {detalleMutation.isPending ? (
+                <p className="text-sm text-gray-500">Cargando detalle...</p>
+              ) : detalleRows.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center">
+                  <p className="text-sm font-medium text-gray-700">
+                    Sin detalle disponible
+                  </p>
+                </div>
+              ) : (
+                <div className="app-table-scroll">
+                  <table className="w-full min-w-[640px] divide-y divide-gray-200 text-xs md:text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-3 py-2 text-center font-semibold">
+                          Número orden
+                        </th>
+                        <th className="px-3 py-2 text-center font-semibold">
+                          Operación
+                        </th>
+                        <th className="px-3 py-2 text-center font-semibold">
+                          Descripción
+                        </th>
+                        <th className="px-3 py-2 text-center font-semibold">
+                          Tiempo
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {detalleRows.map((row, index) => (
+                        <tr key={`${row.numeroOrden}-${row.operacion}-${index}`}>
+                          <td className="px-3 py-1.5 text-center">
+                            {row.numeroOrden}
+                          </td>
+                          <td className="px-3 py-1.5 text-center">
+                            {row.operacion}
+                          </td>
+                          <td className="px-3 py-1.5 text-center">
+                            {row.descripcion}
+                          </td>
+                          <td className="px-3 py-1.5 text-center">
+                            {formatNumberEs(row.tiempo, 2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
@@ -345,8 +461,10 @@ export function NominaAccesoriosGestion() {
 
 function NominaAccesoriosTabla({
   resultado,
+  onVerDetalle,
 }: {
   resultado: NominaAccesoriosResultado;
+  onVerDetalle: (row: NominaAccesoriosTecnicoRow) => void;
 }) {
   if (resultado.tipo === 1) {
     return (
@@ -422,22 +540,33 @@ function NominaAccesoriosTabla({
 
   if (resultado.tipo === 3) {
     return (
-      <table className="w-full min-w-[700px] divide-y divide-gray-200 text-xs md:text-sm">
+      <table className="w-full min-w-[800px] divide-y divide-gray-200 text-xs md:text-sm">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-3 py-2 text-center font-semibold">Fecha</th>
             <th className="px-3 py-2 text-center font-semibold">Nombres</th>
             <th className="px-3 py-2 text-center font-semibold">Total horas</th>
             <th className="px-3 py-2 text-center font-semibold">Comisión</th>
+            <th className="px-3 py-2 text-center font-semibold">Detalle</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {resultado.tecnicos.map((row, index) => (
-            <tr key={`${row.nombres}-${index}`}>
+            <tr key={`${row.operario || row.nombres}-${index}`}>
               <td className="px-3 py-1.5 text-center">{row.fecha}</td>
               <td className="px-3 py-1.5 text-center">{row.nombres}</td>
               <td className="px-3 py-1.5 text-center">{formatNumberEs(row.totalHoras, 2)}</td>
               <td className="px-3 py-1.5 text-center">{formatMoneyEs(row.comision)}</td>
+              <td className="px-3 py-1.5 text-center">
+                <button
+                  type="button"
+                  onClick={() => onVerDetalle(row)}
+                  className={NOMINA_STYLES.detailBtn}
+                >
+                  <Eye size={14} className="mr-1" />
+                  Detalle
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

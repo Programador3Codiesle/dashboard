@@ -27,9 +27,17 @@ export interface NominaAccesoriosAsesorRow {
 
 export interface NominaAccesoriosTecnicoRow {
   fecha: string;
+  operario: string;
   nombres: string;
   totalHoras: number;
   comision: number;
+}
+
+export interface NominaAccesoriosDetalleTecnicoRow {
+  numeroOrden: number;
+  operacion: string;
+  descripcion: string;
+  tiempo: number;
 }
 
 export interface NominaAccesoriosOtrasMarcasRow {
@@ -69,6 +77,21 @@ export const nominaAccesoriosService = {
     query.set('perfil', String(params.perfil));
     const response = await apiClient.get<NominaAccesoriosResultado>(
       `/nomina/nomina-accesorios?${query.toString()}`,
+    );
+    return response.data;
+  },
+
+  async detalleTecnico(params: {
+    ano: number;
+    mes: number;
+    operario: string;
+  }): Promise<NominaAccesoriosDetalleTecnicoRow[]> {
+    const query = new URLSearchParams();
+    query.set('ano', String(params.ano));
+    query.set('mes', String(params.mes));
+    query.set('operario', params.operario);
+    const response = await apiClient.get<NominaAccesoriosDetalleTecnicoRow[]>(
+      `/nomina/nomina-accesorios/detalle-tecnico?${query.toString()}`,
     );
     return response.data;
   },
