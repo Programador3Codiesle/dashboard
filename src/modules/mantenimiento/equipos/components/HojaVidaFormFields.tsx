@@ -124,9 +124,9 @@ function ListaPeriodosMtto({
               <label className="min-w-0 flex-1 text-xs font-medium text-gray-600">
                 Descripción
                 <textarea
-                  className="mt-1 min-h-[40px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-                  rows={2}
-                  maxLength={500}
+                  className="mt-1 min-h-[120px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  rows={6}
+                  maxLength={8000}
                   placeholder="Trabajo a realizar en este periodo"
                   value={item.descripcion}
                   onChange={(e) => patch(i, { descripcion: e.target.value })}
