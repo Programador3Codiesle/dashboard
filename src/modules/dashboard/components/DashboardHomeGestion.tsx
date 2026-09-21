@@ -178,7 +178,10 @@ export function DashboardHomeGestion() {
   if (!allowed) {
     return (
       <div className="p-2 sm:p-3 md:p-4">
-        <DashboardEmpty />
+        <DashboardEmpty
+          userName={user.nombre_usuario}
+          perfil={user.nom_perfil}
+        />
       </div>
     );
   }

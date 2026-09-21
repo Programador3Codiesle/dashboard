@@ -23,6 +23,9 @@ export const DASHBOARD_COPY = {
   loading: "Cargando información del dashboard...",
   loadingMes: "Cargando datos del mes seleccionado...",
   mesLabel: "Mes:",
+  emptyTitle: "Bienvenido",
+  emptyHint:
+    "Tu perfil no tiene un tablero de indicadores. Usa el menú para entrar a las secciones disponibles.",
 } as const;
 
 export const DASHBOARD_STYLES = {
