@@ -9,7 +9,7 @@ import { Pagination } from '@/components/shared/ui/Pagination';
 import { useToast } from '@/components/ui/use-toast';
 import { catalogQueryOptions, transactionalQueryOptions } from '@/core/query/catalog-query-options';
 import { MantenimientoPageFrame } from '@/modules/mantenimiento/components/MantenimientoPageFrame';
-import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MANTENIMIENTO_COPY, PERFIL_SALUD_OCUPACIONAL } from '@/modules/mantenimiento/constants';
 import { MantenimientoFileField } from '@/modules/mantenimiento/shared/components/MantenimientoFileField';
 import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
@@ -38,6 +38,13 @@ import {
   type HojaVidaFormState,
 } from './HojaVidaFormFields';
 import { appendHojaVidaToForm, errorPeriodosMtto } from '../utils/hoja-vida';
+import {
+  FILTROS_EQUIPOS_INICIAL,
+  guardarFiltrosEquipos,
+  leerFiltrosEquipos,
+  limpiarFiltrosEquipos,
+  type FiltrosEquipos,
+} from '../utils/filtros-equipos';
 
 type Equipo = {
   id_equipo: number;
@@ -57,13 +64,25 @@ export function EquiposGestion() {
   const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
   const sesionLista = !!user && !blocked;
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [filter, setFilter] = useState('');
-  const [bodega, setBodega] = useState('');
-  const [area, setArea] = useState('');
+  const soloConsulta = Number(user?.perfil_postventa) === PERFIL_SALUD_OCUPACIONAL;
+  const [page, setPage] = useState(() => leerFiltrosEquipos().page);
+  const [limit, setLimit] = useState(() => leerFiltrosEquipos().limit);
+  const [filter, setFilter] = useState(() => leerFiltrosEquipos().filter);
+  const [bodega, setBodega] = useState(() => leerFiltrosEquipos().bodega);
+  const [area, setArea] = useState(() => leerFiltrosEquipos().area);
   const [modalNuevo, setModalNuevo] = useState(false);
   const [modalRetiro, setModalRetiro] = useState<Equipo | null>(null);
+
+  function persistirFiltros(parcial: Partial<FiltrosEquipos>) {
+    guardarFiltrosEquipos({
+      page,
+      limit,
+      filter,
+      bodega,
+      area,
+      ...parcial,
+    });
+  }
 
   const catalogQuery = useQuery({
     queryKey: mantenimientoKeys.catalogos,
@@ -96,7 +115,6 @@ export function EquiposGestion() {
   const total = listQuery.data?.total ?? 0;
   const loading = listQuery.isFetching;
   const familias = catalogQuery.data?.familias ?? [];
-  const jefes = catalogQuery.data?.jefes ?? [];
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const showInitialLoading = loading && rows.length === 0;
 
@@ -127,8 +145,10 @@ export function EquiposGestion() {
             className={`${inputClass} mt-0`}
             value={bodega}
             onChange={(e) => {
-              setBodega(e.target.value);
+              const value = e.target.value;
+              setBodega(value);
               setPage(1);
+              persistirFiltros({ bodega: value, page: 1 });
             }}
             aria-label="Bodega"
           >
@@ -143,8 +163,10 @@ export function EquiposGestion() {
             className={`${inputClass} mt-0`}
             value={area}
             onChange={(e) => {
-              setArea(e.target.value);
+              const value = e.target.value;
+              setArea(value);
               setPage(1);
+              persistirFiltros({ area: value, page: 1 });
             }}
             aria-label="Área"
           >
@@ -159,10 +181,15 @@ export function EquiposGestion() {
             type="button"
             className={btnSecondaryClass}
             onClick={() => {
-              setBodega('');
-              setArea('');
-              setFilter('');
-              setPage(1);
+              limpiarFiltrosEquipos();
+              setBodega(FILTROS_EQUIPOS_INICIAL.bodega);
+              setArea(FILTROS_EQUIPOS_INICIAL.area);
+              setFilter(FILTROS_EQUIPOS_INICIAL.filter);
+              setPage(FILTROS_EQUIPOS_INICIAL.page);
+              guardarFiltrosEquipos({
+                ...FILTROS_EQUIPOS_INICIAL,
+                limit,
+              });
             }}
           >
             Restablecer
@@ -176,8 +203,10 @@ export function EquiposGestion() {
             className={`${inputClass} mt-0 w-full sm:w-auto`}
             value={limit}
             onChange={(e) => {
-              setLimit(Number(e.target.value));
+              const value = Number(e.target.value);
+              setLimit(value);
               setPage(1);
+              persistirFiltros({ limit: value, page: 1 });
             }}
             aria-label="Registros por página"
           >
@@ -195,8 +224,10 @@ export function EquiposGestion() {
             aria-label="Buscar equipos"
             value={filter}
             onChange={(e) => {
-              setFilter(e.target.value);
+              const value = e.target.value;
+              setFilter(value);
               setPage(1);
+              persistirFiltros({ filter: value, page: 1 });
             }}
           />
         </div>
@@ -207,13 +238,15 @@ export function EquiposGestion() {
           >
             Informes
           </Link>
-          <button
-            type="button"
-            className={btnPrimaryClass}
-            onClick={() => setModalNuevo(true)}
-          >
-            Nuevo Equipo
-          </button>
+          {soloConsulta ? null : (
+            <button
+              type="button"
+              className={btnPrimaryClass}
+              onClick={() => setModalNuevo(true)}
+            >
+              Nuevo Equipo
+            </button>
+          )}
           <button
             type="button"
             className={btnSuccessClass}
@@ -242,25 +275,26 @@ export function EquiposGestion() {
         >
           <thead className="brand-bg text-white">
             <tr>
-              {['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Hoja de vida', 'Retirar'].map(
-                (h) => (
-                  <th key={h} className="px-2 py-2 text-center">
-                    {h}
-                  </th>
-                ),
-              )}
+              {(soloConsulta
+                ? ['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Hoja de vida']
+                : ['Codigo', 'Familia/Equipo', 'Bodega', 'Area', 'Estado', 'Hoja de vida', 'Retirar']
+              ).map((h) => (
+                <th key={h} className="px-2 py-2 text-center">
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {showInitialLoading ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-gray-500">
+                <td colSpan={soloConsulta ? 6 : 7} className="py-8 text-center text-gray-500">
                   Cargando...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-gray-500">
+                <td colSpan={soloConsulta ? 6 : 7} className="py-8 text-center text-gray-500">
                   Sin equipos
                 </td>
               </tr>
@@ -279,23 +313,25 @@ export function EquiposGestion() {
                     <Link
                       href={`/dashboard/mantenimiento/equipos/${r.id_equipo}`}
                       className={`${btnIconClass} bg-[var(--color-info)]`}
-                      title="Hoja de vida, historial y editar"
+                      title={soloConsulta ? 'Hoja de vida e historial' : 'Hoja de vida, historial y editar'}
                     >
                       <ClipboardList className="h-3.5 w-3.5" />
                       Hoja de vida
                     </Link>
                   </td>
-                  <td className="px-2 py-2">
-                    <button
-                      type="button"
-                      className={`${btnIconClass} bg-[var(--color-danger)]`}
-                      title="Solicitar retiro"
-                      onClick={() => setModalRetiro(r)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Retirar
-                    </button>
-                  </td>
+                  {soloConsulta ? null : (
+                    <td className="px-2 py-2">
+                      <button
+                        type="button"
+                        className={`${btnIconClass} bg-[var(--color-danger)]`}
+                        title="Retirar equipo"
+                        onClick={() => setModalRetiro(r)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Retirar
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -305,7 +341,14 @@ export function EquiposGestion() {
         <div className="mt-3 flex flex-col gap-2 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
           <span>{total} registros</span>
           {totalPages > 1 && (
-            <Pagination currentPage={Math.min(page, totalPages)} totalPages={totalPages} onChange={setPage} />
+            <Pagination
+              currentPage={Math.min(page, totalPages)}
+              totalPages={totalPages}
+              onChange={(next) => {
+                setPage(next);
+                persistirFiltros({ page: next });
+              }}
+            />
           )}
         </div>
       </div>
@@ -328,11 +371,13 @@ export function EquiposGestion() {
       {modalRetiro && (
         <ModalRetiro
           equipo={modalRetiro}
-          jefes={jefes}
           onClose={() => setModalRetiro(null)}
           onOk={async () => {
             setModalRetiro(null);
-            showSuccess('Solicitud de retiro enviada');
+            showSuccess('Equipo retirado');
+            await queryClient.invalidateQueries({
+              queryKey: mantenimientoKeys.all,
+            });
           }}
           onError={(m) => showError(m)}
         />
@@ -503,47 +548,42 @@ function ModalNuevoEquipo({
 
 function ModalRetiro({
   equipo,
-  jefes,
   onClose,
   onOk,
   onError,
 }: {
   equipo: Equipo;
-  jefes: Array<{ nit: string; nombres: string }>;
   onClose: () => void;
   onOk: () => void;
   onError: (m: string) => void;
 }) {
-  const [jefe, setJefe] = useState(jefes[0]?.nit ?? '');
   const [motivo, setMotivo] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   async function submit() {
-    if (!motivo || !file || !jefe) {
-      onError('Complete jefe, motivo e imagen');
+    if (!motivo.trim() || !file) {
+      onError('Complete motivo e imagen');
       return;
     }
+    setEnviando(true);
     try {
       const form = new FormData();
-      form.append('jefe', jefe);
       form.append('motivo_solicitud', motivo);
       form.append('file', file);
       await mantenimientoService.retiro(equipo.id_equipo, form);
       onOk();
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setEnviando(false);
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
       <div className="w-full max-w-md space-y-3 rounded-t-2xl bg-white p-4 sm:rounded-xl">
-        <h2 className="text-center font-semibold break-words">Solicitud retiro — {equipo.codigo}</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" value={jefe} onChange={(e) => setJefe(e.target.value)}>
-          {jefes.map((j) => (
-            <option key={j.nit} value={j.nit}>{j.nombres}</option>
-          ))}
-        </select>
+        <h2 className="text-center font-semibold break-words">Retirar equipo — {equipo.codigo}</h2>
         <textarea className="w-full rounded border px-3 py-2 text-sm" rows={4} value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo" />
         <MantenimientoFileField
           label="Imagen del retiro *"
@@ -552,8 +592,10 @@ function ModalRetiro({
           onChange={setFile}
         />
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" className={btnSecondaryClass} onClick={onClose}>Cancelar</button>
-          <button type="button" className={btnDangerClass} onClick={submit}>Retirar</button>
+          <button type="button" className={btnSecondaryClass} onClick={onClose} disabled={enviando}>Cancelar</button>
+          <button type="button" className={btnDangerClass} onClick={submit} disabled={enviando}>
+            {enviando ? 'Retirando…' : 'Retirar'}
+          </button>
         </div>
       </div>
     </div>

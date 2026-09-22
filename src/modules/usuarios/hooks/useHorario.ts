@@ -12,6 +12,7 @@ export const useHorarioUsuario = (
   const {
     data: horario = null,
     isLoading,
+    isFetched,
     error: queryError,
     refetch,
   } = useQuery({
@@ -29,5 +30,5 @@ export const useHorarioUsuario = (
       }
     : null;
 
-  return { horario, isLoading, error, refetch };
+  return { horario, isLoading, isFetched, error, refetch };
 };

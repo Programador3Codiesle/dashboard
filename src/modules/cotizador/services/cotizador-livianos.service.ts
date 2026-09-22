@@ -251,6 +251,19 @@ export const cotizadorLivianosService = {
     return data;
   },
 
+  async getModelos(descripcion: string): Promise<string[]> {
+    const params = new URLSearchParams({ descripcion });
+    const response = await fetchWithAuth(
+      `${API_URL}/cotizador/livianos/modelos?${params.toString()}`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener los modelos del vehículo.");
+    }
+    const data = (await response.json()) as string[];
+    return data;
+  },
+
   async getRevisionDetalle(params: {
     bodega: number;
     clase: string;

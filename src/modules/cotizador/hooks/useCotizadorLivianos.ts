@@ -13,8 +13,10 @@ export const COTIZADOR_LIVIANOS_QUERY_KEYS = {
   vehiculo: (placa: string, empresaKey: string) =>
     ["cotizador", "livianos", "vehiculo", placa, empresaKey] as const,
   revisiones: (clase: string) => ["cotizador", "livianos", "revisiones", clase] as const,
-  detalle: (bodega: number, clase: string, revision: number) =>
-    ["cotizador", "livianos", "detalle", bodega, clase, revision] as const,
+  modelos: (descripcion: string) =>
+    ["cotizador", "livianos", "modelos", descripcion] as const,
+  detalle: (bodega: number, clase: string, revision: number, year: number) =>
+    ["cotizador", "livianos", "detalle", bodega, clase, revision, year] as const,
 };
 
 export function useCotizadorLivianosInit() {
@@ -99,6 +101,21 @@ export function useRevisionesLivianos(clase: string | null) {
   };
 }
 
+export function useModelosLivianos(descripcion: string | null) {
+  const { data, isLoading, error } = useQuery<string[]>({
+    queryKey: COTIZADOR_LIVIANOS_QUERY_KEYS.modelos(descripcion || ""),
+    queryFn: () => cotizadorLivianosService.getModelos(descripcion || ""),
+    enabled: !!descripcion,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    modelos: data || [],
+    loading: isLoading,
+    error: error ? "No se pudieron cargar los modelos." : null,
+  };
+}
+
 export function useRevisionDetalleLivianos(params: {
   bodega: number | null;
   clase: string | null;
@@ -123,6 +140,7 @@ export function useRevisionDetalleLivianos(params: {
       (params.bodega ?? 0) as number,
       (params.clase ?? "") as string,
       (params.revision ?? 0) as number,
+      (params.yearModel ?? 0) as number,
     ),
     queryFn: () =>
       cotizadorLivianosService.getRevisionDetalle({

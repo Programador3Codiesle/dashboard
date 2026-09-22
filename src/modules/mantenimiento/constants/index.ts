@@ -1,3 +1,5 @@
+export const PERFIL_SALUD_OCUPACIONAL = 26;
+
 export const MANTENIMIENTO_COPY = {
   hub: {
     title: 'Mantenimiento',

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Save, Search } from "lucide-react";
 import {
   useCotizadorLivianosInit,
+  useModelosLivianos,
   useRevisionesLivianos,
   useRevisionDetalleLivianos,
   useVehiculoPorPlaca,
@@ -31,6 +32,9 @@ import {
   type AlertaChecklistLivianos,
 } from "@/modules/cotizar/utils/cotizar-livianos-checklist";
 
+const MENSAJE_PLACA_NO_REGISTRADA =
+  "No se encontró información para la placa ingresada.";
+
 export function CotizarLivianosGestion() {
   const { blocked } = useCotizarPageGuard(COTIZAR_LIVIANOS_SUBMENU_ID);
   const [placaBusqueda, setPlacaBusqueda] = useState("");
@@ -40,6 +44,11 @@ export function CotizarLivianosGestion() {
   const [kilometrajeCliente, setKilometrajeCliente] = useState<string>("");
   const [telefonoCliente, setTelefonoCliente] = useState<string>("");
   const [emailCliente, setEmailCliente] = useState<string>("");
+  const [nombreManual, setNombreManual] = useState("");
+  const [nitManual, setNitManual] = useState("");
+  const [claseManual, setClaseManual] = useState("");
+  const [modeloManual, setModeloManual] = useState("");
+  const [yearManual, setYearManual] = useState("");
   const [observaciones, setObservaciones] = useState<string>("");
   const [agendarCita, setAgendarCita] = useState<boolean>(false);
   const [tipoMantenimiento, setTipoMantenimiento] = useState<string>("");
@@ -68,10 +77,25 @@ export function CotizarLivianosGestion() {
 
   const { data: initData, loading: loadingInit, error: errorInit } = useCotizadorLivianosInit();
   const { vehiculo, loading: loadingVehiculo, error: errorVehiculo } = useVehiculoPorPlaca(placaConsultada);
-  const vehiculoClase = vehiculo?.clase ?? null;
-  const { revisiones, loading: loadingRevisiones } = useRevisionesLivianos(vehiculoClase);
+  const modoManual = Boolean(
+    placaConsultada &&
+      !vehiculo &&
+      errorVehiculo === MENSAJE_PLACA_NO_REGISTRADA,
+  );
+  const descripcionClase =
+    initData?.clases.find((c) => c.clase === claseManual)?.descripcion ?? "";
+  const claseActiva = vehiculo?.clase ?? (modoManual ? claseManual || null : null);
+  const yearActivo = vehiculo
+    ? vehiculo.year
+    : modoManual && yearManual.trim() !== "" && !Number.isNaN(Number(yearManual))
+      ? Number(yearManual)
+      : null;
+  const { revisiones, loading: loadingRevisiones } = useRevisionesLivianos(claseActiva);
+  const { modelos, loading: loadingModelos } = useModelosLivianos(
+    modoManual && descripcionClase ? descripcionClase : null,
+  );
 
-  const kmActual = vehiculo?.kilometraje ?? 0;
+  const kmActual = modoManual ? 0 : (vehiculo?.kilometraje ?? 0);
   const kmClienteValido =
     kilometrajeCliente.trim() !== "" &&
     !Number.isNaN(Number(kilometrajeCliente)) &&
@@ -79,16 +103,16 @@ export function CotizarLivianosGestion() {
 
   const { detalle, loading: loadingDetalle } = useRevisionDetalleLivianos({
     bodega: bodegaSeleccionada,
-    clase: vehiculoClase,
+    clase: claseActiva,
     revision: revisionSeleccionada,
     // Sólo cargamos la plantilla automática en MTTO GARANTÍA.
     kmClienteValido: kmClienteValido && tipoMantenimiento === "0",
-    yearModel: vehiculo?.year ?? null,
+    yearModel: yearActivo,
   });
 
   // Mostrar errores de búsqueda por placa como toast usando el sistema global
   useEffect(() => {
-    if (errorVehiculo) {
+    if (errorVehiculo && errorVehiculo !== MENSAJE_PLACA_NO_REGISTRADA) {
       showError(errorVehiculo);
     }
   }, [errorVehiculo, showError]);
@@ -100,6 +124,7 @@ export function CotizarLivianosGestion() {
 
   // Legacy cargarClase: tel y mail van al value del input, no solo al placeholder.
   useEffect(() => {
+    if (modoManual) return;
     if (!placaConsultada || !hayVehiculo) {
       setTelefonoCliente("");
       setEmailCliente("");
@@ -107,7 +132,7 @@ export function CotizarLivianosGestion() {
     }
     setTelefonoCliente(celularVehiculo?.toString().trim() ?? "");
     setEmailCliente(mailVehiculo?.toString().trim() ?? "");
-  }, [placaConsultada, hayVehiculo, celularVehiculo, mailVehiculo, nitVehiculo]);
+  }, [placaConsultada, hayVehiculo, modoManual, celularVehiculo, mailVehiculo, nitVehiculo]);
 
   // Cuando cambia la empresa seleccionada en el dashboard, reseteamos el submódulo
   useEffect(() => {
@@ -119,6 +144,11 @@ export function CotizarLivianosGestion() {
     setKilometrajeCliente("");
     setTelefonoCliente("");
     setEmailCliente("");
+    setNombreManual("");
+    setNitManual("");
+    setClaseManual("");
+    setModeloManual("");
+    setYearManual("");
     setObservaciones("");
     setAgendarCita(false);
     setTipoMantenimiento("");
@@ -135,7 +165,7 @@ export function CotizarLivianosGestion() {
   // Cuando cambia el tipo de mantenimiento, reseteamos selección y tablas
   useEffect(() => {
     // Si aún no hay vehículo cargado, no hacemos nada
-    if (!vehiculo) return;
+    if (!vehiculo && !modoManual) return;
 
     setRevisionSeleccionada(null);
     setKilometrajeCliente("");
@@ -145,7 +175,7 @@ export function CotizarLivianosGestion() {
     setRepuestosState([]);
     setManoObraState([]);
     setAlertaChecklist(null);
-  }, [tipoMantenimiento, vehiculo]);
+  }, [tipoMantenimiento, vehiculo, modoManual]);
 
   useEffect(() => {
     if (!detalle) {
@@ -201,6 +231,11 @@ export function CotizarLivianosGestion() {
     setKilometrajeCliente("");
     setTelefonoCliente("");
     setEmailCliente("");
+    setNombreManual("");
+    setNitManual("");
+    setClaseManual("");
+    setModeloManual("");
+    setYearManual("");
   };
 
   const handleSeleccionarBodega = (value: string) => {
@@ -306,17 +341,27 @@ export function CotizarLivianosGestion() {
       );
       return;
     }
-    if (!vehiculo?.clase || bodegaSeleccionada == null) {
+    if (!vehiculo?.clase && !claseManual) {
+      showError("Seleccione bodega y la clase del vehículo.");
+      return;
+    }
+    if (bodegaSeleccionada == null) {
       showError("Seleccione bodega y asegure tener datos del vehículo.");
       return;
     }
+    if (modoManual && !yearActivo) {
+      showError("Indique el año del vehículo para calcular los precios.");
+      return;
+    }
+    const claseAdicional = vehiculo?.clase ?? claseManual;
+    const yearAdicional = vehiculo?.year ?? (yearActivo as number);
     setAdicionalModalLoading(true);
     try {
       const data = await cotizadorLivianosService.getAdicionalesModal({
-        clase: vehiculo.clase,
+        clase: claseAdicional,
         bodega: bodegaSeleccionada,
         adicional: Number(adicionalSeleccionado),
-        year: vehiculo.year ?? new Date().getFullYear(),
+        year: yearAdicional,
       });
       setAdicionalModalData(data);
       setOpenAdicionalModal(true);
@@ -451,7 +496,25 @@ export function CotizarLivianosGestion() {
 
   const guardarMutation = useMutation({
     mutationFn: async () => {
-      if (!vehiculo || bodegaSeleccionada == null || revisionSeleccionada == null) {
+      if (modoManual) {
+        if (
+          !placaConsultada ||
+          !claseManual ||
+          !descripcionClase ||
+          !modeloManual ||
+          !nombreManual.trim() ||
+          !nitManual.trim() ||
+          !telefonoCliente.trim() ||
+          !emailCliente.trim() ||
+          !yearActivo ||
+          bodegaSeleccionada == null ||
+          revisionSeleccionada == null
+        ) {
+          throw new Error(
+            "Debe llenar todos los campos del vehículo y del cliente.",
+          );
+        }
+      } else if (!vehiculo || bodegaSeleccionada == null || revisionSeleccionada == null) {
         throw new Error("Faltan datos para guardar la cotización.");
       }
 
@@ -473,29 +536,51 @@ export function CotizarLivianosGestion() {
         );
       }
 
-      const kmClienteNumber = Number(kilometrajeCliente || vehiculo.kilometraje);
+      const kmClienteNumber = Number(
+        kilometrajeCliente || (modoManual ? 0 : vehiculo?.kilometraje),
+      );
 
-      const general = {
-        nombreCliente: vehiculo.cliente,
-        nitCliente: vehiculo.nit,
-        telfCliente: telefonoCliente || vehiculo.celular || null,
-        placa: vehiculo.placa,
-        clase: vehiculo.clase,
-        descripcion: vehiculo.descripcion,
-        des_modelo: vehiculo.des_modelo,
-        kilometraje_actual: vehiculo.kilometraje,
-        kilometraje_estimado: vehiculo.km_estimado,
-        kilometraje_cliente: kmClienteNumber,
-        bodega: bodegaSeleccionada,
-        revision: revisionSeleccionada,
-        emailCliente: emailCliente || vehiculo.mail || null,
-        // En el legacy este campo viene de la sesión; aquí de momento usamos 0.
-        usuario: 0,
-        observaciones: observaciones || null,
-        estado: agendarCita ? 1 : 0,
-        tipoMantenimiento:
-          tipoMantenimiento === "" ? null : Number(tipoMantenimiento),
-      };
+      const general = modoManual
+        ? {
+            nombreCliente: nombreManual.trim(),
+            nitCliente: nitManual.trim(),
+            telfCliente: telefonoCliente.trim(),
+            placa: placaConsultada as string,
+            clase: claseManual,
+            descripcion: descripcionClase,
+            des_modelo: modeloManual,
+            kilometraje_actual: 0,
+            kilometraje_estimado: 0,
+            kilometraje_cliente: kmClienteNumber,
+            bodega: bodegaSeleccionada as number,
+            revision: revisionSeleccionada as number,
+            emailCliente: emailCliente.trim(),
+            usuario: 0,
+            observaciones: observaciones || null,
+            estado: agendarCita ? 1 : 0,
+            tipoMantenimiento:
+              tipoMantenimiento === "" ? null : Number(tipoMantenimiento),
+          }
+        : {
+            nombreCliente: vehiculo!.cliente,
+            nitCliente: vehiculo!.nit,
+            telfCliente: telefonoCliente || vehiculo!.celular || null,
+            placa: vehiculo!.placa,
+            clase: vehiculo!.clase,
+            descripcion: vehiculo!.descripcion,
+            des_modelo: vehiculo!.des_modelo,
+            kilometraje_actual: vehiculo!.kilometraje,
+            kilometraje_estimado: vehiculo!.km_estimado,
+            kilometraje_cliente: kmClienteNumber,
+            bodega: bodegaSeleccionada as number,
+            revision: revisionSeleccionada as number,
+            emailCliente: emailCliente || vehiculo!.mail || null,
+            usuario: 0,
+            observaciones: observaciones || null,
+            estado: agendarCita ? 1 : 0,
+            tipoMantenimiento:
+              tipoMantenimiento === "" ? null : Number(tipoMantenimiento),
+          };
 
       const repuestos = (repuestosState ?? []).map((r) => ({
         codigo: r.codigo,
@@ -525,7 +610,7 @@ export function CotizarLivianosGestion() {
       // Enviar correo de cotización usando el servicio compartido
       const emailResult = await cotizadorLivianosService.enviarEmailCotizacion({
         idCotizacion,
-        placa: vehiculo.placa,
+        placa: modoManual ? (placaConsultada as string) : vehiculo!.placa,
         estado: agendarCita ? 1 : 0,
       });
 
@@ -598,8 +683,8 @@ export function CotizarLivianosGestion() {
         </div>
       )}
 
-      {/* Tarjeta con datos básicos del vehículo (cuando exista) */}
-      {vehiculo && (
+      {/* Datos del vehículo: maestro o captura manual si la placa no existe */}
+      {(vehiculo || modoManual) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -608,6 +693,13 @@ export function CotizarLivianosGestion() {
           <h2 className="text-xl font-semibold text-gray-900">
             Datos del vehículo
           </h2>
+          {modoManual && (
+            <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+              La placa <span className="font-medium">{placaConsultada}</span> no está registrada.
+              Complete la clase, el modelo y los datos del cliente para cotizar. El vehículo no se crea en el maestro.
+            </p>
+          )}
+          {vehiculo ? (
           <div className="app-form-grid-3 text-sm">
             <div>
               <p className="text-gray-500">Cliente</p>
@@ -648,6 +740,98 @@ export function CotizarLivianosGestion() {
               </p>
             </div>
           </div>
+          ) : (
+          <div className="app-form-grid-3 text-sm">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-nombre">
+                Cliente <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="cotizar-livianos-nombre"
+                type="text"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
+                value={nombreManual}
+                onChange={(e) => setNombreManual(e.target.value)}
+                placeholder="Nombre del cliente"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-nit">
+                Doc. Cliente <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="cotizar-livianos-nit"
+                type="text"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
+                value={nitManual}
+                onChange={(e) => setNitManual(e.target.value)}
+                placeholder="NIT o cédula"
+              />
+            </div>
+            <div>
+              <p className="text-gray-500">Placa</p>
+              <p className="font-medium text-gray-900">{placaConsultada}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-clase">
+                Clase <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="cotizar-livianos-clase"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
+                value={claseManual}
+                onChange={(e) => {
+                  setClaseManual(e.target.value);
+                  setModeloManual("");
+                  setRevisionSeleccionada(null);
+                }}
+              >
+                <option value="">Seleccione una clase</option>
+                {initData?.clases.map((c) => (
+                  <option key={c.clase} value={c.clase}>
+                    {c.descripcion}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-modelo">
+                Modelo <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="cotizar-livianos-modelo"
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
+                value={modeloManual}
+                onChange={(e) => setModeloManual(e.target.value)}
+                disabled={!claseManual || loadingModelos}
+              >
+                <option value="">
+                  {loadingModelos ? "Cargando modelos..." : "Seleccione un modelo"}
+                </option>
+                {modelos.map((modelo) => (
+                  <option key={modelo} value={modelo}>
+                    {modelo}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-anio">
+                Año <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="cotizar-livianos-anio"
+                type="number"
+                min={1980}
+                max={2100}
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
+                value={yearManual}
+                onChange={(e) => setYearManual(e.target.value)}
+                placeholder="Ej: 2020"
+              />
+            </div>
+          </div>
+          )}
 
           {/* Prepagado y tipo de mantenimiento */}
           <div className="app-form-grid-3 pt-4 border-t border-gray-100">
@@ -659,7 +843,7 @@ export function CotizarLivianosGestion() {
                 type="text"
                 readOnly
                 className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-gray-50 text-gray-700 cursor-not-allowed"
-                value={vehiculo.prepagado ?? ""}
+                value={vehiculo?.prepagado ?? ""}
                 placeholder="Sin información de prepagado"
               />
             </div>
@@ -681,7 +865,7 @@ export function CotizarLivianosGestion() {
               <button
                 type="button"
                 onClick={() => {
-                  setPosibleRetornoPlaca(vehiculo?.placa ?? "");
+                  setPosibleRetornoPlaca(vehiculo?.placa ?? placaConsultada ?? "");
                   setPosibleRetornoBodega("");
                   setPosibleRetornoTipo("");
                   setPosibleRetornoObs("");
@@ -751,7 +935,7 @@ export function CotizarLivianosGestion() {
                 className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
                 value={telefonoCliente}
                 onChange={(e) => setTelefonoCliente(e.target.value)}
-                placeholder={vehiculo.celular || "Teléfono"}
+                placeholder={vehiculo?.celular || "Teléfono"}
               />
             </div>
             <div>
@@ -763,7 +947,7 @@ export function CotizarLivianosGestion() {
                 className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
                 value={emailCliente}
                 onChange={(e) => setEmailCliente(e.target.value)}
-                placeholder={vehiculo.mail || "correo@cliente.com"}
+                placeholder={vehiculo?.mail || "correo@cliente.com"}
               />
             </div>
             <div>
@@ -810,6 +994,14 @@ export function CotizarLivianosGestion() {
                   bodegaSeleccionada == null ||
                   revisionSeleccionada == null ||
                   !kmClienteValido ||
+                  (modoManual &&
+                    (!nombreManual.trim() ||
+                      !nitManual.trim() ||
+                      !telefonoCliente.trim() ||
+                      !emailCliente.trim() ||
+                      !claseManual ||
+                      !modeloManual ||
+                      !yearActivo)) ||
                   (tipoMantenimiento === "0"
                     ? !detalle
                     : !(repuestosState?.length || manoObraState?.length))
@@ -1023,7 +1215,7 @@ export function CotizarLivianosGestion() {
       )}
 
       {/* Error específico de búsqueda por placa */}
-      {errorVehiculo && (
+      {errorVehiculo && !modoManual && (
         <div className="text-sm text-red-500">
           {errorVehiculo}
         </div>

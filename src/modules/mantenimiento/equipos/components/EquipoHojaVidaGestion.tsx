@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,13 +10,14 @@ import {
   Pencil,
   Phone,
   Wrench,
+  X,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { transactionalQueryOptions } from '@/core/query/catalog-query-options';
-import { MANTENIMIENTO_COPY } from '@/modules/mantenimiento/constants';
+import { MANTENIMIENTO_COPY, PERFIL_SALUD_OCUPACIONAL } from '@/modules/mantenimiento/constants';
 import { MantenimientoQueryError } from '@/modules/mantenimiento/shared/components/MantenimientoQueryError';
 import { mantenimientoKeys } from '@/modules/mantenimiento/shared/constants/query-keys';
-import { btnPrimaryClass, btnSecondaryClass, btnSuccessClass } from '@/modules/mantenimiento/shared/constants/ui';
+import { btnIconClass, btnPrimaryClass, btnSecondaryClass, btnSuccessClass } from '@/modules/mantenimiento/shared/constants/ui';
 import { useMantenimientoPageGuard } from '@/modules/mantenimiento/shared/hooks/useMantenimientoPageGuard';
 import { EmpresaBadge } from '@/components/shared/brand/EmpresaBadge';
 import { mantenimientoService } from '@/modules/mantenimiento/shared/services/mantenimiento.service';
@@ -199,8 +200,10 @@ export function EquipoHojaVidaGestion() {
   const { showError, showSuccess } = useToast();
   const queryClient = useQueryClient();
   const sesionLista = !!user && !blocked && Number.isFinite(id) && id > 0;
+  const soloConsulta = Number(user?.perfil_postventa) === PERFIL_SALUD_OCUPACIONAL;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<HojaSnapshot | null>(null);
+  const [detalle, setDetalle] = useState<DetalleHistorial | null>(null);
 
   const hojaQuery = useQuery({
     queryKey: mantenimientoKeys.hojaVida(id),
@@ -319,7 +322,7 @@ export function EquipoHojaVidaGestion() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row">
-          {!editing ? (
+          {soloConsulta ? null : !editing ? (
             <button
               type="button"
               className={btnPrimaryClass}
@@ -472,18 +475,6 @@ export function EquipoHojaVidaGestion() {
                     />
                   </div>
                 </div>
-
-                {eq.cv_equipo && !eq.imagen_equipo ? (
-                  <a
-                    href={imgUrl(String(eq.cv_equipo))!}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-info)] hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Ver CV archivo legacy
-                  </a>
-                ) : null}
 
                 {eq.descripcion ? (
                   <p className="mt-3 border-t border-gray-100 pt-3 text-[13px] leading-relaxed text-gray-700">
@@ -639,30 +630,26 @@ export function EquipoHojaVidaGestion() {
               </p>
             </div>
             <div className="app-table-scroll border-0 rounded-none">
-              <table className="w-full min-w-[800px] text-xs">
+              <table className="w-full min-w-[640px] text-xs">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-[10px] uppercase tracking-wide text-gray-500">
-                    {[
-                      'Tipo',
-                      'Estado',
-                      'Descripción',
-                      'Solicitud',
-                      'Requerida',
-                      'Inicio',
-                      'Fin',
-                      'Asignado',
-                    ].map((h) => (
-                      <th key={h} className="px-3 py-2 font-semibold">
-                        {h}
-                      </th>
-                    ))}
+                    {['Tipo', 'Estado', 'Descripción', 'Solicitud', 'Requerida', 'Detalle'].map(
+                      (h) => (
+                        <th
+                          key={h}
+                          className={`px-3 py-2 font-semibold ${h === 'Descripción' ? 'w-[46%]' : ''}`}
+                        >
+                          {h}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {data.historial.preventivo.length === 0 &&
                   data.historial.correctivo.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-3 py-5 text-center text-gray-500">
+                      <td colSpan={6} className="px-3 py-5 text-center text-gray-500">
                         Sin historial
                       </td>
                     </tr>
@@ -679,24 +666,40 @@ export function EquipoHojaVidaGestion() {
                           <td className="px-3 py-2 whitespace-nowrap">
                             {estadoLabel(h.estadoMto as string, 'prev')}
                           </td>
-                          <td className="max-w-[280px] px-3 py-2 text-[12px] leading-snug text-gray-800">
-                            {String(h.descrip ?? h.descripcion ?? h.observaciones ?? '—') ||
-                              '—'}
+                          <td className="px-3 py-2 text-[12px] leading-snug text-gray-800">
+                            {textoSolicitud(h.descrip)}
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_solicitud ?? '').slice(0, 10)}
+                            {fechaCorta(h.fecha_solicitud)}
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_requerida ?? '').slice(0, 10)}
+                            {fechaCorta(h.fecha_requerida)}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_inicio ?? '').slice(0, 10)}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_final ?? '').slice(0, 10)}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.NameAsignado ?? '')}
+                          <td className="px-3 py-2">
+                            <button
+                              type="button"
+                              className={`${btnIconClass} bg-[var(--color-info)]`}
+                              onClick={() =>
+                                setDetalle({
+                                  tipo: 'Preventivo',
+                                  inicio: fechaCorta(h.fecha_inicio),
+                                  fin: fechaCorta(h.fecha_final),
+                                  asignado: textoSolicitud(h.NameAsignado),
+                                  campos: [
+                                    {
+                                      label: 'Observaciones',
+                                      value: String(h.observaciones ?? ''),
+                                    },
+                                    {
+                                      label: 'Detalle de piezas',
+                                      value: String(h.detalle_piezas ?? ''),
+                                    },
+                                  ],
+                                })
+                              }
+                            >
+                              Detalle
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -711,21 +714,34 @@ export function EquipoHojaVidaGestion() {
                           <td className="px-3 py-2 whitespace-nowrap">
                             {estadoLabel(h.estado as string, 'corr')}
                           </td>
-                          <td className="max-w-[280px] px-3 py-2 text-[12px] leading-snug text-gray-800">
-                            {String(h.solicitud ?? h.respuesta ?? '—') || '—'}
+                          <td className="px-3 py-2 text-[12px] leading-snug text-gray-800">
+                            {textoSolicitud(h.solicitud)}
                           </td>
                           <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_solicitud ?? '').slice(0, 10)}
+                            {fechaCorta(h.fecha_solicitud)}
                           </td>
-                          <td className="px-3 py-2">—</td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_inicio ?? '').slice(0, 10)}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.fecha_finalizacion ?? '').slice(0, 10)}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            {String(h.nombreE ?? '')}
+                          <td className="px-3 py-2 whitespace-nowrap">—</td>
+                          <td className="px-3 py-2">
+                            <button
+                              type="button"
+                              className={`${btnIconClass} bg-[var(--color-info)]`}
+                              onClick={() =>
+                                setDetalle({
+                                  tipo: 'Correctivo',
+                                  inicio: fechaCorta(h.fecha_inicio),
+                                  fin: fechaCorta(h.fecha_finalizacion),
+                                  asignado: textoSolicitud(h.nombreE),
+                                  campos: [
+                                    {
+                                      label: 'Respuesta',
+                                      value: String(h.respuesta ?? ''),
+                                    },
+                                  ],
+                                })
+                              }
+                            >
+                              Detalle
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -735,8 +751,142 @@ export function EquipoHojaVidaGestion() {
               </table>
             </div>
           </section>
+          {detalle ? (
+            <ModalDetalleHistorial
+              detalle={detalle}
+              onClose={() => setDetalle(null)}
+            />
+          ) : null}
         </>
       )}
+    </div>
+  );
+}
+
+type DetalleHistorial = {
+  tipo: 'Preventivo' | 'Correctivo';
+  inicio: string;
+  fin: string;
+  asignado: string;
+  campos: Array<{ label: string; value: string }>;
+};
+
+function textoSolicitud(value: unknown): string {
+  const text = String(value ?? '').trim();
+  return text || '—';
+}
+
+function fechaCorta(value: unknown): string {
+  const text = String(value ?? '').slice(0, 10).trim();
+  return text || '—';
+}
+
+function ModalDetalleHistorial({
+  detalle,
+  onClose,
+}: {
+  detalle: DetalleHistorial;
+  onClose: () => void;
+}) {
+  const hayTexto = detalle.campos.some((campo) => campo.value.trim());
+  const esPreventivo = detalle.tipo === 'Preventivo';
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="detalle-historial-titulo"
+        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+      >
+        <div className="h-1 shrink-0 brand-bg" />
+        <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--color-primary)">
+              Historial
+            </p>
+            <h2
+              id="detalle-historial-titulo"
+              className="text-base font-semibold text-gray-900"
+            >
+              Detalle {detalle.tipo.toLowerCase()}
+            </h2>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+              esPreventivo
+                ? 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
+                : 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
+            }`}
+          >
+            {detalle.tipo}
+          </span>
+          <button
+            type="button"
+            className="rounded-md p-1.5 text-gray-500 brand-focus-ring hover:bg-gray-100"
+            aria-label="Cerrar"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="space-y-4 overflow-y-auto px-5 py-4">
+          <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {[
+              ['Inicio', detalle.inicio],
+              ['Fin', detalle.fin],
+              ['Asignado', detalle.asignado],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-xl border border-gray-100 bg-stone-50 px-3 py-2.5"
+              >
+                <dt className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  {label}
+                </dt>
+                <dd className="mt-1 break-words text-sm font-medium text-gray-900">
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {hayTexto ? (
+            <div className="space-y-3">
+              {detalle.campos.map((campo) => (
+                <div key={campo.label}>
+                  <p className="mb-1.5 text-xs font-semibold text-gray-600">
+                    {campo.label}
+                  </p>
+                  <p className="whitespace-pre-wrap rounded-xl border border-gray-100 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-800">
+                    {campo.value.trim() || '—'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500">
+              Aún no hay detalle registrado.
+            </p>
+          )}
+        </div>
+        <div className="flex justify-end border-t border-gray-100 px-5 py-3">
+          <button
+            type="button"
+            className={`${btnSecondaryClass} brand-focus-ring`}
+            onClick={onClose}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
