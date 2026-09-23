@@ -73,6 +73,21 @@ export const AREAS_FORMATO_ORDEN_SALIDA: { value: string; label: string }[] = [
   { value: 'Accesorios', label: 'Accesorios' },
 ];
 
+/**
+ * PHP `obtenerCamposExtra`: 1 y 15 piden solo placa;
+ * 8, 10, 16 y 18 piden placa y conductor.
+ */
+const TIPOS_SALIDA_CON_PLACA = new Set([1, 8, 10, 15, 16, 18]);
+const TIPOS_SALIDA_CON_CONDUCTOR = new Set([8, 10, 16, 18]);
+
+export function tipoSalidaPidePlaca(tipo: number): boolean {
+  return TIPOS_SALIDA_CON_PLACA.has(tipo);
+}
+
+export function tipoSalidaPideConductor(tipo: number): boolean {
+  return TIPOS_SALIDA_CON_CONDUCTOR.has(tipo);
+}
+
 export function comboJefesFormatoOrdenSalida(
   nitUsuario: number,
   nombreUsuario: string,

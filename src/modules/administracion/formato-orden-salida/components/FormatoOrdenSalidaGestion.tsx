@@ -18,6 +18,8 @@ import {
   AREAS_FORMATO_ORDEN_SALIDA,
   FORMATO_OS_ACCESS_NITS,
   comboJefesFormatoOrdenSalida,
+  tipoSalidaPideConductor,
+  tipoSalidaPidePlaca,
 } from '@/modules/administracion/formato-orden-salida/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
@@ -83,12 +85,12 @@ export function FormatoOrdenSalidaGestion() {
   const loadingTipos = tiposQuery.isFetching;
 
   const showPlaca = useMemo(
-    () => form.tipoSalida === 1 || form.tipoSalida === 15,
+    () => tipoSalidaPidePlaca(form.tipoSalida),
     [form.tipoSalida],
   );
 
   const showConductor = useMemo(
-    () => [8, 10, 16, 18].includes(form.tipoSalida),
+    () => tipoSalidaPideConductor(form.tipoSalida),
     [form.tipoSalida],
   );
 
@@ -116,8 +118,13 @@ export function FormatoOrdenSalidaGestion() {
       setSelectedJefeNit(null);
       setJefeComboKey((key) => key + 1);
     },
-    onError: () => {
-      showError('Ha ocurrido un error al guardar la información.');
+    onError: (error) => {
+      showError(
+        getErrorMessage(
+          error,
+          'Ha ocurrido un error al guardar la información.',
+        ),
+      );
     },
   });
 
@@ -137,9 +144,19 @@ export function FormatoOrdenSalidaGestion() {
     >,
   ) => {
     const { name, value } = e.target;
+    if (name === 'tipoSalida') {
+      const tipo = Number(value);
+      setForm((prev) => ({
+        ...prev,
+        tipoSalida: tipo,
+        placa: tipoSalidaPidePlaca(tipo) ? prev.placa : '',
+        conductor: tipoSalidaPideConductor(tipo) ? prev.conductor : '',
+      }));
+      return;
+    }
     setForm((prev) => ({
       ...prev,
-      [name]: name === 'tipoSalida' ? Number(value) : value,
+      [name]: value,
     }));
   };
 
@@ -162,12 +179,15 @@ export function FormatoOrdenSalidaGestion() {
       return;
     }
 
-    if (showPlaca && !form.placa) {
+    const placa = form.placa?.trim() ?? '';
+    const conductor = form.conductor?.trim() ?? '';
+
+    if (showPlaca && !placa) {
       showError('La placa del vehículo es obligatoria para este tipo de salida.');
       return;
     }
 
-    if (showConductor && !form.conductor) {
+    if (showConductor && !conductor) {
       showError('El conductor es obligatorio para este tipo de salida.');
       return;
     }
@@ -176,6 +196,8 @@ export function FormatoOrdenSalidaGestion() {
       ...form,
       sede: sedeValue,
       id_empresa: idEmpresa,
+      placa: showPlaca ? placa : '',
+      conductor: showConductor ? conductor : '',
     });
   };
 
@@ -374,6 +396,7 @@ export function FormatoOrdenSalidaGestion() {
                   }))
                 }
                 className="w-full border border-amber-300 bg-amber-50 rounded-xl px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                required
               />
             </div>
           )}
@@ -389,6 +412,7 @@ export function FormatoOrdenSalidaGestion() {
                 value={form.conductor ?? ''}
                 onChange={handleChange}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+                required
               />
             </div>
           )}

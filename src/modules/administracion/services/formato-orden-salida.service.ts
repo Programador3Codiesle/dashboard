@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/utils/api";
 import { getApiBaseUrl } from "@/config/public-env";
+import { parseError } from "@/modules/administracion/shared/utils/parse-api-error";
 
 const API_URL = getApiBaseUrl();
 
@@ -79,7 +80,7 @@ export const formatoOrdenSalidaService = {
     );
 
     if (!response.ok) {
-      throw new Error("Error al conectar con el servidor");
+      await parseError(response, "Error al conectar con el servidor");
     }
 
     const result: ApiMessageResponse = await response.json();
