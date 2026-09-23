@@ -10,7 +10,7 @@ import { withNextBasePath } from "@/config/next-base-path";
 
 const INACTIVITY_LIMIT_MS = 4 * 60 * 60 * 1000;
 const ACTIVITY_THRESHOLD_MS = 30 * 60 * 1000;
-const SESSION_RETRY_ATTEMPTS = 3;
+const SESSION_RETRY_ATTEMPTS = 2;
 
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,7 +55,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
             let check = await authService.getProfile();
             for (let attempt = 1; attempt < SESSION_RETRY_ATTEMPTS && check.status === "unavailable"; attempt++) {
-                await sleep(500 * 2 ** (attempt - 1));
+                await sleep(1500 * 2 ** (attempt - 1));
                 check = await authService.getProfile();
             }
 

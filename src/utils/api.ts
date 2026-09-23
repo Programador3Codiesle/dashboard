@@ -4,6 +4,13 @@ import {
   isUnauthorizedHttpStatus,
 } from "@/core/auth/session-status";
 import { getApiBaseUrl } from "@/config/public-env";
+import {
+  isIdempotentHttpMethod,
+  shouldRetryTransientHttp,
+  sleepMs,
+  TRANSIENT_RETRY_MAX,
+  transientRetryDelayMs,
+} from "@/utils/retry-transient";
 
 const API_URL = getApiBaseUrl();
 
@@ -45,6 +52,33 @@ function settleQueueWithStatus(status: number) {
   }
 }
 
+/** Reintenta GET/HEAD/OPTIONS ante 502/503/red (hueco de pm2 reload). POST no se duplica. */
+async function fetchWithTransientRetry(
+  url: string,
+  options: RequestInit,
+): Promise<Response> {
+  const method = typeof options.method === "string" ? options.method : "GET";
+  const maxAttempts = isIdempotentHttpMethod(method) ? TRANSIENT_RETRY_MAX : 1;
+  let lastResponse: Response | undefined;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (!shouldRetryTransientHttp(response.status, attempt, maxAttempts)) {
+        return response;
+      }
+      lastResponse = response;
+    } catch (error) {
+      if (attempt >= maxAttempts - 1) {
+        throw error;
+      }
+    }
+    await sleepMs(transientRetryDelayMs(attempt));
+  }
+
+  return lastResponse ?? syntheticResponse(503);
+}
+
 /**
  * Refresca el token con retry. true = cookies nuevas; false = no se pudo
  * (401 real o API caída). La cola recibe Response, no "sesión expirada" en 5xx.
@@ -82,7 +116,7 @@ async function refreshToken(): Promise<boolean> {
               await Promise.all(
                 batch.map(async (queuedRequest) => {
                   try {
-                    const retryResponse = await fetch(
+                    const retryResponse = await fetchWithTransientRetry(
                       queuedRequest.url,
                       queuedRequest.options,
                     );
@@ -188,7 +222,7 @@ export async function fetchWithAuth(
 
   const requestPromise = (async (): Promise<Response> => {
     try {
-      const response = await fetch(url, fetchOptions);
+      const response = await fetchWithTransientRetry(url, fetchOptions);
 
       if (response.status === 401) {
         if (isRefreshing) {
