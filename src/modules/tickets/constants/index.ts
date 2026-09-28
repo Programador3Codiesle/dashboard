@@ -1,7 +1,5 @@
-/** Tickets.php: perfil_postventa 1, 20, 62, 25–29 ven Activos/Finalizados. */
-export const PERFILES_QUE_VEN_TODOS_LOS_TICKETS = [
-  1, 20, 62, 25, 26, 27, 28, 29,
-] as const;
+/** Solo perfiles 1 y 20 ven Activos y Finalizados. El resto queda en Mis tickets. */
+export const PERFILES_QUE_VEN_TODOS_LOS_TICKETS = [1, 20] as const;
 export const PERFILES_QUE_REASIGNAN_TICKETS = ["20", "2"] as const;
 
 export function puedeVerTodosLosTickets(perfil: unknown): boolean {

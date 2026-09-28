@@ -167,19 +167,41 @@ export interface DashboardAgenteCC extends DashboardBase {
   data_estado?: Array<{ estado: string }>;
 }
 
+export interface InformePosventaTaller {
+  nombre: string;
+  presupuesto: number;
+  total: number;
+  porcentaje: number;
+  metaCumplida: boolean;
+  mo?: number;
+  tot?: number;
+  rep?: number;
+}
+
+export interface InformePosventaSede {
+  nombre: string;
+  presupuesto: number;
+  total: number;
+  porcentaje: number;
+  metaCumplida: boolean;
+  talleres?: InformePosventaTaller[];
+}
+
+export interface InformePosventa {
+  general: {
+    nombre: string;
+    presupuesto: number;
+    total: number;
+    porcentaje: number;
+    metaCumplida: boolean;
+  };
+  sedes: InformePosventaSede[];
+}
+
+/** Perfiles 22 y 23: Informe Posventa actual. */
 export interface DashboardGerencia extends DashboardBase {
   variant: "gerencia";
-  graf_sedes?: Array<{ total: number; sede: string }>;
-  porcen_giron?: number;
-  porcen_rosita?: number;
-  porcen_barranca?: number;
-  porcen_bocono?: number;
-  porcen_soloc?: number;
-  porcen_chev?: number;
-  to_posv?: number;
-  cal_pac?: { Calificacion?: number };
-  to_inv?: number;
-  nps_int?: number;
+  informe_posventa?: InformePosventa;
 }
 
 export interface DashboardCompras extends DashboardBase {

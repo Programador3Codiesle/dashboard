@@ -9,6 +9,8 @@ type Options = {
   submenuId?: number;
   trimenuId?: number;
   trimenuIdsAlternativos?: number[];
+  /** Estas cédulas entran aunque el perfil no tenga el submenu o el trimenu. */
+  nitsConAcceso?: ReadonlySet<number>;
   redirectTo?: string;
   /** false = la pantalla muestra el aviso de permiso en lugar de redirigir. */
   redirectOnDenied?: boolean;
@@ -21,6 +23,7 @@ export function useInformesPageGuard(options: Options = {}) {
     submenuId,
     trimenuId,
     trimenuIdsAlternativos,
+    nitsConAcceso,
     redirectTo = '/dashboard/informes',
     redirectOnDenied = true,
   } = options;
@@ -37,7 +40,12 @@ export function useInformesPageGuard(options: Options = {}) {
     !isMissingListedPermission(trimenus, trimenuId) ||
     (trimenuIdsAlternativos?.some((id) => trimenuSet.has(id)) ?? false);
 
-  const blocked = !!user && (missingSubmenu || !trimenuOk);
+  const nit =
+    user?.nit_usuario != null ? Number(user.nit_usuario) : Number.NaN;
+  const exento =
+    Number.isFinite(nit) && (nitsConAcceso?.has(nit) ?? false);
+
+  const blocked = !!user && !exento && (missingSubmenu || !trimenuOk);
 
   useEffect(() => {
     if (!user) return;

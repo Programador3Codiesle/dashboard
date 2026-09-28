@@ -8,7 +8,15 @@ import { DashboardFechaBadge } from "./DashboardFechaBadge";
 import { DASHBOARD_STYLES } from "../constants";
 import { PageTitleRow } from "@/components/shared/layout/PageTitleRow";
 
-function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
+function DashboardTecnicosInner({
+  data,
+  selectedMonth,
+  onMonthChange,
+}: {
+  data: DashboardTecnicosType;
+  selectedMonth: string;
+  onMonthChange: (value: string) => void;
+}) {
   const ventasSeries = useMemo(
     () => data.ventas_mensuales ?? [],
     [data.ventas_mensuales],
@@ -52,6 +60,8 @@ function DashboardTecnicosInner({ data }: { data: DashboardTecnicosType }) {
         <DashboardFechaBadge
           fecha={data.fecha_actual}
           diaFestivo={data.dia_festivo}
+          selectedMonth={selectedMonth}
+          onMonthChange={onMonthChange}
         />
       </div>
       <div className="app-kpi-grid">

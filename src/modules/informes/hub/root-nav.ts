@@ -6,6 +6,7 @@ import {
   INFORMES_POSTVENTA_SUBMENU_ID,
 } from '@/utils/constants';
 import { INFORMES_COPY } from '@/modules/informes/constants';
+import { NITS_ACCESO_INFORME_ORDEN_SALIDA } from '@/modules/informes/gestion-humana/ordenes-salida/constants';
 
 export const INFORMES_ROOT_HUB_NAV: HubNavItem[] = [
   {
@@ -14,6 +15,7 @@ export const INFORMES_ROOT_HUB_NAV: HubNavItem[] = [
     descripcion: INFORMES_COPY.ghHub.description,
     ruta: '/dashboard/informes/gestion-humana',
     submenuId: INFORMES_GESTION_HUMANA_SUBMENU_ID,
+    nitsConAcceso: NITS_ACCESO_INFORME_ORDEN_SALIDA,
   },
   {
     id: 'postventa',

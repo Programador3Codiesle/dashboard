@@ -17,6 +17,10 @@ export interface HubNavItem {
   empresaId?: number;
   /** Si es true, abre la ruta en una pestaña nueva (enlaces externos). */
   external?: boolean;
+  /** Además del submenu: solo estas cédulas ven la tarjeta. */
+  allowedNits?: ReadonlySet<number>;
+  /** Ven la tarjeta aunque el perfil no tenga el trimenu. */
+  nitsConAcceso?: ReadonlySet<number>;
 }
 
 export interface HubItem extends HubNavItem {

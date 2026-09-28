@@ -37,6 +37,10 @@ export default function EnviarAutorizacionCompraModal({
       showError("Los comentarios deben tener al menos 15 caracteres");
       return;
     }
+    if (archivos.length === 0) {
+      showError("Debe adjuntar al menos una cotización");
+      return;
+    }
 
     setSubiendo(true);
     try {
@@ -71,12 +75,13 @@ export default function EnviarAutorizacionCompraModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seleccione cotizaciones (opcional)
+            Seleccione cotizaciones <span className="text-red-500">*</span>
           </label>
           <input
             ref={fileInputRef}
             type="file"
             multiple
+            required
             onChange={handleFileChange}
             className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none"
             disabled={subiendo}
@@ -118,7 +123,7 @@ export default function EnviarAutorizacionCompraModal({
           </button>
           <button
             type="submit"
-            disabled={subiendo || comentarios.trim().length < 15}
+            disabled={subiendo || comentarios.trim().length < 15 || archivos.length === 0}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white brand-btn rounded-xl hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {subiendo ? (

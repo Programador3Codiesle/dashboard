@@ -77,8 +77,20 @@ function MetaRow({
   );
 }
 
+type MetaFila = {
+  label: string;
+  actual: number;
+  meta: number;
+  actualClass: string;
+  pctFilled: number;
+  pctRest: number;
+  filledClass: string;
+};
+
 type ProgressCardProps = {
   titulo: string;
+  /** Si se envía, el título de la sede queda arriba y este texto bajo el monto. */
+  subtitulo?: string;
   totalDia: number;
   metaHoy: number;
   metaMes: number;
@@ -86,12 +98,18 @@ type ProgressCardProps = {
   porcentajeHoyRestante: number;
   porcentajeMes: number;
   porcentajeMesRestante: number;
+  /**
+   * Barras propias. El inicio de perfiles 2-5 repite la etiqueta del legacy
+   * y compara ambas contra la meta del mes.
+   */
+  filas?: readonly [MetaFila, MetaFila];
   footer?: ReactNode;
   children?: ReactNode;
 };
 
 export function ProgressCard({
   titulo,
+  subtitulo,
   totalDia,
   metaHoy,
   metaMes,
@@ -99,41 +117,58 @@ export function ProgressCard({
   porcentajeHoyRestante,
   porcentajeMes,
   porcentajeMesRestante,
+  filas,
   footer,
   children,
 }: ProgressCardProps) {
+  const filasVisibles: readonly [MetaFila, MetaFila] = filas ?? [
+    {
+      label: 'Meta a cumplir a día de hoy',
+      actual: totalDia,
+      meta: metaHoy,
+      actualClass: 'text-[var(--color-info)]',
+      pctFilled: porcentajeHoy,
+      pctRest: porcentajeHoyRestante,
+      filledClass: 'bg-[var(--color-info)]',
+    },
+    {
+      label: 'Meta a cumplir al mes',
+      actual: totalDia,
+      meta: metaMes,
+      actualClass: 'text-[var(--color-success)]',
+      pctFilled: porcentajeMes,
+      pctRest: porcentajeMesRestante,
+      filledClass: 'bg-[var(--color-success)]',
+    },
+  ];
+
   return (
     <div data-testid="indicadores-progress-card" className="app-section-card min-w-0">
       <div className="mb-4 text-center">
+        {subtitulo ? (
+          <p className="text-sm font-semibold text-gray-800">{titulo}</p>
+        ) : null}
         <p className="break-all text-2xl font-bold brand-text sm:text-3xl">
           {formatMoney(totalDia)}
         </p>
-        <p className="mt-1 text-sm text-gray-500">Total {titulo}</p>
+        <p className="mt-1 text-sm text-gray-500">
+          {subtitulo ?? `Total ${titulo}`}
+        </p>
       </div>
 
-      <div className="mb-3">
-        <MetaRow
-          label="Meta a cumplir a día de hoy"
-          actual={totalDia}
-          meta={metaHoy}
-          actualClass="text-[var(--color-info)]"
-          pctFilled={porcentajeHoy}
-          pctRest={porcentajeHoyRestante}
-          filledClass="bg-[var(--color-info)]"
-        />
-      </div>
-
-      <div className="mb-3">
-        <MetaRow
-          label="Meta a cumplir al mes"
-          actual={totalDia}
-          meta={metaMes}
-          actualClass="text-[var(--color-success)]"
-          pctFilled={porcentajeMes}
-          pctRest={porcentajeMesRestante}
-          filledClass="bg-[var(--color-success)]"
-        />
-      </div>
+      {filasVisibles.map((fila) => (
+        <div key={`${fila.label}-${fila.filledClass}`} className="mb-3">
+          <MetaRow
+            label={fila.label}
+            actual={fila.actual}
+            meta={fila.meta}
+            actualClass={fila.actualClass}
+            pctFilled={fila.pctFilled}
+            pctRest={fila.pctRest}
+            filledClass={fila.filledClass}
+          />
+        </div>
+      ))}
 
       {children}
 

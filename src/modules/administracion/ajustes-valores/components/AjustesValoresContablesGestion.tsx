@@ -7,15 +7,16 @@ import ValoresCruceModal from '@/components/administracion/modals/ValoresCruceMo
 import { useToast } from '@/components/shared/ui/ToastContext';
 import { AdministracionPageFrame } from '@/modules/administracion/components/AdministracionPageFrame';
 import { ADMINISTRACION_COPY } from '@/modules/administracion/constants';
-import { ajusteValoresService } from '@/modules/administracion/services/ajuste-valores.service';
+import {
+  ajusteValoresService,
+  type FormaPagoLinea,
+} from '@/modules/administracion/services/ajuste-valores.service';
 import { useAdministracionPageGuard } from '@/modules/administracion/shared/hooks/useAdministracionPageGuard';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
 import type {
   AjusteValoresResponse,
-  Valores2Response,
   ValoresCruce,
   ActualizarValoresDTO,
-  ActualizarValores2DTO,
   ActualizarValoresCruceDTO,
 } from '@/modules/administracion/types';
 import { AJUSTES_VALORES_CONTABLES_SUBMENU_ID } from '@/utils/constants';
@@ -23,6 +24,56 @@ import { AJUSTES_VALORES_CONTABLES_SUBMENU_ID } from '@/utils/constants';
 const inputClass =
   'block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white';
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
+const MENSAJE_CERRADO = 'La fecha del documento ya se encuentra cerrada';
+const FORMAS_PAGO = ['0', '1', '2', '3', '4', '5', '6', '7'] as const;
+const CAMPOS_EDICION = [
+  'retencion',
+  'retencion_iva',
+  'retencion_ica',
+  'iva',
+  'Retencion_estampilla2',
+  'Retencion_estampilla1',
+  'valor_aplicado',
+  'valor_total',
+] as const;
+
+type CampoEdicion = (typeof CAMPOS_EDICION)[number];
+
+const EDICION_VACIA: Record<CampoEdicion, string> = {
+  retencion: '',
+  retencion_iva: '',
+  retencion_ica: '',
+  iva: '',
+  Retencion_estampilla2: '',
+  Retencion_estampilla1: '',
+  valor_aplicado: '',
+  valor_total: '',
+};
+
+const ETIQUETAS_EDICION: Record<CampoEdicion, string> = {
+  retencion: 'Retención en la Fuente',
+  retencion_iva: 'Reteiva',
+  retencion_ica: 'Reteica',
+  iva: 'IVA',
+  Retencion_estampilla2: 'Avisos y Tableros',
+  Retencion_estampilla1: 'Sobretasa Bomberil',
+  valor_aplicado: 'Valor Aplicado',
+  valor_total: 'Valor Total',
+};
+
+function formatoValor(valor: number | null | undefined): string {
+  const numero =
+    valor == null || Number.isNaN(Number(valor)) ? 0 : Number(valor);
+  return new Intl.NumberFormat('es-CO', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numero);
+}
+
+function valorPagoEntero(valor: number | null | undefined): string {
+  if (valor == null || Number.isNaN(Number(valor))) return '';
+  return String(Math.round(Number(valor)));
+}
 
 export function AjustesValoresContablesGestion() {
   const { blocked } = useAdministracionPageGuard(
@@ -33,16 +84,18 @@ export function AjustesValoresContablesGestion() {
   const [numeroAjuste1, setNumeroAjuste1] = useState('');
   const [valoresActuales, setValoresActuales] =
     useState<AjusteValoresResponse | null>(null);
-  const [documentosCerrados, setDocumentosCerrados] = useState(false);
+  const [edicion, setEdicion] =
+    useState<Record<CampoEdicion, string>>(EDICION_VACIA);
   const [loading, setLoading] = useState(false);
 
   const [tipoAjuste2, setTipoAjuste2] = useState('');
   const [numeroAjuste2, setNumeroAjuste2] = useState('');
-  const [valores2, setValores2] = useState<Valores2Response | null>(null);
-  const [documentosCerrados2, setDocumentosCerrados2] = useState(false);
+  const [pagos, setPagos] = useState<FormaPagoLinea[]>([]);
   const [loading2, setLoading2] = useState(false);
-  const [formaPago, setFormaPago] = useState<number | string>('');
-  const [valorPago, setValorPago] = useState<string>('');
+  const [formaPago, setFormaPago] = useState('');
+  const [valorPago, setValorPago] = useState('');
+  const [formaPago2, setFormaPago2] = useState('');
+  const [valorPago2, setValorPago2] = useState('');
 
   const [modalCruceOpen, setModalCruceOpen] = useState(false);
   const [valoresCruce, setValoresCruce] = useState<ValoresCruce | null>(null);
@@ -78,17 +131,17 @@ export function AjustesValoresContablesGestion() {
         valores.ano,
         valores.mes,
       );
-      setDocumentosCerrados(cerrado);
 
       if (cerrado) {
-        showError(
-          'Los documentos para este mes y año están cerrados. No se pueden modificar.',
-        );
-      } else {
-        showSuccess('Datos obtenidos correctamente');
+        setValoresActuales(null);
+        setEdicion(EDICION_VACIA);
+        showError(MENSAJE_CERRADO);
+        return;
       }
 
       setValoresActuales(valores);
+      setEdicion(EDICION_VACIA);
+      showSuccess('Datos obtenidos correctamente');
     } catch (error: unknown) {
       showError(getErrorMessage(error, 'Error al obtener los datos'));
       setValoresActuales(null);
@@ -116,11 +169,17 @@ export function AjustesValoresContablesGestion() {
         numero,
       );
 
-      if (!valores) {
+      if (!valores?.lineas.length) {
         showError(
           'No se encontraron valores para el tipo y número especificados',
         );
-        setValores2(null);
+        setPagos([]);
+        return;
+      }
+
+      if (valores.ano == null || valores.mes == null) {
+        setPagos([]);
+        showError('No se pudo validar la fecha del documento');
         return;
       }
 
@@ -128,55 +187,29 @@ export function AjustesValoresContablesGestion() {
         valores.ano,
         valores.mes,
       );
-      setDocumentosCerrados2(cerrado);
 
       if (cerrado) {
-        showError(
-          'Los documentos para este mes y año están cerrados. No se pueden modificar.',
-        );
-      } else {
-        showSuccess('Datos obtenidos correctamente');
+        setPagos([]);
+        setFormaPago('');
+        setValorPago('');
+        setFormaPago2('');
+        setValorPago2('');
+        showError(MENSAJE_CERRADO);
+        return;
       }
 
-      setValores2(valores);
-      setFormaPago(valores.forma_pago || '');
-      setValorPago(valores.valor?.toString() || '');
+      aplicarPagos(valores.lineas);
+      showSuccess('Datos obtenidos correctamente');
     } catch (error: unknown) {
       showError(getErrorMessage(error, 'Error al obtener los datos'));
-      setValores2(null);
+      setPagos([]);
     } finally {
       setLoading2(false);
     }
   };
 
-  const handleValorChange = (
-    field: keyof AjusteValoresResponse,
-    value: number,
-  ) => {
-    if (!valoresActuales || documentosCerrados) return;
-
-    const nuevosValores: AjusteValoresResponse = {
-      ...valoresActuales,
-      [field]: value,
-    };
-
-    nuevosValores.valor_total =
-      (nuevosValores.retencion || 0) +
-      (nuevosValores.retencion_iva || 0) +
-      (nuevosValores.retencion_ica || 0) +
-      (nuevosValores.iva || 0) +
-      (nuevosValores.Retencion_estampilla2 || 0) +
-      (nuevosValores.Retencion_estampilla1 || 0);
-
-    setValoresActuales(nuevosValores);
-  };
-
   const handleValorAplicadoBlur = async () => {
-    if (
-      !valoresActuales ||
-      !valoresActuales.valor_aplicado ||
-      valoresActuales.valor_aplicado === 0
-    ) {
+    if (!valoresActuales || edicion.valor_aplicado.trim() === '') {
       return;
     }
 
@@ -185,12 +218,11 @@ export function AjustesValoresContablesGestion() {
         tipoAjuste1,
         parseInt(numeroAjuste1),
       );
-      if (cruce) {
-        setValoresCruce(cruce);
-        setModalCruceOpen(true);
-      }
+      setValoresCruce(cruce);
+      setModalCruceOpen(true);
     } catch {
-      console.log('No hay valores de cruce disponibles');
+      setValoresCruce(null);
+      setModalCruceOpen(true);
     }
   };
 
@@ -213,36 +245,33 @@ export function AjustesValoresContablesGestion() {
   };
 
   const handleActualizarValores = async () => {
-    if (!valoresActuales || documentosCerrados) {
-      showError(
-        'No se pueden actualizar valores. Los documentos están cerrados.',
-      );
+    if (!valoresActuales) {
+      showError('Debe llenar al menos un campo!');
+      return;
+    }
+
+    const dto: ActualizarValoresDTO = {};
+    for (const campo of CAMPOS_EDICION) {
+      const texto = edicion[campo].trim();
+      if (texto === '') continue;
+      dto[campo] = Number(texto);
+    }
+    if (!Object.keys(dto).length) {
+      showError('Debe llenar al menos un campo!');
       return;
     }
 
     setLoading(true);
     try {
       const numero = parseInt(numeroAjuste1);
-      const dto: ActualizarValoresDTO = {
-        retencion: valoresActuales.retencion,
-        retencion_iva: valoresActuales.retencion_iva,
-        retencion_ica: valoresActuales.retencion_ica,
-        iva: valoresActuales.iva,
-        Retencion_estampilla2:
-          valoresActuales.Retencion_estampilla2 ?? undefined,
-        Retencion_estampilla1:
-          valoresActuales.Retencion_estampilla1 ?? undefined,
-        valor_aplicado: valoresActuales.valor_aplicado ?? undefined,
-        valor_total: valoresActuales.valor_total,
-      };
-
       const actualizado = await ajusteValoresService.actualizarValores(
         numero,
         tipoAjuste1,
         dto,
       );
       setValoresActuales(actualizado);
-      showSuccess('Valores actualizados correctamente');
+      setEdicion(EDICION_VACIA);
+      showSuccess('Los datos se guardaron correctamente');
     } catch (error: unknown) {
       showError(getErrorMessage(error, 'Error al actualizar los valores'));
     } finally {
@@ -250,37 +279,64 @@ export function AjustesValoresContablesGestion() {
     }
   };
 
+  const aplicarPagos = (lineas: FormaPagoLinea[]) => {
+    const primera = lineas[0];
+    const segunda = lineas.length === 2 ? lineas[1] : undefined;
+    setPagos(lineas);
+    setFormaPago(primera?.forma_pago != null ? String(primera.forma_pago) : '');
+    setValorPago(valorPagoEntero(primera?.valor));
+    setFormaPago2(
+      segunda?.forma_pago != null ? String(segunda.forma_pago) : '',
+    );
+    setValorPago2(valorPagoEntero(segunda?.valor));
+  };
+
   const handleActualizarValores2 = async () => {
-    if (!valores2 || documentosCerrados2) {
-      showError(
-        'No se pueden actualizar valores. Los documentos están cerrados.',
-      );
+    if (!pagos.length || formaPago === '') {
+      showError('Debe llenar al menos un campo!');
+      return;
+    }
+    if (valorPago.trim() === '') {
+      showError('Debe llenar el valor de la forma de pago');
+      return;
+    }
+    const segundaIncompleta =
+      (formaPago2 !== '' && valorPago2.trim() === '') ||
+      (formaPago2 === '' && valorPago2.trim() !== '');
+    if (segundaIncompleta) {
+      showError('Debe llenar el valor de la segunda forma de pago');
       return;
     }
 
-    if (!formaPago || !valorPago) {
-      showError('Por favor complete la forma de pago y el valor');
-      return;
-    }
+    const segundaVacia = formaPago2 === '' && valorPago2.trim() === '';
+    const lineas = pagos.map((linea, index) => {
+      if (index === 0) {
+        return {
+          id: linea.id,
+          forma_pago: Number(formaPago),
+          valor: Number(valorPago),
+        };
+      }
+      if (index === 1 && !segundaVacia) {
+        return {
+          id: linea.id,
+          forma_pago: Number(formaPago2),
+          valor: Number(valorPago2),
+        };
+      }
+      return { id: linea.id, forma_pago: null, valor: null };
+    });
 
     setLoading2(true);
     try {
       const numero = parseInt(numeroAjuste2);
-      const dto: ActualizarValores2DTO = {
-        forma_pago:
-          typeof formaPago === 'string' ? parseInt(formaPago) : formaPago,
-        valor: parseFloat(valorPago),
-      };
-
       const actualizado = await ajusteValoresService.actualizarValores2(
         numero,
         tipoAjuste2,
-        dto,
+        { lineas },
       );
-      setValores2(actualizado);
-      setFormaPago(actualizado.forma_pago || '');
-      setValorPago(actualizado.valor?.toString() || '');
-      showSuccess('Valores de pago actualizados correctamente');
+      aplicarPagos(actualizado.lineas);
+      showSuccess('Los datos se guardaron correctamente');
     } catch (error: unknown) {
       showError(
         getErrorMessage(error, 'Error al actualizar los valores de pago'),
@@ -358,12 +414,6 @@ export function AjustesValoresContablesGestion() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
         >
-          {documentosCerrados && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              Los documentos para este mes y año están cerrados. No se pueden
-              modificar.
-            </div>
-          )}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
               <Calculator className="text-green-600" size={20} />
@@ -408,121 +458,45 @@ export function AjustesValoresContablesGestion() {
               <tbody>
                 <tr className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">{concepto}</td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.retencion || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'retencion',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.retencion_iva || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'retencion_iva',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.retencion_ica || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'retencion_ica',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.iva || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'iva',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.Retencion_estampilla2 || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'Retencion_estampilla2',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.Retencion_estampilla1 || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'Retencion_estampilla1',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="number"
-                      className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      value={valoresActuales.valor_aplicado || 0}
-                      onChange={(e) =>
-                        handleValorChange(
-                          'valor_aplicado',
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      onBlur={handleValorAplicadoBlur}
-                      disabled={documentosCerrados}
-                    />
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-gray-900">
-                    {new Intl.NumberFormat('es-CO', {
-                      style: 'currency',
-                      currency: 'COP',
-                      minimumFractionDigits: 0,
-                    }).format(valoresActuales.valor_total || 0)}
-                  </td>
+                  {CAMPOS_EDICION.map((campo) => (
+                    <td key={campo} className="py-3 px-4">
+                      {formatoValor(valoresActuales[campo])}
+                    </td>
+                  ))}
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {CAMPOS_EDICION.map((campo) => (
+              <div key={campo}>
+                <label className={labelClass} htmlFor={`adm-ajuste-${campo}`}>
+                  {ETIQUETAS_EDICION[campo]}
+                </label>
+                <input
+                  id={`adm-ajuste-${campo}`}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className={inputClass}
+                  value={edicion[campo]}
+                  onChange={(e) =>
+                    setEdicion((prev) => ({ ...prev, [campo]: e.target.value }))
+                  }
+                  onBlur={
+                    campo === 'valor_aplicado'
+                      ? handleValorAplicadoBlur
+                      : undefined
+                  }
+                />
+              </div>
+            ))}
           </div>
           <div className="mt-6 flex">
             <button
               type="button"
               onClick={handleActualizarValores}
-              disabled={loading || documentosCerrados}
+              disabled={loading}
               className="flex w-full sm:w-auto items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
@@ -576,35 +550,67 @@ export function AjustesValoresContablesGestion() {
             </button>
           </div>
         </div>
-        {valores2 && (
+        {pagos.length > 0 && (
           <>
-            {documentosCerrados2 && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                Los documentos para este mes y año están cerrados. No se pueden
-                modificar.
-              </div>
-            )}
-            <div className="app-form-grid-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className={labelClass}>Forma de Pago</label>
-                <input
-                  type="number"
+                <label className={labelClass} htmlFor="adm-ajuste-forma-pago">
+                  Forma de Pago
+                </label>
+                <select
+                  id="adm-ajuste-forma-pago"
                   className={inputClass}
                   value={formaPago}
                   onChange={(e) => setFormaPago(e.target.value)}
-                  disabled={documentosCerrados2}
-                  placeholder="Ej: 5"
-                />
+                >
+                  <option value="">Seleccione una opción</option>
+                  {FORMAS_PAGO.map((opcion) => (
+                    <option key={opcion} value={opcion}>
+                      {opcion}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className={labelClass}>Valor</label>
+                <label className={labelClass} htmlFor="adm-ajuste-valor-pago">
+                  Valor
+                </label>
                 <input
+                  id="adm-ajuste-valor-pago"
                   type="number"
                   className={inputClass}
                   value={valorPago}
                   onChange={(e) => setValorPago(e.target.value)}
-                  disabled={documentosCerrados2}
-                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="adm-ajuste-forma-pago-2">
+                  Forma de Pago
+                </label>
+                <select
+                  id="adm-ajuste-forma-pago-2"
+                  className={inputClass}
+                  value={formaPago2}
+                  onChange={(e) => setFormaPago2(e.target.value)}
+                >
+                  <option value="">Seleccione una opción</option>
+                  {FORMAS_PAGO.map((opcion) => (
+                    <option key={opcion} value={opcion}>
+                      {opcion}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="adm-ajuste-valor-pago-2">
+                  Valor
+                </label>
+                <input
+                  id="adm-ajuste-valor-pago-2"
+                  type="number"
+                  className={inputClass}
+                  value={valorPago2}
+                  onChange={(e) => setValorPago2(e.target.value)}
                 />
               </div>
             </div>
@@ -612,7 +618,7 @@ export function AjustesValoresContablesGestion() {
               <button
                 type="button"
                 onClick={handleActualizarValores2}
-                disabled={loading2 || documentosCerrados2}
+                disabled={loading2}
                 className="flex w-full sm:w-auto items-center justify-center gap-2 brand-bg hover:opacity-90 text-white px-6 py-2.5 rounded-xl font-medium transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save size={18} />

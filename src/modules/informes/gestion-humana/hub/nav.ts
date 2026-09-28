@@ -1,5 +1,6 @@
 import type { HubNavItem } from '@/components/shared/hub/types';
 import { INFORMES_COPY, INFORMES_GH_TRIMENU } from '@/modules/informes/constants';
+import { NITS_ACCESO_INFORME_ORDEN_SALIDA } from '@/modules/informes/gestion-humana/ordenes-salida/constants';
 
 export const GESTION_HUMANA_HUB_NAV: HubNavItem[] = [
   {
@@ -57,6 +58,7 @@ export const GESTION_HUMANA_HUB_NAV: HubNavItem[] = [
     descripcion: INFORMES_COPY.ordenesSalida.description,
     ruta: '/dashboard/informes/gestion-humana/ordenes-salida',
     trimenuId: INFORMES_GH_TRIMENU.ordenesSalida,
+    nitsConAcceso: NITS_ACCESO_INFORME_ORDEN_SALIDA,
   },
   {
     id: 'tallas-personal',

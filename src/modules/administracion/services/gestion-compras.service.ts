@@ -52,6 +52,8 @@ export interface SolicitudCompra {
   proveedoresSugeridos?: string;
   areaCarga?: string;
   cargo?: string;
+  cotizacionFile?: string;
+  fechaTentativa?: string;
 }
 
 // Debe coincidir con la forma usada en los tipos de administración y el modal
@@ -167,6 +169,8 @@ export const gestionComprasService = {
         proveedoresSugeridos: item.proveedor || undefined,
         areaCarga: item.area_cargar || undefined,
         cargo: item.cargo_usu_solicita || undefined,
+        cotizacionFile: item.cotizacion_file || undefined,
+        fechaTentativa: item.fecha_tentativa,
       })),
       total: data.total,
       page: data.page,
@@ -232,7 +236,19 @@ export const gestionComprasService = {
       sede: item.sede,
       proveedoresSugeridos: item.proveedor || undefined,
       areaCarga: item.area_cargar || undefined,
+      fechaTentativa: item.fecha_tentativa,
     };
+  },
+
+  async obtenerCotizacionAprobada(id: number): Promise<string | null> {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/gestion-compras/${id}/cotizacion-aprobada`,
+      { method: "GET" },
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as { url?: string | null };
+    const url = data.url?.trim();
+    return url ? url : null;
   },
 
   /**

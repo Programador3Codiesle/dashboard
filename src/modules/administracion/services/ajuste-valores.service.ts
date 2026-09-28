@@ -45,24 +45,16 @@ export interface ValoresCruceResponse {
   mes: number | null;
 }
 
-export interface Valores2Response {
-  sw: number;
-  tipo: string;
-  numero: number;
-  tipo_cruce: string | null;
-  numero_cruce: number | null;
-  retencion: number | null;
-  retencion_iva: number | null;
-  retencion_ica: number | null;
-  iva: number | null;
-  Retencion_estampilla2: number | null;
-  Retencion_estampilla1: number | null;
-  valor_aplicado: number | null;
-  valor_total: number | null;
-  forma_pago: number;
-  valor: number;
-  ano: number;
-  mes: number;
+export interface FormaPagoLinea {
+  id: number;
+  forma_pago: number | null;
+  valor: number | null;
+}
+
+export interface FormasPagoResponse {
+  ano: number | null;
+  mes: number | null;
+  lineas: FormaPagoLinea[];
 }
 
 export interface ActualizarValoresDTO {
@@ -81,8 +73,11 @@ export interface ActualizarValoresCruceDTO {
 }
 
 export interface ActualizarValores2DTO {
-  forma_pago: number;
-  valor: number;
+  lineas: {
+    id: number;
+    forma_pago: number | null;
+    valor: number | null;
+  }[];
 }
 
 type ApiMessageResponse<T = unknown> = {
@@ -206,7 +201,7 @@ export const ajusteValoresService = {
   /**
    * Obtener valores2 (forma de pago)
    */
-  async obtenerValores2(tipo: string, numero: number): Promise<Valores2Response | null> {
+  async obtenerValores2(tipo: string, numero: number): Promise<FormasPagoResponse | null> {
     const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/valores2?tipo=${tipo}&numero=${numero}`, {
       method: "GET",
     });
@@ -215,7 +210,7 @@ export const ajusteValoresService = {
       throw new Error("Error al conectar con el servidor");
     }
 
-    const result: ApiMessageResponse<Valores2Response> = await response.json();
+    const result: ApiMessageResponse<FormasPagoResponse> = await response.json();
 
     if (!result.status || !result.data) {
       // Si no encontró datos, retornar null en lugar de lanzar error
@@ -228,7 +223,7 @@ export const ajusteValoresService = {
   /**
    * Actualizar valores2 (forma de pago)
    */
-  async actualizarValores2(numero: number, tipo: string, dto: ActualizarValores2DTO): Promise<Valores2Response> {
+  async actualizarValores2(numero: number, tipo: string, dto: ActualizarValores2DTO): Promise<FormasPagoResponse> {
     const response = await fetchWithAuth(`${API_URL}/administracion/ajuste-valores/${numero}?tipo=${tipo}`, {
       method: "PUT",
       body: JSON.stringify(dto),
@@ -238,7 +233,7 @@ export const ajusteValoresService = {
       throw new Error("Error al conectar con el servidor");
     }
 
-    const result: ApiMessageResponse<Valores2Response> = await response.json();
+    const result: ApiMessageResponse<FormasPagoResponse> = await response.json();
 
     if (!result.status || !result.data) {
       throw new Error(result.message || "No se pudieron actualizar los valores de pago");

@@ -94,13 +94,34 @@ function SedeCardPerfil({ sede }: { sede: PresupuestoSede }) {
   return (
     <ProgressCard
       titulo={sede.sede}
+      subtitulo="Total facturado"
       totalDia={sede.totalDia}
       metaHoy={sede.metaHoy}
       metaMes={sede.metaMes}
-      porcentajeHoy={sede.porcentajeObjetivo}
-      porcentajeHoyRestante={sede.porcentajeObjetivoRestante}
-      porcentajeMes={sede.porcentajeMes}
-      porcentajeMesRestante={sede.porcentajeMesRestante}
+      porcentajeHoy={sede.porcentajeMes}
+      porcentajeHoyRestante={sede.porcentajeMesRestante}
+      porcentajeMes={sede.porcentajeObjetivo}
+      porcentajeMesRestante={sede.porcentajeObjetivoRestante}
+      filas={[
+        {
+          label: 'Presupuesto a día de hoy',
+          actual: sede.totalDia,
+          meta: sede.metaMes,
+          actualClass: 'text-[var(--color-success)]',
+          pctFilled: sede.porcentajeMes,
+          pctRest: sede.porcentajeMesRestante,
+          filledClass: 'bg-[var(--color-success)]',
+        },
+        {
+          label: 'Presupuesto a día de hoy',
+          actual: sede.metaHoy,
+          meta: sede.metaMes,
+          actualClass: 'text-[var(--color-info)]',
+          pctFilled: sede.porcentajeObjetivo,
+          pctRest: sede.porcentajeObjetivoRestante,
+          filledClass: 'bg-[var(--color-info)]',
+        },
+      ]}
       footer={
         <Link
           href={`/dashboard/indicadores/presupuesto-posventa/talleres?sede=${encodeURIComponent(sede.sede)}`}

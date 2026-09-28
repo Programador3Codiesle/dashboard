@@ -24,8 +24,28 @@ import {
   type SolicitudCompra,
 } from '@/modules/administracion/services/gestion-compras.service';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
+import { operaGestionCompras } from '@/modules/administracion/gestion-compras/opciones-legacy';
 import type { NuevaSolicitudCompraDTO } from '@/modules/administracion/types';
+import { getApiBaseUrl } from '@/config/public-env';
 import { GESTION_COMPRAS_SUBMENU_ID } from '@/utils/constants';
+
+const ESTADOS_EXCEL = [
+  { value: '0', label: 'Todos' },
+  { value: '1', label: 'Sin revisar' },
+  { value: '2', label: 'En proceso' },
+  { value: '3', label: 'En tránsito' },
+  { value: '4', label: 'Despachada' },
+  { value: '5', label: 'Negada' },
+] as const;
+
+function urlCotizacion(path: string): string {
+  if (path.startsWith('http')) return path;
+  const base = getApiBaseUrl().replace(/\/+$/, '');
+  if (path.startsWith('public/')) {
+    return `${base}/${path.slice('public/'.length)}`;
+  }
+  return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+}
 
 const PAGE_SIZE = 10;
 
@@ -43,6 +63,11 @@ export function GestionComprasGestion() {
     paging.empresaId === empresaId ? paging.page : 1;
   const [modalOpen, setModalOpen] = useState(false);
   const [descargando, setDescargando] = useState(false);
+  const [estadoExcel, setEstadoExcel] = useState('0');
+  const perfil = Number(user?.perfil_postventa);
+  const puedeOperar = operaGestionCompras(
+    Number.isFinite(perfil) ? perfil : 0,
+  );
 
   const [solicitudSeleccionada, setSolicitudSeleccionada] =
     useState<SolicitudCompra | null>(null);
@@ -54,6 +79,7 @@ export function GestionComprasGestion() {
     null,
   );
   const [estadoActualAccion, setEstadoActualAccion] = useState<number>(1);
+  const [estadoMensaje, setEstadoMensaje] = useState<number>(1);
 
   const query = useQuery({
     queryKey: [
@@ -150,7 +176,7 @@ export function GestionComprasGestion() {
     setDescargando(true);
     try {
       const blob = await gestionComprasService.exportarExcel({
-        buscar: search || undefined,
+        estado: estadoExcel !== '0' ? Number(estadoExcel) : undefined,
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -180,10 +206,27 @@ export function GestionComprasGestion() {
     setModalVerDetalle(true);
   }, []);
 
-  const handleVerMensajes = useCallback((solicitudId: number) => {
+  const handleVerMensajes = useCallback((solicitudId: number, estado: number) => {
     setSolicitudIdAccion(solicitudId);
+    setEstadoMensaje(estado);
     setModalMensajes(true);
   }, []);
+
+  const handleVerCotizacion = useCallback(
+    (solicitud: SolicitudCompra) => {
+      void (async () => {
+        const archivo =
+          solicitud.cotizacionFile ||
+          (await gestionComprasService.obtenerCotizacionAprobada(solicitud.id));
+        if (!archivo) {
+          showError('No hay una cotización aprobada para esta solicitud');
+          return;
+        }
+        window.open(urlCotizacion(archivo), '_blank', 'noopener,noreferrer');
+      })();
+    },
+    [showError],
+  );
 
   const handleCambiarEstado = useCallback(
     (solicitudId: number, estadoActual: number) => {
@@ -222,7 +265,24 @@ export function GestionComprasGestion() {
         />
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:items-center">
+        {puedeOperar ? (
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <span className="shrink-0">Estado del Excel</span>
+            <select
+              value={estadoExcel}
+              onChange={(event) => setEstadoExcel(event.target.value)}
+              className="rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary)"
+            >
+              {ESTADOS_EXCEL.map((estado) => (
+                <option key={estado.value} value={estado.value}>
+                  {estado.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {puedeOperar ? (
         <button
           type="button"
           onClick={() => void handleDownload()}
@@ -241,6 +301,7 @@ export function GestionComprasGestion() {
             </>
           )}
         </button>
+        ) : null}
         <button
           type="button"
           onClick={() => setModalOpen(true)}
@@ -333,7 +394,9 @@ export function GestionComprasGestion() {
                     onVerMensajes={handleVerMensajes}
                     onCambiarEstado={handleCambiarEstado}
                     onEnviarAutorizacion={handleEnviarAutorizacion}
+                    onVerCotizacion={handleVerCotizacion}
                     onToggleFactura={handleToggleFactura}
+                    puedeOperar={puedeOperar}
                   />
                 ))
               )}
@@ -375,6 +438,7 @@ export function GestionComprasGestion() {
               setSolicitudIdAccion(null);
             }}
             solicitudId={solicitudIdAccion}
+            soloLectura={estadoMensaje === 4 || estadoMensaje === 5}
           />
 
           <CambiarEstadoCompraModal

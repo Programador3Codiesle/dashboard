@@ -22,15 +22,12 @@ export const DASHBOARD_COPY = {
   loadingEmpresa: "Cargando dashboard para la empresa seleccionada...",
   loading: "Cargando información del dashboard...",
   loadingMes: "Cargando datos del mes seleccionado...",
-  mesLabel: "Mes:",
   emptyTitle: "Bienvenido",
   emptyHint:
     "Tu perfil no tiene un tablero de indicadores. Usa el menú para entrar a las secciones disponibles.",
 } as const;
 
 export const DASHBOARD_STYLES = {
-  monthInput:
-    "rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-900 bg-white focus:outline-none brand-focus-ring",
   spinner:
     "w-10 h-10 border-4 border-(--color-primary) border-t-transparent rounded-full animate-spin",
   overlay:

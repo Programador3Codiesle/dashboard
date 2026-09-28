@@ -3,6 +3,12 @@
 import React from 'react';
 import { TableRow } from '@/components/shared/ui/TableRow';
 import { SolicitudCompra } from '@/modules/administracion/services/gestion-compras.service';
+import {
+  etiquetaAutorizacion,
+  puedeCambiarEstadoCompra,
+  puedeMarcarFactura,
+  puedePulsarAutorizacion,
+} from '@/modules/administracion/gestion-compras/opciones-legacy';
 import { MessageSquare, Eye } from 'lucide-react';
 
 interface SolicitudCompraTableRowProps {
@@ -10,10 +16,12 @@ interface SolicitudCompraTableRowProps {
   getUrgenciaBadge: (urgencia: number) => string;
   onRefresh?: () => void;
   onVerDetalle?: (solicitud: SolicitudCompra) => void;
-  onVerMensajes?: (solicitudId: number) => void;
+  onVerMensajes?: (solicitudId: number, estado: number) => void;
   onCambiarEstado?: (solicitudId: number, estadoActual: number) => void;
   onEnviarAutorizacion?: (solicitudId: number) => void;
+  onVerCotizacion?: (solicitud: SolicitudCompra) => void;
   onToggleFactura?: (solicitudId: number, conFactura: boolean) => void;
+  puedeOperar?: boolean;
 }
 
 /**
@@ -22,21 +30,58 @@ interface SolicitudCompraTableRowProps {
 export const SolicitudCompraTableRow = React.memo(({
   solicitud,
   getUrgenciaBadge,
-  onRefresh,
   onVerDetalle,
   onVerMensajes,
   onCambiarEstado,
   onEnviarAutorizacion,
+  onVerCotizacion,
   onToggleFactura,
+  puedeOperar = false,
 }: SolicitudCompraTableRowProps) => {
+  const facturaHabilitada = puedeMarcarFactura(
+    solicitud.estadoNumero,
+    solicitud.conFactura,
+    puedeOperar,
+  );
+  const estadoHabilitado = puedeCambiarEstadoCompra(
+    solicitud.estadoNumero,
+    puedeOperar,
+  );
+  const autorizacionHabilitada = puedePulsarAutorizacion(
+    solicitud.estadoAutorizacionNumero,
+    puedeOperar,
+  );
+
   const handleToggleFactura = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onToggleFactura) {
-      onToggleFactura(solicitud.id, e.target.checked);
+    if (!facturaHabilitada || !e.target.checked) return;
+    onToggleFactura?.(solicitud.id, true);
+  };
+
+  const colorFila =
+    solicitud.conFactura || solicitud.estadoNumero === 5
+      ? '#DFDFDF'
+      : solicitud.urgencia === 1
+        ? '#D7FFCE'
+        : solicitud.urgencia === 2
+          ? '#FFFECE'
+          : solicitud.urgencia === 3
+            ? '#FFCECE'
+            : undefined;
+
+  const handleAutorizacion = () => {
+    if (!autorizacionHabilitada) return;
+    if (solicitud.estadoAutorizacionNumero === 3) {
+      onVerCotizacion?.(solicitud);
+      return;
     }
+    onEnviarAutorizacion?.(solicitud.id);
   };
 
   return (
-    <TableRow className="border-b border-gray-100 hover:bg-gray-50 text-sm">
+    <TableRow
+      className="border-b border-gray-200 text-sm"
+      style={colorFila ? { backgroundColor: colorFila } : undefined}
+    >
       <td className="py-4 px-6">
         <button
           onClick={() => onVerDetalle?.(solicitud)}
@@ -49,7 +94,7 @@ export const SolicitudCompraTableRow = React.memo(({
       <td className="py-4 px-6">{solicitud.descripcion}</td>
       <td className="py-4 px-6">
         <button
-          onClick={() => onVerMensajes?.(solicitud.id)}
+          onClick={() => onVerMensajes?.(solicitud.id, solicitud.estadoNumero)}
           className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium hover:bg-purple-200 transition-colors"
         >
           <MessageSquare className="w-3 h-3 mr-1" />
@@ -62,14 +107,17 @@ export const SolicitudCompraTableRow = React.memo(({
             type="checkbox"
             checked={solicitud.conFactura}
             onChange={handleToggleFactura}
-            className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+            disabled={!facturaHabilitada}
+            className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500 disabled:cursor-not-allowed"
           />
         </label>
       </td>
       <td className="py-4 px-6">
         <button
+          type="button"
           onClick={() => onCambiarEstado?.(solicitud.id, solicitud.estadoNumero)}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+          disabled={!estadoHabilitado}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
             solicitud.estadoNumero === 1
               ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               : solicitud.estadoNumero === 2
@@ -86,8 +134,9 @@ export const SolicitudCompraTableRow = React.memo(({
       </td>
       <td className="py-4 px-6">
         <button
-          onClick={() => onEnviarAutorizacion?.(solicitud.id)}
-          disabled={solicitud.estadoAutorizacionNumero === 3 || solicitud.estadoAutorizacionNumero === 4}
+          type="button"
+          onClick={handleAutorizacion}
+          disabled={!autorizacionHabilitada}
           className={`px-2 py-1 rounded text-xs font-medium transition-opacity disabled:opacity-50 disabled:cursor-not-allowed ${
             solicitud.estadoAutorizacionNumero === 1
               ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -98,7 +147,7 @@ export const SolicitudCompraTableRow = React.memo(({
               : 'bg-red-100 text-red-700 hover:bg-red-200'
           }`}
         >
-          {solicitud.estadoAutorizacion}
+          {etiquetaAutorizacion(solicitud.estadoAutorizacionNumero, puedeOperar)}
         </button>
       </td>
       <td className="py-4 px-6">{solicitud.usuarioSolicita}</td>
@@ -119,6 +168,10 @@ export const SolicitudCompraTableRow = React.memo(({
     prevProps.solicitud.estado === nextProps.solicitud.estado &&
     prevProps.solicitud.estadoAutorizacion === nextProps.solicitud.estadoAutorizacion &&
     prevProps.solicitud.conFactura === nextProps.solicitud.conFactura &&
+    prevProps.solicitud.urgencia === nextProps.solicitud.urgencia &&
+    prevProps.solicitud.estadoNumero === nextProps.solicitud.estadoNumero &&
+    prevProps.solicitud.cotizacionFile === nextProps.solicitud.cotizacionFile &&
+    prevProps.puedeOperar === nextProps.puedeOperar &&
     prevProps.getUrgenciaBadge === nextProps.getUrgenciaBadge
   );
 });

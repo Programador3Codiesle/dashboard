@@ -1,8 +1,40 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useState, useMemo, useRef } from "react";
+import { CircleAlert, CircleCheck, Info } from "lucide-react";
 
 type ToastVariant = "success" | "error" | "info";
+
+const TOAST_TONE: Record<
+  ToastVariant,
+  { title: string; rail: string; shell: string; badge: string; label: string; icon: React.ReactNode }
+> = {
+  info: {
+    title: "Información",
+    rail: "bg-[color-mix(in_srgb,var(--color-info)_40%,#0c4a6e)]",
+    shell:
+      "border-[color-mix(in_srgb,var(--color-info)_55%,#0369a1)] bg-[color-mix(in_srgb,var(--color-info)_18%,white)]",
+    badge: "bg-[color-mix(in_srgb,var(--color-info)_28%,white)] text-[color-mix(in_srgb,var(--color-info)_35%,#0c4a6e)]",
+    label: "text-[color-mix(in_srgb,var(--color-info)_30%,#0c4a6e)]",
+    icon: <Info size={18} strokeWidth={2.25} />,
+  },
+  success: {
+    title: "Éxito",
+    rail: "bg-[var(--color-success)]",
+    shell: "border-[color-mix(in_srgb,var(--color-success)_35%,white)] bg-[var(--color-success-soft)]",
+    badge: "bg-white text-[var(--color-success)]",
+    label: "text-[var(--color-success-hover)]",
+    icon: <CircleCheck size={18} strokeWidth={2.25} />,
+  },
+  error: {
+    title: "Error",
+    rail: "bg-[var(--color-danger)]",
+    shell: "border-[color-mix(in_srgb,var(--color-danger)_28%,white)] bg-[var(--color-danger-soft)]",
+    badge: "bg-white text-[var(--color-danger)]",
+    label: "text-[var(--color-danger)]",
+    icon: <CircleAlert size={18} strokeWidth={2.25} />,
+  },
+};
 
 interface Toast {
   id: number;
@@ -64,31 +96,38 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={value}>
       {children}
       {/* Contenedor visual de toasts */}
-      <div className="fixed top-4 right-4 z-9999 flex flex-col items-end space-y-3">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`min-w-[280px] max-w-sm rounded-2xl px-4 py-3 shadow-xl border text-sm flex items-start gap-3
-              backdrop-blur bg-white/95
-              ${toast.variant === "success" ? "border-emerald-200" : ""}
-              ${toast.variant === "error" ? "border-red-200" : ""}
-              ${toast.variant === "info" ? "border-blue-200" : ""}`}
-          >
-            <span
-              className={`mt-0.5 text-xs font-semibold uppercase tracking-wide
-                ${toast.variant === "success" ? "text-emerald-600" : ""}
-                ${toast.variant === "error" ? "text-red-600" : ""}
-                ${toast.variant === "info" ? "text-blue-600" : ""}`}
+      <div
+        className="pointer-events-none fixed top-4 right-4 z-9999 flex w-[min(100vw-2rem,26rem)] flex-col items-stretch gap-3"
+        aria-live="polite"
+      >
+        {toasts.map((toast) => {
+          const tone = TOAST_TONE[toast.variant];
+          return (
+            <div
+              key={toast.id}
+              role={toast.variant === "error" ? "alert" : "status"}
+              className={`pointer-events-auto flex overflow-hidden rounded-2xl border shadow-[0_16px_40px_-16px_rgba(15,23,42,0.45)] ${tone.shell}`}
             >
-              {toast.variant === "success"
-                ? "Éxito"
-                : toast.variant === "error"
-                  ? "Error"
-                  : "Info"}
-            </span>
-            <span className="text-gray-800 text-sm">{toast.message}</span>
-          </div>
-        ))}
+              <span className={`w-1.5 shrink-0 ${tone.rail}`} aria-hidden="true" />
+              <div className="flex min-w-0 items-start gap-3 px-4 py-3.5">
+                <span
+                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${tone.badge}`}
+                  aria-hidden="true"
+                >
+                  {tone.icon}
+                </span>
+                <div className="min-w-0 pt-0.5">
+                  <p className={`text-xs font-semibold tracking-wide uppercase ${tone.label}`}>
+                    {tone.title}
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium leading-snug text-gray-900">
+                    {toast.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

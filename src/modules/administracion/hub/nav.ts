@@ -1,4 +1,5 @@
 import type { HubNavItem } from '@/components/shared/hub/types';
+import { FORMATO_OS_ACCESS_NITS } from '@/modules/administracion/formato-orden-salida/constants';
 import {
   AJUSTES_VALORES_CONTABLES_SUBMENU_ID,
   CONTROL_VEHICULOS_SUBMENU_ID,
@@ -54,6 +55,7 @@ export const ADMINISTRACION_HUB_NAV: HubNavItem[] = [
     descripcion: 'Registro del formato de orden de salida (SGC-FR02)',
     ruta: '/dashboard/administracion/formato-orden-salida',
     submenuId: FORMATO_ORDEN_SALIDA_SUBMENU_ID,
+    allowedNits: FORMATO_OS_ACCESS_NITS,
   },
   {
     id: 'formatos-nomina',

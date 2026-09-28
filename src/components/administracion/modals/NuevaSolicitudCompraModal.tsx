@@ -5,7 +5,10 @@ import React from "react";
 import { GerenteAutorizaCombobox } from "@/components/administracion/forms/GerenteAutorizaCombobox";
 import Modal from "@/components/shared/ui/Modal";
 import { NuevaSolicitudCompraDTO, NivelUrgencia } from "@/modules/administracion/types";
-import { AREAS_SOLICITA, labelSede } from "@/modules/administracion/constants";
+import {
+  AREAS_GESTION_COMPRAS,
+  opcionesSedeCompra,
+} from "@/modules/administracion/gestion-compras/opciones-legacy";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { useUsuariosGerenteCompra } from "@/modules/administracion/hooks/useUsuariosGerenteCompra";
 import { useAuth } from "@/core/auth/hooks/useAuth";
@@ -27,7 +30,8 @@ const NuevaSolicitudCompraModalComponent = ({
   onSave,
 }: NuevaSolicitudCompraModalProps) => {
   const { user } = useAuth();
-  const sedes = useSedesByEmpresa();
+  const sedesEmpresa = useSedesByEmpresa();
+  const sedes = opcionesSedeCompra(user?.empresa ?? 0, sedesEmpresa);
   const formRef = useRef<HTMLFormElement>(null);
   const usuariosQuery = useUsuariosGerenteCompra(open);
   const usuarios = usuariosQuery.data ?? [];
@@ -49,6 +53,7 @@ const NuevaSolicitudCompraModalComponent = ({
       const form = e.currentTarget;
       const get = (name: string) =>
         (form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)?.value ?? "";
+      if (!get("urgencia")) return;
       const data: NuevaSolicitudCompraDTO = {
         areaSolicita: get("areaSolicita"),
         sede: get("sede"),
@@ -56,7 +61,7 @@ const NuevaSolicitudCompraModalComponent = ({
         cargoPersona: get("cargoPersona"),
         gerenteAutoriza: get("gerenteAutoriza"),
         proveedoresSugeridos: get("proveedoresSugeridos"),
-        nivelUrgencia: parseInt(get("urgencia") || "2", 10) as NivelUrgencia,
+        nivelUrgencia: parseInt(get("urgencia"), 10) as NivelUrgencia,
         areaCarga: get("areaCarga"),
         descripcion: get("descripcion"),
         fechaTentativa: get("fechaTentativa"),
@@ -84,9 +89,9 @@ const NuevaSolicitudCompraModalComponent = ({
             <div className="relative mt-1">
               <select className={inputClass} name="areaSolicita" required>
                 <option value="">Seleccione...</option>
-                {AREAS_SOLICITA.map((area) => (
-                  <option key={area} value={area}>
-                    {area}
+                {AREAS_GESTION_COMPRAS.map((area) => (
+                  <option key={area.value} value={area.value}>
+                    {area.label}
                   </option>
                 ))}
               </select>
@@ -102,8 +107,8 @@ const NuevaSolicitudCompraModalComponent = ({
               <select className={inputClass} name="sede" required>
                 <option value="">Seleccione...</option>
                 {sedes.map((sede) => (
-                  <option key={sede} value={sede}>
-                  {labelSede(sede)}
+                  <option key={sede.value} value={sede.value}>
+                    {sede.label}
                   </option>
                 ))}
               </select>
@@ -116,9 +121,9 @@ const NuevaSolicitudCompraModalComponent = ({
             <input
               type="text"
               name="nombrePersona"
-              className={inputClass.replace("appearance-none pr-10", "")}
+              className="block w-full min-h-10 sm:min-h-11 border border-gray-300 rounded-xl px-3 py-2 sm:py-2.5 text-sm sm:text-base bg-gray-50 text-gray-700"
               defaultValue={nombreDefault}
-              required
+              disabled
             />
           </div>
 
@@ -151,13 +156,15 @@ const NuevaSolicitudCompraModalComponent = ({
               type="text"
               name="proveedoresSugeridos"
               className={inputClass.replace("appearance-none pr-10", "")}
+              required
             />
           </div>
         </div>
 
         <div>
           <label className={labelClass}>
-            Nivel de urgencia de la compra <span className="text-red-500">*</span>
+            Nivel de urgencia de la compra, siendo 3 más urgente{" "}
+            <span className="text-red-500">*</span>
           </label>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-2">
             {([1, 2, 3] as const).map((nivel) => (
@@ -166,7 +173,6 @@ const NuevaSolicitudCompraModalComponent = ({
                   type="radio"
                   name="urgencia"
                   value={nivel}
-                  defaultChecked={nivel === 2}
                   className="w-5 h-5 brand-text focus:ring-(--color-primary)"
                   required
                 />

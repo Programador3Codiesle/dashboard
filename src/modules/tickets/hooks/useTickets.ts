@@ -18,7 +18,12 @@ export const TICKETS_QUERY_KEYS = {
  * - Retry automático en caso de error
  * - Invalidación vía useMutation en useTicketsActions
  */
-export function useTickets(kind: TicketsKind, page: number = 1, limit?: number) {
+export function useTickets(
+  kind: TicketsKind,
+  page: number = 1,
+  limit?: number,
+  enabled = true,
+) {
   const queryClient = useQueryClient();
   const resolvedLimit = limit ?? (kind === "finalizados" ? 500 : 100);
   const queryKey =
@@ -47,6 +52,7 @@ export function useTickets(kind: TicketsKind, page: number = 1, limit?: number) 
   } = useQuery({
     queryKey,
     queryFn: fetchFn,
+    enabled,
     staleTime: 2 * 60 * 1000, // 2 minutos para tickets (datos más dinámicos)
   });
 

@@ -10,12 +10,14 @@ interface MensajesCompraModalProps {
   open: boolean;
   onClose: () => void;
   solicitudId: number;
+  soloLectura?: boolean;
 }
 
 export default function MensajesCompraModal({
   open,
   onClose,
   solicitudId,
+  soloLectura = false,
 }: MensajesCompraModalProps) {
   const [mensajes, setMensajes] = useState<MensajeCompra[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,11 @@ export default function MensajesCompraModal({
   return (
     <Modal open={open} onClose={onClose} title="Mensajes">
       <div className="space-y-4">
+        {soloLectura ? (
+          <p className="text-sm text-gray-600">
+            No se pueden agregar mensajes a una solicitud despachada o negada.
+          </p>
+        ) : null}
         <form onSubmit={handleEnviar} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -81,16 +88,16 @@ export default function MensajesCompraModal({
             </label>
             <textarea
               ref={mensajeRef}
+              disabled={soloLectura || enviando}
               rows={3}
               className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none resize-none"
               placeholder="Escribe tu mensaje aquí..."
-              disabled={enviando}
             />
           </div>
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={enviando}
+              disabled={soloLectura || enviando}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white brand-btn rounded-xl hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {enviando ? (

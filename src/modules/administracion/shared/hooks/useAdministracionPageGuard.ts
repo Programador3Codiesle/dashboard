@@ -8,6 +8,8 @@ import { isMissingListedPermission } from '@/utils/permission-ids';
 type GuardOptions = {
   /** PHP whitelist de NITs (además del submenu). */
   allowedNits?: ReadonlySet<number>;
+  /** false: la pantalla muestra el aviso en lugar de redirigir. */
+  redirect?: boolean;
 };
 
 export function useAdministracionPageGuard(
@@ -24,12 +26,14 @@ export function useAdministracionPageGuard(
     options?.allowedNits != null &&
     (!Number.isFinite(nitUsuario) || !options.allowedNits.has(nitUsuario));
 
+  const redirect = options?.redirect !== false;
+
   useEffect(() => {
-    if (!user) return;
+    if (!redirect || !user) return;
     if (missingSubmenu || missingNit) {
       router.replace('/dashboard/administracion');
     }
-  }, [user, router, missingSubmenu, missingNit]);
+  }, [user, router, missingSubmenu, missingNit, redirect]);
 
   const blocked = !!user && (missingSubmenu || missingNit);
 

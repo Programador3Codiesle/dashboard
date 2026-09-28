@@ -30,7 +30,7 @@ import { FORMATO_ORDEN_SALIDA_SUBMENU_ID } from '@/utils/constants';
 export function FormatoOrdenSalidaGestion() {
   const { user, blocked } = useAdministracionPageGuard(
     FORMATO_ORDEN_SALIDA_SUBMENU_ID,
-    { allowedNits: FORMATO_OS_ACCESS_NITS },
+    { allowedNits: FORMATO_OS_ACCESS_NITS, redirect: false },
   );
   const sesionLista = !!user && !blocked;
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -201,7 +201,18 @@ export function FormatoOrdenSalidaGestion() {
     });
   };
 
-  if (blocked) return null;
+  if (blocked) {
+    return (
+      <AdministracionPageFrame
+        title={ADMINISTRACION_COPY.formatoOrdenSalida.title}
+        description={ADMINISTRACION_COPY.formatoOrdenSalida.description}
+      >
+        <p className="rounded-2xl border brand-border bg-white p-6 text-sm text-gray-700">
+          Este usuario no tiene permiso para utilizar esta función.
+        </p>
+      </AdministracionPageFrame>
+    );
+  }
 
   const submitting = saveMutation.isPending;
 

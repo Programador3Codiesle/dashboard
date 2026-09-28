@@ -5,12 +5,14 @@ import {
   INFORMES_COPY,
 } from '@/modules/informes/constants';
 import { GESTION_HUMANA_HUB_ITEMS } from '@/modules/informes/gestion-humana/hub/items';
+import { NITS_ACCESO_INFORME_ORDEN_SALIDA } from '@/modules/informes/gestion-humana/ordenes-salida/constants';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 import { INFORMES_GESTION_HUMANA_SUBMENU_ID } from '@/utils/constants';
 
 export function GestionHumanaHub() {
   const { blocked } = useInformesPageGuard({
     submenuId: INFORMES_GESTION_HUMANA_SUBMENU_ID,
+    nitsConAcceso: NITS_ACCESO_INFORME_ORDEN_SALIDA,
     redirectTo: '/dashboard/informes',
   });
   if (blocked) return null;

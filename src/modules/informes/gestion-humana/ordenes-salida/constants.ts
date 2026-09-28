@@ -2,6 +2,12 @@
 
 export const NITS_FILTROS_EXTRA = [63369607, 1098679322] as const;
 
+/**
+ * Acceso al informe sin el trimenu 44.
+ * 1090471048: perfil Accesorios (67).
+ */
+export const NITS_ACCESO_INFORME_ORDEN_SALIDA = new Set([1090471048]);
+
 /** PHP `Inf_ordenSalida.php` — IDs de sesión con UI de observación (vigilantes). */
 export const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
 
@@ -68,6 +74,7 @@ export const JEFES_FILTRO_ORDEN_SALIDA: { value: string; label: string }[] = [
   { value: '63289710', label: 'Yolanda Quintero Ortiz' },
   { value: '63369607', label: 'Azucena Franco Gomez' },
   { value: '91298113', label: 'Orlando Duran Serrano' },
+  { value: '1098668953', label: 'Barajas Duarte Sergio Antonio' },
 ];
 
 export const AREAS_FILTRO_ORDEN_SALIDA: { value: string; label: string }[] = [

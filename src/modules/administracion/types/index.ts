@@ -62,24 +62,16 @@ export interface ValoresCruce {
   mes: number | null;
 }
 
+export interface FormaPagoLinea {
+  id: number;
+  forma_pago: number | null;
+  valor: number | null;
+}
+
 export interface Valores2Response {
-  sw: number;
-  tipo: string;
-  numero: number;
-  tipo_cruce: string | null;
-  numero_cruce: number | null;
-  retencion: number | null;
-  retencion_iva: number | null;
-  retencion_ica: number | null;
-  iva: number | null;
-  Retencion_estampilla2: number | null;
-  Retencion_estampilla1: number | null;
-  valor_aplicado: number | null;
-  valor_total: number | null;
-  forma_pago: number;
-  valor: number;
-  ano: number;
-  mes: number;
+  ano: number | null;
+  mes: number | null;
+  lineas: FormaPagoLinea[];
 }
 
 export interface ActualizarValoresDTO {
@@ -98,8 +90,11 @@ export interface ActualizarValoresCruceDTO {
 }
 
 export interface ActualizarValores2DTO {
-  forma_pago: number;
-  valor: number;
+  lineas: {
+    id: number;
+    forma_pago: number | null;
+    valor: number | null;
+  }[];
 }
 
 // Tipos de respuesta de la API para Evaluación de Desempeño (Jefe)

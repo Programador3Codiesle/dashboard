@@ -2,6 +2,10 @@
 
 import Modal from "@/components/shared/ui/Modal";
 import { SolicitudCompra } from "@/modules/administracion/services/gestion-compras.service";
+import {
+  labelAreaCompra,
+  labelSedeCompra,
+} from "@/modules/administracion/gestion-compras/opciones-legacy";
 
 interface VerSolicitudCompraModalProps {
   open: boolean;
@@ -26,7 +30,7 @@ export default function VerSolicitudCompraModal({
             </label>
             <input
               type="text"
-              value={solicitud.areaSolicita}
+              value={labelAreaCompra(solicitud.areaSolicita)}
               disabled
               className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-gray-50"
             />
@@ -37,7 +41,7 @@ export default function VerSolicitudCompraModal({
             </label>
             <input
               type="text"
-              value={solicitud.sede}
+              value={labelSedeCompra(solicitud.sede)}
               disabled
               className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-gray-50"
             />
@@ -101,7 +105,7 @@ export default function VerSolicitudCompraModal({
             </label>
             <input
               type="text"
-              value={`Urgencia ${solicitud.urgencia}`}
+              value={String(solicitud.urgencia)}
               disabled
               className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-gray-50"
             />
@@ -112,7 +116,7 @@ export default function VerSolicitudCompraModal({
             </label>
             <input
               type="text"
-              value={solicitud.fechaSolicitud}
+              value={solicitud.fechaTentativa || "-"}
               disabled
               className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-gray-50"
             />

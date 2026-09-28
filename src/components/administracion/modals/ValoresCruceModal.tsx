@@ -18,28 +18,32 @@ export default function ValoresCruceModal({
   open,
   onClose,
   valoresCruce,
-  tipo,
-  numero,
   onSave,
 }: ValoresCruceModalProps) {
-  const [valor, setValor] = useState<number>(0);
+  const [valor, setValor] = useState('');
+  const [errorValor, setErrorValor] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (valoresCruce && valoresCruce.valor !== null) {
-      setValor(valoresCruce.valor);
+      setValor(String(valoresCruce.valor));
     } else {
-      setValor(0);
+      setValor('');
     }
+    setErrorValor('');
   }, [valoresCruce, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (valor.trim() === '') {
+      setErrorValor('Debe llenar el valor!');
+      return;
+    }
     setLoading(true);
     try {
-      await onSave({ valor_aplicado2: valor });
+      await onSave({ valor_aplicado2: Number(valor) });
       onClose();
-    } catch (error) {
+    } catch {
       // Error manejado por el componente padre
     } finally {
       setLoading(false);
@@ -47,12 +51,14 @@ export default function ValoresCruceModal({
   };
 
   const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
-
-  if (!valoresCruce) return null;
 
   return (
     <Modal open={open} onClose={onClose} title="Actualización Valor Cruce" width="600px">
+      {!valoresCruce ? (
+        <p className="text-sm text-gray-600">
+          No hay un cruce para este documento.
+        </p>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="app-table-scroll">
           <table className="w-full min-w-[640px]">
@@ -74,11 +80,18 @@ export default function ValoresCruceModal({
                 <td className="py-3 px-4">
                   <input
                     type="number"
+                    min={0}
+                    step="0.01"
                     className={inputClass}
                     value={valor}
-                    onChange={(e) => setValor(parseFloat(e.target.value) || 0)}
-                    required
+                    onChange={(e) => {
+                      setValor(e.target.value);
+                      setErrorValor('');
+                    }}
                   />
+                  {errorValor ? (
+                    <p className="mt-1 text-sm text-[var(--color-danger)]">{errorValor}</p>
+                  ) : null}
                 </td>
               </tr>
             </tbody>
@@ -104,6 +117,7 @@ export default function ValoresCruceModal({
           </button>
         </div>
       </form>
+      )}
     </Modal>
   );
 }

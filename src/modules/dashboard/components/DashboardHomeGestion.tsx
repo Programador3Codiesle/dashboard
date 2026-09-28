@@ -68,38 +68,13 @@ const DashboardInformeMto = dynamic(
 
 function DashboardShell({
   children,
-  withMonthFilter = false,
   showMonthLoading = false,
-  selectedMonth,
-  onMonthChange,
 }: {
   children: React.ReactNode;
-  withMonthFilter?: boolean;
   showMonthLoading?: boolean;
-  selectedMonth: string;
-  onMonthChange: (value: string) => void;
 }) {
   return (
     <div className="space-y-3 sm:space-y-4 relative">
-      {withMonthFilter && (
-        <div className="flex flex-wrap items-center gap-3 justify-end">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="month-filter"
-              className="text-sm text-gray-600 whitespace-nowrap"
-            >
-              {DASHBOARD_COPY.mesLabel}
-            </label>
-            <input
-              id="month-filter"
-              type="month"
-              className={DASHBOARD_STYLES.monthInput}
-              value={selectedMonth}
-              onChange={(e) => onMonthChange(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
       {showMonthLoading && (
         <div className={DASHBOARD_STYLES.overlay}>
           <div className="flex flex-col items-center gap-3">
@@ -152,19 +127,8 @@ export function DashboardHomeGestion() {
     settledEmpresa !== empresaDashboard &&
     isFetching;
 
-  const wrap = (
-    children: React.ReactNode,
-    withMonthFilter = false,
-    showMonthLoading = false,
-  ) => (
-    <DashboardShell
-      withMonthFilter={withMonthFilter}
-      showMonthLoading={showMonthLoading}
-      selectedMonth={selectedMonth}
-      onMonthChange={handleMonthChange}
-    >
-      {children}
-    </DashboardShell>
+  const wrap = (children: React.ReactNode, showMonthLoading = false) => (
+    <DashboardShell showMonthLoading={showMonthLoading}>{children}</DashboardShell>
   );
 
   if (!user) {
@@ -210,7 +174,14 @@ export function DashboardHomeGestion() {
     case "jefe_taller":
       return wrap(<DashboardJefeTaller data={data as DJT} />);
     case "tecnicos":
-      return wrap(<DashboardTecnicos data={data as DT} />, true, isFetching);
+      return wrap(
+        <DashboardTecnicos
+          data={data as DT}
+          selectedMonth={selectedMonth}
+          onMonthChange={handleMonthChange}
+        />,
+        isFetching,
+      );
     case "admin":
       return wrap(<DashboardAdmin data={data as DA} />);
     case "agente_cc":

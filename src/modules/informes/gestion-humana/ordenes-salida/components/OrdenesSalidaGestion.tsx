@@ -25,6 +25,7 @@ import {
   colorFondoFilaOrdenSalida,
   IDS_MODO_OBSERVACION,
   JEFES_FILTRO_ORDEN_SALIDA,
+  NITS_ACCESO_INFORME_ORDEN_SALIDA,
   NITS_FILTROS_EXTRA,
   NITS_VIGILANTE_ORDEN_SALIDA,
   SEDES_FILTRO_ORDEN_SALIDA,
@@ -40,6 +41,7 @@ function nitTieneFiltrosExtra(nit: number | undefined | null): boolean {
 export function OrdenesSalidaGestion() {
   const { user, blocked: sinTrimenu } = useInformesPageGuard({
     trimenuId: INFORMES_GH_TRIMENU.ordenesSalida,
+    nitsConAcceso: NITS_ACCESO_INFORME_ORDEN_SALIDA,
     redirectOnDenied: false,
   });
   const { showError, showSuccess, showInfo } = useToast();
