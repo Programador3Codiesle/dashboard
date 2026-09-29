@@ -43,11 +43,15 @@ export interface FiltrosTiempoSuplementario {
   empleado?: string;
 }
 
-function fechaInicioBogota(value: string | null): string {
+function fechaCalendario(value: string | null): string {
   if (!value) return "";
+  const ymd = value.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (ymd && !value.includes("T")) return ymd[1];
   const fecha = new Date(value);
   if (Number.isNaN(fecha.getTime())) return value;
-  return fecha.toLocaleDateString("sv-SE", { timeZone: "America/Bogota" });
+  const mes = String(fecha.getUTCMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getUTCDate()).padStart(2, "0");
+  return `${fecha.getUTCFullYear()}-${mes}-${dia}`;
 }
 
 const ESTADOS: Record<number, string> = {
@@ -85,10 +89,10 @@ export const informeTiempoSuplementarioService = {
       sede: item.sede || "N/A",
       area: item.area || "N/A",
       cargo: item.cargo || "",
-      fecha: fechaInicioBogota(item.fecha),
+      fecha: fechaCalendario(item.fecha),
       horaInicio: item.hora_ini || "",
       horaFin: item.hora_fin || "",
-      fechaSolicitud: item.fecha_solicitud || "",
+      fechaSolicitud: fechaCalendario(item.fecha_solicitud),
       descripcion: item.descripcion || "",
       estado:
         item.estado !== null && item.estado !== undefined
