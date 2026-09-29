@@ -12,7 +12,7 @@ interface DetalleAusentismoModalProps {
 
 function getEstadoBadgeClasses(estado: string) {
   if (estado === "Autorizado" || estado === "Aprobado") return "bg-green-100 text-green-700";
-  if (estado === "Rechazado") return "bg-red-100 text-red-700";
+  if (estado === "Rechazado" || estado === "Negado") return "bg-red-100 text-red-700";
   return "bg-yellow-100 text-yellow-700";
 }
 
@@ -35,12 +35,20 @@ export default function DetalleAusentismoModal({
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Gestionado Por</label>
-              <p className="text-gray-900 font-medium">{ausentismo.gestionadoPor}</p>
+              <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Documento</label>
+              <p className="text-gray-900 font-medium">{ausentismo.documento}</p>
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Colaborador</label>
               <p className="text-gray-900 font-medium">{ausentismo.colaborador}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Gestionado Por</label>
+              <p className="text-gray-900 font-medium">{ausentismo.gestionadoPor}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Cargo</label>
+              <p className="text-gray-900 font-medium">{ausentismo.cargo || "—"}</p>
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Sede</label>
@@ -95,6 +103,10 @@ export default function DetalleAusentismoModal({
             </span>
             Detalle
           </h3>
+          <p className="mb-3 text-gray-900 leading-relaxed">
+            <span className="font-medium">Motivo: </span>
+            {ausentismo.motivo || "—"}
+          </p>
           <p className="text-gray-900 leading-relaxed">{ausentismo.detalle || "—"}</p>
         </section>
 

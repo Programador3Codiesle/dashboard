@@ -18,29 +18,11 @@ import { InformesEmpleadoFilter } from "@/modules/informes/shared/components/Inf
 
 const PAGE_SIZE = 10;
 
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function getMonthRange(value: string): { desde: string; hasta: string } | null {
   if (!value) return null;
   const [year, month] = value.split("-");
   if (!year || !month) return null;
   const firstDay = `${year}-${month}-01`;
-
-  const now = new Date();
-  const selectedYear = Number(year);
-  const selectedMonth = Number(month);
-  const isCurrentMonth =
-    selectedYear === now.getFullYear() && selectedMonth === now.getMonth() + 1;
-
-  if (isCurrentMonth) {
-    return { desde: firstDay, hasta: formatLocalDate(now) };
-  }
-
   const lastDate = new Date(Number(year), Number(month), 0).getDate();
   const lastDay = `${year}-${month}-${String(lastDate).padStart(2, "0")}`;
   return { desde: firstDay, hasta: lastDay };

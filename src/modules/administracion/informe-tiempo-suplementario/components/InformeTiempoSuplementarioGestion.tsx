@@ -83,16 +83,13 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
             <th className="text-left py-4 px-6 font-semibold text-white">Área</th>
             <th className="text-left py-4 px-6 font-semibold text-white">Cargo</th>
             <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
-              Fecha de Inicio
+              Fecha del trabajo
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
               Hora de Inicio
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
               Hora de salida
-            </th>
-            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
-              Fecha de Solicitud
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white">
               Descripción
@@ -105,7 +102,7 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
         <tbody>
           {loading && tiempos.length === 0 ? (
             <tr>
-              <td colSpan={11} className="text-center py-10">
+              <td colSpan={10} className="text-center py-10">
                 <div className="flex items-center justify-center gap-2 text-gray-500">
                   <Loader2 className="animate-spin" size={20} />
                   <span>Cargando tiempos suplementarios...</span>
@@ -114,13 +111,13 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
             </tr>
           ) : !filtroMesAplicado ? (
             <tr>
-              <td colSpan={11} className="text-center py-10 text-gray-500">
+              <td colSpan={10} className="text-center py-10 text-gray-500">
                 Seleccione un mes para generar el informe
               </td>
             </tr>
           ) : tiemposMostrados.length === 0 ? (
             <tr>
-              <td colSpan={11} className="text-center py-10 text-gray-500">
+              <td colSpan={10} className="text-center py-10 text-gray-500">
                 No se encontraron resultados
               </td>
             </tr>

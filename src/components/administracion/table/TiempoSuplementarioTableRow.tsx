@@ -25,7 +25,6 @@ export const TiempoSuplementarioTableRow = React.memo(({
       <td className="py-4 px-6 whitespace-nowrap">{tiempo.fecha}</td>
       <td className="py-4 px-6 whitespace-nowrap">{tiempo.horaInicio}</td>
       <td className="py-4 px-6 whitespace-nowrap">{tiempo.horaFin}</td>
-      <td className="py-4 px-6 whitespace-nowrap">{tiempo.fechaSolicitud}</td>
       <td className="py-4 px-6 text-sm">{tiempo.descripcion}</td>
       <td className="py-4 px-6">
         <StatusBadge estado={tiempo.estado} />

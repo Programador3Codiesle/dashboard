@@ -38,10 +38,12 @@ export const AusentismoTableRow = React.memo(({
       </td>
       <td className="py-4 px-6">
         <button
+          type="button"
           onClick={handleClick}
-          className="brand-text brand-text-hover"
+          aria-label="Ver detalle del ausentismo"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg brand-bg text-white shadow-sm transition-opacity hover:opacity-90"
         >
-          <Eye size={18} />
+          <Eye size={18} aria-hidden="true" />
         </button>
       </td>
     </TableRow>

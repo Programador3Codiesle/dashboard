@@ -9,6 +9,7 @@ export interface AusentismoInformeAPI {
   gestionado_por: string;
   colaborador: string;
     motivo?: string | null;
+  cargo?: string | null;
   sede: string;
   area: string;
   fecha_inicio: string;
@@ -25,6 +26,7 @@ export interface AusentismoInforme {
   gestionadoPor: string;
   colaborador: string;
     motivo: string;
+  cargo: string;
   sede: string;
   area: string;
   fechaInicio: string;
@@ -49,7 +51,7 @@ export interface FiltrosAusentismo {
 const ESTADOS: Record<number, string> = {
   0: "Pendiente",
   1: "Autorizado",
-  2: "Rechazado",
+  2: "Negado",
 };
 
 function mapItem(item: AusentismoInformeAPI): AusentismoInforme {
@@ -59,6 +61,7 @@ function mapItem(item: AusentismoInformeAPI): AusentismoInforme {
     gestionadoPor: item.gestionado_por || "N/A",
     colaborador: item.colaborador || "N/A",
     motivo: item.motivo || "",
+    cargo: item.cargo || "",
     sede: item.sede || "N/A",
     area: item.area || "N/A",
     fechaInicio: new Date(item.fecha_inicio).toISOString().split("T")[0],

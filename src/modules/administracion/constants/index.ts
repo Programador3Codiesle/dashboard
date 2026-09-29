@@ -260,18 +260,29 @@ export function motivoRequiereAdjunto(motivo: string): boolean {
 }
 
 export const AREAS_INFORME_AUSENTISMO = [
-  'Administracion',
-  'Administracion Servicio',
-  'Central de Beneficio',
-  'Vehiculos Nuevos',
-  'Vehiculos Usados',
-  'Repuestos',
-  'Taller Gasolina',
-  'Taller Diesel',
-  'Lamina Y Pintura',
-  'Alistamiento',
-  'Contact Center',
-  'Accesorios',
+  { value: 'Administración Servicio', label: 'Administración' },
+  { value: 'Administración', label: 'Administración Servicio' },
+  { value: 'Central de Beneficios', label: 'Central de Beneficios' },
+  { value: 'Vehiculos Nuevos', label: 'Vehiculos Nuevos' },
+  { value: 'Vehiculos Usados', label: 'Vehiculos Usados' },
+  { value: 'Repuestos', label: 'Repuestos' },
+  { value: 'Taller Gasolina', label: 'Taller Gasolina' },
+  { value: 'Taller Diesel', label: 'Taller Diesel' },
+  { value: 'Lamina y Pintura', label: 'Lamina y Pintura' },
+  { value: 'Alistamiento', label: 'Alistamiento' },
+  { value: 'Contac Center', label: 'Contac Center' },
+  { value: 'Accesorios', label: 'Accesorios' },
+];
+
+export const SEDES_INFORME_AUSENTISMO = [
+  { value: 'Giron', label: 'Girón' },
+  { value: 'Rosita', label: 'Rosita' },
+  { value: 'Chevropartes', label: 'Chevropartes' },
+  { value: 'Solochevrolet', label: 'Dieselco Cúcuta' },
+  { value: 'Barrancabermeja', label: 'Barrancabermeja' },
+  { value: 'Bocono', label: 'Boconó' },
+  { value: 'Malecon', label: 'Malecón' },
+  { value: 'Duitama', label: 'Duitama' },
 ];
 
 export const GENEROS_TALLA_DOTACION = [

@@ -5,7 +5,6 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { getXlsx } from '@/utils/export-xlsx';
-import { useSedesByEmpresa } from '@/modules/administracion/hooks/useSedesByEmpresa';
 import { Pagination } from '@/components/shared/ui/Pagination';
 import {
   informeAusentismoService,
@@ -22,7 +21,7 @@ import { AdministracionPageFrame } from '@/modules/administracion/components/Adm
 import {
   ADMINISTRACION_COPY,
   AREAS_INFORME_AUSENTISMO,
-  labelSede,
+  SEDES_INFORME_AUSENTISMO,
 } from '@/modules/administracion/constants';
 import { AdministracionQueryError } from '@/modules/administracion/shared/components/AdministracionQueryError';
 import { administracionKeys } from '@/modules/administracion/shared/constants/query-keys';
@@ -31,6 +30,20 @@ import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api
 import { INFORME_AUSENTISMO_SUBMENU_ID } from '@/utils/constants';
 
 const PAGE_SIZE = 10;
+
+function fechaDmY(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!match) return iso;
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+function veTodosLosAusentismos(nit: unknown, perfil: unknown): boolean {
+  return (
+    String(nit ?? '') === '63369607' ||
+    Number(perfil) === 20 ||
+    Number(perfil) === 25
+  );
+}
 
 type AppliedAusentismo = {
   fechaInicio: string;
@@ -55,15 +68,11 @@ const TablaAusentismos = memo(function TablaAusentismos({
   ausentismos,
   ausentismosMostrados,
   loading,
-  fechaInicio,
-  fechaFin,
   onVerDetalle,
 }: {
   ausentismos: AusentismoInforme[];
   ausentismosMostrados: AusentismoInforme[];
   loading: boolean;
-  fechaInicio: string;
-  fechaFin: string;
   onVerDetalle: (a: AusentismoInforme) => void;
 }) {
   return (
@@ -117,12 +126,6 @@ const TablaAusentismos = memo(function TablaAusentismos({
                 </div>
               </td>
             </tr>
-          ) : !fechaInicio || !fechaFin ? (
-            <tr>
-              <td colSpan={10} className="text-center py-10 text-gray-500">
-                Seleccione fecha de inicio y fecha final para generar el informe
-              </td>
-            </tr>
           ) : ausentismosMostrados.length === 0 ? (
             <tr>
               <td colSpan={10} className="text-center py-10 text-gray-500">
@@ -170,7 +173,6 @@ const FiltersSection = memo(function FiltersSection({
   fechaFin,
   filtroSede,
   filtroArea,
-  sedesOptions,
   onFechaInicioChange,
   onFechaFinalChange,
   onFiltroSedeChange,
@@ -185,7 +187,6 @@ const FiltersSection = memo(function FiltersSection({
   fechaFin: string;
   filtroSede: string;
   filtroArea: string;
-  sedesOptions: { value: string; label: string }[];
   onFechaInicioChange: (v: string) => void;
   onFechaFinalChange: (v: string) => void;
   onFiltroSedeChange: (v: string) => void;
@@ -214,17 +215,14 @@ const FiltersSection = memo(function FiltersSection({
           label="Sede"
           value={filtroSede}
           onChange={onFiltroSedeChange}
-          options={sedesOptions}
+          options={SEDES_INFORME_AUSENTISMO}
           placeholder="Todas"
         />
         <SelectFilter
           label="Área"
           value={filtroArea}
           onChange={onFiltroAreaChange}
-          options={AREAS_INFORME_AUSENTISMO.map((area) => ({
-            value: area,
-            label: area,
-          }))}
+          options={AREAS_INFORME_AUSENTISMO}
           placeholder="Todas"
         />
       </div>
@@ -279,45 +277,62 @@ export function InformeAusentismoGestion() {
   );
   const sesionLista = !!user && !blocked;
   const { showError } = useToast();
-  const sedes = useSedesByEmpresa();
-  const sedesOptions = useMemo(
-    () => sedes.map((sede) => ({ value: sede, label: labelSede(sede) })),
-    [sedes],
+  const veTodos = veTodosLosAusentismos(
+    user?.nit_usuario,
+    user?.perfil_postventa,
   );
-  const [search, setSearch] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [filtroSede, setFiltroSede] = useState('');
   const [filtroArea, setFiltroArea] = useState('');
-  const [applied, setApplied] = useState<AppliedAusentismo | null>(null);
+  const [applied, setApplied] = useState<AppliedAusentismo>({
+    fechaInicio: '',
+    fechaFin: '',
+    sede: '',
+    area: '',
+    search: '',
+  });
   const [page, setPage] = useState(1);
   const [detalleModalOpen, setDetalleModalOpen] = useState(false);
   const [ausentismoSeleccionado, setAusentismoSeleccionado] =
     useState<AusentismoInforme | null>(null);
   const [loadingExport, setLoadingExport] = useState(false);
 
-  const paramsString = applied
-    ? serializeAusentismoParams(applied, page)
-    : '';
+  const paramsString = serializeAusentismoParams(applied, page);
 
   const query = useQuery({
     queryKey: administracionKeys.informeAusentismo(paramsString),
     queryFn: () =>
       informeAusentismoService.listar({
-        fechaDesde: applied!.fechaInicio,
-        fechaHasta: applied!.fechaFin,
-        sede: applied!.sede || undefined,
-        area: applied!.area || undefined,
-        empleado: applied!.search.trim() || undefined,
+        fechaDesde: applied.fechaInicio || undefined,
+        fechaHasta: applied.fechaFin || undefined,
+        sede: applied.sede || undefined,
+        area: applied.area || undefined,
+        empleado: applied.search.trim() || undefined,
         pagina: page,
         limite: PAGE_SIZE,
       }),
-    enabled: sesionLista && !!applied,
+    enabled: sesionLista,
     placeholderData: keepPreviousData,
     ...transactionalQueryOptions,
   });
 
-  const ausentismos = query.data?.items ?? [];
+  const presentar = useCallback(
+    (item: AusentismoInforme): AusentismoInforme => ({
+      ...item,
+      fechaInicio: fechaDmY(item.fechaInicio),
+      fechaFin: fechaDmY(item.fechaFin),
+      estado:
+        item.estado === 'Pendiente' && !veTodos
+          ? 'Pendiente de Autorizar'
+          : item.estado,
+    }),
+    [veTodos],
+  );
+  const ausentismos = useMemo(
+    () => (query.data?.items ?? []).map(presentar),
+    [query.data?.items, presentar],
+  );
   const totalItems = query.data?.total ?? 0;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE) || 1;
   const loading = query.isFetching;
@@ -338,15 +353,20 @@ export function InformeAusentismoGestion() {
       );
       return;
     }
-    setApplied({
+    setApplied((prev) => ({
+      ...prev,
       fechaInicio,
       fechaFin,
       sede: filtroSede,
       area: filtroArea,
-      search,
-    });
+    }));
     setPage(1);
-  }, [fechaInicio, fechaFin, filtroSede, filtroArea, search, showError]);
+  }, [fechaInicio, fechaFin, filtroSede, filtroArea, showError]);
+
+  const handleSearch = useCallback((value: string) => {
+    setApplied((prev) => ({ ...prev, search: value }));
+    setPage(1);
+  }, []);
 
   const handleExportar = useCallback(async () => {
     if (!applied || totalItems === 0) {
@@ -356,39 +376,43 @@ export function InformeAusentismoGestion() {
     setLoadingExport(true);
     try {
       const resultado = await informeAusentismoService.listar({
-        fechaDesde: applied.fechaInicio,
-        fechaHasta: applied.fechaFin,
+        fechaDesde: applied.fechaInicio || undefined,
+        fechaHasta: applied.fechaFin || undefined,
         sede: applied.sede || undefined,
         area: applied.area || undefined,
         empleado: applied.search.trim() || undefined,
         pagina: 1,
         limite: totalItems,
       });
-      const rows = resultado.items.map((r) => ({
-        Documento: r.documento,
-        'Gestionado Por': r.gestionadoPor,
-        Colaborador: r.colaborador,
-        Motivo: r.motivo,
-        Sede: r.sede,
-        Area: r.area,
-        'Fecha Inicio': r.fechaInicio,
-        'Hora Inicio': r.horaInicio,
-        'Fecha Fin': r.fechaFin,
-        'Hora Fin': r.horaFin,
-        Estado: r.estado,
-        Detalle: r.detalle,
-      }));
+      const rows = resultado.items.map((r) => {
+        const item = presentar(r);
+        return {
+          Nombre: item.colaborador,
+          Documento: item.documento,
+          Cargo: item.cargo,
+          Sede: item.sede,
+          Area: item.area,
+          'Fecha inicio': item.fechaInicio,
+          'Hora inicio': item.horaInicio,
+          'Fecha fin': item.fechaFin,
+          'Hora fin': item.horaFin,
+          Motivo: item.motivo,
+          Descripcion: item.detalle,
+          Estado: item.estado,
+          'Gestionado por': item.gestionadoPor,
+        };
+      });
       const XLSX = await getXlsx();
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Ausentismo');
-      XLSX.writeFile(workbook, 'informe-ausentismo.xlsx');
+      XLSX.writeFile(workbook, 'informe_de_ausentismo.xlsx');
     } catch {
       showError('No se pudo exportar el informe');
     } finally {
       setLoadingExport(false);
     }
-  }, [applied, totalItems, showError]);
+  }, [applied, totalItems, showError, presentar]);
 
   if (blocked) return null;
 
@@ -411,11 +435,18 @@ export function InformeAusentismoGestion() {
         fechaFin={fechaFin}
         filtroSede={filtroSede}
         filtroArea={filtroArea}
-        sedesOptions={sedesOptions}
         onFechaInicioChange={setFechaInicio}
         onFechaFinalChange={setFechaFin}
-        onFiltroSedeChange={setFiltroSede}
-        onFiltroAreaChange={setFiltroArea}
+        onFiltroSedeChange={(value) => {
+          setFiltroSede(value);
+          setApplied((prev) => ({ ...prev, sede: value }));
+          setPage(1);
+        }}
+        onFiltroAreaChange={(value) => {
+          setFiltroArea(value);
+          setApplied((prev) => ({ ...prev, area: value }));
+          setPage(1);
+        }}
         onBuscar={handleBuscar}
         onExportar={handleExportar}
         loading={loading}
@@ -424,8 +455,8 @@ export function InformeAusentismoGestion() {
       />
 
       <SearchSection
-        onSearch={setSearch}
-        placeholder="Buscar por colaborador, gestionado por o motivo..."
+        onSearch={handleSearch}
+        placeholder="Documento, nombre del empleado o del jefe"
       />
 
       <motion.div
@@ -437,8 +468,6 @@ export function InformeAusentismoGestion() {
           ausentismos={ausentismos}
           ausentismosMostrados={ausentismos}
           loading={loading}
-          fechaInicio={applied?.fechaInicio ?? ''}
-          fechaFin={applied?.fechaFin ?? ''}
           onVerDetalle={handleVerDetalle}
         />
         <PaginacionAusentismos

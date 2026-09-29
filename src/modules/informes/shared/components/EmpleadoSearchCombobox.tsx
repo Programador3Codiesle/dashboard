@@ -78,6 +78,12 @@ export function EmpleadoSearchCombobox({
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, []);
 
+  const abrirParaBuscar = () => {
+    setQuery("");
+    setAbierto(true);
+    setActivo(mostrarVacio ? 0 : indicePrimeraOpcion);
+  };
+
   const seleccionar = (option: EmpleadoComboOption | null) => {
     if (!option) {
       onChange("");
@@ -113,9 +119,9 @@ export function EmpleadoSearchCombobox({
             mostrarVacio && !e.target.value.trim() ? 0 : indicePrimeraOpcion,
           );
         }}
-        onFocus={() => {
-          setQuery(seleccionado?.nombres ?? query);
-          setAbierto(true);
+        onFocus={abrirParaBuscar}
+        onClick={() => {
+          if (!abierto) abrirParaBuscar();
         }}
         onKeyDown={(e) => {
           const maxActivo = mostrarVacio
