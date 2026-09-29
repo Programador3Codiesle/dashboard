@@ -70,35 +70,42 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
           </div>
         </div>
       )}
-      <table className="w-full min-w-[960px]">
+      <table className="w-full min-w-[1400px]">
         <thead className="brand-bg border-b border-(--color-primary-dark) text-sm">
           <tr>
-            <th className="text-left py-4 px-6 font-semibold text-white">
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
+              Nombre del Jefe
+            </th>
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
               Nombre del Empleado
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white">Sede</th>
             <th className="text-left py-4 px-6 font-semibold text-white">Área</th>
-            <th className="text-left py-4 px-6 font-semibold text-white">
-              Fecha
+            <th className="text-left py-4 px-6 font-semibold text-white">Cargo</th>
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
+              Fecha de Inicio
             </th>
-            <th className="text-left py-4 px-6 font-semibold text-white">
-              Hora Inicio
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
+              Hora de Inicio
             </th>
-            <th className="text-left py-4 px-6 font-semibold text-white">
-              Hora Fin
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
+              Hora de salida
+            </th>
+            <th className="text-left py-4 px-6 font-semibold text-white whitespace-nowrap">
+              Fecha de Solicitud
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white">
               Descripción
             </th>
             <th className="text-left py-4 px-6 font-semibold text-white">
-              Estado
+              Autorización
             </th>
           </tr>
         </thead>
         <tbody>
           {loading && tiempos.length === 0 ? (
             <tr>
-              <td colSpan={8} className="text-center py-10">
+              <td colSpan={11} className="text-center py-10">
                 <div className="flex items-center justify-center gap-2 text-gray-500">
                   <Loader2 className="animate-spin" size={20} />
                   <span>Cargando tiempos suplementarios...</span>
@@ -107,13 +114,13 @@ const TablaTiemposSuplementarios = memo(function TablaTiemposSuplementarios({
             </tr>
           ) : !filtroMesAplicado ? (
             <tr>
-              <td colSpan={8} className="text-center py-10 text-gray-500">
+              <td colSpan={11} className="text-center py-10 text-gray-500">
                 Seleccione un mes para generar el informe
               </td>
             </tr>
           ) : tiemposMostrados.length === 0 ? (
             <tr>
-              <td colSpan={8} className="text-center py-10 text-gray-500">
+              <td colSpan={11} className="text-center py-10 text-gray-500">
                 No se encontraron resultados
               </td>
             </tr>
@@ -334,6 +341,7 @@ export function InformeTiempoSuplementarioGestion({
       const searchLower = search.toLowerCase();
       result = result.filter(
         (item) =>
+          item.nombreJefe.toLowerCase().includes(searchLower) ||
           item.nombreEmpleado.toLowerCase().includes(searchLower) ||
           item.descripcion.toLowerCase().includes(searchLower),
       );
@@ -365,9 +373,11 @@ export function InformeTiempoSuplementarioGestion({
         empleado: applied.empleado.trim() || undefined,
       });
       const url = window.URL.createObjectURL(blob);
+      const cedula = applied.empleado.trim();
+      const sufijoCedula = /^\d+$/.test(cedula) ? `-${cedula}` : '';
       const a = document.createElement('a');
       a.href = url;
-      a.download = `informe-tiempo-suplementario-${applied.mes}.xlsx`;
+      a.download = `informe-tiempo-suplementario-${applied.mes}${sufijoCedula}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
