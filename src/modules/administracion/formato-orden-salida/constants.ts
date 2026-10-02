@@ -5,14 +5,12 @@ export const AZUCENA_NIT = 63369607;
  * PHP `ordenSalida()` `$jefes` — acceso al formato (además del submenu 154).
  */
 export const FORMATO_OS_ACCESS_NITS = new Set<number>([
-  91274670, 1005157209, 80872884, 1090449765, 1092358562, 91259929, 1095913265,
-  1092355065, 1090484563, 13741590, 63368988, 91525308, 1098739531, 1095809978,
-  91488149, 1007421380, 1093736472, 1095816177, 1091655270, 1098732475,
-  1098625558, 1128465895, 28070692, 1090497067, 1094241876, 1092338001,
-  1098679322, 63289710, 63369607, 91298113,
-  1098668953, // Barajas Duarte Sergio Antonio
-  1090471048, // Lindarte Garcia Ingrid Marcela
-  79411127, // Rico Correa Carlos Martin Alonso
+  91274670, 1005157209, 1098668953, 80872884, 1090449765, 1092358562, 91259929,
+  1095913265, 1092355065, 1090484563, 1090445195, 13741590, 63368988, 91525308,
+  1098739531, 1095809978, 91488149, 1007421380, 1093736472, 1095816177,
+  1090471048, 1091655270, 1098732475, 1098625558, 1099367783, 1128465895,
+  28070692, 1090497067, 37579713, 1094241876, 79411127, 1092338001, 1098679322,
+  63289710, 63369607, 91298113,
 ]);
 
 /**
@@ -21,6 +19,7 @@ export const FORMATO_OS_ACCESS_NITS = new Set<number>([
 export const JEFES_COMBO_AZUCENA: { nit: number; nombre: string }[] = [
   { nit: 91274670, nombre: 'Carlos Enrique Lozano Galvis' },
   { nit: 1005157209, nombre: 'Johan Sebastian Garcia Plata' },
+  { nit: 1098668953, nombre: 'Sergio Antonio Barajas Duarte' },
   { nit: 80872884, nombre: 'Juan Pablo Mier Avila' },
   { nit: 1065913432, nombre: 'Manuelita Baleta Mauris' },
   { nit: 1090449765, nombre: 'Karol Julieth Gomez Orozco' },
@@ -29,6 +28,7 @@ export const JEFES_COMBO_AZUCENA: { nit: number; nombre: string }[] = [
   { nit: 1095913265, nombre: 'Cesar Augusto Caicedo Caycedo' },
   { nit: 1092355065, nombre: 'David Davila' },
   { nit: 1090484563, nombre: 'Karen Michelle Barbosa Carvajal' },
+  { nit: 1090445195, nombre: 'Angelica Maritza Caicedo Guerrero' },
   { nit: 13741590, nombre: 'Juan Alexander Calderon Blanco' },
   { nit: 63368988, nombre: 'Liliana Cristancho Ferreira' },
   { nit: 91525308, nombre: 'Elkin Alexander Velasquez Albarracin' },
@@ -39,11 +39,14 @@ export const JEFES_COMBO_AZUCENA: { nit: number; nombre: string }[] = [
   { nit: 1093736472, nombre: 'Deysi Lorena Leon Montañez' },
   { nit: 1095816177, nombre: 'Gomez Uribe Daniela' },
   { nit: 1091655270, nombre: 'Eneida Perez Rojas' },
+  { nit: 1098732475, nombre: 'Gina Paola Camacho Buitrago' },
   { nit: 1098625558, nombre: 'Zuly Nathalia Ramirez Burgos' },
+  { nit: 1099367783, nombre: 'Erika Lizeth Aguilar Herrera' },
   { nit: 1090471048, nombre: 'Lindarte Garcia Ingrid Marcela' },
   { nit: 1128465895, nombre: 'Jaime Andres Martinez Barrios' },
   { nit: 28070692, nombre: 'Diana Lizette Hernandez Tovar' },
   { nit: 1090497067, nombre: 'Forero Carrero Heidy Esmeralda' },
+  { nit: 37579713, nombre: 'Rueda Romero Irene Isabel' },
   { nit: 1094241876, nombre: 'Burgos Ramirez Gabriel Felipe' },
   { nit: 79411127, nombre: 'Rico Correa Carlos Martin Alonso' },
   { nit: 1092338001, nombre: 'Andrea Paola Ramirez Ramirez' },

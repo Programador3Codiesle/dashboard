@@ -66,6 +66,12 @@ export function JefeAutorizaCombobox({
     return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, []);
 
+  const abrirParaBuscar = () => {
+    setQuery('');
+    setAbierto(true);
+    setActivo(0);
+  };
+
   const seleccionar = (option: JefeAutorizaOption | null) => {
     if (!option) {
       onChange(null);
@@ -98,9 +104,9 @@ export function JefeAutorizaCombobox({
           setAbierto(true);
           setActivo(0);
         }}
-        onFocus={() => {
-          setQuery(seleccionado?.nombre ?? query);
-          setAbierto(true);
+        onFocus={abrirParaBuscar}
+        onClick={() => {
+          if (!abierto) abrirParaBuscar();
         }}
         onKeyDown={(e) => {
           const maxActivo = Math.max(filtrados.length - 1, 0);
