@@ -111,6 +111,19 @@ export function rangosHoraSeCruzan(
   );
 }
 
+/** El inicio del tramo ya ocurrió (mismo día y hora menor o igual a ahora). */
+export function recuperacionInicioYaPaso(
+  fecha: string,
+  horaIni: string,
+  ahora: Date = new Date(),
+): boolean {
+  const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+  if (!fecha || fecha !== hoy) return false;
+  const ini = horaAMinutos(horaIni);
+  if (ini == null) return false;
+  return ini <= ahora.getHours() * 60 + ahora.getMinutes();
+}
+
 export function hayCruceTramosMismoDia(tramos: TramoRecuperacion[]): boolean {
   for (let i = 0; i < tramos.length; i++) {
     for (let j = i + 1; j < tramos.length; j++) {

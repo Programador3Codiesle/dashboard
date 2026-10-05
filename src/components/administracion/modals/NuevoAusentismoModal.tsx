@@ -28,6 +28,7 @@ import {
   hayCruceTramosMismoDia,
   horaAMinutos,
   horasCoinciden,
+  recuperacionInicioYaPaso,
   type TramoRecuperacion,
 } from "@/modules/administracion/shared/utils/hora-militar";
 
@@ -42,6 +43,8 @@ interface NuevoAusentismoModalProps {
 }
 
 const TRAMO_VACIO: TramoRecuperacion = { fecha: "", hora_ini: "", hora_fin: "" };
+const MSG_RECUPERACION_PASADA =
+  "La fecha y hora de recuperación deben ser posteriores a la hora actual";
 
 function hoyLocalYmd(): string {
   const d = new Date();
@@ -124,10 +127,7 @@ function NuevoAusentismoForm({
     ...transactionalQueryOptions,
   });
 
-  const requiereRecuperacion =
-    motivoRecuperacion &&
-    horasValidas &&
-    (tiempoQuery.data?.requiereRecuperacion ?? false);
+  const requiereRecuperacion = motivoRecuperacion && horasValidas;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +153,10 @@ function NuevoAusentismoForm({
       }
       if (hayCruceTramosMismoDia(validos)) {
         showError("Los rangos de horas no deben cruzarse");
+        return;
+      }
+      if (validos.some((t) => recuperacionInicioYaPaso(t.fecha, t.hora_ini))) {
+        showError(MSG_RECUPERACION_PASADA);
         return;
       }
     }
@@ -209,7 +213,18 @@ function NuevoAusentismoForm({
       if (!habil) {
         showError("La fecha seleccionada no es un día hábil");
         actualizarTramo(index, { fecha: "" });
+        return;
       }
+      setTramos((prev) => {
+        const actual = prev[index];
+        if (!actual?.hora_ini || !recuperacionInicioYaPaso(fecha, actual.hora_ini)) {
+          return prev;
+        }
+        showError(MSG_RECUPERACION_PASADA);
+        return prev.map((t, i) =>
+          i === index ? { ...t, hora_ini: "", hora_fin: "" } : t,
+        );
+      });
     } catch (error) {
       showError(getErrorMessage(error, "No se pudo validar el día hábil"));
       actualizarTramo(index, { fecha: "" });
@@ -379,7 +394,17 @@ function NuevoAusentismoForm({
                     opciones={OPCIONES_HORA_AUSENTISMO}
                     required
                     disabled={saving}
-                    onChange={(hora_ini) => actualizarTramo(index, { hora_ini })}
+                    onChange={(hora_ini) => {
+                      if (
+                        tramo.fecha &&
+                        recuperacionInicioYaPaso(tramo.fecha, hora_ini)
+                      ) {
+                        showError(MSG_RECUPERACION_PASADA);
+                        actualizarTramo(index, { hora_ini: "", hora_fin: "" });
+                        return;
+                      }
+                      actualizarTramo(index, { hora_ini });
+                    }}
                   />
                 </div>
                 <div>
