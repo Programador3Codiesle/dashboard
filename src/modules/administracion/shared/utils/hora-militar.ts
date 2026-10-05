@@ -77,6 +77,19 @@ export const OPCIONES_HORA_AUSENTISMO = opcionesHoraMilitar(
   AUSENTISMO_HORA_MAX,
 );
 
+/** Horas estrictamente posteriores a la inicial, dentro de las opciones dadas. */
+export function opcionesHoraPosteriores(
+  horaIni: string,
+  opciones: readonly string[] = OPCIONES_HORA_AUSENTISMO,
+): string[] {
+  const ini = horaAMinutos(horaIni);
+  if (ini == null) return [];
+  return opciones.filter((hora) => {
+    const minutos = horaAMinutos(hora);
+    return minutos != null && minutos > ini;
+  });
+}
+
 export const OPCIONES_HORA_EXTRA_INI = opcionesHoraMilitar(
   HORAS_EXTRA_INI_MIN,
   HORAS_EXTRA_INI_MAX,

@@ -24,6 +24,7 @@ import { getErrorMessage } from "@/modules/administracion/shared/utils/parse-api
 import {
   OPCIONES_HORA_AUSENTISMO,
   diferenciaHorasDecimal,
+  opcionesHoraPosteriores,
   esMotivoRecuperacion,
   hayCruceTramosMismoDia,
   horaAMinutos,
@@ -235,6 +236,7 @@ function NuevoAusentismoForm({
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const textareaClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
   const minFecha = hoyLocalYmd();
+  const opcionesFinAusentismo = opcionesHoraPosteriores(formData.horaInicio);
 
   return (
     <>
@@ -266,7 +268,15 @@ function NuevoAusentismoForm({
               aria-label="Hora inicio ausentismo"
               className={inputClass}
               value={formData.horaInicio}
-              onChange={(horaInicio) => setFormData({ ...formData, horaInicio })}
+              onChange={(horaInicio) => {
+                const iniMin = horaAMinutos(horaInicio);
+                const finMin = horaAMinutos(formData.horaFin);
+                const horaFin =
+                  iniMin != null && finMin != null && finMin > iniMin
+                    ? formData.horaFin
+                    : "";
+                setFormData({ ...formData, horaInicio, horaFin });
+              }}
               opciones={OPCIONES_HORA_AUSENTISMO}
               required
             />
@@ -280,8 +290,9 @@ function NuevoAusentismoForm({
               className={inputClass}
               value={formData.horaFin}
               onChange={(horaFin) => setFormData({ ...formData, horaFin })}
-              opciones={OPCIONES_HORA_AUSENTISMO}
+              opciones={opcionesFinAusentismo}
               required
+              disabled={opcionesFinAusentismo.length === 0}
             />
           </div>
         </div>
@@ -403,7 +414,13 @@ function NuevoAusentismoForm({
                         actualizarTramo(index, { hora_ini: "", hora_fin: "" });
                         return;
                       }
-                      actualizarTramo(index, { hora_ini });
+                      const iniMin = horaAMinutos(hora_ini);
+                      const finMin = horaAMinutos(tramo.hora_fin);
+                      const hora_fin =
+                        iniMin != null && finMin != null && finMin > iniMin
+                          ? tramo.hora_fin
+                          : "";
+                      actualizarTramo(index, { hora_ini, hora_fin });
                     }}
                   />
                 </div>
@@ -415,9 +432,9 @@ function NuevoAusentismoForm({
                     aria-label={`Hora hasta recuperación ${index + 1}`}
                     className={inputClass}
                     value={tramo.hora_fin}
-                    opciones={OPCIONES_HORA_AUSENTISMO}
+                    opciones={opcionesHoraPosteriores(tramo.hora_ini)}
                     required
-                    disabled={saving}
+                    disabled={saving || opcionesHoraPosteriores(tramo.hora_ini).length === 0}
                     onChange={(hora_fin) => actualizarTramo(index, { hora_fin })}
                   />
                 </div>
