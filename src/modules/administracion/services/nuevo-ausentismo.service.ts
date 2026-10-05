@@ -157,6 +157,25 @@ export const nuevoAusentismoService = {
     return response.json();
   },
 
+  async listarRecuperacion(
+    id: number,
+  ): Promise<Array<{ fecha: string; horaInicio: string; horaFin: string }>> {
+    const response = await fetchWithAuth(
+      `${API_URL}/administracion/nuevo-ausentismo/${id}/recuperacion`,
+      { method: "GET" },
+    );
+    if (!response.ok) {
+      await parseError(response, "No se pudo consultar la recuperación del tiempo");
+    }
+    const data: Array<{ fecha: string; hora_ini: string; hora_fin: string }> =
+      await response.json();
+    return (data ?? []).map((tramo) => ({
+      fecha: String(tramo.fecha ?? "").slice(0, 10),
+      horaInicio: tramo.hora_ini || "",
+      horaFin: tramo.hora_fin || "",
+    }));
+  },
+
   async esDiaHabil(fecha: string): Promise<boolean> {
     const response = await fetchWithAuth(
       `${API_URL}/administracion/nuevo-ausentismo/dia-habil?fecha=${encodeURIComponent(fecha)}`,

@@ -1,8 +1,11 @@
 'use client';
 
+import { useQuery } from "@tanstack/react-query";
 import Modal from "@/components/shared/ui/Modal";
 import { User, Calendar, FileText } from "lucide-react";
-import { AusentismoInforme } from "@/modules/administracion/services/informe-ausentismo.service";
+import { AusentismoInforme, informeAusentismoService } from "@/modules/administracion/services/informe-ausentismo.service";
+import { administracionKeys } from "@/modules/administracion/shared/constants/query-keys";
+import { RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
 
 interface DetalleAusentismoModalProps {
   open: boolean;
@@ -21,6 +24,12 @@ export default function DetalleAusentismoModal({
   onClose,
   ausentismo,
 }: DetalleAusentismoModalProps) {
+  const detalleQuery = useQuery({
+    queryKey: administracionKeys.detalleAusentismo(ausentismo?.id ?? 0),
+    queryFn: () => informeAusentismoService.obtenerDetalle(ausentismo!.id),
+    enabled: open && (ausentismo?.id ?? 0) > 0,
+  });
+
   if (!ausentismo) return null;
 
   return (
@@ -95,6 +104,8 @@ export default function DetalleAusentismoModal({
             </div>
           </div>
         </section>
+
+        <RecuperacionTiempoDetalle tramos={detalleQuery.data?.recuperacion ?? []} />
 
         <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-5 shadow-sm">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold brand-text">

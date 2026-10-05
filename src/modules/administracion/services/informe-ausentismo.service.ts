@@ -5,6 +5,7 @@ const API_URL = getApiBaseUrl();
 
 export interface AusentismoInformeAPI {
   id_ausen: string;
+  recuperacion?: Array<{ fecha: string; hora_ini: string; hora_fin: string }>;
     nit_empleado?: string | null;
   gestionado_por: string;
   colaborador: string;
@@ -35,6 +36,7 @@ export interface AusentismoInforme {
   horaFin: string;
   estado: string;
   detalle: string;
+  recuperacion?: Array<{ fecha: string; horaInicio: string; horaFin: string }>;
 }
 
 export interface FiltrosAusentismo {
@@ -112,7 +114,15 @@ export const informeAusentismoService = {
       throw new Error("Error al conectar con el servidor");
     }
 
-    const data: AusentismoInformeAPI = await response.json();
-    return mapItem(data);
+    const data: AusentismoInformeAPI | null = await response.json();
+    if (!data) return null;
+    return {
+      ...mapItem(data),
+      recuperacion: (data.recuperacion ?? []).map((tramo) => ({
+        fecha: String(tramo.fecha ?? "").slice(0, 10),
+        horaInicio: tramo.hora_ini || "",
+        horaFin: tramo.hora_fin || "",
+      })),
+    };
   },
 };

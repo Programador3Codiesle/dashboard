@@ -22,6 +22,10 @@ export const administracionKeys = {
     ['administracion', 'nuevo-ausentismo', 'tiempo-restante', horas] as const,
   diaHabilAusentismo: (fecha: string) =>
     ['administracion', 'nuevo-ausentismo', 'dia-habil', fecha] as const,
+  recuperacionAusentismo: (id: number) =>
+    ['administracion', 'nuevo-ausentismo', 'recuperacion', id] as const,
+  detalleAusentismo: (id: number) =>
+    ['administracion', 'informe-ausentismo', 'detalle', id] as const,
   solicitudTiempo: (year: number, month: number) =>
     ['administracion', 'solicitud-tiempo', year, month] as const,
   informeAusentismo: (params: string) =>

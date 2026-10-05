@@ -1,9 +1,13 @@
 'use client';
 
+import { useQuery } from "@tanstack/react-query";
 import Modal from "@/components/shared/ui/Modal";
 import { Calendar, FileText } from "lucide-react";
 import type { AusentismoCalendario } from "@/modules/administracion/services/nuevo-ausentismo.service";
+import { nuevoAusentismoService } from "@/modules/administracion/services/nuevo-ausentismo.service";
 import { claseBadgeEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
+import { administracionKeys } from "@/modules/administracion/shared/constants/query-keys";
+import { RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
 
 interface DetalleAusentismoCalendarioModalProps {
   open: boolean;
@@ -16,6 +20,12 @@ export default function DetalleAusentismoCalendarioModal({
   onClose,
   ausentismo,
 }: DetalleAusentismoCalendarioModalProps) {
+  const recuperacionQuery = useQuery({
+    queryKey: administracionKeys.recuperacionAusentismo(ausentismo?.id ?? 0),
+    queryFn: () => nuevoAusentismoService.listarRecuperacion(ausentismo!.id),
+    enabled: open && (ausentismo?.id ?? 0) > 0,
+  });
+
   if (!ausentismo) return null;
 
   return (
@@ -51,6 +61,8 @@ export default function DetalleAusentismoCalendarioModal({
             </div>
           </div>
         </section>
+
+        <RecuperacionTiempoDetalle tramos={recuperacionQuery.data ?? []} />
 
         <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4 shadow-sm">
           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold brand-text">
