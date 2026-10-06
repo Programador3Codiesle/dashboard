@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
@@ -34,8 +34,28 @@ import {
 
 const PAGE_SIZE = 10;
 
+function fechaHoyLocal(): string {
+  const hoy = new Date();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  return `${hoy.getFullYear()}-${mes}-${dia}`;
+}
+
 function nitTieneFiltrosExtra(nit: number | undefined | null): boolean {
   return nit != null && (NITS_FILTROS_EXTRA as readonly number[]).includes(nit);
+}
+
+type FiltrosConsulta = FiltrosOrdenSalida & { cargaInicial?: boolean };
+
+function filtrosParaApi(filtros: FiltrosConsulta): FiltrosOrdenSalida {
+  return {
+    fechaIni: filtros.fechaIni,
+    fechaFin: filtros.fechaFin,
+    jefe: filtros.jefe,
+    area: filtros.area,
+    sede: filtros.sede,
+    tipoSalida: filtros.tipoSalida,
+  };
 }
 
 export function OrdenesSalidaGestion() {
@@ -45,7 +65,6 @@ export function OrdenesSalidaGestion() {
     redirectOnDenied: false,
   });
   const { showError, showSuccess, showInfo } = useToast();
-  const cargaInicialRef = useRef(false);
   const queryClient = useQueryClient();
   const [fechaIni, setFechaIni] = useState('');
   const [fechaFin, setFechaFin] = useState('');
@@ -54,7 +73,10 @@ export function OrdenesSalidaGestion() {
   const [sede, setSede] = useState('');
   const [tipoSalida, setTipoSalida] = useState('');
   const [filtrosAplicados, setFiltrosAplicados] =
-    useState<FiltrosOrdenSalida | null>(null);
+    useState<FiltrosConsulta | null>(() => {
+      const hoy = fechaHoyLocal();
+      return { fechaIni: hoy, fechaFin: hoy, cargaInicial: true };
+    });
   const [paging, setPaging] = useState({ empresaId: 0, page: 1 });
   const [observaciones, setObservaciones] = useState<Record<number, string>>({});
   const empresaId = user?.empresa ?? 0;
@@ -93,9 +115,12 @@ export function OrdenesSalidaGestion() {
   } = useQuery<OrdenSalida[]>({
     queryKey: informesKeys.gh.ordenesSalida(
       empresaId,
-      filtrosAplicados ? JSON.stringify(filtrosAplicados) : '',
+      filtrosAplicados ? JSON.stringify(filtrosParaApi(filtrosAplicados)) : '',
     ),
-    queryFn: () => ordenesSalidaService.listar(filtrosAplicados ?? {}),
+    queryFn: () =>
+      ordenesSalidaService.listar(
+        filtrosAplicados ? filtrosParaApi(filtrosAplicados) : {},
+      ),
     enabled: sesionLista && (esModoObservacion || filtrosAplicados != null),
     retry: false,
     staleTime: 60 * 1000,
@@ -144,21 +169,19 @@ export function OrdenesSalidaGestion() {
     isForbiddenError(errorListadoDetalle);
 
   useEffect(() => {
-    if (sinPermiso) return;
-    if (!esModoObservacion || cargaInicialRef.current) return;
-    cargaInicialRef.current = true;
-    setFiltrosAplicados({
-      fechaIni: undefined,
-      fechaFin: undefined,
-    });
-  }, [esModoObservacion, sinPermiso]);
-
-  useEffect(() => {
     if (!isFetched || listando || errorListado) return;
+    if (filtrosAplicados?.cargaInicial) return;
     if (data.length === 0) {
       showInfo('No hay registros para el rango de fechas seleccionado.');
     }
-  }, [isFetched, listando, errorListado, data.length, showInfo]);
+  }, [
+    isFetched,
+    listando,
+    errorListado,
+    data.length,
+    showInfo,
+    filtrosAplicados,
+  ]);
 
   const consultaSinResultados = isFetched && data.length === 0;
   const totalItems = data.length;

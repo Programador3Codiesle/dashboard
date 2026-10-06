@@ -6,7 +6,15 @@ export const NITS_FILTROS_EXTRA = [63369607, 1098679322] as const;
  * Acceso al informe sin el trimenu 44.
  * 1090471048: perfil Accesorios (67).
  */
-export const NITS_ACCESO_INFORME_ORDEN_SALIDA = new Set([1090471048]);
+export const NITS_ACCESO_INFORME_ORDEN_SALIDA = new Set([
+  1090471048,
+  1090445195,
+  91510897,
+  79984087,
+  1098732475,
+  1099367783,
+  1099372035,
+]);
 
 /** PHP `Inf_ordenSalida.php` — IDs de sesión con UI de observación (vigilantes). */
 export const IDS_MODO_OBSERVACION = new Set([460, 625, 814, 826]);
