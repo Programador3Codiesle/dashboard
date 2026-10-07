@@ -5,7 +5,7 @@ import Modal from "@/components/shared/ui/Modal";
 import { User, Calendar, FileText } from "lucide-react";
 import { AusentismoInforme, informeAusentismoService } from "@/modules/administracion/services/informe-ausentismo.service";
 import { administracionKeys } from "@/modules/administracion/shared/constants/query-keys";
-import { RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
+import { fechaYmdVisible, RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
 
 interface DetalleAusentismoModalProps {
   open: boolean;
@@ -88,7 +88,7 @@ export default function DetalleAusentismoModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Fecha Inicio</label>
-              <p className="text-gray-900 font-medium">{ausentismo.fechaInicio}</p>
+              <p className="text-gray-900 font-medium">{fechaYmdVisible(ausentismo.fechaInicio)}</p>
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Hora Inicio</label>
@@ -96,7 +96,7 @@ export default function DetalleAusentismoModal({
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Fecha Fin</label>
-              <p className="text-gray-900 font-medium">{ausentismo.fechaFin}</p>
+              <p className="text-gray-900 font-medium">{fechaYmdVisible(ausentismo.fechaFin)}</p>
             </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">Hora Fin</label>

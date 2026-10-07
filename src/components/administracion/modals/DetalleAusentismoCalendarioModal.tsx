@@ -7,7 +7,7 @@ import type { AusentismoCalendario } from "@/modules/administracion/services/nue
 import { nuevoAusentismoService } from "@/modules/administracion/services/nuevo-ausentismo.service";
 import { claseBadgeEstadoAutorizacion } from "@/modules/administracion/shared/utils/estado-autorizacion";
 import { administracionKeys } from "@/modules/administracion/shared/constants/query-keys";
-import { RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
+import { fechaYmdVisible, RecuperacionTiempoDetalle } from "@/components/administracion/modals/RecuperacionTiempoDetalle";
 
 interface DetalleAusentismoCalendarioModalProps {
   open: boolean;
@@ -41,7 +41,7 @@ export default function DetalleAusentismoCalendarioModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div>
               <span className="text-gray-500">Fecha</span>
-              <p className="font-medium text-gray-900">{ausentismo.fecha}</p>
+              <p className="font-medium text-gray-900">{fechaYmdVisible(ausentismo.fecha)}</p>
             </div>
             <div>
               <span className="text-gray-500">Estado</span>

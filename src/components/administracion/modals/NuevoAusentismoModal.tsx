@@ -29,6 +29,7 @@ import {
   hayCruceTramosMismoDia,
   horaAMinutos,
   horasCoinciden,
+  recuperacionCruzaAusentismo,
   recuperacionInicioYaPaso,
   type TramoRecuperacion,
 } from "@/modules/administracion/shared/utils/hora-militar";
@@ -46,6 +47,8 @@ interface NuevoAusentismoModalProps {
 const TRAMO_VACIO: TramoRecuperacion = { fecha: "", hora_ini: "", hora_fin: "" };
 const MSG_RECUPERACION_PASADA =
   "La fecha y hora de recuperación deben ser posteriores a la hora actual";
+const MSG_RECUPERACION_EN_AUSENTISMO =
+  "No puede recuperar el tiempo en el horario del ausentismo, porque en ese rango no estará en la empresa";
 
 function hoyLocalYmd(): string {
   const d = new Date();
@@ -160,6 +163,19 @@ function NuevoAusentismoForm({
         showError(MSG_RECUPERACION_PASADA);
         return;
       }
+      if (
+        validos.some((t) =>
+          recuperacionCruzaAusentismo(
+            formData.fecha,
+            formData.horaInicio,
+            formData.horaFin,
+            t,
+          ),
+        )
+      ) {
+        showError(MSG_RECUPERACION_EN_AUSENTISMO);
+        return;
+      }
     }
     onSave({
       ...formData,
@@ -174,6 +190,14 @@ function NuevoAusentismoForm({
     });
   };
 
+  const tramosRef = useRef(tramos);
+
+  const aplicarTramos = (siguiente: TramoRecuperacion[], aviso?: string) => {
+    tramosRef.current = siguiente;
+    setTramos(siguiente);
+    if (aviso) showError(aviso);
+  };
+
   const handleMotivoChange = (motivo: string) => {
     if (esMotivoRecuperacion(motivo) && (!formData.horaInicio || !formData.horaFin)) {
       showError("Debes llenar los campos de fecha y hora primero");
@@ -186,20 +210,61 @@ function NuevoAusentismoForm({
       if (fileRef.current) fileRef.current.value = "";
     }
     if (!esMotivoRecuperacion(motivo)) {
-      setTramos([{ ...TRAMO_VACIO }]);
+      aplicarTramos([{ ...TRAMO_VACIO }]);
     }
   };
 
+  const limpiarRecuperacionQueCruza = (
+    fecha: string,
+    horaIni: string,
+    horaFin: string,
+  ) => {
+    const prev = tramosRef.current;
+    const cruza = prev.some((t) =>
+      recuperacionCruzaAusentismo(fecha, horaIni, horaFin, t),
+    );
+    if (!cruza) return;
+    aplicarTramos(
+      prev.map((t) =>
+        recuperacionCruzaAusentismo(fecha, horaIni, horaFin, t)
+          ? { ...t, hora_ini: "", hora_fin: "" }
+          : t,
+      ),
+      MSG_RECUPERACION_EN_AUSENTISMO,
+    );
+  };
+
   const actualizarTramo = (index: number, patch: Partial<TramoRecuperacion>) => {
-    setTramos((prev) => {
-      const next = prev.map((t, i) => (i === index ? { ...t, ...patch } : t));
-      const conHoras = next.filter((t) => t.fecha && t.hora_ini && t.hora_fin);
-      if (conHoras.length >= 2 && hayCruceTramosMismoDia(conHoras)) {
-        showError("Los rangos de horas no deben cruzarse");
-        return next.map((t) => ({ ...t, hora_ini: "", hora_fin: "" }));
-      }
-      return next;
-    });
+    const next = tramosRef.current.map((t, i) =>
+      i === index ? { ...t, ...patch } : t,
+    );
+    const conHoras = next.filter((t) => t.fecha && t.hora_ini && t.hora_fin);
+    if (conHoras.length >= 2 && hayCruceTramosMismoDia(conHoras)) {
+      aplicarTramos(
+        next.map((t) => ({ ...t, hora_ini: "", hora_fin: "" })),
+        "Los rangos de horas no deben cruzarse",
+      );
+      return;
+    }
+    const editado = next[index];
+    if (
+      editado &&
+      recuperacionCruzaAusentismo(
+        formData.fecha,
+        formData.horaInicio,
+        formData.horaFin,
+        editado,
+      )
+    ) {
+      aplicarTramos(
+        next.map((t, i) =>
+          i === index ? { ...t, hora_ini: "", hora_fin: "" } : t,
+        ),
+        MSG_RECUPERACION_EN_AUSENTISMO,
+      );
+      return;
+    }
+    aplicarTramos(next);
   };
 
   const onFechaRecuperacion = async (index: number, fecha: string) => {
@@ -216,16 +281,15 @@ function NuevoAusentismoForm({
         actualizarTramo(index, { fecha: "" });
         return;
       }
-      setTramos((prev) => {
-        const actual = prev[index];
-        if (!actual?.hora_ini || !recuperacionInicioYaPaso(fecha, actual.hora_ini)) {
-          return prev;
-        }
-        showError(MSG_RECUPERACION_PASADA);
-        return prev.map((t, i) =>
-          i === index ? { ...t, hora_ini: "", hora_fin: "" } : t,
+      const actual = tramosRef.current[index];
+      if (actual?.hora_ini && recuperacionInicioYaPaso(fecha, actual.hora_ini)) {
+        aplicarTramos(
+          tramosRef.current.map((t, i) =>
+            i === index ? { ...t, hora_ini: "", hora_fin: "" } : t,
+          ),
+          MSG_RECUPERACION_PASADA,
         );
-      });
+      }
     } catch (error) {
       showError(getErrorMessage(error, "No se pudo validar el día hábil"));
       actualizarTramo(index, { fecha: "" });
@@ -253,7 +317,15 @@ function NuevoAusentismoForm({
             type="date"
             className={inputClass.replace("appearance-none pr-10", "")}
             value={formData.fecha}
-            onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+            onChange={(e) => {
+              const fecha = e.target.value;
+              setFormData({ ...formData, fecha });
+              limpiarRecuperacionQueCruza(
+                fecha,
+                formData.horaInicio,
+                formData.horaFin,
+              );
+            }}
             required
             min={minFecha}
           />
@@ -276,6 +348,7 @@ function NuevoAusentismoForm({
                     ? formData.horaFin
                     : "";
                 setFormData({ ...formData, horaInicio, horaFin });
+                limpiarRecuperacionQueCruza(formData.fecha, horaInicio, horaFin);
               }}
               opciones={OPCIONES_HORA_AUSENTISMO}
               required
@@ -289,7 +362,14 @@ function NuevoAusentismoForm({
               aria-label="Hora en que termina el ausentismo"
               className={inputClass}
               value={formData.horaFin}
-              onChange={(horaFin) => setFormData({ ...formData, horaFin })}
+              onChange={(horaFin) => {
+                setFormData({ ...formData, horaFin });
+                limpiarRecuperacionQueCruza(
+                  formData.fecha,
+                  formData.horaInicio,
+                  horaFin,
+                );
+              }}
               opciones={opcionesFinAusentismo}
               required
               disabled={opcionesFinAusentismo.length === 0}
@@ -444,7 +524,9 @@ function NuevoAusentismoForm({
                   aria-label="Eliminar tramo de recuperación"
                   disabled={saving || tramos.length === 1}
                   onClick={() =>
-                    setTramos((prev) => prev.filter((_, i) => i !== index))
+                    aplicarTramos(
+                      tramosRef.current.filter((_, i) => i !== index),
+                    )
                   }
                 >
                   <Trash2 size={16} />
@@ -455,7 +537,9 @@ function NuevoAusentismoForm({
               type="button"
               className="inline-flex items-center gap-2 rounded-xl brand-bg brand-bg-hover px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
               disabled={saving}
-              onClick={() => setTramos((prev) => [...prev, { ...TRAMO_VACIO }])}
+              onClick={() =>
+                aplicarTramos([...tramosRef.current, { ...TRAMO_VACIO }])
+              }
             >
               <Plus size={16} />
               Agregar tramo

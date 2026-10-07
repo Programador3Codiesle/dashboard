@@ -4,10 +4,14 @@ export type TramoRecuperacionVisible = {
   horaFin: string;
 };
 
-function fechaVisible(ymd: string): string {
-  const match = ymd.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!match) return ymd;
-  return `${match[3]}/${match[2]}/${match[1]}`;
+/** Misma fecha del correo y de la base: YYYY-MM-DD, sin correr el día. */
+export function fechaYmdVisible(valor: string): string {
+  const texto = valor.trim();
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return texto;
 }
 
 export function RecuperacionTiempoDetalle({
@@ -30,7 +34,7 @@ export function RecuperacionTiempoDetalle({
           >
             <div>
               <span className="text-gray-500">Fecha</span>
-              <p className="font-medium text-gray-900">{fechaVisible(tramo.fecha)}</p>
+              <p className="font-medium text-gray-900">{fechaYmdVisible(tramo.fecha)}</p>
             </div>
             <div>
               <span className="text-gray-500">Hora desde</span>
