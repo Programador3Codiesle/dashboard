@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Modal from "@/components/shared/ui/Modal";
 import { HoraMilitarSelect } from "@/components/administracion/forms/HoraMilitarSelect";
 import { useToast } from "@/components/shared/ui/ToastContext";
 import { NuevoAusentismoDTO } from "@/modules/administracion/types";
 import {
+  ADMINISTRACION_COPY,
   AREAS_SOLICITA,
   MOTIVOS_PERMISO,
   MOTIVO_COMPENSATORIO_VENTAS,
@@ -20,6 +22,8 @@ import { OptimizedTextarea } from "@/components/shared/ui/OptimizedTextarea";
 import { transactionalQueryOptions } from "@/core/query/catalog-query-options";
 import { administracionKeys } from "@/modules/administracion/shared/constants/query-keys";
 import { nuevoAusentismoService } from "@/modules/administracion/services/nuevo-ausentismo.service";
+import { fechaLocalYmd } from "@/modules/administracion/shared/utils/fecha-local";
+import { enHorarioLaboralAusentismo } from "@/modules/administracion/shared/utils/horario-laboral-ausentismo";
 import { getErrorMessage } from "@/modules/administracion/shared/utils/parse-api-error";
 import {
   OPCIONES_HORA_AUSENTISMO,
@@ -49,11 +53,8 @@ const MSG_RECUPERACION_PASADA =
   "La fecha y hora de recuperación deben ser posteriores a la hora actual";
 const MSG_RECUPERACION_EN_AUSENTISMO =
   "No puede recuperar el tiempo en el horario del ausentismo, porque en ese rango no estará en la empresa";
-
-function hoyLocalYmd(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+const MSG_AUSENTISMO_NO_HABIL =
+  "No puede solicitar ausentismo en domingo o día festivo";
 
 export default function NuevoAusentismoModal({
   open,
@@ -133,9 +134,63 @@ function NuevoAusentismoForm({
 
   const requiereRecuperacion = motivoRecuperacion && horasValidas;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fechaEsHabil = async (fecha: string) => {
+    if (!fecha) return false;
+    return queryClient.fetchQuery({
+      queryKey: administracionKeys.diaHabilAusentismo(fecha),
+      queryFn: () => nuevoAusentismoService.esDiaHabil(fecha),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  useEffect(() => {
+    if (!formData.fecha) return;
+    let cancelado = false;
+    void fechaEsHabil(formData.fecha)
+      .then((habil) => {
+        if (cancelado || habil) return;
+        showError(MSG_AUSENTISMO_NO_HABIL);
+        setFormData((prev) => ({ ...prev, fecha: "" }));
+      })
+      .catch((error) => {
+        if (cancelado) return;
+        showError(getErrorMessage(error, "No se pudo validar el día hábil"));
+      });
+    return () => {
+      cancelado = true;
+    };
+    // Solo al abrir el formulario con la fecha del calendario.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!enHorarioLaboralAusentismo()) {
+      showError(ADMINISTRACION_COPY.nuevoAusentismo.horarioLaboral);
+      return;
+    }
+    const cargo = formData.cargo.trim();
+    const descripcionMotivo = formData.descripcionMotivo.trim();
+    if (!cargo || !descripcionMotivo) {
+      setFormData((prev) => ({ ...prev, cargo, descripcionMotivo }));
+      showError(
+        !cargo
+          ? "El cargo del empleado es obligatorio"
+          : "Debe describir el motivo del permiso",
+      );
+      return;
+    }
     if (pideAdjunto && !archivo) return;
+    try {
+      const habil = await fechaEsHabil(formData.fecha);
+      if (!habil) {
+        showError(MSG_AUSENTISMO_NO_HABIL);
+        return;
+      }
+    } catch (error) {
+      showError(getErrorMessage(error, "No se pudo validar el día hábil"));
+      return;
+    }
     const iniMin = horaAMinutos(formData.horaInicio);
     const finMin = horaAMinutos(formData.horaFin);
     if (iniMin == null || finMin == null || iniMin >= finMin) {
@@ -179,6 +234,8 @@ function NuevoAusentismoForm({
     }
     onSave({
       ...formData,
+      cargo,
+      descripcionMotivo,
       archivoSoporte: archivo ?? undefined,
       recuperacion: requiereRecuperacion
         ? validos.map((t) => ({
@@ -299,7 +356,7 @@ function NuevoAusentismoForm({
   const inputClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white appearance-none pr-10";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const textareaClass = "block w-full border border-gray-300 rounded-xl p-2.5 focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-sm bg-white";
-  const minFecha = hoyLocalYmd();
+  const minFecha = fechaLocalYmd();
   const opcionesFinAusentismo = opcionesHoraPosteriores(formData.horaInicio);
 
   return (
@@ -319,12 +376,28 @@ function NuevoAusentismoForm({
             value={formData.fecha}
             onChange={(e) => {
               const fecha = e.target.value;
-              setFormData({ ...formData, fecha });
-              limpiarRecuperacionQueCruza(
-                fecha,
-                formData.horaInicio,
-                formData.horaFin,
-              );
+              if (!fecha) {
+                setFormData({ ...formData, fecha });
+                return;
+              }
+              void fechaEsHabil(fecha)
+                .then((habil) => {
+                  if (!habil) {
+                    showError(MSG_AUSENTISMO_NO_HABIL);
+                    return;
+                  }
+                  setFormData({ ...formData, fecha });
+                  limpiarRecuperacionQueCruza(
+                    fecha,
+                    formData.horaInicio,
+                    formData.horaFin,
+                  );
+                })
+                .catch((error) => {
+                  showError(
+                    getErrorMessage(error, "No se pudo validar el día hábil"),
+                  );
+                });
             }}
             required
             min={minFecha}
@@ -400,7 +473,11 @@ function NuevoAusentismoForm({
             labelClassName={labelClass}
             className={inputClass.replace("appearance-none pr-10", "")}
             value={formData.cargo}
-            onValueChange={(val) => setFormData({ ...formData, cargo: val })}
+            onValueChange={(val) => {
+              flushSync(() => {
+                setFormData((prev) => ({ ...prev, cargo: val }));
+              });
+            }}
             required
           />
         </div>
@@ -570,7 +647,11 @@ function NuevoAusentismoForm({
           className={textareaClass}
           rows={4}
           value={formData.descripcionMotivo}
-          onValueChange={(val) => setFormData({ ...formData, descripcionMotivo: val })}
+          onValueChange={(val) => {
+            flushSync(() => {
+              setFormData((prev) => ({ ...prev, descripcionMotivo: val }));
+            });
+          }}
           required
         />
 

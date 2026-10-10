@@ -19,6 +19,7 @@ import {
   type AusentismoCalendario,
 } from '@/modules/administracion/services/nuevo-ausentismo.service';
 import { getErrorMessage } from '@/modules/administracion/shared/utils/parse-api-error';
+import { fechaLocalYmd } from '@/modules/administracion/shared/utils/fecha-local';
 import { enHorarioLaboralAusentismo } from '@/modules/administracion/shared/utils/horario-laboral-ausentismo';
 import type { NuevoAusentismoDTO } from '@/modules/administracion/types';
 import { NUEVO_AUSENTISMO_SUBMENU_ID } from '@/utils/constants';
@@ -88,7 +89,7 @@ export function NuevoAusentismoGestion() {
       showError(ADMINISTRACION_COPY.nuevoAusentismo.horarioLaboral);
       return;
     }
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = fechaLocalYmd();
     if (date >= todayStr) {
       setSelectedDate(date);
       setModalOpen(true);
@@ -102,7 +103,7 @@ export function NuevoAusentismoGestion() {
     });
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = fechaLocalYmd();
   const firstDay = new Date(anioActual, mesActual - 1, 1);
   const lastDay = new Date(anioActual, mesActual, 0);
   const daysInMonth = lastDay.getDate();
