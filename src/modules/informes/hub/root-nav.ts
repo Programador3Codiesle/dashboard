@@ -2,6 +2,7 @@ import type { HubNavItem } from '@/components/shared/hub/types';
 import {
   CODIESEL_EMPRESA_ID,
   INFORME_QR_TALLER_SUBMENU_ID,
+  INFORMES_CONTACT_CENTER_SUBMENU_ID,
   INFORMES_GESTION_HUMANA_SUBMENU_ID,
   INFORMES_POSTVENTA_SUBMENU_ID,
 } from '@/utils/constants';
@@ -16,6 +17,13 @@ export const INFORMES_ROOT_HUB_NAV: HubNavItem[] = [
     ruta: '/dashboard/informes/gestion-humana',
     submenuId: INFORMES_GESTION_HUMANA_SUBMENU_ID,
     nitsConAcceso: NITS_ACCESO_INFORME_ORDEN_SALIDA,
+  },
+  {
+    id: 'contact-center',
+    nombre: 'Contact Center',
+    descripcion: INFORMES_COPY.ccHub.description,
+    ruta: '/dashboard/informes/contact-center',
+    submenuId: INFORMES_CONTACT_CENTER_SUBMENU_ID,
   },
   {
     id: 'postventa',

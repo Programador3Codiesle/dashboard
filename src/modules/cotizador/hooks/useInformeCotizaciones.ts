@@ -28,7 +28,10 @@ export function useInformeCotizaciones(tipo: TipoCotizacion, dateStart: string, 
         empresa: empresaId,
       }),
     enabled: !!dateStart && !!dateEnd,
-    staleTime: 2 * 60 * 1000,
+    // El resto de módulos no refetch al volver. Este informe sí: cada entrada
+    // debe traer las cotizaciones nuevas sin recargar la página.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   return {

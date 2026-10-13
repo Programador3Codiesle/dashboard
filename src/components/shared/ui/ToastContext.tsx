@@ -41,14 +41,30 @@ const TOAST_TONE: Record<
   },
 };
 
+export interface ToastAccion {
+  label: string;
+  onClick?: () => void;
+  /** false deja el aviso abierto. Por defecto la acción lo cierra. */
+  cerrar?: boolean;
+  tono?: 'principal' | 'secundario';
+}
+
+/** Opciones solo para avisos que deben quedarse hasta que el usuario elija. */
+export interface ToastOpciones {
+  persistir?: boolean;
+  acciones?: ToastAccion[];
+}
+
 interface Toast {
   id: number;
   message: string;
   variant: ToastVariant;
+  persistir?: boolean;
+  acciones?: ToastAccion[];
 }
 
 interface ToastContextValue {
-  showSuccess: (message: string) => void;
+  showSuccess: (message: string, opciones?: ToastOpciones) => void;
   showError: (message: string) => void;
   showInfo: (message: string) => void;
 }
@@ -67,25 +83,35 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, variant: ToastVariant) => {
-    const key = `${variant}:${message}`;
-    const now = Date.now();
-    if (
-      lastToastRef.current &&
-      lastToastRef.current.key === key &&
-      now - lastToastRef.current.ts < 500
-    ) {
-      return;
-    }
-    lastToastRef.current = { key, ts: now };
-    setToasts((prev) => [
-      ...prev,
-      { id: now + Math.random(), message, variant },
-    ]);
-  }, []);
+  const addToast = useCallback(
+    (message: string, variant: ToastVariant, opciones?: ToastOpciones) => {
+      const key = `${variant}:${message}`;
+      const now = Date.now();
+      if (
+        lastToastRef.current &&
+        lastToastRef.current.key === key &&
+        now - lastToastRef.current.ts < 500
+      ) {
+        return;
+      }
+      lastToastRef.current = { key, ts: now };
+      setToasts((prev) => [
+        ...prev,
+        {
+          id: now + Math.random(),
+          message,
+          variant,
+          persistir: opciones?.persistir ?? false,
+          acciones: opciones?.acciones,
+        },
+      ]);
+    },
+    [],
+  );
 
   const showSuccess = useCallback(
-    (message: string) => addToast(message, 'success'),
+    (message: string, opciones?: ToastOpciones) =>
+      addToast(message, 'success', opciones),
     [addToast],
   );
   const showError = useCallback(
@@ -98,7 +124,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
-    if (!current || current.variant === 'error') return;
+    if (!current || current.variant === 'error' || current.persistir) return;
     const id = current.id;
     const timeoutId = setTimeout(() => cerrar(id), AUTO_CIERRE_MS);
     return () => clearTimeout(timeoutId);
@@ -110,7 +136,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
     document.body.style.overflow = 'hidden';
     buttonRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') cerrar(current.id);
+      if (event.key === 'Escape' && !current.persistir) cerrar(current.id);
     };
     document.addEventListener('keydown', onKey);
     return () => {
@@ -133,7 +159,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
         <div
           className="fixed inset-0 z-9999 flex items-center justify-center bg-slate-950/45 p-4"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) cerrar(current.id);
+            if (
+              event.target === event.currentTarget &&
+              !current.persistir
+            ) {
+              cerrar(current.id);
+            }
           }}
         >
           <div
@@ -161,14 +192,40 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
             >
               {current.message}
             </p>
-            <button
-              ref={buttonRef}
-              type="button"
-              className="brand-bg brand-bg-hover mt-6 inline-flex min-w-36 items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white"
-              onClick={() => cerrar(current.id)}
-            >
-              Entendido
-            </button>
+            {current.acciones?.length ? (
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                {current.acciones.map((accion) => {
+                  const principal = accion.tono !== 'secundario';
+                  return (
+                    <button
+                      key={accion.label}
+                      ref={principal ? buttonRef : undefined}
+                      type="button"
+                      className={
+                        principal
+                          ? 'brand-bg brand-bg-hover inline-flex min-w-36 items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white'
+                          : 'inline-flex min-w-36 items-center justify-center rounded-xl border border-(--color-primary) px-6 py-2.5 text-sm font-semibold text-(--color-primary) hover:bg-(--color-primary) hover:text-white'
+                      }
+                      onClick={() => {
+                        accion.onClick?.();
+                        if (accion.cerrar !== false) cerrar(current.id);
+                      }}
+                    >
+                      {accion.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <button
+                ref={buttonRef}
+                type="button"
+                className="brand-bg brand-bg-hover mt-6 inline-flex min-w-36 items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white"
+                onClick={() => cerrar(current.id)}
+              >
+                Entendido
+              </button>
+            )}
           </div>
         </div>
       ) : null}

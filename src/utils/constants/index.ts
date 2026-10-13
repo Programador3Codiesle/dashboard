@@ -281,6 +281,7 @@ export const INFORME_PREVENTIVO_SUBMENU_ID = 97;
 /** Menú Informes (id_menu = 5) — multiempresa */
 export const INFORMES_MENU_ID = 5 as const;
 export const INFORMES_GESTION_HUMANA_SUBMENU_ID = 135 as const;
+export const INFORMES_CONTACT_CENTER_SUBMENU_ID = 136 as const;
 export const INFORMES_POSTVENTA_SUBMENU_ID = 137 as const;
 
 /** Submenú Informes QR taller (Informes, id_menu = 5) — solo Codiesel */

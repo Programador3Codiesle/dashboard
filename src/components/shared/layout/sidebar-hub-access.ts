@@ -4,6 +4,7 @@ import { CHECKLIST_HUB_NAV } from "@/modules/checklist/hub/nav";
 import { CONTACT_CENTER_HUB_NAV } from "@/modules/contact-center/hub/nav";
 import { COTIZAR_HUB_NAV } from "@/modules/cotizar/hub/nav";
 import { ENCUESTAS_HUB_NAV } from "@/modules/encuestas/hub/nav";
+import { INFORMES_CONTACT_CENTER_HUB_NAV } from "@/modules/informes/contact-center/hub/nav";
 import { GESTION_HUMANA_HUB_NAV } from "@/modules/informes/gestion-humana/hub/nav";
 import { INFORMES_ROOT_HUB_NAV } from "@/modules/informes/hub/root-nav";
 import { POSTVENTA_HUB_NAV } from "@/modules/informes/postventa/hub/nav";
@@ -49,6 +50,10 @@ export const SIDEBAR_HUB_ACCESS: Record<string, { items: HubNavItem[]; filter: H
 export const SIDEBAR_NESTED_HUBS: Record<string, { items: HubNavItem[]; filter: HubFilterOptions }> = {
   "/dashboard/informes/gestion-humana": {
     items: GESTION_HUMANA_HUB_NAV,
+    filter: TRIMENU,
+  },
+  "/dashboard/informes/contact-center": {
+    items: INFORMES_CONTACT_CENTER_HUB_NAV,
     filter: TRIMENU,
   },
   "/dashboard/informes/postventa": {

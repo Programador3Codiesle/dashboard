@@ -39,6 +39,10 @@ export const informesKeys = {
     pausasActivas: (params: string) =>
       ['informes', 'gh', 'pausas-activas', params] as const,
   },
+  cc: {
+    informeLeads: (params: string) =>
+      ['informes', 'cc', 'informe-leads', params] as const,
+  },
   pv: {
     llegadaVehiculos: (params: string) =>
       ['informes', 'pv', 'llegada-vehiculos', params] as const,

@@ -47,7 +47,8 @@ function urlCotizacion(path: string): string {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 20;
 
 export function GestionComprasGestion() {
   const { user, blocked } = useAdministracionPageGuard(
@@ -58,6 +59,7 @@ export function GestionComprasGestion() {
   const empresaId = user?.empresa ?? 0;
   const sesionLista = !!user && !blocked && empresaId > 0;
   const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [paging, setPaging] = useState({ empresaId, page: 1 });
   const currentPage =
     paging.empresaId === empresaId ? paging.page : 1;
@@ -87,12 +89,13 @@ export function GestionComprasGestion() {
       empresaId,
       search,
       currentPage,
+      pageSize,
     ],
     queryFn: () =>
       gestionComprasService.listarSolicitudes({
         buscar: search || undefined,
         pagina: currentPage,
-        limite: PAGE_SIZE,
+        limite: pageSize,
       }),
     enabled: sesionLista,
     ...transactionalQueryOptions,
@@ -100,7 +103,7 @@ export function GestionComprasGestion() {
 
   const solicitudes = query.data?.items ?? [];
   const totalItems = query.data?.total ?? 0;
-  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const totalPages = Math.ceil(totalItems / pageSize);
 
   const invalidateCompras = useCallback(() => {
     void queryClient.invalidateQueries({
@@ -156,6 +159,14 @@ export function GestionComprasGestion() {
   const changePage = useCallback(
     (page: number) => {
       setPaging({ empresaId, page });
+    },
+    [empresaId],
+  );
+
+  const changePageSize = useCallback(
+    (value: number) => {
+      setPageSize(value);
+      setPaging({ empresaId, page: 1 });
     },
     [empresaId],
   );
@@ -403,13 +414,35 @@ export function GestionComprasGestion() {
             </tbody>
           </table>
         </div>
-        {totalPages > 1 ? (
-          <div className="border-t border-gray-200 p-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onChange={changePage}
-            />
+        {totalItems > 0 ? (
+          <div className="flex flex-col gap-3 border-t border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="compras-page-size"
+                className="text-sm text-gray-600"
+              >
+                Por página
+              </label>
+              <select
+                id="compras-page-size"
+                className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary)"
+                value={pageSize}
+                onChange={(event) => changePageSize(Number(event.target.value))}
+              >
+                {PAGE_SIZE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {totalPages > 1 ? (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onChange={changePage}
+              />
+            ) : null}
           </div>
         ) : null}
       </motion.div>

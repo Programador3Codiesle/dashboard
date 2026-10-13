@@ -2,7 +2,7 @@
 
 import { COTIZAR_LIVIANOS_SUBMENU_ID } from '@/utils/constants';
 import { useCotizarPageGuard } from '@/modules/cotizar/shared/hooks/useCotizarPageGuard';
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Save, Search } from "lucide-react";
 import {
@@ -21,6 +21,7 @@ import {
   type RepuestoCotizacionRow,
 } from "@/modules/cotizador/services/cotizador-livianos.service";
 import { useToast } from "@/components/shared/ui/ToastContext";
+import { getApiBaseUrl } from "@/config/public-env";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { getErrorMessage } from "@/modules/cotizar/utils/get-error-message";
 import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
@@ -34,6 +35,19 @@ import {
 
 const MENSAJE_PLACA_NO_REGISTRADA =
   "No se encontró información para la placa ingresada.";
+
+function abrirPdfCotizacionLivianos(params: {
+  idCotizacion: number;
+  placa: string;
+  empresa?: number | null;
+}) {
+  const baseUrl = getApiBaseUrl();
+  let url = `${baseUrl}/cotizador/informe-cotizaciones/pdf?origen=livianos&idCotizacion=${params.idCotizacion}&placa=${encodeURIComponent(
+    params.placa,
+  )}`;
+  if (params.empresa != null) url += `&empresa=${params.empresa}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
 
 export function CotizarLivianosGestion() {
   const { blocked } = useCotizarPageGuard(COTIZAR_LIVIANOS_SUBMENU_ID);
@@ -134,9 +148,7 @@ export function CotizarLivianosGestion() {
     setEmailCliente(mailVehiculo?.toString().trim() ?? "");
   }, [placaConsultada, hayVehiculo, modoManual, celularVehiculo, mailVehiculo, nitVehiculo]);
 
-  // Cuando cambia la empresa seleccionada en el dashboard, reseteamos el submódulo
-  useEffect(() => {
-    // Reset de búsqueda y datos de cotización
+  const limpiarFormularioCotizacion = useCallback(() => {
     setPlacaBusqueda("");
     setPlacaConsultada(null);
     setBodegaSeleccionada(null);
@@ -155,12 +167,22 @@ export function CotizarLivianosGestion() {
     setAdicionalSeleccionado("");
     setRepuestosState([]);
     setManoObraState([]);
+    setOpenPosibleRetorno(false);
+    setPosibleRetornoPlaca("");
+    setPosibleRetornoBodega("");
+    setPosibleRetornoTipo("");
+    setPosibleRetornoObs("");
     setOpenAdicionalModal(false);
     setAdicionalModalData(null);
     setAdicionalRepuestosSeleccionados({});
     setAdicionalManoSeleccionados({});
     setAlertaChecklist(null);
-  }, [user?.empresa]);
+  }, []);
+
+  // Cuando cambia la empresa seleccionada en el dashboard, reseteamos el submódulo
+  useEffect(() => {
+    limpiarFormularioCotizacion();
+  }, [user?.empresa, limpiarFormularioCotizacion]);
 
   // Cuando cambia el tipo de mantenimiento, reseteamos selección y tablas
   useEffect(() => {
@@ -261,6 +283,14 @@ export function CotizarLivianosGestion() {
       (manoObraState ?? [])
         .filter((m) => m.autorizado)
         .reduce((acc, m) => acc + m.valor_unitario, 0),
+    [manoObraState]
+  );
+
+  const totalHoras = useMemo(
+    () =>
+      (manoObraState ?? [])
+        .filter((m) => m.autorizado)
+        .reduce((acc, m) => acc + (Number(m.cant_horas) || 0), 0),
     [manoObraState]
   );
 
@@ -502,31 +532,25 @@ export function CotizarLivianosGestion() {
           !claseManual ||
           !descripcionClase ||
           !modeloManual ||
-          !nombreManual.trim() ||
-          !nitManual.trim() ||
-          !telefonoCliente.trim() ||
-          !emailCliente.trim() ||
           !yearActivo ||
           bodegaSeleccionada == null ||
-          revisionSeleccionada == null
+          revisionSeleccionada == null ||
+          !kmClienteValido
         ) {
           throw new Error(
-            "Debe llenar todos los campos del vehículo y del cliente.",
+            "Para una placa no registrada indique clase, modelo, año, bodega, revisión y kilometraje.",
           );
         }
       } else if (!vehiculo || bodegaSeleccionada == null || revisionSeleccionada == null) {
         throw new Error("Faltan datos para guardar la cotización.");
       }
 
-      // En MTTO GARANTÍA exigimos haber cargado la plantilla base.
       if (tipoMantenimiento === "0" && !detalle) {
         throw new Error(
           "No se pudo cargar el detalle base de la cotización. Verifique bodega, revisión y kilometraje.",
         );
       }
 
-      // En MTTO A LA MEDIDA las tablas empiezan vacías y el cliente
-      // debe agregar manualmente repuestos y/o mano de obra.
       if (
         tipoMantenimiento === "1" &&
         (!repuestosState?.length && !manoObraState?.length)
@@ -543,17 +567,19 @@ export function CotizarLivianosGestion() {
       const general = modoManual
         ? {
             nombreCliente: nombreManual.trim(),
-            nitCliente: nitManual.trim(),
-            telfCliente: telefonoCliente.trim(),
+            nitCliente: nitManual.trim() || "0",
+            telfCliente: telefonoCliente.trim() || "0",
             placa: placaConsultada as string,
             clase: claseManual,
             descripcion: descripcionClase,
             des_modelo: modeloManual,
             kilometraje_actual: 0,
             kilometraje_estimado: 0,
-            kilometraje_cliente: kmClienteNumber,
-            bodega: bodegaSeleccionada as number,
-            revision: revisionSeleccionada as number,
+            kilometraje_cliente: Number.isFinite(kmClienteNumber)
+              ? kmClienteNumber
+              : 0,
+            bodega: bodegaSeleccionada ?? 0,
+            revision: revisionSeleccionada ?? 0,
             emailCliente: emailCliente.trim(),
             usuario: 0,
             observaciones: observaciones || null,
@@ -614,14 +640,35 @@ export function CotizarLivianosGestion() {
         estado: agendarCita ? 1 : 0,
       });
 
-      return { idCotizacion, emailResult };
+      return {
+        idCotizacion,
+        emailResult,
+        placa: general.placa,
+        empresa: user?.empresa ?? null,
+      };
     },
     onSuccess: (data) => {
-      showSuccess(
-        data.emailResult?.ok
-          ? `Cotización guardada y correo enviado correctamente (ID #${data.idCotizacion}).`
-          : `Cotización guardada (ID #${data.idCotizacion}). Aviso al enviar correo: ${data.emailResult?.message}`
-      );
+      limpiarFormularioCotizacion();
+      const mensaje = data.emailResult?.ok
+        ? `Cotización guardada y correo enviado correctamente (ID #${data.idCotizacion}).`
+        : `Cotización guardada (ID #${data.idCotizacion}). Aviso al enviar correo: ${data.emailResult?.message}`;
+      showSuccess(mensaje, {
+        persistir: true,
+        acciones: [
+          {
+            label: "Ver",
+            tono: "secundario",
+            cerrar: false,
+            onClick: () =>
+              abrirPdfCotizacionLivianos({
+                idCotizacion: data.idCotizacion,
+                placa: data.placa,
+                empresa: data.empresa,
+              }),
+          },
+          { label: "OK" },
+        ],
+      });
     },
     onError: (error: unknown) => {
       showError(getErrorMessage(error, "No se pudo guardar la cotización."));
@@ -696,7 +743,7 @@ export function CotizarLivianosGestion() {
           {modoManual && (
             <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
               La placa <span className="font-medium">{placaConsultada}</span> no está registrada.
-              Complete la clase, el modelo y los datos del cliente para cotizar. El vehículo no se crea en el maestro.
+              Complete clase, modelo, año, bodega, revisión y kilometraje para cargar el trabajo del vehículo. Cliente, documento, teléfono y correo son opcionales. El vehículo no se crea en el maestro.
             </p>
           )}
           {vehiculo ? (
@@ -744,7 +791,7 @@ export function CotizarLivianosGestion() {
           <div className="app-form-grid-3 text-sm">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-nombre">
-                Cliente <span className="text-red-500">*</span>
+                Cliente
               </label>
               <input
                 id="cotizar-livianos-nombre"
@@ -757,7 +804,7 @@ export function CotizarLivianosGestion() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="cotizar-livianos-nit">
-                Doc. Cliente <span className="text-red-500">*</span>
+                Doc. Cliente
               </label>
               <input
                 id="cotizar-livianos-nit"
@@ -882,7 +929,7 @@ export function CotizarLivianosGestion() {
           <div className="app-form-grid-2 pt-4 border-t border-gray-100">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bodega
+                Bodega <span className="text-red-500">*</span>
               </label>
               <select
                 className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
@@ -899,7 +946,7 @@ export function CotizarLivianosGestion() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Revisión
+                Revisión <span className="text-red-500">*</span>
               </label>
               <select
                 className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
@@ -991,17 +1038,14 @@ export function CotizarLivianosGestion() {
                 onClick={() => guardarMutation.mutate()}
                 disabled={
                   guardarMutation.isPending ||
-                  bodegaSeleccionada == null ||
-                  revisionSeleccionada == null ||
-                  !kmClienteValido ||
                   (modoManual &&
-                    (!nombreManual.trim() ||
-                      !nitManual.trim() ||
-                      !telefonoCliente.trim() ||
-                      !emailCliente.trim() ||
+                    (!placaConsultada ||
                       !claseManual ||
                       !modeloManual ||
                       !yearActivo)) ||
+                  bodegaSeleccionada == null ||
+                  revisionSeleccionada == null ||
+                  !kmClienteValido ||
                   (tipoMantenimiento === "0"
                     ? !detalle
                     : !(repuestosState?.length || manoObraState?.length))
@@ -1085,6 +1129,13 @@ export function CotizarLivianosGestion() {
                 {new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(
                   totalRepuestos
                 )}
+              </p>
+              <p>
+                <span className="font-medium">Total horas agendadas: </span>
+                {new Intl.NumberFormat("es-CO", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 2,
+                }).format(totalHoras)}
               </p>
               <p>
                 <span className="font-medium">Total mano de obra: </span>

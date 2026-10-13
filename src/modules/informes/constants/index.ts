@@ -2,7 +2,15 @@ export const INFORMES_COPY = {
   hub: {
     title: 'Informes',
     description:
-      'Accede a los informes de Gestión Humana y Postventa, y a la carga QR por taller.',
+      'Accede a los informes de Gestión Humana, Contact Center y Postventa, y a la carga QR por taller.',
+  },
+  ccHub: {
+    title: 'Informes - Contact Center',
+    description: 'Informes del contact center.',
+  },
+  informeLeads: {
+    title: 'Informe Leads',
+    description: 'Consulta de leads del contact center.',
   },
   ghHub: {
     title: 'Informes - Gestión Humana',
@@ -21,6 +29,7 @@ export const INFORMES_COPY = {
   },
   backRoot: '← Volver a Informes',
   backGh: '← Volver a Gestión Humana',
+  backCc: '← Volver a Contact Center',
   backPv: '← Volver a Postventa',
   noPermission: 'No tiene permiso para este informe',
   noPermissionHint:
@@ -213,6 +222,11 @@ export const INFORMES_COPY = {
       'Resumen general de NPS, cumplimiento de presupuesto y valor de inventario para PAC.',
     loadError: 'Error al cargar el informe PAC',
   },
+} as const;
+
+/** trimenu — Contact Center dentro de Informes, submenu 136 */
+export const INFORMES_CC_TRIMENU = {
+  informeLeads: 55,
 } as const;
 
 /** trimenu (legado) — Gestión Humana, submenu 135 */
