@@ -15,20 +15,6 @@ import { informeLeadsService } from '../services/informe-leads.service';
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 10;
 
-function ymdLocal(fecha: Date): string {
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-  const dia = String(fecha.getDate()).padStart(2, '0');
-  return `${fecha.getFullYear()}-${mes}-${dia}`;
-}
-
-function rangoMesActual(): { desde: string; hasta: string } {
-  const hoy = new Date();
-  return {
-    desde: ymdLocal(new Date(hoy.getFullYear(), hoy.getMonth(), 1)),
-    hasta: ymdLocal(hoy),
-  };
-}
-
 function fechaVisible(iso: string): string {
   const [anio, mes, dia] = iso.split('-');
   if (!anio || !mes || !dia) return iso;
@@ -46,9 +32,8 @@ export function InformeLeadsGestion() {
     redirectTo: '/dashboard/informes/contact-center',
   });
   const { showError } = useToast();
-  const inicial = rangoMesActual();
-  const [desde, setDesde] = useState(inicial.desde);
-  const [hasta, setHasta] = useState(inicial.hasta);
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
   const [pagina, setPagina] = useState(1);
   const [limite, setLimite] = useState(DEFAULT_PAGE_SIZE);
   const [descargando, setDescargando] = useState(false);
@@ -116,8 +101,8 @@ export function InformeLeadsGestion() {
       backLabel={INFORMES_COPY.backCc}
     >
       <div className="w-full bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 md:p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex w-full flex-col gap-1 sm:w-44">
             <label htmlFor="leads-desde" className="text-xs font-medium text-gray-600">
               Desde
             </label>
@@ -126,7 +111,7 @@ export function InformeLeadsGestion() {
               type="date"
               className={inputClass}
               value={desde}
-              max={hasta}
+              max={hasta || undefined}
               onChange={(event) => {
                 const valor = event.target.value;
                 if (hasta && valor > hasta) return;
@@ -134,7 +119,7 @@ export function InformeLeadsGestion() {
               }}
             />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex w-full flex-col gap-1 sm:w-44">
             <label htmlFor="leads-hasta" className="text-xs font-medium text-gray-600">
               Hasta
             </label>
@@ -143,7 +128,7 @@ export function InformeLeadsGestion() {
               type="date"
               className={inputClass}
               value={hasta}
-              min={desde}
+              min={desde || undefined}
               onChange={(event) => {
                 const valor = event.target.value;
                 if (desde && valor < desde) return;
@@ -151,11 +136,31 @@ export function InformeLeadsGestion() {
               }}
             />
           </div>
+          <div className="flex w-full flex-col gap-1 sm:w-28">
+            <label htmlFor="leads-page-size" className="text-xs font-medium text-gray-600">
+              Por página
+            </label>
+            <select
+              id="leads-page-size"
+              className={inputClass}
+              value={limite}
+              onChange={(event) => {
+                setLimite(Number(event.target.value));
+                setPagina(1);
+              }}
+            >
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             type="button"
             onClick={buscar}
             disabled={!fechasListas || isFetching}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-(--color-primary-dark) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary) disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-(--color-primary-dark) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary) disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {isFetching ? <Loader2 size={16} className="animate-spin" /> : null}
             Buscar
@@ -164,7 +169,7 @@ export function InformeLeadsGestion() {
             type="button"
             onClick={() => void descargarExcel()}
             disabled={total === 0 || descargando}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-success) px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-success) disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-success) px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-success) disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {descargando ? (
               <Loader2 size={16} className="animate-spin" />
@@ -238,35 +243,13 @@ export function InformeLeadsGestion() {
           </div>
         ) : null}
 
-        {total > 0 ? (
-          <div className="mt-4 flex flex-col items-center gap-3 border-t border-gray-200 pt-4">
-            <div className="flex items-center gap-2">
-              <label htmlFor="leads-page-size" className="text-sm text-gray-600">
-                Por página
-              </label>
-              <select
-                id="leads-page-size"
-                className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary)"
-                value={limite}
-                onChange={(event) => {
-                  setLimite(Number(event.target.value));
-                  setPagina(1);
-                }}
-              >
-                {PAGE_SIZE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {totalPages > 1 ? (
-              <Pagination
-                currentPage={pagina}
-                totalPages={totalPages}
-                onChange={setPagina}
-              />
-            ) : null}
+        {totalPages > 1 ? (
+          <div className="mt-4 flex justify-center border-t border-gray-200 pt-4">
+            <Pagination
+              currentPage={pagina}
+              totalPages={totalPages}
+              onChange={setPagina}
+            />
           </div>
         ) : null}
       </div>
