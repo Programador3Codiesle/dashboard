@@ -41,6 +41,12 @@ function fechaHoyLocal(): string {
   return `${hoy.getFullYear()}-${mes}-${dia}`;
 }
 
+/** Fecha orden: fecha y hora al minuto, sin correr la zona (el API manda ISO). */
+function formatFechaHora(value?: string | null): string {
+  if (!value) return '';
+  return value.replace('T', ' ').slice(0, 16);
+}
+
 function nitTieneFiltrosExtra(nit: number | undefined | null): boolean {
   return nit != null && (NITS_FILTROS_EXTRA as readonly number[]).includes(nit);
 }
@@ -226,7 +232,7 @@ export function OrdenesSalidaGestion() {
       'Jefe Autorizó': r.jefeNombre,
       'Tipo Salida': r.tipoSalidaNombre,
       Explicación: r.explicacion,
-      'Fecha Orden': formatDateOnly(r.fecha_reg),
+      'Fecha Orden': formatFechaHora(r.fecha_reg),
       Placa: r.placa ?? '',
       Conductor: r.conductor ?? '',
       'Persona salió': r.quienSale ?? '',
@@ -500,7 +506,7 @@ export function OrdenesSalidaGestion() {
                     <td className="px-2 py-1">{row.jefeNombre}</td>
                     <td className="px-2 py-1">{row.tipoSalidaNombre}</td>
                     <td className="px-2 py-1">{row.explicacion}</td>
-                    <td className="px-2 py-1">{formatDateOnly(row.fecha_reg)}</td>
+                    <td className="px-2 py-1">{formatFechaHora(row.fecha_reg)}</td>
                     <td className="px-2 py-1">{row.placa}</td>
                     <td className="px-2 py-1">{row.conductor}</td>
                     <td className="px-2 py-1">{row.quienSale}</td>
