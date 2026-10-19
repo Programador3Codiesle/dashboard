@@ -216,11 +216,11 @@ test.describe("Administración UI", () => {
     await expect(page.getByTestId("administracion-page")).toBeVisible();
     await expect(
       page.getByRole("heading", {
-        name: "Reglamento Interno de Trabajo Codiesel 2025",
+        name: "Reglamento Interno de Trabajo Codiesel 2026",
       }),
     ).toBeVisible();
     await expect(
-      page.getByTitle("Reglamento Interno de Trabajo Codiesel 2025"),
+      page.getByTitle("Reglamento Interno de Trabajo Codiesel 2026"),
     ).toBeVisible();
   });
 

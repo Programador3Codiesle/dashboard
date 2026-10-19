@@ -34,7 +34,7 @@ export function ReglamentoInternoGestion() {
             </div>
             <div>
               <h2 className="text-lg font-semibold brand-text">
-                Reglamento Interno de Trabajo Codiesel 2025
+                Reglamento Interno de Trabajo Codiesel 2026
               </h2>
               <p className="text-sm text-gray-600">
                 Documento oficial del reglamento interno
@@ -54,7 +54,7 @@ export function ReglamentoInternoGestion() {
         <div className="min-h-[600px] overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
           <iframe
             src={`${pdfUrl}#view=FitH`}
-            title="Reglamento Interno de Trabajo Codiesel 2025"
+            title="Reglamento Interno de Trabajo Codiesel 2026"
             className="h-[calc(100vh-280px)] min-h-[600px] w-full"
           />
         </div>

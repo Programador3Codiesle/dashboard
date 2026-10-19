@@ -96,7 +96,7 @@ export const ADMINISTRACION_COPY = {
 } as const;
 
 export const PDF_REGLAMENTO_INTERNO =
-  '/uploads/formatos/administracion/REGLAMENTO INTERNO DE TRABAJO CODIESEL 2025.pdf';
+  '/uploads/formatos/administracion/REGLAMENTO INTERNO DE TRABAJO CODIESEL 2026.pdf';
 
 export const PDF_INFORME_SOSTENIBILIDAD =
   '/uploads/formatos/INFORME DE SOSTENIBILIDAD CODIESEL 2024.pdf';
