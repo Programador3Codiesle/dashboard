@@ -21,11 +21,11 @@ function AutorizarConfirmacionInner() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
         <div
-          className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${isOk ? 'bg-green-100' : 'bg-red-100'}`}
+          className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${isOk ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
         >
           {isOk ? (
             <svg
-              className="h-8 w-8 text-green-600"
+              className="h-8 w-8"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -39,7 +39,7 @@ function AutorizarConfirmacionInner() {
             </svg>
           ) : (
             <svg
-              className="h-8 w-8 text-red-600"
+              className="h-8 w-8"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
