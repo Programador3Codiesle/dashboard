@@ -18,10 +18,19 @@ export interface InformeEntradaVhResumen {
 }
 
 export const informeEntradaVhService = {
-  async obtenerResumen(year: number, month: number): Promise<InformeEntradaVhResumen> {
+  async obtenerResumen(
+    year: number,
+    month: number,
+    lugar: string,
+    bodega?: number,
+  ): Promise<InformeEntradaVhResumen> {
     const params = new URLSearchParams();
     params.set("year", String(year));
     params.set("month", String(month));
+    params.set("lugar", lugar);
+    if (bodega != null) {
+      params.set("bodega", String(bodega));
+    }
 
     const response = await apiClient.get<InformeEntradaVhResumen>(
       `/informes/postventa/entrada-vh?${params.toString()}`,

@@ -20,6 +20,10 @@ function nitConAccesoDirecto(item: HubNavItem, user: IUser | null): boolean {
   return Number.isFinite(nit) && item.nitsConAcceso.has(nit);
 }
 
+function empresaPermitida(item: HubNavItem, user: IUser | null): boolean {
+  return item.empresaId == null || user?.empresa === item.empresaId;
+}
+
 export function filterHubItems<T extends HubNavItem>(
   items: T[],
   user: IUser | null,
@@ -35,11 +39,14 @@ export function filterHubItems<T extends HubNavItem>(
     const mapped = items.filter((item) => typeof item.trimenuId === 'number');
     const hasPermissions = Array.isArray(user?.trimenus_permitidos);
     if (!hasPermissions) {
-      return mapped.filter((item) => nitAutorizado(item, user));
+      return mapped.filter(
+        (item) => empresaPermitida(item, user) && nitAutorizado(item, user),
+      );
     }
 
     const trimenusPermitidos = toPermissionIdSet(user?.trimenus_permitidos);
     return mapped.filter((item) => {
+      if (!empresaPermitida(item, user)) return false;
       if (!nitAutorizado(item, user)) return false;
       if (nitConAccesoDirecto(item, user)) return true;
       const id = item.trimenuId;
@@ -51,20 +58,15 @@ export function filterHubItems<T extends HubNavItem>(
 
   const hasPermissions = Array.isArray(user?.submenus_permitidos);
   if (!hasPermissions) {
-    return items.filter((item) => {
-      if (item.empresaId != null && user?.empresa !== item.empresaId) {
-        return false;
-      }
-      return nitAutorizado(item, user);
-    });
+    return items.filter(
+      (item) => empresaPermitida(item, user) && nitAutorizado(item, user),
+    );
   }
 
   const submenusPermitidos = toPermissionIdSet(user?.submenus_permitidos);
   return items.filter((item) => {
+    if (!empresaPermitida(item, user)) return false;
     if (!nitAutorizado(item, user)) return false;
-    if (item.empresaId != null && user?.empresa !== item.empresaId) {
-      return false;
-    }
     if (item.sinSubmenu) {
       return true;
     }

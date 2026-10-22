@@ -14,6 +14,8 @@ type Options = {
   redirectTo?: string;
   /** false = la pantalla muestra el aviso de permiso en lugar de redirigir. */
   redirectOnDenied?: boolean;
+  /** Si la sesión es de otra empresa, la pantalla no se muestra. */
+  requiredEmpresaId?: number;
 };
 
 export function useInformesPageGuard(options: Options = {}) {
@@ -26,7 +28,11 @@ export function useInformesPageGuard(options: Options = {}) {
     nitsConAcceso,
     redirectTo = '/dashboard/informes',
     redirectOnDenied = true,
+    requiredEmpresaId,
   } = options;
+
+  const empresaMismatch =
+    requiredEmpresaId != null && user?.empresa !== requiredEmpresaId;
 
   const submenus = user?.submenus_permitidos;
   const trimenus = user?.trimenus_permitidos;
@@ -45,7 +51,8 @@ export function useInformesPageGuard(options: Options = {}) {
   const exento =
     Number.isFinite(nit) && (nitsConAcceso?.has(nit) ?? false);
 
-  const blocked = !!user && !exento && (missingSubmenu || !trimenuOk);
+  const blocked =
+    !!user && (empresaMismatch || (!exento && (missingSubmenu || !trimenuOk)));
 
   useEffect(() => {
     if (!user) return;

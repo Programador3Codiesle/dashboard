@@ -21,6 +21,7 @@ import type {
   DashboardCompras as DC,
   DashboardAsesorRep as DAR,
   DashboardInformeMto as DIM,
+  DashboardGarantias as DGar,
 } from "../types";
 
 function DashboardViewFallback() {
@@ -63,6 +64,10 @@ const DashboardAsesorRep = dynamic(
 );
 const DashboardInformeMto = dynamic(
   () => import("./DashboardInformeMto").then((m) => m.DashboardInformeMto),
+  { loading: () => <DashboardViewFallback /> },
+);
+const DashboardGarantias = dynamic(
+  () => import("./DashboardGarantias").then((m) => m.DashboardGarantias),
   { loading: () => <DashboardViewFallback /> },
 );
 
@@ -194,6 +199,15 @@ export function DashboardHomeGestion() {
       return wrap(<DashboardAsesorRep data={data as DAR} />);
     case "informe_mto":
       return wrap(<DashboardInformeMto data={data as DIM} />);
+    case "garantias":
+      return wrap(
+        <DashboardGarantias
+          data={data as DGar}
+          selectedMonth={selectedMonth}
+          onMonthChange={handleMonthChange}
+        />,
+        isFetching,
+      );
     default:
       return wrap(<DashboardAdmin data={data as DA} />);
   }

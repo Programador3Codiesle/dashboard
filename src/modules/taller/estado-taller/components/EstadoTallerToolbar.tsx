@@ -2,15 +2,18 @@
 
 import { FileSpreadsheet, Loader2 } from "lucide-react";
 import { SearchFilter } from "@/components/administracion/filters/SearchFilter";
+import { RAZONES_2_ESTADO_TALLER } from "../constants/razones";
 import type { OrdenTallerAbierta, SedeUsuario } from "../types/estado-taller.types";
 import { ET_CARD, ET_INPUT } from "../utils/estado-taller.styles";
 
 interface EstadoTallerToolbarProps {
   sedes: SedeUsuario[];
   bodega: string;
+  razon2: string;
   totalAbiertas: number;
   cargando?: boolean;
   onBodegaChange: (bodega: string) => void;
+  onRazon2Change: (razon2: string) => void;
   onBusquedaChange: (value: string) => void;
   onExportarExcel: () => void;
 }
@@ -18,9 +21,11 @@ interface EstadoTallerToolbarProps {
 export function EstadoTallerToolbar({
   sedes,
   bodega,
+  razon2,
   totalAbiertas,
   cargando = false,
   onBodegaChange,
+  onRazon2Change,
   onBusquedaChange,
   onExportarExcel,
 }: EstadoTallerToolbarProps) {
@@ -28,12 +33,14 @@ export function EstadoTallerToolbar({
     <div className="space-y-3">
       <div className={`${ET_CARD} p-4`}>
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:flex-1">
           <div className="w-full sm:max-w-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="estado-taller-bodega" className="block text-sm font-medium text-gray-700 mb-1">
               Selecciona una bodega
             </label>
             <div className="relative">
               <select
+                id="estado-taller-bodega"
                 value={bodega}
                 onChange={(e) => onBodegaChange(e.target.value)}
                 disabled={cargando}
@@ -50,6 +57,26 @@ export function EstadoTallerToolbar({
                 <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" />
               )}
             </div>
+          </div>
+          <div className="w-full sm:max-w-sm">
+            <label htmlFor="estado-taller-razon2" className="block text-sm font-medium text-gray-700 mb-1">
+              Razón 2
+            </label>
+            <select
+              id="estado-taller-razon2"
+              value={razon2}
+              onChange={(e) => onRazon2Change(e.target.value)}
+              disabled={cargando}
+              className={`w-full ${ET_INPUT}`}
+            >
+              <option value="">Todas</option>
+              {RAZONES_2_ESTADO_TALLER.map((razon) => (
+                <option key={razon.value} value={String(razon.value)}>
+                  {razon.label}
+                </option>
+              ))}
+            </select>
+          </div>
           </div>
 
           <div className={`${ET_CARD} border border-emerald-200 bg-emerald-50/50 px-4 py-3 flex items-center gap-3`}>

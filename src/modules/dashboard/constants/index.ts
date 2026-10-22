@@ -2,10 +2,10 @@
  * Perfiles con acceso al home de dashboard.
  * Debe coincidir con el ruteo de Backend `domain/dashboard.constants.ts`
  * (1/32 admin, 20 y 33 jefe taller, 22/23 gerencia, 24 técnicos, 28 compras,
- * 31 agente CC, 34 asesor, 46 mto).
+ * 31 agente CC, 34 asesor, 46 mto, 11 garantías).
  */
 export const ALLOWED_DASHBOARD_PROFILES: number[] = [
-  1, 20, 22, 23, 24, 28, 31, 32, 33, 34, 46,
+  1, 11, 20, 22, 23, 24, 28, 31, 32, 33, 34, 46,
 ];
 
 export function isDashboardAllowedPerfil(
@@ -25,6 +25,8 @@ export const DASHBOARD_COPY = {
   emptyTitle: "Bienvenido",
   emptyHint:
     "Tu perfil no tiene un tablero de indicadores. Usa el menú para entrar a las secciones disponibles.",
+  garantiasSinBodegas:
+    "No tienes bodegas asignadas en esta empresa.",
 } as const;
 
 export const DASHBOARD_STYLES = {

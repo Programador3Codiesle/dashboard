@@ -6,7 +6,8 @@ export type DashboardVariant =
   | "gerencia"
   | "asesor_rep"
   | "compras"
-  | "informe_mto";
+  | "informe_mto"
+  | "garantias";
 
 export interface DashboardBase {
   variant: DashboardVariant;
@@ -231,6 +232,32 @@ export interface DashboardAsesorRep extends DashboardBase {
   total_vendido_global?: number;
 }
 
+export interface GarantiasMes {
+  mes: number;
+  mesNom: string;
+  mo: number;
+  repuestos: number;
+  tot: number;
+  horas: number;
+  total: number;
+}
+
+export interface GarantiasBodega {
+  idsede: number;
+  sede: string;
+  mo: number;
+  repuestos: number;
+  tot: number;
+  horas: number;
+  total: number;
+  meses: GarantiasMes[];
+}
+
+export interface DashboardGarantias extends DashboardBase {
+  variant: "garantias";
+  bodegas: GarantiasBodega[];
+}
+
 export interface DashboardInformeMto extends DashboardBase {
   variant: "informe_mto";
   pendientes: number;
@@ -249,4 +276,5 @@ export type DashboardData =
   | DashboardGerencia
   | DashboardCompras
   | DashboardAsesorRep
-  | DashboardInformeMto;
+  | DashboardInformeMto
+  | DashboardGarantias;

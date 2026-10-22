@@ -6,6 +6,7 @@ export { DashboardGerencia } from "./DashboardGerencia";
 export { DashboardCompras } from "./DashboardCompras";
 export { DashboardAsesorRep } from "./DashboardAsesorRep";
 export { DashboardInformeMto } from "./DashboardInformeMto";
+export { DashboardGarantias } from "./DashboardGarantias";
 export { DashboardEmpty } from "./DashboardEmpty";
 export { DashboardHomeGestion } from "./DashboardHomeGestion";
 export { DashboardKpiCard } from "./DashboardKpiCard";

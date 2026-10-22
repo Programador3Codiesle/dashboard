@@ -69,6 +69,7 @@ export function EstadoTallerGestion() {
   const empresa = user?.empresa;
 
   const [bodega, setBodega] = useState("todas");
+  const [razon2, setRazon2] = useState("");
   const [empresaFiltro, setEmpresaFiltro] = useState(empresa);
   const [busqueda, setBusqueda] = useState("");
   const [modalEvento, setModalEvento] = useState<number | null>(null);
@@ -85,9 +86,15 @@ export function EstadoTallerGestion() {
   if (empresa !== empresaFiltro) {
     setEmpresaFiltro(empresa);
     setBodega("todas");
+    setRazon2("");
   }
 
-  const { panel, loading, error } = useEstadoTallerPanel(bodega, empresa);
+  const razon2Filtro = razon2 ? Number(razon2) : undefined;
+  const { panel, loading, error } = useEstadoTallerPanel(
+    bodega,
+    empresa,
+    razon2Filtro,
+  );
   const { data: estados = [] } = useEstadosOtCatalogo(modalEvento != null);
   const { data: historial = [], isLoading: loadingHistorial } =
     useHistorialOt(modalHistorial);
@@ -168,9 +175,11 @@ export function EstadoTallerGestion() {
           <EstadoTallerToolbar
             sedes={panel?.sedes ?? []}
             bodega={bodega}
+            razon2={razon2}
             totalAbiertas={panel?.totalAbiertas ?? 0}
             cargando={loading}
             onBodegaChange={setBodega}
+            onRazon2Change={setRazon2}
             onBusquedaChange={setBusqueda}
             onExportarExcel={handleExportarExcel}
           />
@@ -180,6 +189,7 @@ export function EstadoTallerGestion() {
               <EstadoTallerLoadingOverlay message="Actualizando órdenes..." />
             )}
             <EstadoTallerTable
+              key={`${bodega}-${razon2}`}
               ordenes={panel?.ordenes ?? []}
               busqueda={busqueda}
               onAgregarEvento={setModalEvento}

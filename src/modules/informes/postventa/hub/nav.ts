@@ -1,5 +1,6 @@
 import type { HubNavItem } from '@/components/shared/hub/types';
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants';
+import { CODIESEL_EMPRESA_ID } from '@/utils/constants';
 
 export const POSTVENTA_HUB_NAV: HubNavItem[] = [
   {
@@ -8,6 +9,7 @@ export const POSTVENTA_HUB_NAV: HubNavItem[] = [
     descripcion: INFORMES_COPY.llegadaVehiculos.description,
     ruta: '/dashboard/informes/postventa/llegada-vehiculos',
     trimenuId: INFORMES_PV_TRIMENU.llegadaVehiculos,
+    empresaId: CODIESEL_EMPRESA_ID,
   },
   {
     id: 'ventas-1a1',

@@ -7,7 +7,7 @@ import type { OrdenTallerAbierta } from "../types/estado-taller.types";
 import { ET_COL_ESTADO, ET_COL_FACTURA } from "../utils/estado-taller.styles";
 import { EstadoTallerTableRow } from "./EstadoTallerTableRow";
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 10;
 
 interface EstadoTallerTableProps {
   ordenes: OrdenTallerAbierta[];

@@ -18,10 +18,14 @@ export const estadoTallerService = {
   async obtenerPanel(
     bodega = "todas",
     idEmpresa?: number,
+    razon2?: number,
   ): Promise<EstadoTallerPanel> {
     const params = new URLSearchParams({ bodega });
     if (idEmpresa != null) {
       params.set("id_empresa", String(idEmpresa));
+    }
+    if (razon2 != null) {
+      params.set("razon2", String(razon2));
     }
     const resp = await fetchWithAuth(`${BASE}?${params.toString()}`, {
       method: "GET",
@@ -35,10 +39,14 @@ export const estadoTallerService = {
   async obtenerTotalAbiertas(
     bodega = "todas",
     idEmpresa?: number,
+    razon2?: number,
   ): Promise<number> {
     const params = new URLSearchParams({ bodega });
     if (idEmpresa != null) {
       params.set("id_empresa", String(idEmpresa));
+    }
+    if (razon2 != null) {
+      params.set("razon2", String(razon2));
     }
     const resp = await fetchWithAuth(
       `${BASE}/total-abiertas?${params.toString()}`,

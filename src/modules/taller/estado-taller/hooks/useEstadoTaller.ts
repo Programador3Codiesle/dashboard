@@ -8,17 +8,28 @@ import type {
 } from "../types/estado-taller.types";
 
 export const ESTADO_TALLER_QUERY_KEYS = {
-  panel: (bodega: string, empresa?: number) =>
-    ["taller", "estado-taller", "panel", bodega, empresa ?? "all"] as const,
+  panel: (bodega: string, empresa?: number, razon2?: number) =>
+    [
+      "taller",
+      "estado-taller",
+      "panel",
+      bodega,
+      empresa ?? "all",
+      razon2 ?? "todas",
+    ] as const,
   estados: ["taller", "estado-taller", "estados"] as const,
   historial: (numeroOrden: number) =>
     ["taller", "estado-taller", "historial", numeroOrden] as const,
 };
 
-export function useEstadoTallerPanel(bodega: string, empresa?: number) {
+export function useEstadoTallerPanel(
+  bodega: string,
+  empresa?: number,
+  razon2?: number,
+) {
   const { data, isLoading, isFetching, error, refetch } = useQuery({
-    queryKey: ESTADO_TALLER_QUERY_KEYS.panel(bodega, empresa),
-    queryFn: () => estadoTallerService.obtenerPanel(bodega, empresa),
+    queryKey: ESTADO_TALLER_QUERY_KEYS.panel(bodega, empresa, razon2),
+    queryFn: () => estadoTallerService.obtenerPanel(bodega, empresa, razon2),
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000,
     placeholderData: keepPreviousData,

@@ -10,8 +10,13 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { InformesPageFrame } from "@/modules/informes/components/InformesPageFrame";
 import { INFORMES_COPY, INFORMES_PV_TRIMENU } from "@/modules/informes/constants";
+import { CODIESEL_EMPRESA_ID } from "@/utils/constants";
 import { informesKeys } from "@/modules/informes/shared/constants/query-keys";
 import { useInformesPageGuard } from "@/modules/informes/shared/hooks/useInformesPageGuard";
+import {
+  LUGAR_ENTRADA_VH_DEFAULT,
+  LUGARES_ENTRADA_VH,
+} from "../constants/lugares";
 
 function getCurrentYearMonth(): string {
   const now = new Date();
@@ -21,24 +26,45 @@ function getCurrentYearMonth(): string {
 }
 
 export function LlegadaVehiculosGestion() {
-  const { blocked } = useInformesPageGuard({
+  const { blocked, user } = useInformesPageGuard({
     trimenuId: INFORMES_PV_TRIMENU.llegadaVehiculos,
     redirectTo: "/dashboard/informes/postventa",
+    requiredEmpresaId: CODIESEL_EMPRESA_ID,
   });
   const { showError } = useToast();
   const [yearMonth, setYearMonth] = useState<string>(getCurrentYearMonth);
+  const [lugar, setLugar] = useState(LUGAR_ENTRADA_VH_DEFAULT);
+  const [bodega, setBodega] = useState("");
+
+  const lugarActual =
+    LUGARES_ENTRADA_VH.find((item) => item.id === lugar) ??
+    LUGARES_ENTRADA_VH[0];
 
   const filtros = useMemo(() => {
     const [yearStr, monthStr] = yearMonth.split("-");
     const year = Number(yearStr);
     const month = Number(monthStr);
-    return { year, month };
-  }, [yearMonth]);
+    return {
+      year,
+      month,
+      lugar,
+      bodega: bodega ? Number(bodega) : undefined,
+    };
+  }, [yearMonth, lugar, bodega]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: informesKeys.pv.llegadaVehiculos(JSON.stringify(filtros)),
-    queryFn: () => informeEntradaVhService.obtenerResumen(filtros.year, filtros.month),
-    enabled: !!filtros.year && !!filtros.month,
+    queryFn: () =>
+      informeEntradaVhService.obtenerResumen(
+        filtros.year,
+        filtros.month,
+        filtros.lugar,
+        filtros.bodega,
+      ),
+    enabled:
+      !!filtros.year &&
+      !!filtros.month &&
+      user?.empresa === CODIESEL_EMPRESA_ID,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -97,18 +123,57 @@ export function LlegadaVehiculosGestion() {
       backLabel={INFORMES_COPY.backPv}
     >
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4 w-full max-w-md">
-        <div className="grid grid-cols-1 gap-4">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-5 shadow-sm space-y-4 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1 min-w-0">
-            <label className="text-sm font-medium text-gray-700">
+            <label htmlFor="llegada-vh-mes" className="text-sm font-medium text-gray-700">
               Año / Mes
             </label>
             <input
+              id="llegada-vh-mes"
               type="month"
               className="form-input rounded-lg border border-gray-300 px-3 py-1 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
               value={yearMonth}
               onChange={(e) => setYearMonth(e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-1 min-w-0">
+            <label htmlFor="llegada-vh-lugar" className="text-sm font-medium text-gray-700">
+              Lugar
+            </label>
+            <select
+              id="llegada-vh-lugar"
+              className="form-input rounded-lg border border-gray-300 px-3 py-1 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              value={lugar}
+              onChange={(e) => {
+                setLugar(e.target.value);
+                setBodega("");
+              }}
+            >
+              {LUGARES_ENTRADA_VH.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1 min-w-0">
+            <label htmlFor="llegada-vh-bodega" className="text-sm font-medium text-gray-700">
+              Taller
+            </label>
+            <select
+              id="llegada-vh-bodega"
+              className="form-input rounded-lg border border-gray-300 px-3 py-1 focus:border-(--color-primary) focus:ring-2 focus:ring-(--color-primary) text-sm"
+              value={bodega}
+              onChange={(e) => setBodega(e.target.value)}
+            >
+              <option value="">Todas las bodegas</option>
+              {lugarActual.bodegas.map((item) => (
+                <option key={item.id} value={String(item.id)}>
+                  {item.nombre}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
