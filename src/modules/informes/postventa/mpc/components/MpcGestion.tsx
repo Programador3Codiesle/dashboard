@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { mpcService, MpcRow } from '@/modules/informes/postventa/services/mpc.service';
@@ -14,6 +14,13 @@ import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 
 const PAGE_SIZE = 15;
+
+const inputPlacaClass =
+  'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-(--color-primary) focus:ring-1 focus:ring-(--color-primary) sm:w-56';
+
+function normalizarPlaca(value: string): string {
+  return value.replace(/[\s-]/g, '').toUpperCase();
+}
 
 function formatExcelFechaHoy(): string {
   const f = new Date();
@@ -46,6 +53,7 @@ export function MpcGestion() {
 
   const [updatingPlaca, setUpdatingPlaca] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [placaBusqueda, setPlacaBusqueda] = useState('');
   const [loadingExport, setLoadingExport] = useState(false);
 
   const cambiarEstadoMutation = useMutation<
@@ -75,20 +83,25 @@ export function MpcGestion() {
   };
 
   const rows = useMemo(() => {
+    const termino = normalizarPlaca(placaBusqueda);
     const allRows = data ?? [];
-    return [...allRows].sort((a, b) => {
+    const filtradas = termino
+      ? allRows.filter((row) => normalizarPlaca(row.placa).includes(termino))
+      : allRows;
+    return [...filtradas].sort((a, b) => {
       const aTime = new Date(a.fechaRegistro).getTime();
       const bTime = new Date(b.fechaRegistro).getTime();
       return bTime - aTime;
     });
-  }, [data]);
+  }, [data, placaBusqueda]);
 
   const totalRows = rows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
   const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
+    const start = (safePage - 1) * PAGE_SIZE;
     return rows.slice(start, start + PAGE_SIZE);
-  }, [rows, currentPage]);
+  }, [rows, safePage]);
 
   const formatFecha = formatFechaIso;
 
@@ -125,10 +138,6 @@ export function MpcGestion() {
     }
   }, [rows, showError]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [rows.length]);
-
   if (blocked) return null;
 
   return (
@@ -138,21 +147,40 @@ export function MpcGestion() {
       backHref="/dashboard/informes/postventa"
       backLabel={INFORMES_COPY.backPv}
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={handleExportar}
-          disabled={loadingExport || isLoading || rows.length === 0}
-          className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
-            rows.length > 0
-              ? 'bg-(--color-success) text-white hover:opacity-90'
-              : 'border border-gray-300 text-gray-700 bg-white'
-          }`}
-        >
-          {loadingExport && <Loader2 size={16} className="animate-spin" />}
-          <FileSpreadsheet size={16} />
-          <span>Exportar a Excel</span>
-        </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex min-w-0 flex-col">
+            <label htmlFor="mpc-buscar-placa" className="mb-1 text-xs font-medium text-gray-600">
+              Buscar por placa
+            </label>
+            <input
+              id="mpc-buscar-placa"
+              type="search"
+              value={placaBusqueda}
+              onChange={(event) => {
+                setPlacaBusqueda(event.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Ej. ABC123"
+              autoComplete="off"
+              className={inputPlacaClass}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={loadingExport || isLoading || rows.length === 0}
+            className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+              rows.length > 0
+                ? 'bg-(--color-success) text-white hover:opacity-90'
+                : 'border border-gray-300 text-gray-700 bg-white'
+            }`}
+          >
+            {loadingExport && <Loader2 size={16} className="animate-spin" />}
+            <FileSpreadsheet size={16} />
+            <span>Exportar a Excel</span>
+          </button>
+        </div>
         <div className="text-xs text-gray-500 text-right">
           {isLoading ? 'Cargando...' : `Total registros: ${rows.length}`}
         </div>
@@ -219,7 +247,9 @@ export function MpcGestion() {
             {!isLoading && rows.length === 0 && (
               <tr>
                 <td className="px-4 py-4 text-center text-gray-500" colSpan={9}>
-                  No hay registros para mostrar.
+                  {normalizarPlaca(placaBusqueda)
+                    ? 'No hay registros para esa placa.'
+                    : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}
@@ -229,7 +259,7 @@ export function MpcGestion() {
       {!isLoading && totalRows > 0 && (
         <div className="p-4 border-t border-gray-200 flex justify-center">
           <Pagination
-            currentPage={currentPage}
+            currentPage={safePage}
             totalPages={totalPages}
             onChange={setCurrentPage}
           />
