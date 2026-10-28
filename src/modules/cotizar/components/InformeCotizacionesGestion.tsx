@@ -21,6 +21,10 @@ import { Pagination } from "@/components/shared/ui/Pagination";
 import { getApiBaseUrl } from "@/config/public-env";
 import { PageTitleRow } from '@/components/shared/layout/PageTitleRow';
 
+function normalizarPlaca(value: string): string {
+  return value.replace(/[\s-]/g, "").toUpperCase();
+}
+
 function formatFechaCotizacion(iso: string): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso || "-";
@@ -39,6 +43,7 @@ export function InformeCotizacionesGestion() {
   const [emailLoadingId, setEmailLoadingId] = useState<number | null>(null);
   const [agendaLoadingId, setAgendaLoadingId] = useState<number | null>(null);
   const [loadingExport, setLoadingExport] = useState(false);
+  const [placaBusqueda, setPlacaBusqueda] = useState("");
 
   const { user } = useAuth();
   const { cotizaciones, loading, error, refetch } = useInformeCotizaciones(tipo, dateStart, dateEnd);
@@ -105,14 +110,18 @@ export function InformeCotizacionesGestion() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const filtered = useMemo(() => cotizaciones, [cotizaciones]);
+  const filtered = useMemo(() => {
+    const termino = normalizarPlaca(placaBusqueda);
+    if (!termino) return cotizaciones;
+    return cotizaciones.filter((c) => normalizarPlaca(c.placa).includes(termino));
+  }, [cotizaciones, placaBusqueda]);
 
   const resumen = useMemo(() => {
-    const total = filtered.length;
-    const agendadas = filtered.filter((c) => c.estado === 1).length;
+    const total = cotizaciones.length;
+    const agendadas = cotizaciones.filter((c) => c.estado === 1).length;
     const sinAgenda = total - agendadas;
     return { total, agendadas, sinAgenda };
-  }, [filtered]);
+  }, [cotizaciones]);
 
   const { currentPage, totalPages, startIndex, endIndex, changePage } = usePagination(filtered.length, 20);
 
@@ -175,7 +184,10 @@ export function InformeCotizacionesGestion() {
                 type="date"
                 className="block w-full border border-gray-300 rounded-xl pl-9 p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
                 value={dateStart}
-                onChange={(e) => setDateStart(e.target.value)}
+                onChange={(e) => {
+                  setDateStart(e.target.value);
+                  changePage(1);
+                }}
               />
             </div>
           </div>
@@ -189,7 +201,10 @@ export function InformeCotizacionesGestion() {
                 type="date"
                 className="block w-full border border-gray-300 rounded-xl pl-9 p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-all"
                 value={dateEnd}
-                onChange={(e) => setDateEnd(e.target.value)}
+                onChange={(e) => {
+                  setDateEnd(e.target.value);
+                  changePage(1);
+                }}
               />
             </div>
           </div>
@@ -200,7 +215,10 @@ export function InformeCotizacionesGestion() {
             <div className="inline-flex w-full sm:w-auto flex-wrap rounded-xl border border-gray-200 bg-gray-50 p-1">
               <button
                 type="button"
-                onClick={() => setTipo("livianos")}
+                onClick={() => {
+                  setTipo("livianos");
+                  changePage(1);
+                }}
                 className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   tipo === "livianos"
                     ? "brand-bg text-white shadow-sm"
@@ -212,7 +230,10 @@ export function InformeCotizacionesGestion() {
               </button>
               <button
                 type="button"
-                onClick={() => setTipo("pesados")}
+                onClick={() => {
+                  setTipo("pesados");
+                  changePage(1);
+                }}
                 className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   tipo === "pesados"
                     ? "brand-bg text-white shadow-sm"
@@ -249,13 +270,32 @@ export function InformeCotizacionesGestion() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3 sm:p-4 md:p-6"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
           <h2 className="text-lg font-semibold text-gray-900">
             {tipo === "livianos" ? "Cotizaciones livianos" : "Cotizaciones pesados"}
           </h2>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2">
+            <div className="min-w-0 sm:w-56">
+              <label htmlFor="cotizar-informe-placa" className="mb-1 block text-xs font-medium text-gray-600">
+                Buscar por placa
+              </label>
+              <input
+                id="cotizar-informe-placa"
+                data-testid="cotizar-informe-placa"
+                type="search"
+                value={placaBusqueda}
+                onChange={(e) => {
+                  setPlacaBusqueda(e.target.value);
+                  changePage(1);
+                }}
+                placeholder="Ej. ABC123"
+                autoComplete="off"
+                spellCheck={false}
+                className="block w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-1 focus:ring-(--color-primary) focus:border-(--color-primary) outline-none transition-colors"
+              />
+            </div>
             {loading && (
-              <span className="text-xs text-gray-500">Cargando cotizaciones...</span>
+              <span className="text-xs text-gray-500 sm:mb-2.5">Cargando cotizaciones...</span>
             )}
             <button
               type="button"
@@ -384,7 +424,9 @@ export function InformeCotizacionesGestion() {
               {!loading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={13} className="py-4 px-3 text-center text-gray-500">
-                    No se encontraron cotizaciones para el rango seleccionado.
+                    {normalizarPlaca(placaBusqueda)
+                      ? "No hay cotizaciones para esa placa."
+                      : "No se encontraron cotizaciones para el rango seleccionado."}
                   </td>
                 </tr>
               )}
