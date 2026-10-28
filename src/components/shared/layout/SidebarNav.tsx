@@ -5,9 +5,15 @@ import { ChevronRight, ExternalLink, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useToast } from "@/components/shared/ui/ToastContext";
+import { getVentasLoginUrl } from "@/config/public-env";
 import { getVisibleSidebarRoutes } from "./sidebar-hub-access";
 import { getSidebarSearchCatalog, searchSidebarCatalog } from "./sidebar-search";
 import type { SidebarSearchHit } from "./sidebar-search";
+import {
+  abrirPestañaVentas,
+  completarAccesoVentas,
+} from "./abrir-intranet-ventas";
 
 interface SidebarNavProps {
   user: IUser | null;
@@ -22,6 +28,10 @@ function isRouteActive(currentPath: string, routePath: string) {
   if (currentPath === routePath) return true;
   if (routePath === "/dashboard") return currentPath === "/dashboard";
   return currentPath.startsWith(`${routePath}/`);
+}
+
+function esIntranetVentas(ruta: string) {
+  return ruta === getVentasLoginUrl();
 }
 
 function isMacShortcut() {
@@ -110,6 +120,25 @@ function SidebarNavComponent({
     inputRef.current?.focus();
   }, [isCollapsed]);
 
+  const { showInfo } = useToast();
+  const accesoVentasRef = useRef(false);
+
+  const iniciarAccesoVentas = useCallback(() => {
+    if (accesoVentasRef.current) return;
+    const ventana = abrirPestañaVentas();
+    if (!ventana) {
+      showInfo(
+        "Permite las ventanas emergentes para entrar a Intranet Ventas.",
+      );
+      return;
+    }
+    accesoVentasRef.current = true;
+    handleNavClick();
+    void completarAccesoVentas(ventana).finally(() => {
+      accesoVentasRef.current = false;
+    });
+  }, [handleNavClick, showInfo]);
+
   const shortcutLabel = isMacShortcut() ? "⌘K" : "Ctrl K";
 
   return (
@@ -152,11 +181,16 @@ function SidebarNavComponent({
                 if (!first) return;
                 event.preventDefault();
                 if (first.external) {
-                  window.open(first.ruta, "_blank", "noopener,noreferrer");
+                  if (esIntranetVentas(first.ruta)) {
+                    iniciarAccesoVentas();
+                  } else {
+                    window.open(first.ruta, "_blank", "noopener,noreferrer");
+                    handleNavClick();
+                  }
                 } else {
                   router.push(first.ruta);
+                  handleNavClick();
                 }
-                handleNavClick();
               }}
               placeholder="Buscar módulos..."
               autoComplete="off"
@@ -188,6 +222,7 @@ function SidebarNavComponent({
             query={query}
             currentPath={currentPath}
             onNavigate={handleNavClick}
+            onAbrirVentas={iniciarAccesoVentas}
           />
         ) : (
           <>
@@ -256,7 +291,23 @@ function SidebarNavComponent({
                       href={route.path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={handleNavClick}
+                      onClick={(event) => {
+                        if (!esIntranetVentas(route.path)) {
+                          handleNavClick();
+                          return;
+                        }
+                        if (
+                          event.button !== 0 ||
+                          event.metaKey ||
+                          event.ctrlKey ||
+                          event.shiftKey ||
+                          event.altKey
+                        ) {
+                          return;
+                        }
+                        event.preventDefault();
+                        iniciarAccesoVentas();
+                      }}
                       title={`${route.name} (abre en una pestaña nueva)`}
                       className={className}
                     >
@@ -289,11 +340,13 @@ function SearchResults({
   query,
   currentPath,
   onNavigate,
+  onAbrirVentas,
 }: {
   results: SidebarSearchHit[];
   query: string;
   currentPath: string;
   onNavigate: () => void;
+  onAbrirVentas: () => void;
 }) {
   if (results.length === 0) {
     return (
@@ -356,7 +409,23 @@ function SearchResults({
               href={hit.ruta}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={onNavigate}
+              onClick={(event) => {
+                if (!esIntranetVentas(hit.ruta)) {
+                  onNavigate();
+                  return;
+                }
+                if (
+                  event.button !== 0 ||
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                onAbrirVentas();
+              }}
               className={className}
             >
               {body}
