@@ -259,6 +259,11 @@ export function motivoRequiereAdjunto(motivo: string): boolean {
   return (MOTIVOS_ADJUNTO_AUSENTISMO as readonly string[]).includes(motivo);
 }
 
+export const ADJUNTO_AUSENTISMO_MAX_BYTES = 5 * 1024 * 1024;
+
+export const MSG_ADJUNTO_AUSENTISMO_PESO =
+  "El archivo es muy pesado. Reduzca el tamaño. Lo permitido es 5 MB.";
+
 export const AREAS_INFORME_AUSENTISMO = [
   { value: 'Administración Servicio', label: 'Administración' },
   { value: 'Administración', label: 'Administración Servicio' },

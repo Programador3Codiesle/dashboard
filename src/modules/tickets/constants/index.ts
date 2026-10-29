@@ -71,10 +71,10 @@ export const empresasDisponibles = [
   { id: "4", nombre: "BYD", logo: "🔋" },
 ];
 
-/** Combo reasignar. Cristhian (1095944273) reemplaza a Andrés Gómez. */
+/** Combo reasignar. Cristhian (1095944273) reemplaza a Andrés Gómez. Jorge Jaimes (1095935528) reemplaza a Edwin Tami. */
 export const encargadosDisponibles = [
   { id: "1110602826", nombre: "Cristian Camilo Tunjano Diaz" },
-  { id: "1102368016", nombre: "Edwin Manuel Ramirez Tami" },
+  { id: "1095935528", nombre: "Jorge Humberto Jaimes Pinilla" },
   { id: "1098625558", nombre: "Zuly Nathalia Ramirez Burgos" },
   { id: "1095944273", nombre: "Cristhian Alberto Sanchez Murillo" },
 ];

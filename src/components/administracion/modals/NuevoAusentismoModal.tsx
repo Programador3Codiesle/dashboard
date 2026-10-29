@@ -14,6 +14,8 @@ import {
   MOTIVO_COMPENSATORIO_VENTAS,
   motivoRequiereAdjunto,
   labelSede,
+  ADJUNTO_AUSENTISMO_MAX_BYTES,
+  MSG_ADJUNTO_AUSENTISMO_PESO,
 } from "@/modules/administracion/constants";
 import { useSedesByEmpresa } from "@/modules/administracion/hooks/useSedesByEmpresa";
 import { ChevronDown, Loader2, Plus, Trash2 } from "lucide-react";
@@ -181,6 +183,10 @@ function NuevoAusentismoForm({
       return;
     }
     if (pideAdjunto && !archivo) return;
+    if (archivo && archivo.size > ADJUNTO_AUSENTISMO_MAX_BYTES) {
+      showError(MSG_ADJUNTO_AUSENTISMO_PESO);
+      return;
+    }
     try {
       const habil = await fechaEsHabil(formData.fecha);
       if (!habil) {
@@ -635,7 +641,16 @@ function NuevoAusentismoForm({
               name="archivo_soporte"
               accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,image/*,application/pdf"
               className={inputClass.replace("appearance-none pr-10", "")}
-              onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file && file.size > ADJUNTO_AUSENTISMO_MAX_BYTES) {
+                  showError(MSG_ADJUNTO_AUSENTISMO_PESO);
+                  e.target.value = "";
+                  setArchivo(null);
+                  return;
+                }
+                setArchivo(file);
+              }}
               required
             />
           </div>
