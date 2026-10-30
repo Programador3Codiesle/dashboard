@@ -12,9 +12,8 @@ import {
   btnSecondaryClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
-import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
 import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
-import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
+import { useAuditoriaAdminGate } from '../hooks/useAuditoriaAdminGate';
 import { buildDatosInd } from '../utils/build-datos-ind';
 import { AuditoriaBreadcrumb } from './AuditoriaBreadcrumb';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
@@ -25,7 +24,7 @@ import {
 } from '../services/auditoria-contact.service';
 
 export function AuditoriaConfiguracionGestion() {
-  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaAdminGate();
   const { showError, showSuccess } = useToast();
   const [modalIndicadores, setModalIndicadores] = useState(false);
   const [modalItems, setModalItems] = useState(false);

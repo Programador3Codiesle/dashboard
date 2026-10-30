@@ -4,6 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/core/auth/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { rutaInternaDashboard } from "@/core/auth/ruta-interna-dashboard";
 import { useState, useEffect, useCallback } from "react";
 import { SelectorEmpresaModal } from "@/components/auth/SelectorEmpresaModal";
 
@@ -35,7 +36,9 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   // Redirigir al login solo cuando la verificación de sesión haya terminado y no esté autenticado
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      const actual = `${window.location.pathname}${window.location.search}`;
+      const next = rutaInternaDashboard(actual);
+      router.push(`/login?next=${encodeURIComponent(next)}`);
     }
   }, [loading, isAuthenticated, router]);
 

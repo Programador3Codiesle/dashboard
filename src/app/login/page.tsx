@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { motion } from 'framer-motion';
 
@@ -66,7 +67,9 @@ export default function LoginPage() {
 
           {/* Lado derecho - Formulario */}
           <div className="flex justify-center lg:justify-center xl:justify-end">
-            <LoginForm />
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
           </div>
         </div>
       </div>

@@ -13,9 +13,8 @@ import {
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
 import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
-import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
 import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
-import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
+import { useAuditoriaAdminGate } from '../hooks/useAuditoriaAdminGate';
 import { AuditoriaBreadcrumb } from './AuditoriaBreadcrumb';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { auditoriaContactService } from '../services/auditoria-contact.service';
@@ -23,7 +22,7 @@ import { auditoriaContactService } from '../services/auditoria-contact.service';
 const registrosPorPagina = 10;
 
 export function AuditoriaInformeDetalleGestion() {
-  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaAdminGate();
   const [nitAgente, setNitAgente] = useState('');
   const [mes, setMes] = useState('');
   const [filtrosAplicados, setFiltrosAplicados] = useState({ nitAgente: '', mes: '' });

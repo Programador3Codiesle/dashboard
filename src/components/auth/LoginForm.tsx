@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, LogIn, User } from 'lucide-react';
 import { useAuth } from '@/core/auth/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { rutaInternaDashboard } from '@/core/auth/ruta-interna-dashboard';
 import { SelectorEmpresaModal } from './SelectorEmpresaModal';
 import { MustChangePasswordError } from '@/core/auth/must-change-password-error';
 import { ActualizarPasswordPanel } from './ActualizarPasswordPanel';
@@ -20,6 +21,8 @@ export const LoginForm = () => {
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const { login, updateUser } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const destino = rutaInternaDashboard(searchParams.get('next'));
   const [errorMsg, setErrorMsg] = useState('');
   const [view, setView] = useState<'login' | 'updatePass' | 'forgot'>('login');
   const [pendingChange, setPendingChange] = useState<{
@@ -57,7 +60,7 @@ export const LoginForm = () => {
       if (empresasAsignadas.length === 1) {
         const unicaEmpresa = empresasAsignadas[0];
         updateUser({ empresa: unicaEmpresa });
-        router.push('/dashboard');
+        router.push(destino);
         return;
       }
 
@@ -81,7 +84,7 @@ export const LoginForm = () => {
   const handleEmpresaSelect = (empresaId: number) => {
     updateUser({ empresa: empresaId });
     setShowEmpresaModal(false);
-    router.push('/dashboard');
+    router.push(destino);
   };
 
 

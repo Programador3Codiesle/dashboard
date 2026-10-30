@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { useToast } from '@/components/ui/use-toast';
@@ -49,6 +50,12 @@ export function SolicitudesEvGestion() {
   const [evForm, setEvForm] = useState({ tipoEv: '', numeroEv: '', numeroOrdenEv: '', obs: '' });
   const [svForm, setSvForm] = useState({ tipoSv: '', numeroSv: '', numeroOrdenSv: '', obs: '' });
   const [lineaActiva, setLineaActiva] = useState<DetalleLinea | null>(null);
+  const searchParams = useSearchParams();
+  const idQuery = Number(searchParams.get('id_solicitud'));
+  const idDesdeCorreo =
+    Number.isInteger(idQuery) && idQuery > 0 ? idQuery : undefined;
+  const [ignorarIdCorreo, setIgnorarIdCorreo] = useState(false);
+  const idCorreo = ignorarIdCorreo ? undefined : idDesdeCorreo;
 
   const { data: bodegas = [] } = useQuery({
     queryKey: ['repuestos', 'solicitudes-ev', 'bodegas'],
@@ -56,9 +63,20 @@ export function SolicitudesEvGestion() {
   });
 
   const listarQuery = useQuery({
-    queryKey: ['repuestos', 'solicitudes-ev', 'listar', filtrosAplicados, consulta],
-    queryFn: () => solicitudesEvService.listar(toEvListarPayload(filtrosAplicados)),
-    enabled: consulta > 0,
+    queryKey: [
+      'repuestos',
+      'solicitudes-ev',
+      'listar',
+      filtrosAplicados,
+      consulta,
+      idCorreo ?? null,
+    ],
+    queryFn: () =>
+      solicitudesEvService.listar({
+        ...toEvListarPayload(filtrosAplicados),
+        ...(idCorreo ? { idSolicitud: idCorreo } : {}),
+      }),
+    enabled: consulta > 0 || idCorreo != null,
   });
 
   const cargarDetalle = useCallback(
@@ -165,6 +183,7 @@ export function SolicitudesEvGestion() {
         onChange={setFiltros}
         bodegas={bodegas}
         onBuscar={() => {
+          setIgnorarIdCorreo(true);
           setFiltrosAplicados(filtros);
           setConsulta((n) => n + 1);
         }}

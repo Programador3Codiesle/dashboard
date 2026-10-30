@@ -13,9 +13,8 @@ import {
   btnSuccessClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
-import { useContactCenterPageGuard } from '@/modules/contact-center/shared/hooks/useContactCenterPageGuard';
 import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error-message';
-import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
+import { useAuditoriaAdminGate } from '../hooks/useAuditoriaAdminGate';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { AuditoriaUploadModal } from './AuditoriaUploadModal';
 import {
@@ -24,7 +23,7 @@ import {
 } from '../services/auditoria-contact.service';
 
 export function AuditoriaIndexGestion() {
-  const { user, blocked } = useContactCenterPageGuard(AUDITORIA_CC_SUBMENU_ID);
+  const { user, blocked } = useAuditoriaAdminGate();
   const { showError, showSuccess } = useToast();
   const [nitAgente, setNitAgente] = useState('');
   const [idAuditoria, setIdAuditoria] = useState<number | null>(null);
@@ -86,10 +85,16 @@ export function AuditoriaIndexGestion() {
         obsAuditor,
       });
     },
-    onSuccess: (id) => {
-      if (id > 0) {
-        showSuccess('Auditoría finalizada');
-        setIdAuditoriaFinalizada(id);
+    onSuccess: (result) => {
+      if (result.id > 0) {
+        if (result.correo === 'Exito') {
+          showSuccess('Auditoría finalizada. Se envió el correo al asesor.');
+        } else {
+          showError(
+            'Auditoría finalizada. No se pudo enviar el correo. Revise que el asesor tenga correo en CRM o use Enviar en el listado.',
+          );
+        }
+        setIdAuditoriaFinalizada(result.id);
         setModalUpload(true);
         setIdAuditoria(null);
         setFormulario(null);

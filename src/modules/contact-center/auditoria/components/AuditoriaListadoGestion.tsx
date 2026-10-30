@@ -19,6 +19,7 @@ import { getErrorMessage } from '@/modules/contact-center/shared/utils/get-error
 import { AUDITORIA_CC_SUBMENU_ID } from '@/utils/constants';
 import { AuditoriaBreadcrumb } from './AuditoriaBreadcrumb';
 import { AuditoriaFormulario } from './AuditoriaFormulario';
+import { AuditoriaUploadModal } from './AuditoriaUploadModal';
 import { auditoriaContactService } from '../services/auditoria-contact.service';
 
 const registrosPorPagina = 10;
@@ -40,6 +41,9 @@ export function AuditoriaListadoGestion() {
   const [modoModal, setModoModal] = useState<'ver' | 'editar'>('ver');
   const [idVer, setIdVer] = useState<number | null>(null);
   const [compromisoDraft, setCompromisoDraft] = useState<string | null>(null);
+  const [textoBusqueda, setTextoBusqueda] = useState('');
+  const [obsEditar, setObsEditar] = useState('');
+  const [modalAdjuntos, setModalAdjuntos] = useState(false);
 
   const contextoQuery = useQuery({
     queryKey: ['contact-center', 'auditoria', 'contexto'],
@@ -83,7 +87,15 @@ export function AuditoriaListadoGestion() {
   const enviarEmail = useMutation({
     mutationFn: (idAuditoria: number) =>
       auditoriaContactService.enviarEmail(idAuditoria),
-    onSuccess: () => showSuccess('Email enviado'),
+    onSuccess: (json: { ok?: boolean; message?: string }) => {
+      if (json?.ok || json?.message === 'Exito') {
+        showSuccess('Email enviado');
+      } else {
+        showError(
+          'No se pudo enviar el correo. Revise que el asesor tenga correo en CRM.',
+        );
+      }
+    },
     onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
   });
 
@@ -124,18 +136,60 @@ export function AuditoriaListadoGestion() {
     [respuesta],
   );
 
+  const finalizarEdicion = useMutation({
+    mutationFn: () => {
+      if (!idVer || !verQuery.data) throw new Error('Sin auditoría seleccionada');
+      if (!obsEditar.trim()) {
+        throw new Error('Debe ingresar observaciones del auditor');
+      }
+      const preguntas = verQuery.data.indicadores.flatMap((ind) => ind.items);
+      if (preguntas.some((item) => item.respuesta == null)) {
+        throw new Error('Debe completar todas las preguntas antes de finalizar');
+      }
+      return auditoriaContactService.finalizarAuditoria({
+        idAuditoria: idVer,
+        obsAuditor: obsEditar.trim(),
+      });
+    },
+    onSuccess: (result) => {
+      if (result.id <= 0) {
+        showError('No se pudo finalizar la auditoría');
+        return;
+      }
+      if (result.correo === 'Exito') {
+        showSuccess('Auditoría finalizada. Se envió el correo al asesor.');
+      } else {
+        showError(
+          'Auditoría finalizada. No se pudo enviar el correo. Revise que el asesor tenga correo en CRM o use Enviar.',
+        );
+      }
+      setModalVer(false);
+      listadoQuery.refetch();
+    },
+    onError: (e: unknown) => showError(getErrorMessage(e, 'Error en la operación')),
+  });
+
   const abrirModal = (id: number, modo: 'ver' | 'editar') => {
     setIdVer(id);
     setModoModal(modo);
     setCompromisoDraft(null);
+    setObsEditar('');
     setModalVer(true);
   };
 
   const items = listadoQuery.data ?? [];
-  const totalPaginas = Math.max(1, Math.ceil(items.length / registrosPorPagina));
+  const consulta = textoBusqueda.trim().toLowerCase();
+  const consultaNit = textoBusqueda.replace(/\D/g, '');
+  const filtrados = items.filter((a) => {
+    if (!consulta && !consultaNit) return true;
+    const porNombre = consulta.length > 0 && a.nombre.toLowerCase().includes(consulta);
+    const porNit = consultaNit.length > 0 && String(a.nit).includes(consultaNit);
+    return porNombre || porNit;
+  });
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / registrosPorPagina));
   const paginaSegura = Math.min(paginaActual, totalPaginas);
   const inicio = (paginaSegura - 1) * registrosPorPagina;
-  const paginatedItems = items.slice(inicio, inicio + registrosPorPagina);
+  const paginatedItems = filtrados.slice(inicio, inicio + registrosPorPagina);
 
   if (blocked) return null;
 
@@ -191,6 +245,24 @@ export function AuditoriaListadoGestion() {
           />
         ) : (
           <>
+            <div className="mb-3 max-w-md">
+              <label htmlFor="cc-listado-buscar" className="text-sm font-medium text-gray-700">
+                Buscar por NIT o nombre
+              </label>
+              <input
+                id="cc-listado-buscar"
+                className={inputClass}
+                value={textoBusqueda}
+                placeholder="Ej. 1095935528 o el nombre del asesor"
+                onChange={(e) => {
+                  setTextoBusqueda(e.target.value);
+                  setPaginaActual(1);
+                }}
+              />
+            </div>
+            {buscar && textoBusqueda.trim() && filtrados.length === 0 ? (
+              <p className="text-sm text-gray-500">No hay auditorías para esa búsqueda.</p>
+            ) : null}
             <div className="app-table-scroll">
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-gray-50">
@@ -261,7 +333,7 @@ export function AuditoriaListadoGestion() {
               </tbody>
             </table>
             </div>
-            {items.length > registrosPorPagina && (
+            {filtrados.length > registrosPorPagina && (
               <div className="mt-4">
                 <Pagination
                   currentPage={paginaSegura}
@@ -317,6 +389,41 @@ export function AuditoriaListadoGestion() {
                 </ul>
               </div>
             )}
+            {modoModal === 'editar' && (
+              <div className="space-y-2">
+                <label htmlFor="cc-obs-editar" className="text-sm font-medium text-gray-700">
+                  Observaciones del auditor
+                </label>
+                <textarea
+                  id="cc-obs-editar"
+                  className={`${inputClass} min-h-[100px]`}
+                  value={obsEditar}
+                  onChange={(e) => setObsEditar(e.target.value)}
+                  placeholder="Espacio para ser llenado por el auditor"
+                />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className={btnPrimaryClass}
+                    onClick={() => finalizarEdicion.mutate()}
+                    disabled={finalizarEdicion.isPending || respuesta.isPending}
+                  >
+                    Finalizar auditoría
+                  </button>
+                </div>
+              </div>
+            )}
+            {esAdmin && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className={btnSecondaryClass}
+                  onClick={() => setModalAdjuntos(true)}
+                >
+                  Agregar archivos
+                </button>
+              </div>
+            )}
             {verQuery.data.puedeAgregarCompromiso && (
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Compromiso del agente</label>
@@ -355,6 +462,12 @@ export function AuditoriaListadoGestion() {
         </div>
       </Modal>
       )}
+      <AuditoriaUploadModal
+        open={modalAdjuntos}
+        idAuditoria={idVer}
+        onClose={() => setModalAdjuntos(false)}
+        onUploaded={() => verQuery.refetch()}
+      />
     </div>
     </ContactCenterPageFrame>
   );

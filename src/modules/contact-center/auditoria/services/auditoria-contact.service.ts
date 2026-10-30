@@ -269,7 +269,7 @@ export const auditoriaContactService = {
   async finalizarAuditoria(payload: {
     idAuditoria: number;
     obsAuditor: string;
-  }): Promise<number> {
+  }): Promise<{ id: number; correo: 'Exito' | 'Error' }> {
     const resp = await fetchWithAuth(`${BASE}/finalizar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -280,7 +280,10 @@ export const auditoriaContactService = {
     });
     if (!resp.ok) await parseError(resp, 'Error al finalizar auditoría');
     const json = await resp.json();
-    return Number(json.id_auditoria ?? json.idAuditoria ?? 0);
+    return {
+      id: Number(json.id_auditoria ?? json.idAuditoria ?? 0),
+      correo: json.correo === 'Exito' ? 'Exito' : 'Error',
+    };
   },
 
   async subirArchivos(
