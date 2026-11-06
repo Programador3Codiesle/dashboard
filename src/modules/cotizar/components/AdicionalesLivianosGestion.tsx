@@ -31,6 +31,11 @@ import type {
 const cn = (...classes: (string | false | null | undefined)[]) =>
   classes.filter(Boolean).join(" ");
 
+/** Un input controlado no acepta null: cadena vacía lo deja en blanco. */
+function valorInput(value: string | number | null | undefined): string | number {
+  return value ?? "";
+}
+
 type TabId = "crear" | "cargar" | "listar";
 
 export function AdicionalesLivianosGestion() {
@@ -603,7 +608,7 @@ export function AdicionalesLivianosGestion() {
                         <tr key={idx} className="bg-white">
                           <td className="px-3 py-1.5">
                             <input
-                              value={r.codigo}
+                              value={valorInput(r.codigo)}
                               onChange={(e) =>
                                 setRepuestos((prev) =>
                                   prev.map((x, i) =>
@@ -663,7 +668,7 @@ export function AdicionalesLivianosGestion() {
                           </td>
                           <td className="px-3 py-1.5">
                             <input
-                              value={r.descripcion}
+                              value={valorInput(r.descripcion)}
                               onChange={(e) =>
                                 setRepuestos((prev) =>
                                   prev.map((x, i) =>
@@ -682,7 +687,7 @@ export function AdicionalesLivianosGestion() {
                           <td className="px-3 py-1.5 text-center">
                             <input
                               type="number"
-                              value={r.cantidad}
+                              value={valorInput(r.cantidad)}
                               onChange={(e) =>
                                 setRepuestos((prev) =>
                                   prev.map((x, i) =>
@@ -698,7 +703,7 @@ export function AdicionalesLivianosGestion() {
                           <td className="px-3 py-1.5 text-center">
                             <input
                               type="number"
-                              value={r.yearStart}
+                              value={valorInput(r.yearStart)}
                               onChange={(e) =>
                                 setRepuestos((prev) =>
                                   prev.map((x, i) =>
@@ -714,7 +719,7 @@ export function AdicionalesLivianosGestion() {
                           <td className="px-3 py-1.5 text-center">
                             <input
                               type="number"
-                              value={r.yearEnd}
+                              value={valorInput(r.yearEnd)}
                               onChange={(e) =>
                                 setRepuestos((prev) =>
                                   prev.map((x, i) =>
@@ -793,7 +798,7 @@ export function AdicionalesLivianosGestion() {
                         <tr key={idx} className="bg-white">
                           <td className="px-3 py-1.5">
                             <textarea
-                              value={m.operacion}
+                              value={valorInput(m.operacion)}
                               onChange={(e) =>
                                 setManoObra((prev) =>
                                   prev.map((x, i) =>
@@ -814,7 +819,7 @@ export function AdicionalesLivianosGestion() {
                             <input
                               type="number"
                               step="0.25"
-                              value={m.tiempo}
+                              value={valorInput(m.tiempo)}
                               onChange={(e) =>
                                 setManoObra((prev) =>
                                   prev.map((x, i) =>
@@ -830,7 +835,7 @@ export function AdicionalesLivianosGestion() {
                           <td className="px-3 py-1.5 text-center">
                             <input
                               type="number"
-                              value={m.valorMenos5}
+                              value={valorInput(m.valorMenos5)}
                               onChange={(e) =>
                                 setManoObra((prev) =>
                                   prev.map((x, i) =>
@@ -849,7 +854,7 @@ export function AdicionalesLivianosGestion() {
                           <td className="px-3 py-1.5 text-center">
                             <input
                               type="number"
-                              value={m.valorMas5}
+                              value={valorInput(m.valorMas5)}
                               onChange={(e) =>
                                 setManoObra((prev) =>
                                   prev.map((x, i) =>
@@ -1200,7 +1205,7 @@ export function AdicionalesLivianosGestion() {
                 <label className="block mb-1 text-gray-700">Descripción</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-2 py-1"
-                  value={repuestoEdit.descripcion}
+                  value={valorInput(repuestoEdit.descripcion)}
                   onChange={(e) =>
                     setRepuestoEdit({
                       ...repuestoEdit,
@@ -1215,7 +1220,7 @@ export function AdicionalesLivianosGestion() {
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={repuestoEdit.cantidad}
+                    value={valorInput(repuestoEdit.cantidad)}
                     onChange={(e) =>
                       setRepuestoEdit({
                         ...repuestoEdit,
@@ -1247,7 +1252,7 @@ export function AdicionalesLivianosGestion() {
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={repuestoEdit.year_start}
+                    value={valorInput(repuestoEdit.year_start)}
                     onChange={(e) =>
                       setRepuestoEdit({
                         ...repuestoEdit,
@@ -1261,7 +1266,7 @@ export function AdicionalesLivianosGestion() {
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={repuestoEdit.year_end}
+                    value={valorInput(repuestoEdit.year_end)}
                     onChange={(e) =>
                       setRepuestoEdit({
                         ...repuestoEdit,
@@ -1357,7 +1362,7 @@ export function AdicionalesLivianosGestion() {
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs"
                   rows={2}
-                  value={manoObraEdit.operacion}
+                  value={valorInput(manoObraEdit.operacion)}
                   onChange={(e) =>
                     setManoObraEdit({
                       ...manoObraEdit,
@@ -1373,7 +1378,7 @@ export function AdicionalesLivianosGestion() {
                     type="number"
                     step={0.25}
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={manoObraEdit.tiempo}
+                    value={valorInput(manoObraEdit.tiempo)}
                     onChange={(e) =>
                       setManoObraEdit({
                         ...manoObraEdit,
@@ -1407,7 +1412,7 @@ export function AdicionalesLivianosGestion() {
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={manoObraEdit.valor_menos_5anos}
+                    value={valorInput(manoObraEdit.valor_menos_5anos)}
                     onChange={(e) =>
                       setManoObraEdit({
                         ...manoObraEdit,
@@ -1423,7 +1428,7 @@ export function AdicionalesLivianosGestion() {
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-2 py-1 text-right"
-                    value={manoObraEdit.valor_mas_5anos}
+                    value={valorInput(manoObraEdit.valor_mas_5anos)}
                     onChange={(e) =>
                       setManoObraEdit({
                         ...manoObraEdit,
