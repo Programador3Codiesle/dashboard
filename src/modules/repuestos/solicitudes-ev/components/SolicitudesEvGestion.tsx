@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
@@ -56,6 +56,22 @@ export function SolicitudesEvGestion() {
     Number.isInteger(idQuery) && idQuery > 0 ? idQuery : undefined;
   const [ignorarIdCorreo, setIgnorarIdCorreo] = useState(false);
   const idCorreo = ignorarIdCorreo ? undefined : idDesdeCorreo;
+  const accionRef = useRef(false);
+  const detalleRef = useRef(false);
+  const [accionPendiente, setAccionPendiente] = useState(false);
+  const [detalleCargando, setDetalleCargando] = useState(false);
+
+  const tomarAccion = () => {
+    if (accionRef.current) return false;
+    accionRef.current = true;
+    setAccionPendiente(true);
+    return true;
+  };
+
+  const soltarAccion = () => {
+    accionRef.current = false;
+    setAccionPendiente(false);
+  };
 
   const { data: bodegas = [] } = useQuery({
     queryKey: ['repuestos', 'solicitudes-ev', 'bodegas'],
@@ -81,6 +97,9 @@ export function SolicitudesEvGestion() {
 
   const cargarDetalle = useCallback(
     async (item: SolicitudEvItem, modo: 0 | 1) => {
+      if (detalleRef.current) return;
+      detalleRef.current = true;
+      setDetalleCargando(true);
       try {
         const data = await solicitudesEvService.detalle(item.id, modo);
         setSolicitudActiva(item);
@@ -91,6 +110,9 @@ export function SolicitudesEvGestion() {
         else setModalDetalle(true);
       } catch (e) {
         showError(getErrorMessage(e, 'Error al cargar detalle'));
+      } finally {
+        detalleRef.current = false;
+        setDetalleCargando(false);
       }
     },
     [showError],
@@ -109,12 +131,13 @@ export function SolicitudesEvGestion() {
         lineas,
       });
     },
-    onSuccess: (data: { message: string }) => {
+    onSuccess: async (data: { message: string }) => {
       showSuccess(data.message);
       setModalGestion(false);
-      listarQuery.refetch();
+      await listarQuery.refetch();
     },
     onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo autorizar')),
+    onSettled: soltarAccion,
   });
 
   const registrarEv = useMutation({
@@ -129,13 +152,14 @@ export function SolicitudesEvGestion() {
         obs: evForm.obs,
       });
     },
-    onSuccess: (data: { message: string }) => {
+    onSuccess: async (data: { message: string }) => {
       showSuccess(data.message);
       setModalEv(false);
-      if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
-      listarQuery.refetch();
+      if (solicitudActiva) await cargarDetalle(solicitudActiva, 1);
+      await listarQuery.refetch();
     },
     onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo registrar EV')),
+    onSettled: soltarAccion,
   });
 
   const registrarSv = useMutation({
@@ -150,24 +174,26 @@ export function SolicitudesEvGestion() {
         obs: svForm.obs,
       });
     },
-    onSuccess: (data: { message: string }) => {
+    onSuccess: async (data: { message: string }) => {
       showSuccess(data.message);
       setModalSv(false);
-      if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
-      listarQuery.refetch();
+      if (solicitudActiva) await cargarDetalle(solicitudActiva, 1);
+      await listarQuery.refetch();
     },
     onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo registrar SV')),
+    onSettled: soltarAccion,
   });
 
   const marcarEntregado = useMutation({
     mutationFn: ({ idDetalle, idSolicitud }: { idDetalle: number; idSolicitud: number }) =>
       solicitudesEvService.marcarEntregado(idDetalle, idSolicitud),
-    onSuccess: (data: { message: string }) => {
+    onSuccess: async (data: { message: string }) => {
       showSuccess(data.message);
-      if (solicitudActiva) cargarDetalle(solicitudActiva, 1);
-      listarQuery.refetch();
+      if (solicitudActiva) await cargarDetalle(solicitudActiva, 1);
+      await listarQuery.refetch();
     },
     onError: (e: unknown) => showError(getErrorMessage(e, 'No se pudo marcar entregado')),
+    onSettled: soltarAccion,
   });
 
   if (blocked) return null;
@@ -219,7 +245,8 @@ export function SolicitudesEvGestion() {
                   <td className="px-2 py-2 text-center">
                     <button
                       type="button"
-                      className="text-xs text-[var(--color-primary)] font-semibold"
+                      className="text-xs text-[var(--color-primary)] font-semibold disabled:opacity-50"
+                      disabled={detalleCargando || accionPendiente}
                       onClick={() => cargarDetalle(row, row.estadoAuth === 0 && row.puedeGestionar ? 0 : 1)}
                     >
                       {row.estadoAuth === 0 && row.puedeGestionar ? 'Gestionar' : 'Ver'}
@@ -270,7 +297,17 @@ export function SolicitudesEvGestion() {
           </table>
           </div>
           <textarea className={`${inputClass} min-h-20`} placeholder="Observación autorización" value={obsAuth} onChange={(e) => setObsAuth(e.target.value)} />
-          <button type="button" className={btnPrimaryClass} onClick={() => autorizar.mutate()} disabled={!obsAuth || autorizar.isPending}>Guardar</button>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={!obsAuth || accionPendiente}
+            onClick={() => {
+              if (!tomarAccion()) return;
+              autorizar.mutate();
+            }}
+          >
+            {accionPendiente ? 'Guardando...' : 'Guardar'}
+          </button>
         </div>
       </Modal>
 
@@ -293,19 +330,29 @@ export function SolicitudesEvGestion() {
                   <td className="px-2 py-1 text-center">{l.autorizacionLabel}</td>
                   <td className="px-2 py-1 text-center">
                     {l.puedeRegistrarEv ? (
-                      <button type="button" className="text-[var(--color-primary)] text-xs" onClick={() => { setLineaActiva(l); setEvForm({ tipoEv: '', numeroEv: '', numeroOrdenEv: String(solicitudActiva?.nOrden ?? ''), obs: '' }); setModalEv(true); }}>Registrar EV</button>
+                      <button type="button" className="text-[var(--color-primary)] text-xs disabled:opacity-50" disabled={accionPendiente} onClick={() => { setLineaActiva(l); setEvForm({ tipoEv: '', numeroEv: '', numeroOrdenEv: String(solicitudActiva?.nOrden ?? ''), obs: '' }); setModalEv(true); }}>Registrar EV</button>
                     ) : l.numeroEv}
                   </td>
                   <td className="px-2 py-1">{l.obsEv}</td>
                   <td className="px-2 py-1 text-center">
                     {l.puedeRegistrarSv ? (
-                      <button type="button" className="text-[var(--color-primary)] text-xs" onClick={() => { setLineaActiva(l); setSvForm({ tipoSv: '', numeroSv: '', numeroOrdenSv: String(solicitudActiva?.nOrden ?? ''), obs: '' }); setModalSv(true); }}>Registrar SV</button>
+                      <button type="button" className="text-[var(--color-primary)] text-xs disabled:opacity-50" disabled={accionPendiente} onClick={() => { setLineaActiva(l); setSvForm({ tipoSv: '', numeroSv: '', numeroOrdenSv: String(solicitudActiva?.nOrden ?? ''), obs: '' }); setModalSv(true); }}>Registrar SV</button>
                     ) : l.numeroSv}
                   </td>
                   <td className="px-2 py-1">{l.obsSv}</td>
                   <td className="px-2 py-1 text-center">
                     {l.puedeMarcarEntregado ? (
-                      <button type="button" className={btnSecondaryClass} onClick={() => marcarEntregado.mutate({ idDetalle: l.id, idSolicitud: solicitudActiva!.id })}>Entregar</button>
+                      <button
+                        type="button"
+                        className={btnSecondaryClass}
+                        disabled={accionPendiente}
+                        onClick={() => {
+                          if (!solicitudActiva || !tomarAccion()) return;
+                          marcarEntregado.mutate({ idDetalle: l.id, idSolicitud: solicitudActiva.id });
+                        }}
+                      >
+                        {accionPendiente ? 'Entregando...' : 'Entregar'}
+                      </button>
                     ) : String(l.entregado)}
                   </td>
                 </tr>
@@ -326,7 +373,17 @@ export function SolicitudesEvGestion() {
             <input key={field} className={inputClass} placeholder={field} value={evForm[field]} onChange={(e) => setEvForm((f) => ({ ...f, [field]: e.target.value }))} />
           ))}
           <textarea className={`${inputClass} min-h-20`} placeholder="Observación" value={evForm.obs} onChange={(e) => setEvForm((f) => ({ ...f, obs: e.target.value }))} />
-          <button type="button" className={btnPrimaryClass} onClick={() => registrarEv.mutate()}>Registrar</button>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={accionPendiente || !evForm.tipoEv || !evForm.numeroEv || !evForm.numeroOrdenEv || !evForm.obs}
+            onClick={() => {
+              if (!tomarAccion()) return;
+              registrarEv.mutate();
+            }}
+          >
+            {accionPendiente ? 'Registrando...' : 'Registrar'}
+          </button>
         </div>
       </Modal>
 
@@ -341,7 +398,17 @@ export function SolicitudesEvGestion() {
             <input key={field} className={inputClass} placeholder={field} value={svForm[field]} onChange={(e) => setSvForm((f) => ({ ...f, [field]: e.target.value }))} />
           ))}
           <textarea className={`${inputClass} min-h-20`} placeholder="Observación" value={svForm.obs} onChange={(e) => setSvForm((f) => ({ ...f, obs: e.target.value }))} />
-          <button type="button" className={btnPrimaryClass} onClick={() => registrarSv.mutate()}>Registrar</button>
+          <button
+            type="button"
+            className={btnPrimaryClass}
+            disabled={accionPendiente || !svForm.tipoSv || !svForm.numeroSv || !svForm.numeroOrdenSv || !svForm.obs}
+            onClick={() => {
+              if (!tomarAccion()) return;
+              registrarSv.mutate();
+            }}
+          >
+            {accionPendiente ? 'Registrando...' : 'Registrar'}
+          </button>
         </div>
       </Modal>
     </div>
