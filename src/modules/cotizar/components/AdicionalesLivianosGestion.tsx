@@ -199,21 +199,11 @@ export function AdicionalesLivianosGestion() {
   };
 
   const validarFilaRepuesto = (r: BulkRepuestoAdicionalLivianoInput) => {
-    const yearActual = new Date().getFullYear();
     if (!r.codigo.trim() || !r.descripcion.trim()) {
       return "Código y descripción son obligatorios.";
     }
     if (!r.cantidad || r.cantidad <= 0) {
       return "La cantidad debe ser mayor a cero.";
-    }
-    if (r.yearStart < 2000 || r.yearStart > yearActual + 1) {
-      return `El año inicial debe estar entre 2000 y ${yearActual + 1}.`;
-    }
-    if (r.yearEnd < 2000 || r.yearEnd > yearActual + 1) {
-      return `El año final debe estar entre 2000 y ${yearActual + 1}.`;
-    }
-    if (r.yearStart > r.yearEnd) {
-      return "El año inicial no puede ser mayor al año final.";
     }
     if (r.descuento != null && (r.descuento < 0 || r.descuento > 100)) {
       return "El descuento debe estar entre 0 y 100.";
@@ -1290,22 +1280,6 @@ export function AdicionalesLivianosGestion() {
                 className="w-full sm:w-auto px-3 py-1.5 rounded-lg brand-bg text-white hover:opacity-90"
                 onClick={async () => {
                   if (!repuestoEdit) return;
-                  const yearActual = new Date().getFullYear();
-                  if (
-                    repuestoEdit.year_start < 2000 ||
-                    repuestoEdit.year_start > yearActual + 1 ||
-                    repuestoEdit.year_end < 2000 ||
-                    repuestoEdit.year_end > yearActual + 1 ||
-                    repuestoEdit.year_start > repuestoEdit.year_end
-                  ) {
-                    toast({
-                      title: "Años inválidos",
-                      description:
-                        "Verifique que los años estén en el rango permitido y que el inicial no sea mayor al final.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
                   try {
                     await updateRepuestoMutation.mutateAsync({
                       seq: repuestoEdit.seq,
