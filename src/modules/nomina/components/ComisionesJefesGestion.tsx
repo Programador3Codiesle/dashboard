@@ -8,7 +8,7 @@ import {
   PERFILES_COMISIONES_JEFES_INGRESAR_VALORES,
 } from '@/modules/nomina/constants';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Eye, FileSpreadsheet, Search, Settings, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,6 +37,18 @@ export function ComisionesJefesGestion() {
   ).includes(Number(user?.perfil_postventa ?? 0));
 
   const { showError, showSuccess } = useToast();
+  const accionRef = useRef(false);
+  const [accionPendiente, setAccionPendiente] = useState(false);
+  const tomarAccion = () => {
+    if (accionRef.current) return false;
+    accionRef.current = true;
+    setAccionPendiente(true);
+    return true;
+  };
+  const soltarAccion = () => {
+    accionRef.current = false;
+    setAccionPendiente(false);
+  };
   const [mes, setMes] = useState('');
   const [rows, setRows] = useState<ComisionJefe[]>([]);
   const [detalleRows, setDetalleRows] = useState<DetalleComisionJefe[]>([]);
@@ -63,6 +75,7 @@ export function ComisionesJefesGestion() {
     mutationFn: (month: string) => comisionesJefesService.listar(month),
     onSuccess: setRows,
     onError: () => showError('No fue posible cargar las comisiones de jefes.'),
+    onSettled: soltarAccion,
   });
 
   const detalleMutation = useMutation({
@@ -73,6 +86,7 @@ export function ComisionesJefesGestion() {
       setIsDetalleOpen(true);
     },
     onError: () => showError('No fue posible cargar el detalle del jefe.'),
+    onSettled: soltarAccion,
   });
 
   const jefesMutation = useMutation({
@@ -82,6 +96,7 @@ export function ComisionesJefesGestion() {
       setJefeNit('');
     },
     onError: () => showError('No fue posible consultar los jefes por sede.'),
+    onSettled: soltarAccion,
   });
 
   const checkMutation = useMutation({
@@ -118,6 +133,7 @@ export function ComisionesJefesGestion() {
       setPuedeActualizar(false);
       showError('No se pudo validar la información de bonos.');
     },
+    onSettled: soltarAccion,
   });
 
   const actualizarMutation = useMutation({
@@ -140,6 +156,7 @@ export function ComisionesJefesGestion() {
       }
     },
     onError: () => showError('No fue posible actualizar los valores del jefe.'),
+    onSettled: soltarAccion,
   });
 
   const resumenMes = useMemo(() => {
@@ -168,6 +185,7 @@ export function ComisionesJefesGestion() {
       showError('Debes seleccionar un mes.');
       return;
     }
+    if (!tomarAccion()) return;
     listarMutation.mutate(mes);
   };
 
@@ -176,6 +194,7 @@ export function ComisionesJefesGestion() {
       showError('Selecciona el mes antes de consultar detalle.');
       return;
     }
+    if (!tomarAccion()) return;
     const [anio, month] = mes.split('-');
     setTitleDetalle(`Detalle nómina jefe ${row.nit}`);
     detalleMutation.mutate({
@@ -227,7 +246,10 @@ export function ComisionesJefesGestion() {
   };
 
   const isBusyValores =
-    jefesMutation.isPending || checkMutation.isPending || actualizarMutation.isPending;
+    accionPendiente ||
+    jefesMutation.isPending ||
+    checkMutation.isPending ||
+    actualizarMutation.isPending;
 
   if (blocked) return null;
 
@@ -251,7 +273,7 @@ export function ComisionesJefesGestion() {
             type="button"
             data-testid="nomina-jefes-generar"
             onClick={onBuscar}
-            disabled={listarMutation.isPending}
+            disabled={listarMutation.isPending || accionPendiente}
             className="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-(--color-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--color-primary-dark) transition-colors disabled:opacity-60"
           >
             <Search size={16} className="mr-2" />{' '}
@@ -322,7 +344,7 @@ export function ComisionesJefesGestion() {
                       <button
                         type="button"
                         onClick={() => onAbrirDetalle(row)}
-                        disabled={detalleMutation.isPending}
+                        disabled={detalleMutation.isPending || accionPendiente}
                         className={`${NOMINA_STYLES.detailBtn} disabled:opacity-60`}
                       >
                         <Eye size={14} />
@@ -425,7 +447,9 @@ export function ComisionesJefesGestion() {
                       setJefes([]);
                       setJefeNit('');
                       setPuedeActualizar(false);
-                      if (value) jefesMutation.mutate(value);
+                      if (!value) return;
+                      if (!tomarAccion()) return;
+                      jefesMutation.mutate(value);
                     }}
                   >
                     <option value="">Seleccione</option>
@@ -488,6 +512,7 @@ export function ComisionesJefesGestion() {
                     showError('Debes seleccionar sede y jefe.');
                     return;
                   }
+                  if (!tomarAccion()) return;
                   checkMutation.mutate({ jefe: jefeNit, sede });
                 }}
               >
@@ -497,7 +522,10 @@ export function ComisionesJefesGestion() {
                 type="button"
                 disabled={isBusyValores || !puedeActualizar}
                 className="w-full sm:w-auto rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-60"
-                onClick={() => actualizarMutation.mutate()}
+                onClick={() => {
+                  if (!tomarAccion()) return;
+                  actualizarMutation.mutate();
+                }}
               >
                 {actualizarMutation.isPending ? 'Actualizando...' : 'Actualizar'}
               </button>
