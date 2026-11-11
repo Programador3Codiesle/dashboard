@@ -1,6 +1,6 @@
 // Servicio de autenticación
 import { getApiBaseUrl } from "@/config/public-env";
-import { fetchWithAuth } from "@/utils/api";
+import { ensureFreshSession, fetchWithAuth } from "@/utils/api";
 import type { LoginUserPayload } from "@/core/auth/map-login-user";
 import {
   sessionAvailabilityFromHttpStatus,
@@ -179,26 +179,8 @@ export const authService = {
 
   async refreshToken(): Promise<RefreshSessionResult> {
     try {
-      const response = await fetch(`${API_URL}/auth/refresh`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        return { status: "ok" };
-      }
-
-      const availability = sessionAvailabilityFromHttpStatus(
-        response.status,
-        false,
-      );
-      return {
-        status:
-          availability === "unauthenticated" ? "unauthenticated" : "unavailable",
-      };
+      const status = await ensureFreshSession();
+      return { status };
     } catch {
       return { status: "unavailable" };
     }

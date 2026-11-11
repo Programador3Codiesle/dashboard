@@ -14,6 +14,9 @@ export function isUnauthorizedHttpStatus(status: number): boolean {
 
 export type SessionAvailability = "authenticated" | "unauthenticated" | "unavailable";
 
+/** La cookie de acceso venció y el refresh tampoco sirvió. AuthProvider cierra sesión. */
+export const SESSION_EXPIRED_EVENT = "intranet:session-expired";
+
 export function sessionAvailabilityFromHttpStatus(
   status: number,
   ok: boolean,

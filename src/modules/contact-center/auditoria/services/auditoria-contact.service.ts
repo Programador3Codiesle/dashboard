@@ -86,12 +86,21 @@ export type InformeDetalleRow = {
   puedeEditar: boolean;
 };
 
+export type InformeDetalleAgente = {
+  nit: string;
+  nombres: string;
+  cantidad: number;
+  sumaPuntos: number;
+  promedio: number;
+};
+
 export type InformeDetalleResult = {
   filas: InformeDetalleRow[];
   promedio?: number;
   sumaPuntos?: number;
   cantidad?: number;
   mensaje?: string;
+  porAgente?: InformeDetalleAgente[];
 };
 
 export type ContextoListado = {
@@ -570,14 +579,14 @@ export const auditoriaContactService = {
   },
 
   async informeDetalle(payload: {
-    nitAgente: number;
+    nitAgente: number | null;
     mes: string;
   }): Promise<InformeDetalleResult> {
     const resp = await fetchWithAuth(`${BASE}/inf-detalle`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        nitAgente: payload.nitAgente,
+        ...(payload.nitAgente != null ? { nitAgente: payload.nitAgente } : {}),
         AuditoriaMes: payload.mes,
       }),
     });
@@ -597,12 +606,22 @@ export const auditoriaContactService = {
         puedeEditar: Boolean(r.puedeEditar),
       }),
     );
+    const porAgente = Array.isArray(json.porAgente)
+      ? json.porAgente.map((agente: Record<string, unknown>) => ({
+          nit: String(agente.nit ?? ''),
+          nombres: String(agente.nombres ?? ''),
+          cantidad: Number(agente.cantidad ?? 0),
+          sumaPuntos: Number(agente.sumaPuntos ?? 0),
+          promedio: Number(agente.promedio ?? 0),
+        }))
+      : undefined;
     return {
       filas,
       promedio: json.promedio != null ? Number(json.promedio) : undefined,
       sumaPuntos: json.sumaPuntos != null ? Number(json.sumaPuntos) : undefined,
       cantidad: json.cantidad != null ? Number(json.cantidad) : undefined,
       mensaje: json.mensaje != null ? String(json.mensaje) : undefined,
+      porAgente,
     };
   },
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { FileSpreadsheet } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Modal from '@/components/shared/ui/Modal';
 import { Pagination } from '@/components/shared/ui/Pagination';
@@ -10,6 +11,7 @@ import { CONTACT_CENTER_COPY } from '@/modules/contact-center/constants';
 import {
   btnPrimaryClass,
   btnSecondaryClass,
+  btnSuccessClass,
   inputClass,
 } from '@/modules/contact-center/shared/constants/ui';
 import { CcQueryError } from '@/modules/contact-center/shared/components/CcQueryError';
@@ -20,6 +22,7 @@ import { AuditoriaFormulario } from './AuditoriaFormulario';
 import { auditoriaContactService } from '../services/auditoria-contact.service';
 
 const registrosPorPagina = 10;
+const AGENTE_TODOS = 'todos';
 
 export function AuditoriaInformeDetalleGestion() {
   const { user, blocked } = useAuditoriaAdminGate();
@@ -49,7 +52,10 @@ export function AuditoriaInformeDetalleGestion() {
     ],
     queryFn: () =>
       auditoriaContactService.informeDetalle({
-        nitAgente: Number(filtrosAplicados.nitAgente),
+        nitAgente:
+          filtrosAplicados.nitAgente === AGENTE_TODOS
+            ? null
+            : Number(filtrosAplicados.nitAgente),
         mes: filtrosAplicados.mes,
       }),
     enabled:
@@ -67,10 +73,44 @@ export function AuditoriaInformeDetalleGestion() {
   });
 
   const items = informeQuery.data?.filas ?? [];
+  const esTodos = filtrosAplicados.nitAgente === AGENTE_TODOS;
+  const mostrarTabla = buscar && !!filtrosAplicados.nitAgente && !esTodos;
+  const cantidad = informeQuery.data?.cantidad ?? items.length;
+  const mostrarCards = Boolean(
+    informeQuery.data && !informeQuery.data.mensaje && cantidad > 0,
+  );
   const totalPaginas = Math.max(1, Math.ceil(items.length / registrosPorPagina));
   const paginaSegura = Math.min(paginaActual, totalPaginas);
   const inicio = (paginaSegura - 1) * registrosPorPagina;
   const paginatedItems = items.slice(inicio, inicio + registrosPorPagina);
+  const puedeExportarTodos = esTodos && mostrarCards;
+
+  const onExportExcel = async () => {
+    const porAgente = informeQuery.data?.porAgente ?? [];
+    if (!puedeExportarTodos || porAgente.length === 0) return;
+    const XLSX = await import('xlsx');
+    const filas = [
+      ...porAgente.map((agente) => ({
+        Agente: agente.nombres,
+        Auditorías: agente.cantidad,
+        'Suma puntos': agente.sumaPuntos,
+        Promedio: agente.promedio,
+      })),
+      {
+        Agente: 'Totales',
+        Auditorías: cantidad,
+        'Suma puntos': informeQuery.data?.sumaPuntos ?? 0,
+        Promedio: informeQuery.data?.promedio ?? 0,
+      },
+    ];
+    const hoja = XLSX.utils.json_to_sheet(filas);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Informe');
+    XLSX.writeFile(
+      libro,
+      `informe-auditoria-todos-${filtrosAplicados.mes || 'sin-mes'}.xlsx`,
+    );
+  };
 
   if (blocked) return null;
 
@@ -93,6 +133,7 @@ export function AuditoriaInformeDetalleGestion() {
               onChange={(e) => setNitAgente(e.target.value)}
             >
               <option value="">Seleccione</option>
+              <option value={AGENTE_TODOS}>Todos</option>
               {agentes.map((a) => (
                 <option key={a.nit} value={a.nit}>{a.nombres}</option>
               ))}
@@ -108,17 +149,30 @@ export function AuditoriaInformeDetalleGestion() {
               onChange={(e) => setMes(e.target.value)}
             />
           </div>
-          <button
-            type="button"
-            className={btnPrimaryClass}
-            onClick={() => {
-              setFiltrosAplicados({ nitAgente, mes });
-              setBuscar(true);
-              setPaginaActual(1);
-            }}
-          >
-            Buscar
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <button
+              type="button"
+              className={btnPrimaryClass}
+              onClick={() => {
+                setFiltrosAplicados({ nitAgente, mes });
+                setBuscar(true);
+                setPaginaActual(1);
+              }}
+            >
+              Buscar
+            </button>
+            {(nitAgente === AGENTE_TODOS || esTodos) && (
+              <button
+                type="button"
+                className={btnSuccessClass}
+                disabled={!puedeExportarTodos}
+                onClick={() => void onExportExcel()}
+              >
+                <FileSpreadsheet size={16} className="mr-2" />
+                Exportar Excel
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -128,11 +182,23 @@ export function AuditoriaInformeDetalleGestion() {
         </p>
       )}
 
-      {informeQuery.data && items.length > 0 && (
+      {esTodos && informeQuery.isLoading && (
+        <p className="text-gray-500 text-sm">Cargando...</p>
+      )}
+      {esTodos && informeQuery.isError && (
+        <CcQueryError
+          message={getErrorMessage(
+            informeQuery.error,
+            'Error al cargar el informe detalle',
+          )}
+        />
+      )}
+
+      {mostrarCards && informeQuery.data && !esTodos && (
         <div className="app-kpi-grid-3">
           <div className="bg-white rounded-xl border p-3 text-center">
             <p className="text-xs text-gray-500">Auditorías</p>
-            <p className="text-lg font-semibold">{informeQuery.data.cantidad ?? items.length}</p>
+            <p className="text-lg font-semibold">{cantidad}</p>
           </div>
           <div className="bg-white rounded-xl border p-3 text-center">
             <p className="text-xs text-gray-500">Suma puntos</p>
@@ -145,6 +211,57 @@ export function AuditoriaInformeDetalleGestion() {
         </div>
       )}
 
+      {mostrarCards && informeQuery.data && esTodos && (
+        <div className="space-y-3">
+          <div className="hidden md:grid md:grid-cols-[minmax(12rem,16rem)_1fr_1fr_1fr] md:gap-3">
+            <div aria-hidden="true" />
+            <p className="text-center text-xs text-gray-500">Auditorías</p>
+            <p className="text-center text-xs text-gray-500">Suma puntos</p>
+            <p className="text-center text-xs text-gray-500">Promedio</p>
+          </div>
+          {(informeQuery.data.porAgente ?? []).map((agente) => (
+            <div
+              key={agente.nit}
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[minmax(12rem,16rem)_1fr_1fr_1fr] md:items-center"
+            >
+              <p className="text-sm font-medium text-gray-800 sm:col-span-2 md:col-span-1">
+                {agente.nombres}
+              </p>
+              <div className="bg-white rounded-xl border p-3 text-center">
+                <p className="text-xs text-gray-500 md:sr-only">Auditorías</p>
+                <p className="text-lg font-semibold">{agente.cantidad}</p>
+              </div>
+              <div className="bg-white rounded-xl border p-3 text-center">
+                <p className="text-xs text-gray-500 md:sr-only">Suma puntos</p>
+                <p className="text-lg font-semibold">{agente.sumaPuntos}</p>
+              </div>
+              <div className="bg-white rounded-xl border p-3 text-center">
+                <p className="text-xs text-gray-500 md:sr-only">Promedio</p>
+                <p className="text-lg font-semibold">{agente.promedio}</p>
+              </div>
+            </div>
+          ))}
+          <div className="grid grid-cols-1 gap-3 border-t border-gray-200 pt-3 sm:grid-cols-2 md:grid-cols-[minmax(12rem,16rem)_1fr_1fr_1fr] md:items-center">
+            <p className="text-sm font-semibold text-gray-900 sm:col-span-2 md:col-span-1">
+              Totales
+            </p>
+            <div className="bg-white rounded-xl border p-3 text-center">
+              <p className="sr-only">Auditorías</p>
+              <p className="text-lg font-semibold">{cantidad}</p>
+            </div>
+            <div className="bg-white rounded-xl border p-3 text-center">
+              <p className="sr-only">Suma puntos</p>
+              <p className="text-lg font-semibold">{informeQuery.data.sumaPuntos ?? '-'}</p>
+            </div>
+            <div className="bg-white rounded-xl border p-3 text-center">
+              <p className="sr-only">Promedio</p>
+              <p className="text-lg font-semibold">{informeQuery.data.promedio ?? '-'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarTabla && (
       <div className="app-section-card w-full min-w-0">
         {informeQuery.isLoading ? (
           <p className="text-gray-500 text-sm">Cargando...</p>
@@ -199,6 +316,7 @@ export function AuditoriaInformeDetalleGestion() {
           </>
         )}
       </div>
+      )}
 
       <Modal
         open={modalVer}

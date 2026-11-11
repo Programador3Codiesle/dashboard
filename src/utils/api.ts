@@ -14,8 +14,10 @@ import {
 
 const API_URL = getApiBaseUrl();
 
+export type SessionRefreshResult = "ok" | "unauthenticated" | "unavailable";
+
 let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
+let refreshPromise: Promise<SessionRefreshResult> | null = null;
 
 type QueuedRequest = {
   resolve: (value: Response) => void;
@@ -80,10 +82,11 @@ async function fetchWithTransientRetry(
 }
 
 /**
- * Refresca el token con retry. true = cookies nuevas; false = no se pudo
- * (401 real o API caída). La cola recibe Response, no "sesión expirada" en 5xx.
+ * Una sola renovación en vuelo para axios y fetch. ok = cookies nuevas.
+ * unauthenticated = la sesión ya no sirve. unavailable = la API no respondió;
+ * la cola recibe Response y no se cierra sesión por un 5xx.
  */
-async function refreshToken(): Promise<boolean> {
+export function ensureFreshSession(): Promise<SessionRefreshResult> {
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
   }
@@ -137,7 +140,7 @@ async function refreshToken(): Promise<boolean> {
               }
             }
 
-            return true;
+            return "ok";
           }
 
           if (response.status === 429 || isTransientHttpStatus(response.status)) {
@@ -157,17 +160,17 @@ async function refreshToken(): Promise<boolean> {
 
           if (isUnauthorizedHttpStatus(response.status)) {
             settleQueueWithStatus(401);
-            return false;
+            return "unauthenticated";
           }
 
           settleQueueWithStatus(isTransientHttpStatus(response.status) ? 503 : response.status);
-          return false;
+          return "unavailable";
         } catch {
           retryCount++;
 
           if (retryCount >= maxRetries) {
             settleQueueWithStatus(503);
-            return false;
+            return "unavailable";
           }
 
           const backoffTime = Math.pow(2, retryCount) * 1000;
@@ -176,7 +179,7 @@ async function refreshToken(): Promise<boolean> {
       }
 
       settleQueueWithStatus(503);
-      return false;
+      return "unavailable";
     } finally {
       isRefreshing = false;
       refreshPromise = null;
@@ -244,7 +247,7 @@ export async function fetchWithAuth(
             options: fetchOptions,
           });
 
-          void refreshToken();
+          void ensureFreshSession();
         });
       }
 

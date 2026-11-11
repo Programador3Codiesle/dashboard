@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext, User } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import { mapLoginUser } from "../map-login-user";
+import { SESSION_EXPIRED_EVENT } from "../session-status";
 import { setUser, getUser, removeUser, removeCookie, getRememberSession } from "@/utils/cookies";
 import { withNextBasePath } from "@/config/next-base-path";
 
@@ -117,6 +118,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             }
         }
     }, [queryClient]);
+
+    useEffect(() => {
+        const onSessionExpired = () => {
+            void logout();
+        };
+        window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+        return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    }, [logout]);
 
     useEffect(() => {
         const updateActivity = () => {
