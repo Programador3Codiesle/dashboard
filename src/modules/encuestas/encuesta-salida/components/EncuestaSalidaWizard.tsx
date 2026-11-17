@@ -473,22 +473,29 @@ export function EncuestaSalidaWizard() {
                         label: '9-10',
                         cls: 'border-[var(--color-success)] text-[var(--color-success)]',
                       },
-                    ].map((opt) => (
-                      <button
-                        key={opt.v}
-                        type="button"
-                        className={`w-full rounded border-2 px-3 py-2 sm:w-auto ${opt.cls} ${
-                          answers[`pregunta${p.id}`] === opt.v
-                            ? 'bg-slate-100 font-bold'
-                            : ''
-                        }`}
-                        onClick={() =>
-                          setAnswers((a) => ({ ...a, [`pregunta${p.id}`]: opt.v }))
-                        }
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                    ].map((opt) => {
+                      const selected = answers[`pregunta${p.id}`] === opt.v;
+                      return (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          aria-pressed={selected}
+                          className={`w-full rounded border-2 px-3 py-2 sm:w-auto ${
+                            selected
+                              ? 'border-[var(--color-info)] bg-[var(--color-info)] font-bold text-white'
+                              : opt.cls
+                          }`}
+                          onClick={() =>
+                            setAnswers((a) => ({
+                              ...a,
+                              [`pregunta${p.id}`]: opt.v,
+                            }))
+                          }
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 {p.tipo === 'sn' && (

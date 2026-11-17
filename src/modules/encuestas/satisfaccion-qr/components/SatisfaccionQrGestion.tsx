@@ -43,18 +43,24 @@ function ScaleButtons({
 }) {
   return (
     <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
-      {ESCALA_NPS.map((opt) => (
-        <button
-          key={opt.v}
-          type="button"
-          className={`w-full rounded border-2 px-3 py-2 text-sm sm:w-auto ${opt.cls} ${
-            value === opt.v ? 'bg-slate-100 font-bold' : ''
-          }`}
-          onClick={() => onChange(opt.v)}
-        >
-          {opt.label}
-        </button>
-      ))}
+      {ESCALA_NPS.map((opt) => {
+        const selected = value === opt.v;
+        return (
+          <button
+            key={opt.v}
+            type="button"
+            aria-pressed={selected}
+            className={`w-full rounded border-2 px-3 py-2 text-sm sm:w-auto ${
+              selected
+                ? 'border-[var(--color-info)] bg-[var(--color-info)] font-bold text-white'
+                : opt.cls
+            }`}
+            onClick={() => onChange(opt.v)}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
