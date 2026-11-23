@@ -148,7 +148,7 @@ export const encuestasService = {
     pregunta4?: string;
     pregunta5?: string;
     pregunta7: string;
-  }): Promise<{ ok: boolean; message: string }> {
+  }): Promise<{ ok: boolean; message: string; sinOrdenPendiente?: boolean }> {
     const resp = await fetchWithAuth(`${BASE}/satisfaccion-qr/ventanilla`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

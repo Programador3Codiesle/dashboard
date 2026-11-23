@@ -75,7 +75,8 @@ export function EncuestaSalidaWizard() {
       const data = await encuestaQrService.buscarPlaca(placa.trim().toUpperCase());
       if (data.response !== 'success') {
         setError(
-          `El vehículo de placa ${placa} no se encuentra disponible para generar la orden de salida.`,
+          data.message ??
+            `No hay una orden pendiente para la placa ${placa.trim().toUpperCase()}. Verifique la placa o acérquese al personal del taller.`,
         );
         setStep('placa');
         return;
@@ -264,7 +265,7 @@ export function EncuestaSalidaWizard() {
       </div>
 
       {(error || preguntasQuery.isError) && (
-        <div className="mb-4 rounded-md border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] px-3 py-2 text-sm text-[var(--color-danger)]">
+        <div className="mb-4 break-words rounded-md border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] px-3 py-2 text-sm text-[var(--color-danger)]">
           {error ||
             getErrorMessage(preguntasQuery.error, ENCUESTAS_COPY.qr.loadError)}
         </div>

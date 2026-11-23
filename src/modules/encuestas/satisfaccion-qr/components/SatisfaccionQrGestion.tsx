@@ -112,9 +112,11 @@ export function SatisfaccionQrGestion({
   const [pregunta4, setPregunta4] = useState('');
   const [pregunta5, setPregunta5] = useState('');
   const [pregunta7, setPregunta7] = useState('');
-  const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(
-    null,
-  );
+  const [feedback, setFeedback] = useState<{
+    ok: boolean;
+    message: string;
+    sinOrdenPendiente?: boolean;
+  } | null>(null);
 
   const placaNormalizada = placa.trim().toUpperCase();
 
@@ -213,9 +215,11 @@ export function SatisfaccionQrGestion({
         {feedback ? (
           <div
             className={`rounded-md px-3 py-2 text-center text-sm ${
-              feedback.ok
-                ? 'border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
-                : 'border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] text-[var(--color-danger)]'
+              !feedback.ok
+                ? 'border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] text-[var(--color-danger)]'
+                : feedback.sinOrdenPendiente
+                  ? 'border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] text-gray-800'
+                  : 'border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
             }`}
           >
             {feedback.message}

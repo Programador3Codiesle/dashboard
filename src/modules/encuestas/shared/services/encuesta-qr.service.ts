@@ -21,6 +21,7 @@ export type PreguntaQr = {
 
 export type VehiculoQr = {
   response: 'success' | 'error';
+  message?: string;
   numero?: string;
   bodega?: string | number | null;
   placa?: string;
