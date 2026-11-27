@@ -17,17 +17,6 @@ import { encuestasService } from '@/modules/encuestas/shared/services/encuestas.
 import { getErrorMessage } from '@/modules/encuestas/shared/utils/parse-api-error';
 import { SATISFACCION_QR_SUBMENU_ID } from '@/utils/constants';
 
-const TALLERES_QR = [
-  { value: '1', label: 'GASOLINA GIRON' },
-  { value: '11', label: 'DIESEL GIRON' },
-  { value: '21', label: 'LAMINA Y PINTURA GIRON' },
-  { value: '6', label: 'GASOLINA BARRANCA' },
-  { value: '7', label: 'GASOLINA ROSITA' },
-  { value: '8', label: 'GASOLINA BOCONO' },
-  { value: '16', label: 'DIESEL BOCONO' },
-  { value: '14', label: 'LAMINA Y PINTURA BOCONO' },
-] as const;
-
 const ESCALA_NPS = [
   { v: '6', label: '0-6', cls: 'border-[var(--color-danger)] text-[var(--color-danger)]' },
   { v: '8', label: '7-8', cls: 'border-[var(--color-warning)] text-[var(--color-warning)]' },
@@ -104,7 +93,6 @@ export function SatisfaccionQrGestion({
   const { user, blocked } = useEncuestasPageGuard(submenuId, { redirectTo });
   const sesionLista = !!user && !blocked;
 
-  const [bodega, setBodega] = useState('0');
   const [placa, setPlaca] = useState('');
   const [placaDebounced, setPlacaDebounced] = useState('');
   const [pregunta2, setPregunta2] = useState('10');
@@ -115,7 +103,6 @@ export function SatisfaccionQrGestion({
   const [feedback, setFeedback] = useState<{
     ok: boolean;
     message: string;
-    sinOrdenPendiente?: boolean;
   } | null>(null);
 
   const placaNormalizada = placa.trim().toUpperCase();
@@ -148,7 +135,6 @@ export function SatisfaccionQrGestion({
   const submitMutation = useMutation({
     mutationFn: () =>
       encuestasService.responderQrVentanilla({
-        bodega,
         placa: placa.trim().toUpperCase(),
         pregunta2,
         pregunta3,
@@ -159,7 +145,6 @@ export function SatisfaccionQrGestion({
     onSuccess: (r) => {
       setFeedback(r);
       if (r.ok) {
-        setBodega('0');
         setPlaca('');
         setPlacaDebounced('');
         setPregunta2('10');
@@ -179,7 +164,7 @@ export function SatisfaccionQrGestion({
 
   function enviar() {
     setFeedback(null);
-    if (bodega === '' || bodega === '0' || !placa.trim() || !pregunta7.trim()) {
+    if (!placa.trim() || !pregunta7.trim()) {
       setFeedback({
         ok: false,
         message: ENCUESTAS_COPY.satisfaccionQr.fieldsRequired,
@@ -217,31 +202,14 @@ export function SatisfaccionQrGestion({
             className={`rounded-md px-3 py-2 text-center text-sm ${
               !feedback.ok
                 ? 'border border-[color-mix(in_srgb,var(--color-danger)_20%,white)] bg-[var(--color-danger-soft)] text-[var(--color-danger)]'
-                : feedback.sinOrdenPendiente
-                  ? 'border border-[color-mix(in_srgb,var(--color-warning)_40%,white)] bg-[var(--color-warning-soft)] text-gray-800'
-                  : 'border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
+                : 'border border-[color-mix(in_srgb,var(--color-success)_25%,white)] bg-[var(--color-success-soft)] text-[var(--color-success)]'
             }`}
           >
             {feedback.message}
           </div>
         ) : null}
 
-        <div className="app-form-grid-2">
-          <label className="w-full min-w-0 text-sm">
-            Ingrese el Taller
-            <select
-              className={`mt-1 ${inputClass}`}
-              value={bodega}
-              onChange={(e) => setBodega(e.target.value)}
-            >
-              <option value="0">Seleccione un taller</option>
-              {TALLERES_QR.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div>
           <label className="w-full min-w-0 text-sm">
             Ingrese La Placa
             <input

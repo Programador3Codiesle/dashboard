@@ -25,7 +25,7 @@ export const INFORMES_COPY = {
   qrTaller: {
     title: 'Informes QR taller',
     description:
-      'Carga de encuesta QR por ventanilla: taller, placa y calificación.',
+      'Carga de encuesta QR por ventanilla. La bodega se toma de la orden pendiente.',
   },
   backRoot: '← Volver a Informes',
   backGh: '← Volver a Gestión Humana',

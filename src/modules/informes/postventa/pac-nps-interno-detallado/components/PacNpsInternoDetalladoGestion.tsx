@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import {
   pacNpsInternoDetalladoService,
@@ -21,11 +21,35 @@ import { INFORMES_COPY, INFORMES_PV_TRIMENU } from '@/modules/informes/constants
 import { informesKeys } from '@/modules/informes/shared/constants/query-keys';
 import { useInformesPageGuard } from '@/modules/informes/shared/hooks/useInformesPageGuard';
 
+const MESES = [
+  { value: '01', label: 'Enero' },
+  { value: '02', label: 'Febrero' },
+  { value: '03', label: 'Marzo' },
+  { value: '04', label: 'Abril' },
+  { value: '05', label: 'Mayo' },
+  { value: '06', label: 'Junio' },
+  { value: '07', label: 'Julio' },
+  { value: '08', label: 'Agosto' },
+  { value: '09', label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' },
+] as const;
+
+const ANIO_INICIAL = 2020;
+
 function getDefaultMonth() {
   const now = new Date();
   const year = now.getFullYear();
   const month = `${now.getMonth() + 1}`.padStart(2, '0');
   return `${year}-${month}`;
+}
+
+function aniosDisponibles(): number[] {
+  const actual = new Date().getFullYear();
+  const anios: number[] = [];
+  for (let anio = actual; anio >= ANIO_INICIAL; anio -= 1) anios.push(anio);
+  return anios;
 }
 
 function formatNps(value: unknown): string {
@@ -87,6 +111,8 @@ export function PacNpsInternoDetalladoGestion() {
   } | null>(null);
   const [modalTecnico, setModalTecnico] = useState<string | null>(null);
   const { showError, showInfo } = useToast();
+  const queryClient = useQueryClient();
+  const [anioSeleccionado, mesSeleccionado] = month.split('-');
 
   const {
     data: resumen,
@@ -156,10 +182,16 @@ export function PacNpsInternoDetalladoGestion() {
       showInfo('Seleccione un año y mes para realizar la búsqueda.');
       return;
     }
+    if (consultaFecha === month) {
+      void queryClient.refetchQueries({
+        queryKey: ['informes', 'pv', 'pac-nps-detallado'],
+      });
+      return;
+    }
     setConsultaFecha(month);
     setBodegaSel(null);
     setModalTecnico(null);
-  }, [month, showInfo]);
+  }, [month, consultaFecha, queryClient, showInfo]);
 
   const onSelectBodega = useCallback((bodega: number, descripcion: string) => {
     setBodegaSel({ id: bodega, descripcion });
@@ -255,12 +287,32 @@ export function PacNpsInternoDetalladoGestion() {
         <div className="app-form-grid-3">
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1">Año y mes</p>
-            <input
-              type="month"
-              className="w-full rounded-md border border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
-              value={month}
-              onChange={(e) => setMonth(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <select
+                aria-label="Mes"
+                className="w-full rounded-md border border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+                value={mesSeleccionado}
+                onChange={(e) => setMonth(`${anioSeleccionado}-${e.target.value}`)}
+              >
+                {MESES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Año"
+                className="w-28 rounded-md border border-gray-300 text-sm px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--color-primary]"
+                value={anioSeleccionado}
+                onChange={(e) => setMonth(`${e.target.value}-${mesSeleccionado}`)}
+              >
+                {aniosDisponibles().map((anio) => (
+                  <option key={anio} value={anio}>
+                    {anio}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <button
@@ -417,8 +469,11 @@ export function PacNpsInternoDetalladoGestion() {
                   Cargando encuestas…
                 </div>
               ) : encuestasModal?.length ? (
-                encuestasModal.map((item: PacNpsEncuestaTecnico) => (
-                  <PacNpsEncuestaDetalleBlock key={`${item.numero}-${item.nombres}`} item={item} />
+                encuestasModal.map((item: PacNpsEncuestaTecnico, index) => (
+                  <PacNpsEncuestaDetalleBlock
+                    key={`${item.numero}-${item.nombres ?? ''}-${index}`}
+                    item={item}
+                  />
                 ))
               ) : (
                 <p className="text-center text-gray-600 py-8">No se encontró información.</p>

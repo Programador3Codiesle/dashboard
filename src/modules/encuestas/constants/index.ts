@@ -37,7 +37,7 @@ export const ENCUESTAS_COPY = {
   satisfaccionQr: {
     title: 'Satisfacción QR',
     description:
-      'Carga de encuesta QR por ventanilla: taller, placa y calificación',
+      'Carga de encuesta QR por ventanilla. La bodega se toma de la orden pendiente.',
     backLabel: '← Volver a Encuestas',
     loadError: 'Error al validar la placa',
     submitError: 'Error al Cargar La Encuesta',
